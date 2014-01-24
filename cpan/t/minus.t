@@ -129,38 +129,42 @@ Marpa::R2::Test::is( $grammar->show_rules,
 END_RULES
 
 Marpa::R2::Test::is( $grammar->show_ahms,
-    <<'END_AHFA', 'Minuses Equation AHFA' );
-* S0:
-E['] -> . E
-* S1: predict
-E -> . E Minus E
-E -> . E MinusMinus
-E -> . MinusMinus E
-E -> . Minus E
-E -> . Number
-* S2:
-E -> E . Minus E
-* S3:
-E -> E Minus . E
-* S4:
-E -> E Minus E .
-* S5:
-E -> E . MinusMinus
-* S6:
-E -> E MinusMinus .
-* S7:
-E -> MinusMinus . E
-* S8:
-E -> MinusMinus E .
-* S9:
-E -> Minus . E
-* S10:
-E -> Minus E .
-* S11:
-E -> Number .
-* S12:
-E['] -> E .
-END_AHFA
+    <<'END_AHMS', 'Minuses Equation AHMs' );
+AHM 0: postdot = "E"
+    E ::= . E Minus E
+AHM 1: postdot = "Minus"
+    E ::= E . Minus E
+AHM 2: postdot = "E"
+    E ::= E Minus . E
+AHM 3: completion
+    E ::= E Minus E .
+AHM 4: postdot = "E"
+    E ::= . E MinusMinus
+AHM 5: postdot = "MinusMinus"
+    E ::= E . MinusMinus
+AHM 6: completion
+    E ::= E MinusMinus .
+AHM 7: postdot = "MinusMinus"
+    E ::= . MinusMinus E
+AHM 8: postdot = "E"
+    E ::= MinusMinus . E
+AHM 9: completion
+    E ::= MinusMinus E .
+AHM 10: postdot = "Minus"
+    E ::= . Minus E
+AHM 11: postdot = "E"
+    E ::= Minus . E
+AHM 12: completion
+    E ::= Minus E .
+AHM 13: postdot = "Number"
+    E ::= . Number
+AHM 14: completion
+    E ::= Number .
+AHM 15: postdot = "E"
+    E['] ::= . E
+AHM 16: completion
+    E['] ::= E .
+END_AHMS
 
 my %expected = map { ( $_ => 1 ) } (
     #<<< no perltidy

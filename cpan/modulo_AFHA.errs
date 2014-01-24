@@ -33,89 +33,9 @@ t/leo2.t ............... ok
 t/leo3.t ............... ok
 t/leo_cycle.t .......... ok
 t/leo_example.t ........ ok
-
-#   Failed test 'Leo166 AHFA'
-#   at t/leo_unit.t line 72.
-# +---+-----------------------+---+---------------+
-# | Ln|Got                    | Ln|Expected       |
-# +---+-----------------------+---+---------------+
-# *  1|'AHM 0: postdot = "a"  *  1|'* S0:         *
-# *  2|    A ::= . a B        *  2|A[\'] -> . A   *
-# *  3|AHM 1: postdot = "B"   *  3|* S1: predict  *
-# *  4|    A ::= a . B        *  4|A -> . a B     *
-# *  5|AHM 2: completion      *  5|* S2:          *
-# *  6|    A ::= a B .        *  6|A -> a . B     *
-# *  7|AHM 3: postdot = "C"   *  7|* S3: predict  *
-# *  8|    B ::= . C          *  8|B -> . C       *
-# *  9|AHM 4: completion      *  9|C -> . c A     *
-# * 10|    B ::= C .          * 10|C -> . c       *
-# * 11|AHM 5: postdot = "c"   * 11|* S4:          *
-# * 12|    C ::= . c A        * 12|A -> a B .     *
-# * 13|AHM 6: postdot = "A"   * 13|* S5:          *
-# * 14|    C ::= c . A        * 14|B -> C .       *
-# * 15|AHM 7: completion      * 15|* S6:          *
-# * 16|    C ::= c A .        * 16|C -> c . A     *
-# * 17|AHM 8: postdot = "c"   * 17|* S7:          *
-# * 18|    C ::= . c          * 18|C -> c A .     *
-# * 19|AHM 9: completion      * 19|* S8:          *
-# * 20|    C ::= c .          * 20|C -> c .       *
-# * 21|AHM 10: postdot = "A"  * 21|* S9:          *
-# * 22|    A[\'] ::= . A      * 22|A[\'] -> A .   *
-# * 23|AHM 11: completion     *   |               |
-# * 24|    A[\'] ::= A .      *   |               |
-# | 25|'                      | 23|'              |
-# +---+-----------------------+---+---------------+
-# Looks like you failed 1 test of 7.
-t/leo_unit.t ........... 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/7 subtests 
+t/leo_unit.t ........... ok
 t/limits.t ............. ok
-
-#   Failed test 'Minuses Equation AHFA'
-#   at t/minus.t line 131.
-# +---+-------------------------------+---+---------------------+
-# | Ln|Got                            | Ln|Expected             |
-# +---+-------------------------------+---+---------------------+
-# *  1|'AHM 0: postdot = "E"          *  1|'* S0:               *
-# *  2|    E ::= . E Minus E          *  2|E[\'] -> . E         *
-# *  3|AHM 1: postdot = "Minus"       *  3|* S1: predict        *
-# *  4|    E ::= E . Minus E          *  4|E -> . E Minus E     *
-# *  5|AHM 2: postdot = "E"           *  5|E -> . E MinusMinus  *
-# *  6|    E ::= E Minus . E          *  6|E -> . MinusMinus E  *
-# *  7|AHM 3: completion              *  7|E -> . Minus E       *
-# *  8|    E ::= E Minus E .          *  8|E -> . Number        *
-# *  9|AHM 4: postdot = "E"           *  9|* S2:                *
-# * 10|    E ::= . E MinusMinus       * 10|E -> E . Minus E     *
-# * 11|AHM 5: postdot = "MinusMinus"  * 11|* S3:                *
-# * 12|    E ::= E . MinusMinus       * 12|E -> E Minus . E     *
-# * 13|AHM 6: completion              * 13|* S4:                *
-# * 14|    E ::= E MinusMinus .       * 14|E -> E Minus E .     *
-# * 15|AHM 7: postdot = "MinusMinus"  * 15|* S5:                *
-# * 16|    E ::= . MinusMinus E       * 16|E -> E . MinusMinus  *
-# * 17|AHM 8: postdot = "E"           * 17|* S6:                *
-# * 18|    E ::= MinusMinus . E       * 18|E -> E MinusMinus .  *
-# * 19|AHM 9: completion              * 19|* S7:                *
-# * 20|    E ::= MinusMinus E .       * 20|E -> MinusMinus . E  *
-# * 21|AHM 10: postdot = "Minus"      * 21|* S8:                *
-# * 22|    E ::= . Minus E            * 22|E -> MinusMinus E .  *
-# * 23|AHM 11: postdot = "E"          * 23|* S9:                *
-# * 24|    E ::= Minus . E            * 24|E -> Minus . E       *
-# * 25|AHM 12: completion             * 25|* S10:               *
-# * 26|    E ::= Minus E .            * 26|E -> Minus E .       *
-# * 27|AHM 13: postdot = "Number"     * 27|* S11:               *
-# * 28|    E ::= . Number             * 28|E -> Number .        *
-# * 29|AHM 14: completion             * 29|* S12:               *
-# * 30|    E ::= Number .             * 30|E[\'] -> E .         *
-# * 31|AHM 15: postdot = "E"          *   |                     |
-# * 32|    E[\'] ::= . E              *   |                     |
-# * 33|AHM 16: completion             *   |                     |
-# * 34|    E[\'] ::= E .              *   |                     |
-# | 35|'                              | 31|'                    |
-# +---+-------------------------------+---+---------------------+
-# Looks like you failed 1 test of 10.
-t/minus.t .............. 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/10 subtests 
+t/minus.t .............. ok
 t/naif.t ............... ok
 t/null_example.t ....... ok
 t/null_infinite1.t ..... ok
@@ -348,18 +268,12 @@ html/t/tang.t .......... ok
 
 Test Summary Report
 -------------------
-t/leo_unit.t         (Wstat: 256 Tests: 7 Failed: 1)
-  Failed test:  3
-  Non-zero exit status: 1
-t/minus.t            (Wstat: 256 Tests: 10 Failed: 1)
-  Failed test:  2
-  Non-zero exit status: 1
 t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
   Failed tests:  17, 23
   Non-zero exit status: 2
 t/sl_gif1.t          (Wstat: 768 Tests: 22 Failed: 3)
   Failed tests:  17, 19, 21
   Non-zero exit status: 3
-Files=103, Tests=967, 48 wallclock secs ( 0.75 usr  0.31 sys + 44.22 cusr  2.12 csys = 47.40 CPU)
+Files=103, Tests=967, 47 wallclock secs ( 0.79 usr  0.26 sys + 43.99 cusr  2.32 csys = 47.36 CPU)
 Result: FAIL
-Failed 4/103 test programs. 7/967 subtests failed.
+Failed 2/103 test programs. 5/967 subtests failed.

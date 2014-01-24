@@ -69,29 +69,31 @@ Marpa::R2::Test::is( $grammar->show_rules,
 END_OF_STRING
 
 
-Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo166 AHFA' );
-* S0:
-A['] -> . A
-* S1: predict
-A -> . a B
-* S2:
-A -> a . B
-* S3: predict
-B -> . C
-C -> . c A
-C -> . c
-* S4:
-A -> a B .
-* S5:
-B -> C .
-* S6:
-C -> c . A
-* S7:
-C -> c A .
-* S8:
-C -> c .
-* S9:
-A['] -> A .
+Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo166 AHMs' );
+AHM 0: postdot = "a"
+    A ::= . a B
+AHM 1: postdot = "B"
+    A ::= a . B
+AHM 2: completion
+    A ::= a B .
+AHM 3: postdot = "C"
+    B ::= . C
+AHM 4: completion
+    B ::= C .
+AHM 5: postdot = "c"
+    C ::= . c A
+AHM 6: postdot = "A"
+    C ::= c . A
+AHM 7: completion
+    C ::= c A .
+AHM 8: postdot = "c"
+    C ::= . c
+AHM 9: completion
+    C ::= c .
+AHM 10: postdot = "A"
+    A['] ::= . A
+AHM 11: completion
+    A['] ::= A .
 END_OF_STRING
 
 my $input = 'acacac';
