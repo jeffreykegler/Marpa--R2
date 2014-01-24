@@ -70,32 +70,33 @@ Marpa::R2::Test::is( $grammar->show_rules,
 4: S -> /* empty !used */
 END_OF_STRING
 
-Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo166 AHFA' );
-* S0:
-S['] -> . S
-* S1: predict
-S -> . a A
-S -> . a A[]
-* S2:
-S -> a . A
-* S3: predict
-S -> . a A
-S -> . a A[]
-A -> . B
-B -> . C
-C -> . S
-* S4:
-S -> a A .
-* S5:
-S -> a A[] .
-* S6:
-A -> B .
-* S7:
-B -> C .
-* S8:
-C -> S .
-* S9:
-S['] -> S .
+Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo166 AHMs' );
+AHM 0: postdot = "a"
+    S ::= . a A
+AHM 1: postdot = "A"
+    S ::= a . A
+AHM 2: completion
+    S ::= a A .
+AHM 3: postdot = "a"
+    S ::= . a A[]
+AHM 4: completion
+    S ::= a A[] .
+AHM 5: postdot = "B"
+    A ::= . B
+AHM 6: completion
+    A ::= B .
+AHM 7: postdot = "C"
+    B ::= . C
+AHM 8: completion
+    B ::= C .
+AHM 9: postdot = "S"
+    C ::= . S
+AHM 10: completion
+    C ::= S .
+AHM 11: postdot = "S"
+    S['] ::= . S
+AHM 12: completion
+    S['] ::= S .
 END_OF_STRING
 
 my $length = 20;
@@ -118,7 +119,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     # Note that the length formula only works
     # beginning with Earley set c, for some small
     # constant c
-    my $expected_size = $leo_flag ? 5 : ( $length - 1 ) * 4 + 4;
+    my $expected_size = $leo_flag ? 9 : ( $length - 1 ) * 4 + 8;
     Marpa::R2::Test::is( $max_size, $expected_size,
         "Leo flag $leo_flag, size $max_size" );
 

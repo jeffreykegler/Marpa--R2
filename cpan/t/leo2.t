@@ -68,9 +68,9 @@ AHM 3: postdot = "a"
 AHM 4: completion
     S ::= a S[] .
 AHM 5: postdot = "S"
-    S[\'] ::= . S
+    S['] ::= . S
 AHM 6: completion
-    S[\'] ::= S .
+    S['] ::= S .
 END_OF_STRING
 
 my $length = 50;
