@@ -15044,6 +15044,7 @@ PRIVATE_NOT_INLINE void*
 marpa__default_out_of_memory(void)
 {
     abort();
+    return NULL; // to prevent warnings on some compilers
 }
 void* (* const marpa__out_of_memory)(void) = marpa__default_out_of_memory;
 
