@@ -56,20 +56,21 @@ Marpa::R2::Test::is( $grammar->show_rules,
 1: S -> /* empty !used */
 END_OF_STRING
 
-Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo166 AHFA' );
-* S0:
-S['] -> . S
-* S1: predict
-S -> . a S
-S -> . a S[]
-* S2:
-S -> a . S
-* S3:
-S -> a S .
-* S4:
-S -> a S[] .
-* S5:
-S['] -> S .
+Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo166 AHMs' );
+AHM 0: postdot = "a"
+    S ::= . a S
+AHM 1: postdot = "S"
+    S ::= a . S
+AHM 2: completion
+    S ::= a S .
+AHM 3: postdot = "a"
+    S ::= . a S[]
+AHM 4: completion
+    S ::= a S[] .
+AHM 5: postdot = "S"
+    S[\'] ::= . S
+AHM 6: completion
+    S[\'] ::= S .
 END_OF_STRING
 
 my $length = 50;
@@ -78,7 +79,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     my $recce = Marpa::R2::Recognizer->new(
         { grammar => $grammar, leo => $leo_flag } );
 
-    my $i                 = 0;
+    my $i = 0;
 
 # Marpa::R2::Display
 # name: latest_earley_set() Synopsis
@@ -95,7 +96,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
         $max_size = $size > $max_size ? $size : $max_size;
     } ## end while ( $i++ < $length )
 
-    my $expected_size = $leo_flag ? 5 : $length + 3;
+    my $expected_size = $leo_flag ? 6 : $length + 4;
     Marpa::R2::Test::is( $max_size, $expected_size,
         "Leo flag $leo_flag, size" );
 

@@ -28,92 +28,33 @@ t/infinite2.t .......... ok
 t/infinite_plex.t ...... ok
 t/initial_nulls.t ...... ok
 t/jirotka.t ............ ok
+t/leo.t ................ ok
 
-#   Failed test 'Leo168 AHFA'
-#   at t/leo.t line 81.
-# +---+-----------------------+---+----------------+
-# | Ln|Got                    | Ln|Expected        |
-# +---+-----------------------+---+----------------+
-# *  1|'AHM 0: postdot = "a"  *  1|'* S0:          *
-# *  2|    S ::= . a S        *  2|S[\'] -> . S    *
-# *  3|AHM 1: postdot = "S"   *  3|* S1: predict   *
-# *  4|    S ::= a . S        *  4|S -> . a S      *
-# *  5|AHM 2: completion      *  5|S -> . a S[]    *
-# *  6|    S ::= a S .        *  6|S -> . C        *
-# *  7|AHM 3: postdot = "a"   *  7|C -> . a C b    *
-# *  8|    S ::= . a S[]      *  8|C -> . a C[] b  *
-# *  9|AHM 4: completion      *  9|* S2:           *
-# * 10|    S ::= a S[] .      * 10|S -> a . S      *
-# * 11|AHM 5: postdot = "C"   * 11|* S3:           *
-# * 12|    S ::= . C          * 12|S -> a S .      *
-# * 13|AHM 6: completion      * 13|* S4:           *
-# * 14|    S ::= C .          * 14|S -> a S[] .    *
-# * 15|AHM 7: postdot = "a"   * 15|* S5:           *
-# * 16|    C ::= . a C b      * 16|S -> C .        *
-# * 17|AHM 8: postdot = "C"   * 17|* S6:           *
-# * 18|    C ::= a . C b      * 18|C -> a . C b    *
-# * 19|AHM 9: postdot = "b"   * 19|* S7: predict   *
-# * 20|    C ::= a C . b      * 20|C -> . a C b    *
-# * 21|AHM 10: completion     * 21|C -> . a C[] b  *
-# * 22|    C ::= a C b .      * 22|* S8:           *
-# * 23|AHM 11: postdot = "a"  * 23|C -> a C . b    *
-# * 24|    C ::= . a C[] b    * 24|* S9:           *
-# * 25|AHM 12: postdot = "b"  * 25|C -> a C b .    *
-# * 26|    C ::= a C[] . b    * 26|* S10:          *
-# * 27|AHM 13: completion     * 27|C -> a C[] . b  *
-# * 28|    C ::= a C[] b .    * 28|* S11:          *
-# * 29|AHM 14: postdot = "S"  * 29|C -> a C[] b .  *
-# * 30|    S[\'] ::= . S      * 30|* S12:          *
-# * 31|AHM 15: completion     * 31|S[\'] -> S .    *
-# * 32|    S[\'] ::= S .      *   |                |
-# | 33|'                      | 32|'               |
-# +---+-----------------------+---+----------------+
-# Looks like you failed 1 test of 17.
-t/leo.t ................ 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/17 subtests 
-
-#   Failed test 'Leo166 AHFA'
+#   Failed test 'Leo166 AHMs'
 #   at t/leo2.t line 59.
-# +---+-----------------------+---+---------------+
-# | Ln|Got                    | Ln|Expected       |
-# +---+-----------------------+---+---------------+
-# *  1|'AHM 0: postdot = "a"  *  1|'* S0:         *
-# *  2|    S ::= . a S        *  2|S[\'] -> . S   *
-# *  3|AHM 1: postdot = "S"   *  3|* S1: predict  *
-# *  4|    S ::= a . S        *  4|S -> . a S     *
-# *  5|AHM 2: completion      *  5|S -> . a S[]   *
-# *  6|    S ::= a S .        *  6|* S2:          *
-# *  7|AHM 3: postdot = "a"   *  7|S -> a . S     *
-# *  8|    S ::= . a S[]      *  8|* S3:          *
-# *  9|AHM 4: completion      *  9|S -> a S .     *
-# * 10|    S ::= a S[] .      * 10|* S4:          *
-# * 11|AHM 5: postdot = "S"   * 11|S -> a S[] .   *
-# * 12|    S[\'] ::= . S      * 12|* S5:          *
-# * 13|AHM 6: completion      * 13|S[\'] -> S .   *
-# * 14|    S[\'] ::= S .      *   |               |
-# | 15|'                      | 14|'              |
-# +---+-----------------------+---+---------------+
-
-#   Failed test 'Leo flag 0, size'
-#   at t/leo2.t line 99.
-# +---+-----+----------+
-# | Ln|Got  |Expected  |
-# +---+-----+----------+
-# *  1|54   |53        *
-# +---+-----+----------+
-
-#   Failed test 'Leo flag 1, size'
-#   at t/leo2.t line 99.
-# +---+-----+----------+
-# | Ln|Got  |Expected  |
-# +---+-----+----------+
-# *  1|6    |5         *
-# +---+-----+----------+
-# Looks like you failed 3 tests of 9.
+# +---+-----------------------+-----------------------+
+# | Ln|Got                    |Expected               |
+# +---+-----------------------+-----------------------+
+# |  1|'AHM 0: postdot = "a"  |'AHM 0: postdot = "a"  |
+# |  2|    S ::= . a S        |    S ::= . a S        |
+# |  3|AHM 1: postdot = "S"   |AHM 1: postdot = "S"   |
+# |  4|    S ::= a . S        |    S ::= a . S        |
+# |  5|AHM 2: completion      |AHM 2: completion      |
+# |  6|    S ::= a S .        |    S ::= a S .        |
+# |  7|AHM 3: postdot = "a"   |AHM 3: postdot = "a"   |
+# |  8|    S ::= . a S[]      |    S ::= . a S[]      |
+# |  9|AHM 4: completion      |AHM 4: completion      |
+# | 10|    S ::= a S[] .      |    S ::= a S[] .      |
+# | 11|AHM 5: postdot = "S"   |AHM 5: postdot = "S"   |
+# * 12|    S[\'] ::= . S      |    S[\\\'] ::= . S    *
+# | 13|AHM 6: completion      |AHM 6: completion      |
+# * 14|    S[\'] ::= S .      |    S[\\\'] ::= S .    *
+# | 15|'                      |'                      |
+# +---+-----------------------+-----------------------+
+# Looks like you failed 1 test of 9.
 t/leo2.t ............... 
-Dubious, test returned 3 (wstat 768, 0x300)
-Failed 3/9 subtests 
+Dubious, test returned 1 (wstat 256, 0x100)
+Failed 1/9 subtests 
 
 #   Failed test 'Leo166 AHFA'
 #   at t/leo3.t line 73.
@@ -1694,12 +1635,9 @@ html/t/tang.t .......... ok
 
 Test Summary Report
 -------------------
-t/leo.t              (Wstat: 256 Tests: 17 Failed: 1)
+t/leo2.t             (Wstat: 256 Tests: 9 Failed: 1)
   Failed test:  3
   Non-zero exit status: 1
-t/leo2.t             (Wstat: 768 Tests: 9 Failed: 3)
-  Failed tests:  3-4, 6
-  Non-zero exit status: 3
 t/leo3.t             (Wstat: 768 Tests: 7 Failed: 3)
   Failed tests:  3-4, 6
   Non-zero exit status: 3
@@ -1721,6 +1659,6 @@ t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
 t/sl_gif1.t          (Wstat: 768 Tests: 22 Failed: 3)
   Failed tests:  17, 19, 21
   Non-zero exit status: 3
-Files=103, Tests=967, 48 wallclock secs ( 0.75 usr  0.33 sys + 44.37 cusr  2.44 csys = 47.89 CPU)
+Files=103, Tests=967, 47 wallclock secs ( 0.76 usr  0.32 sys + 44.40 cusr  2.34 csys = 47.82 CPU)
 Result: FAIL
-Failed 9/103 test programs. 19/967 subtests failed.
+Failed 8/103 test programs. 16/967 subtests failed.

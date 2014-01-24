@@ -78,38 +78,39 @@ Marpa::R2::Test::is( $grammar->show_rules,
 3: C -> /* empty !used */
 END_OF_STRING
 
-Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo168 AHFA' );
-* S0:
-S['] -> . S
-* S1: predict
-S -> . a S
-S -> . a S[]
-S -> . C
-C -> . a C b
-C -> . a C[] b
-* S2:
-S -> a . S
-* S3:
-S -> a S .
-* S4:
-S -> a S[] .
-* S5:
-S -> C .
-* S6:
-C -> a . C b
-* S7: predict
-C -> . a C b
-C -> . a C[] b
-* S8:
-C -> a C . b
-* S9:
-C -> a C b .
-* S10:
-C -> a C[] . b
-* S11:
-C -> a C[] b .
-* S12:
-S['] -> S .
+Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo168 AHMs' );
+AHM 0: postdot = "a"
+    S ::= . a S
+AHM 1: postdot = "S"
+    S ::= a . S
+AHM 2: completion
+    S ::= a S .
+AHM 3: postdot = "a"
+    S ::= . a S[]
+AHM 4: completion
+    S ::= a S[] .
+AHM 5: postdot = "C"
+    S ::= . C
+AHM 6: completion
+    S ::= C .
+AHM 7: postdot = "a"
+    C ::= . a C b
+AHM 8: postdot = "C"
+    C ::= a . C b
+AHM 9: postdot = "b"
+    C ::= a C . b
+AHM 10: completion
+    C ::= a C b .
+AHM 11: postdot = "a"
+    C ::= . a C[] b
+AHM 12: postdot = "b"
+    C ::= a C[] . b
+AHM 13: completion
+    C ::= a C[] b .
+AHM 14: postdot = "S"
+    S['] ::= . S
+AHM 15: completion
+    S['] ::= S .
 END_OF_STRING
 
 my %expected = (
