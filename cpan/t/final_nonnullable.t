@@ -66,54 +66,52 @@ END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_ahms,
     <<'END_OF_STRING', 'final nonnulling AHFA' );
-* S0:
-S['] -> . S
-* S1: predict
-S -> . p p S[R0:2]
-S -> . p p[] S[R0:2]
-S -> p[] . p S[R0:2]
-S -> p[] p[] . S[R0:2]
-S[R0:2] -> . p n
-S[R0:2] -> p[] . n
-p -> . a
-n -> . a
-* S2:
-S -> p . p S[R0:2]
-* S3: predict
-p -> . a
-* S4:
-S -> p p . S[R0:2]
-* S5: predict
-S[R0:2] -> . p n
-S[R0:2] -> p[] . n
-p -> . a
-n -> . a
-* S6:
-S -> p p S[R0:2] .
-* S7:
-S -> p p[] . S[R0:2]
-* S8:
-S -> p p[] S[R0:2] .
-* S9:
-S -> p[] p . S[R0:2]
-* S10:
-S -> p[] p S[R0:2] .
-* S11:
-S -> p[] p[] S[R0:2] .
-* S12:
-S[R0:2] -> p . n
-* S13: predict
-n -> . a
-* S14:
-S[R0:2] -> p n .
-* S15:
-S[R0:2] -> p[] n .
-* S16:
-p -> a .
-* S17:
-n -> a .
-* S18:
-S['] -> S .
+AHM 0: postdot = "p"
+    S ::= . p p S[R0:2]
+AHM 1: postdot = "p"
+    S ::= p . p S[R0:2]
+AHM 2: postdot = "S[R0:2]"
+    S ::= p p . S[R0:2]
+AHM 3: completion
+    S ::= p p S[R0:2] .
+AHM 4: postdot = "p"
+    S ::= . p p[] S[R0:2]
+AHM 5: postdot = "S[R0:2]"
+    S ::= p p[] . S[R0:2]
+AHM 6: completion
+    S ::= p p[] S[R0:2] .
+AHM 7: postdot = "p"
+    S ::= p[] . p S[R0:2]
+AHM 8: postdot = "S[R0:2]"
+    S ::= p[] p . S[R0:2]
+AHM 9: completion
+    S ::= p[] p S[R0:2] .
+AHM 10: postdot = "S[R0:2]"
+    S ::= p[] p[] . S[R0:2]
+AHM 11: completion
+    S ::= p[] p[] S[R0:2] .
+AHM 12: postdot = "p"
+    S[R0:2] ::= . p n
+AHM 13: postdot = "n"
+    S[R0:2] ::= p . n
+AHM 14: completion
+    S[R0:2] ::= p n .
+AHM 15: postdot = "n"
+    S[R0:2] ::= p[] . n
+AHM 16: completion
+    S[R0:2] ::= p[] n .
+AHM 17: postdot = "a"
+    p ::= . a
+AHM 18: completion
+    p ::= a .
+AHM 19: postdot = "a"
+    n ::= . a
+AHM 20: completion
+    n ::= a .
+AHM 21: postdot = "S"
+    S['] ::= . S
+AHM 22: completion
+    S['] ::= S .
 END_OF_STRING
 
 my @expected = map {

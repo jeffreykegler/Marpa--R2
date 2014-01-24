@@ -20,66 +20,7 @@ t/deprecated1.t ........ ok
 t/dsl.t ................ ok
 t/duplicate_parse.t .... ok
 t/equation.t ........... ok
-
-#   Failed test 'final nonnulling AHFA'
-#   at t/final_nonnullable.t line 67.
-# +---+-----------------------------+---+------------------------+
-# | Ln|Got                          | Ln|Expected                |
-# +---+-----------------------------+---+------------------------+
-# *  1|'AHM 0: postdot = "p"        *  1|'* S0:                  *
-# *  2|    S ::= . p p S[R0:2]      *  2|S[\'] -> . S            *
-# *  3|AHM 1: postdot = "p"         *  3|* S1: predict           *
-# *  4|    S ::= p . p S[R0:2]      *  4|S -> . p p S[R0:2]      *
-# *  5|AHM 2: postdot = "S[R0:2]"   *  5|S -> . p p[] S[R0:2]    *
-# *  6|    S ::= p p . S[R0:2]      *  6|S -> p[] . p S[R0:2]    *
-# *  7|AHM 3: completion            *  7|S -> p[] p[] . S[R0:2]  *
-# *  8|    S ::= p p S[R0:2] .      *  8|S[R0:2] -> . p n        *
-# *  9|AHM 4: postdot = "p"         *  9|S[R0:2] -> p[] . n      *
-# * 10|    S ::= . p p[] S[R0:2]    * 10|p -> . a                *
-# * 11|AHM 5: postdot = "S[R0:2]"   * 11|n -> . a                *
-# * 12|    S ::= p p[] . S[R0:2]    * 12|* S2:                   *
-# * 13|AHM 6: completion            * 13|S -> p . p S[R0:2]      *
-# * 14|    S ::= p p[] S[R0:2] .    * 14|* S3: predict           *
-# * 15|AHM 7: postdot = "p"         * 15|p -> . a                *
-# * 16|    S ::= p[] . p S[R0:2]    * 16|* S4:                   *
-# * 17|AHM 8: postdot = "S[R0:2]"   * 17|S -> p p . S[R0:2]      *
-# * 18|    S ::= p[] p . S[R0:2]    * 18|* S5: predict           *
-# * 19|AHM 9: completion            * 19|S[R0:2] -> . p n        *
-# * 20|    S ::= p[] p S[R0:2] .    * 20|S[R0:2] -> p[] . n      *
-# * 21|AHM 10: postdot = "S[R0:2]"  * 21|p -> . a                *
-# * 22|    S ::= p[] p[] . S[R0:2]  * 22|n -> . a                *
-# * 23|AHM 11: completion           * 23|* S6:                   *
-# * 24|    S ::= p[] p[] S[R0:2] .  * 24|S -> p p S[R0:2] .      *
-# * 25|AHM 12: postdot = "p"        * 25|* S7:                   *
-# * 26|    S[R0:2] ::= . p n        * 26|S -> p p[] . S[R0:2]    *
-# * 27|AHM 13: postdot = "n"        * 27|* S8:                   *
-# * 28|    S[R0:2] ::= p . n        * 28|S -> p p[] S[R0:2] .    *
-# * 29|AHM 14: completion           * 29|* S9:                   *
-# * 30|    S[R0:2] ::= p n .        * 30|S -> p[] p . S[R0:2]    *
-# * 31|AHM 15: postdot = "n"        * 31|* S10:                  *
-# * 32|    S[R0:2] ::= p[] . n      * 32|S -> p[] p S[R0:2] .    *
-# * 33|AHM 16: completion           * 33|* S11:                  *
-# * 34|    S[R0:2] ::= p[] n .      * 34|S -> p[] p[] S[R0:2] .  *
-# * 35|AHM 17: postdot = "a"        * 35|* S12:                  *
-# * 36|    p ::= . a                * 36|S[R0:2] -> p . n        *
-# * 37|AHM 18: completion           * 37|* S13: predict          *
-# * 38|    p ::= a .                * 38|n -> . a                *
-# * 39|AHM 19: postdot = "a"        * 39|* S14:                  *
-# * 40|    n ::= . a                * 40|S[R0:2] -> p n .        *
-# * 41|AHM 20: completion           * 41|* S15:                  *
-# * 42|    n ::= a .                * 42|S[R0:2] -> p[] n .      *
-# * 43|AHM 21: postdot = "S"        * 43|* S16:                  *
-# * 44|    S[\'] ::= . S            * 44|p -> a .                *
-# * 45|AHM 22: completion           * 45|* S17:                  *
-# * 46|    S[\'] ::= S .            * 46|n -> a .                *
-# |   |                             * 47|* S18:                  *
-# |   |                             * 48|S[\'] -> S .            *
-# | 47|'                            | 49|'                       |
-# +---+-----------------------------+---+------------------------+
-# Looks like you failed 1 test of 10.
-t/final_nonnullable.t .. 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/10 subtests 
+t/final_nonnullable.t .. ok
 t/gabend.t ............. ok
 
 #   Failed test 'Implementation Example AHFA'
@@ -2227,9 +2168,6 @@ html/t/tang.t .......... ok
 
 Test Summary Report
 -------------------
-t/final_nonnullable.t (Wstat: 256 Tests: 10 Failed: 1)
-  Failed test:  2
-  Non-zero exit status: 1
 t/implementation.t   (Wstat: 512 Tests: 8 Failed: 2)
   Failed tests:  4-5
   Non-zero exit status: 2
@@ -2264,6 +2202,6 @@ t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
 t/sl_gif1.t          (Wstat: 768 Tests: 22 Failed: 3)
   Failed tests:  17, 19, 21
   Non-zero exit status: 3
-Files=103, Tests=967, 48 wallclock secs ( 0.77 usr  0.32 sys + 44.81 cusr  2.25 csys = 48.15 CPU)
+Files=103, Tests=967, 48 wallclock secs ( 0.78 usr  0.32 sys + 45.39 cusr  2.28 csys = 48.77 CPU)
 Result: FAIL
-Failed 12/103 test programs. 24/967 subtests failed.
+Failed 11/103 test programs. 23/967 subtests failed.
