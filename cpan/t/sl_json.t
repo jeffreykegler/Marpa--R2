@@ -222,9 +222,9 @@ package MarpaX::JSON;
 sub new {
     my ($class) = @_;
 
-    my $self = bless {}, $class;
+    my $parser = bless {}, $class;
 
-    $self->{grammar} = Marpa::R2::Scanless::G->new(
+    $parser->{grammar} = Marpa::R2::Scanless::G->new(
         {
             source         => \(<<'END_OF_SOURCE'),
 :default ::= action => ::first
@@ -295,17 +295,17 @@ END_OF_SOURCE
 
         }
     );
-    return $self;
+    return $parser;
 }
 
 sub parse {
-    my ( $self, $string ) = @_;
+    my ( $parser, $string ) = @_;
 
 # Marpa::R2::Display
 # name: SLIF read/resume example
 
     my $re = Marpa::R2::Scanless::R->new(
-        {   grammar           => $self->{grammar},
+        {   grammar           => $parser->{grammar},
             semantics_package => 'MarpaX::JSON::Actions'
         }
     );
@@ -330,18 +330,18 @@ sub parse {
 } ## end sub parse
 
 sub parse_json {
-    my ($self, $string) = @_;
-    return $self->parse($string);
+    my ($parser, $string) = @_;
+    return $parser->parse($string);
 }
 
 sub trace_json {
-    my ($self, $string) = @_;
+    my ($parser, $string) = @_;
     my $trace_desc = q{};
 
 # Marpa::R2::Display
 # name: SLIF trace example
 
-    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
+    my $re = Marpa::R2::Scanless::R->new( { grammar => $parser->{grammar} } );
     my $length = length $string;
     for (
         my $pos = $re->read( \$string );
