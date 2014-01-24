@@ -125,33 +125,39 @@ print $grammar->show_rules()
 
 # Marpa::R2::Display::End
 
+restore_stdout();
+
 Marpa::R2::Test::is( ${$actual_ref},
     <<'END_RULES', 'Ambiguous Equation Rules' );
 0: E -> E Op E
 1: E -> Number
 END_RULES
 
+$actual_ref = save_stdout();
+
 print $grammar->show_ahms()
     or die "print failed: $ERRNO";
 
+restore_stdout();
+
 Marpa::R2::Test::is( ${$actual_ref},
     <<'EOS', 'Ambiguous Equation AHMs' );
-AHFA item 0: sort = 0; postdot = "E"
-    E -> . E Op E
-AHFA item 1: sort = 3; postdot = "Op"
-    E -> E . Op E
-AHFA item 2: sort = 1; postdot = "E"
-    E -> E Op . E
-AHFA item 3: sort = 5; completion
-    E -> E Op E .
-AHFA item 4: sort = 4; postdot = "Number"
-    E -> . Number
-AHFA item 5: sort = 6; completion
-    E -> Number .
-AHFA item 6: sort = 2; postdot = "E"
-    E['] -> . E
-AHFA item 7: sort = 7; completion
-    E['] -> E .
+AHM 0: postdot = "E"
+    E ::= . E Op E
+AHM 1: postdot = "Op"
+    E ::= E . Op E
+AHM 2: postdot = "E"
+    E ::= E Op . E
+AHM 3: completion
+    E ::= E Op E .
+AHM 4: postdot = "Number"
+    E ::= . Number
+AHM 5: completion
+    E ::= Number .
+AHM 6: postdot = "E"
+    E['] ::= . E
+AHM 7: completion
+    E['] ::= E .
 EOS
 
 $actual_ref = save_stdout();
@@ -190,48 +196,121 @@ print $recce->show_earley_sets()
 my $expected_earley_sets = <<'END_OF_EARLEY_SETS';
 Last Completed: 7; Furthest: 7
 Earley Set 0
-S0@0-0
-S1@0-0
+ahm6: R2:0@0-0
+  R2:0: E['] ::= . E
+ahm0: R0:0@0-0
+  R0:0: E ::= . E Op E
+ahm4: R1:0@0-0
+  R1:0: E ::= . Number
 Earley Set 1
-S2@0-1 [p=S1@0-0; c=S5@0-1]
-S5@0-1 [p=S1@0-0; s=Number; t=\2]
-S6@0-1 [p=S0@0-0; c=S5@0-1]
+ahm5: R1$@0-1
+  R1$: E ::= Number .
+  [c=R1:0@0-0; s=Number; t=\2]
+ahm1: R0:1@0-1
+  R0:1: E ::= E . Op E
+  [p=R0:0@0-0; c=R1$@0-1]
+ahm7: R2$@0-1
+  R2$: E['] ::= E .
+  [p=R2:0@0-0; c=R1$@0-1]
 Earley Set 2
-S3@0-2 [p=S2@0-1; s=Op; t=\'-']
-S1@2-2
+ahm2: R0:2@0-2
+  R0:2: E ::= E Op . E
+  [c=R0:1@0-1; s=Op; t=\'-']
+ahm0: R0:0@2-2
+  R0:0: E ::= . E Op E
+ahm4: R1:0@2-2
+  R1:0: E ::= . Number
 Earley Set 3
-S2@0-3 [p=S1@0-0; c=S4@0-3]
-S4@0-3 [p=S3@0-2; c=S5@2-3]
-S6@0-3 [p=S0@0-0; c=S4@0-3]
-S2@2-3 [p=S1@2-2; c=S5@2-3]
-S5@2-3 [p=S1@2-2; s=Number; t=\0]
+ahm5: R1$@2-3
+  R1$: E ::= Number .
+  [c=R1:0@2-2; s=Number; t=\0]
+ahm1: R0:1@2-3
+  R0:1: E ::= E . Op E
+  [p=R0:0@2-2; c=R1$@2-3]
+ahm3: R0$@0-3
+  R0$: E ::= E Op E .
+  [p=R0:2@0-2; c=R1$@2-3]
+ahm1: R0:1@0-3
+  R0:1: E ::= E . Op E
+  [p=R0:0@0-0; c=R0$@0-3]
+ahm7: R2$@0-3
+  R2$: E['] ::= E .
+  [p=R2:0@0-0; c=R0$@0-3]
 Earley Set 4
-S3@0-4 [p=S2@0-3; s=Op; t=\'*']
-S3@2-4 [p=S2@2-3; s=Op; t=\'*']
-S1@4-4
+ahm2: R0:2@0-4
+  R0:2: E ::= E Op . E
+  [c=R0:1@0-3; s=Op; t=\'*']
+ahm2: R0:2@2-4
+  R0:2: E ::= E Op . E
+  [c=R0:1@2-3; s=Op; t=\'*']
+ahm0: R0:0@4-4
+  R0:0: E ::= . E Op E
+ahm4: R1:0@4-4
+  R1:0: E ::= . Number
 Earley Set 5
-S2@0-5 [p=S1@0-0; c=S4@0-5]
-S4@0-5 [p=S3@0-2; c=S4@2-5] [p=S3@0-4; c=S5@4-5]
-S6@0-5 [p=S0@0-0; c=S4@0-5]
-S2@2-5 [p=S1@2-2; c=S4@2-5]
-S4@2-5 [p=S3@2-4; c=S5@4-5]
-S2@4-5 [p=S1@4-4; c=S5@4-5]
-S5@4-5 [p=S1@4-4; s=Number; t=\3]
+ahm5: R1$@4-5
+  R1$: E ::= Number .
+  [c=R1:0@4-4; s=Number; t=\3]
+ahm1: R0:1@4-5
+  R0:1: E ::= E . Op E
+  [p=R0:0@4-4; c=R1$@4-5]
+ahm3: R0$@2-5
+  R0$: E ::= E Op E .
+  [p=R0:2@2-4; c=R1$@4-5]
+ahm3: R0$@0-5
+  R0$: E ::= E Op E .
+  [p=R0:2@0-2; c=R0$@2-5] [p=R0:2@0-4; c=R1$@4-5]
+ahm1: R0:1@0-5
+  R0:1: E ::= E . Op E
+  [p=R0:0@0-0; c=R0$@0-5]
+ahm7: R2$@0-5
+  R2$: E['] ::= E .
+  [p=R2:0@0-0; c=R0$@0-5]
+ahm1: R0:1@2-5
+  R0:1: E ::= E . Op E
+  [p=R0:0@2-2; c=R0$@2-5]
 Earley Set 6
-S3@0-6 [p=S2@0-5; s=Op; t=\'+']
-S3@2-6 [p=S2@2-5; s=Op; t=\'+']
-S3@4-6 [p=S2@4-5; s=Op; t=\'+']
-S1@6-6
+ahm2: R0:2@2-6
+  R0:2: E ::= E Op . E
+  [c=R0:1@2-5; s=Op; t=\'+']
+ahm2: R0:2@0-6
+  R0:2: E ::= E Op . E
+  [c=R0:1@0-5; s=Op; t=\'+']
+ahm2: R0:2@4-6
+  R0:2: E ::= E Op . E
+  [c=R0:1@4-5; s=Op; t=\'+']
+ahm0: R0:0@6-6
+  R0:0: E ::= . E Op E
+ahm4: R1:0@6-6
+  R1:0: E ::= . Number
 Earley Set 7
-S2@0-7 [p=S1@0-0; c=S4@0-7]
-S4@0-7 [p=S3@0-2; c=S4@2-7] [p=S3@0-4; c=S4@4-7] [p=S3@0-6; c=S5@6-7]
-S6@0-7 [p=S0@0-0; c=S4@0-7]
-S2@2-7 [p=S1@2-2; c=S4@2-7]
-S4@2-7 [p=S3@2-4; c=S4@4-7] [p=S3@2-6; c=S5@6-7]
-S2@4-7 [p=S1@4-4; c=S4@4-7]
-S4@4-7 [p=S3@4-6; c=S5@6-7]
-S2@6-7 [p=S1@6-6; c=S5@6-7]
-S5@6-7 [p=S1@6-6; s=Number; t=\1]
+ahm5: R1$@6-7
+  R1$: E ::= Number .
+  [c=R1:0@6-6; s=Number; t=\1]
+ahm1: R0:1@6-7
+  R0:1: E ::= E . Op E
+  [p=R0:0@6-6; c=R1$@6-7]
+ahm3: R0$@4-7
+  R0$: E ::= E Op E .
+  [p=R0:2@4-6; c=R1$@6-7]
+ahm3: R0$@0-7
+  R0$: E ::= E Op E .
+  [p=R0:2@0-2; c=R0$@2-7] [p=R0:2@0-4; c=R0$@4-7] [p=R0:2@0-6; c=R1$@6-7]
+ahm3: R0$@2-7
+  R0$: E ::= E Op E .
+  [p=R0:2@2-4; c=R0$@4-7] [p=R0:2@2-6; c=R1$@6-7]
+ahm1: R0:1@2-7
+  R0:1: E ::= E . Op E
+  [p=R0:0@2-2; c=R0$@2-7]
+ahm1: R0:1@0-7
+  R0:1: E ::= E . Op E
+  [p=R0:0@0-0; c=R0$@0-7]
+ahm7: R2$@0-7
+  R2$: E['] ::= E .
+  [p=R2:0@0-0; c=R0$@0-7]
+ahm1: R0:1@4-7
+  R0:1: E ::= E . Op E
+  [p=R0:0@4-4; c=R0$@4-7]
 END_OF_EARLEY_SETS
 
 Marpa::R2::Test::is( ${$actual_ref}, $expected_earley_sets,
