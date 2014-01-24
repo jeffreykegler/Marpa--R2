@@ -37,7 +37,7 @@ my $grammar = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
 :default ::= action => [values] bless => ::lhs
-lexeme default = action => [start,length,value] bless => ::name
+lexeme default = action => [ start, length, value ] bless => ::name
 
 :start ::= Script
 Script ::= Expression+ separator => comma
