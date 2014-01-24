@@ -133,57 +133,56 @@ END_RULES
 
 my $show_ahms_output = $grammar->show_ahms();
 
-Marpa::R2::Test::is( $show_ahms_output, <<'END_AHFA', 'Leo Example AHFA' );
-* S0:
-Statement['] -> . Statement
-* S1: predict
-Statement -> . Expression
-Expression -> . Lvalue AssignOp Expression
-Expression -> . Lvalue AddAssignOp Expression
-Expression -> . Lvalue MinusAssignOp Expression
-Expression -> . Lvalue MultiplyAssignOp Expression
-Expression -> . Variable
-Lvalue -> . Variable
-* S2:
-Statement -> Expression .
-* S3:
-Expression -> Lvalue . AssignOp Expression
-* S4:
-Expression -> Lvalue AssignOp . Expression
-* S5: predict
-Expression -> . Lvalue AssignOp Expression
-Expression -> . Lvalue AddAssignOp Expression
-Expression -> . Lvalue MinusAssignOp Expression
-Expression -> . Lvalue MultiplyAssignOp Expression
-Expression -> . Variable
-Lvalue -> . Variable
-* S6:
-Expression -> Lvalue AssignOp Expression .
-* S7:
-Expression -> Lvalue . AddAssignOp Expression
-* S8:
-Expression -> Lvalue AddAssignOp . Expression
-* S9:
-Expression -> Lvalue AddAssignOp Expression .
-* S10:
-Expression -> Lvalue . MinusAssignOp Expression
-* S11:
-Expression -> Lvalue MinusAssignOp . Expression
-* S12:
-Expression -> Lvalue MinusAssignOp Expression .
-* S13:
-Expression -> Lvalue . MultiplyAssignOp Expression
-* S14:
-Expression -> Lvalue MultiplyAssignOp . Expression
-* S15:
-Expression -> Lvalue MultiplyAssignOp Expression .
-* S16:
-Expression -> Variable .
-* S17:
-Lvalue -> Variable .
-* S18:
-Statement['] -> Statement .
-END_AHFA
+Marpa::R2::Test::is( $show_ahms_output, <<'END_AHMS', 'Leo Example AHMs' );
+AHM 0: postdot = "Expression"
+    Statement ::= . Expression
+AHM 1: completion
+    Statement ::= Expression .
+AHM 2: postdot = "Lvalue"
+    Expression ::= . Lvalue AssignOp Expression
+AHM 3: postdot = "AssignOp"
+    Expression ::= Lvalue . AssignOp Expression
+AHM 4: postdot = "Expression"
+    Expression ::= Lvalue AssignOp . Expression
+AHM 5: completion
+    Expression ::= Lvalue AssignOp Expression .
+AHM 6: postdot = "Lvalue"
+    Expression ::= . Lvalue AddAssignOp Expression
+AHM 7: postdot = "AddAssignOp"
+    Expression ::= Lvalue . AddAssignOp Expression
+AHM 8: postdot = "Expression"
+    Expression ::= Lvalue AddAssignOp . Expression
+AHM 9: completion
+    Expression ::= Lvalue AddAssignOp Expression .
+AHM 10: postdot = "Lvalue"
+    Expression ::= . Lvalue MinusAssignOp Expression
+AHM 11: postdot = "MinusAssignOp"
+    Expression ::= Lvalue . MinusAssignOp Expression
+AHM 12: postdot = "Expression"
+    Expression ::= Lvalue MinusAssignOp . Expression
+AHM 13: completion
+    Expression ::= Lvalue MinusAssignOp Expression .
+AHM 14: postdot = "Lvalue"
+    Expression ::= . Lvalue MultiplyAssignOp Expression
+AHM 15: postdot = "MultiplyAssignOp"
+    Expression ::= Lvalue . MultiplyAssignOp Expression
+AHM 16: postdot = "Expression"
+    Expression ::= Lvalue MultiplyAssignOp . Expression
+AHM 17: completion
+    Expression ::= Lvalue MultiplyAssignOp Expression .
+AHM 18: postdot = "Variable"
+    Expression ::= . Variable
+AHM 19: completion
+    Expression ::= Variable .
+AHM 20: postdot = "Variable"
+    Lvalue ::= . Variable
+AHM 21: completion
+    Lvalue ::= Variable .
+AHM 22: postdot = "Statement"
+    Statement['] ::= . Statement
+AHM 23: completion
+    Statement['] ::= Statement .
+END_AHMS
 
 my $show_earley_sets_output_before = $recce->show_earley_sets();
 
@@ -191,73 +190,227 @@ Marpa::R2::Test::is( $show_earley_sets_output_before,
     <<'END_EARLEY_SETS', 'Leo Example Earley Sets "Before"' );
 Last Completed: 9; Furthest: 9
 Earley Set 0
-S0@0-0
-S1@0-0
+ahm22: R7:0@0-0
+  R7:0: Statement['] ::= . Statement
+ahm0: R0:0@0-0
+  R0:0: Statement ::= . Expression
+ahm2: R1:0@0-0
+  R1:0: Expression ::= . Lvalue AssignOp Expression
+ahm6: R2:0@0-0
+  R2:0: Expression ::= . Lvalue AddAssignOp Expression
+ahm10: R3:0@0-0
+  R3:0: Expression ::= . Lvalue MinusAssignOp Expression
+ahm14: R4:0@0-0
+  R4:0: Expression ::= . Lvalue MultiplyAssignOp Expression
+ahm18: R5:0@0-0
+  R5:0: Expression ::= . Variable
+ahm20: R6:0@0-0
+  R6:0: Lvalue ::= . Variable
 Earley Set 1
-S2@0-1 [p=S1@0-0; c=S16@0-1]
-S3@0-1 [p=S1@0-0; c=S17@0-1]
-S7@0-1 [p=S1@0-0; c=S17@0-1]
-S10@0-1 [p=S1@0-0; c=S17@0-1]
-S13@0-1 [p=S1@0-0; c=S17@0-1]
-S16@0-1 [p=S1@0-0; s=Variable; t=\'a']
-S17@0-1 [p=S1@0-0; s=Variable; t=\'a']
-S18@0-1 [p=S0@0-0; c=S2@0-1]
+ahm21: R6$@0-1
+  R6$: Lvalue ::= Variable .
+  [c=R6:0@0-0; s=Variable; t=\'a']
+ahm19: R5$@0-1
+  R5$: Expression ::= Variable .
+  [c=R5:0@0-0; s=Variable; t=\'a']
+ahm1: R0$@0-1
+  R0$: Statement ::= Expression .
+  [p=R0:0@0-0; c=R5$@0-1]
+ahm23: R7$@0-1
+  R7$: Statement['] ::= Statement .
+  [p=R7:0@0-0; c=R0$@0-1]
+ahm15: R4:1@0-1
+  R4:1: Expression ::= Lvalue . MultiplyAssignOp Expression
+  [p=R4:0@0-0; c=R6$@0-1]
+ahm11: R3:1@0-1
+  R3:1: Expression ::= Lvalue . MinusAssignOp Expression
+  [p=R3:0@0-0; c=R6$@0-1]
+ahm7: R2:1@0-1
+  R2:1: Expression ::= Lvalue . AddAssignOp Expression
+  [p=R2:0@0-0; c=R6$@0-1]
+ahm3: R1:1@0-1
+  R1:1: Expression ::= Lvalue . AssignOp Expression
+  [p=R1:0@0-0; c=R6$@0-1]
 Earley Set 2
-S4@0-2 [p=S3@0-1; s=AssignOp; t=\'=']
-S5@2-2
+ahm4: R1:2@0-2
+  R1:2: Expression ::= Lvalue AssignOp . Expression
+  [c=R1:1@0-1; s=AssignOp; t=\'=']
+ahm2: R1:0@2-2
+  R1:0: Expression ::= . Lvalue AssignOp Expression
+ahm6: R2:0@2-2
+  R2:0: Expression ::= . Lvalue AddAssignOp Expression
+ahm10: R3:0@2-2
+  R3:0: Expression ::= . Lvalue MinusAssignOp Expression
+ahm14: R4:0@2-2
+  R4:0: Expression ::= . Lvalue MultiplyAssignOp Expression
+ahm18: R5:0@2-2
+  R5:0: Expression ::= . Variable
+ahm20: R6:0@2-2
+  R6:0: Lvalue ::= . Variable
 L1@2 ["Expression"; S4@0-2]
 Earley Set 3
-S2@0-3 [p=S1@0-0; c=S6@0-3]
-S6@0-3 [l=L1@2; c=S16@2-3]
-S18@0-3 [p=S0@0-0; c=S2@0-3]
-S3@2-3 [p=S5@2-2; c=S17@2-3]
-S7@2-3 [p=S5@2-2; c=S17@2-3]
-S10@2-3 [p=S5@2-2; c=S17@2-3]
-S13@2-3 [p=S5@2-2; c=S17@2-3]
-S16@2-3 [p=S5@2-2; s=Variable; t=\'b']
-S17@2-3 [p=S5@2-2; s=Variable; t=\'b']
+ahm21: R6$@2-3
+  R6$: Lvalue ::= Variable .
+  [c=R6:0@2-2; s=Variable; t=\'b']
+ahm19: R5$@2-3
+  R5$: Expression ::= Variable .
+  [c=R5:0@2-2; s=Variable; t=\'b']
+ahm5: R1$@0-3
+  R1$: Expression ::= Lvalue AssignOp Expression .
+  [l=L1@2; c=R5$@2-3]
+ahm1: R0$@0-3
+  R0$: Statement ::= Expression .
+  [p=R0:0@0-0; c=R1$@0-3]
+ahm23: R7$@0-3
+  R7$: Statement['] ::= Statement .
+  [p=R7:0@0-0; c=R0$@0-3]
+ahm15: R4:1@2-3
+  R4:1: Expression ::= Lvalue . MultiplyAssignOp Expression
+  [p=R4:0@2-2; c=R6$@2-3]
+ahm11: R3:1@2-3
+  R3:1: Expression ::= Lvalue . MinusAssignOp Expression
+  [p=R3:0@2-2; c=R6$@2-3]
+ahm7: R2:1@2-3
+  R2:1: Expression ::= Lvalue . AddAssignOp Expression
+  [p=R2:0@2-2; c=R6$@2-3]
+ahm3: R1:1@2-3
+  R1:1: Expression ::= Lvalue . AssignOp Expression
+  [p=R1:0@2-2; c=R6$@2-3]
 Earley Set 4
-S8@2-4 [p=S7@2-3; s=AddAssignOp; t=\'+=']
-S5@4-4
+ahm8: R2:2@2-4
+  R2:2: Expression ::= Lvalue AddAssignOp . Expression
+  [c=R2:1@2-3; s=AddAssignOp; t=\'+=']
+ahm2: R1:0@4-4
+  R1:0: Expression ::= . Lvalue AssignOp Expression
+ahm6: R2:0@4-4
+  R2:0: Expression ::= . Lvalue AddAssignOp Expression
+ahm10: R3:0@4-4
+  R3:0: Expression ::= . Lvalue MinusAssignOp Expression
+ahm14: R4:0@4-4
+  R4:0: Expression ::= . Lvalue MultiplyAssignOp Expression
+ahm18: R5:0@4-4
+  R5:0: Expression ::= . Variable
+ahm20: R6:0@4-4
+  R6:0: Lvalue ::= . Variable
 L1@4 ["Expression"; L1@2; S8@2-4]
 Earley Set 5
-S2@0-5 [p=S1@0-0; c=S6@0-5]
-S6@0-5 [l=L1@4; c=S16@4-5]
-S18@0-5 [p=S0@0-0; c=S2@0-5]
-S3@4-5 [p=S5@4-4; c=S17@4-5]
-S7@4-5 [p=S5@4-4; c=S17@4-5]
-S10@4-5 [p=S5@4-4; c=S17@4-5]
-S13@4-5 [p=S5@4-4; c=S17@4-5]
-S16@4-5 [p=S5@4-4; s=Variable; t=\'c']
-S17@4-5 [p=S5@4-4; s=Variable; t=\'c']
+ahm21: R6$@4-5
+  R6$: Lvalue ::= Variable .
+  [c=R6:0@4-4; s=Variable; t=\'c']
+ahm19: R5$@4-5
+  R5$: Expression ::= Variable .
+  [c=R5:0@4-4; s=Variable; t=\'c']
+ahm5: R1$@0-5
+  R1$: Expression ::= Lvalue AssignOp Expression .
+  [l=L1@4; c=R5$@4-5]
+ahm1: R0$@0-5
+  R0$: Statement ::= Expression .
+  [p=R0:0@0-0; c=R1$@0-5]
+ahm23: R7$@0-5
+  R7$: Statement['] ::= Statement .
+  [p=R7:0@0-0; c=R0$@0-5]
+ahm15: R4:1@4-5
+  R4:1: Expression ::= Lvalue . MultiplyAssignOp Expression
+  [p=R4:0@4-4; c=R6$@4-5]
+ahm11: R3:1@4-5
+  R3:1: Expression ::= Lvalue . MinusAssignOp Expression
+  [p=R3:0@4-4; c=R6$@4-5]
+ahm7: R2:1@4-5
+  R2:1: Expression ::= Lvalue . AddAssignOp Expression
+  [p=R2:0@4-4; c=R6$@4-5]
+ahm3: R1:1@4-5
+  R1:1: Expression ::= Lvalue . AssignOp Expression
+  [p=R1:0@4-4; c=R6$@4-5]
 Earley Set 6
-S11@4-6 [p=S10@4-5; s=MinusAssignOp; t=\'-=']
-S5@6-6
-L1@6 ["Expression"; L1@4; S11@4-6]
+ahm12: R3:2@4-6
+  R3:2: Expression ::= Lvalue MinusAssignOp . Expression
+  [c=R3:1@4-5; s=MinusAssignOp; t=\'-=']
+ahm2: R1:0@6-6
+  R1:0: Expression ::= . Lvalue AssignOp Expression
+ahm6: R2:0@6-6
+  R2:0: Expression ::= . Lvalue AddAssignOp Expression
+ahm10: R3:0@6-6
+  R3:0: Expression ::= . Lvalue MinusAssignOp Expression
+ahm14: R4:0@6-6
+  R4:0: Expression ::= . Lvalue MultiplyAssignOp Expression
+ahm18: R5:0@6-6
+  R5:0: Expression ::= . Variable
+ahm20: R6:0@6-6
+  R6:0: Lvalue ::= . Variable
+L1@6 ["Expression"; L1@4; S12@4-6]
 Earley Set 7
-S2@0-7 [p=S1@0-0; c=S6@0-7]
-S6@0-7 [l=L1@6; c=S16@6-7]
-S18@0-7 [p=S0@0-0; c=S2@0-7]
-S3@6-7 [p=S5@6-6; c=S17@6-7]
-S7@6-7 [p=S5@6-6; c=S17@6-7]
-S10@6-7 [p=S5@6-6; c=S17@6-7]
-S13@6-7 [p=S5@6-6; c=S17@6-7]
-S16@6-7 [p=S5@6-6; s=Variable; t=\'d']
-S17@6-7 [p=S5@6-6; s=Variable; t=\'d']
+ahm21: R6$@6-7
+  R6$: Lvalue ::= Variable .
+  [c=R6:0@6-6; s=Variable; t=\'d']
+ahm19: R5$@6-7
+  R5$: Expression ::= Variable .
+  [c=R5:0@6-6; s=Variable; t=\'d']
+ahm5: R1$@0-7
+  R1$: Expression ::= Lvalue AssignOp Expression .
+  [l=L1@6; c=R5$@6-7]
+ahm1: R0$@0-7
+  R0$: Statement ::= Expression .
+  [p=R0:0@0-0; c=R1$@0-7]
+ahm23: R7$@0-7
+  R7$: Statement['] ::= Statement .
+  [p=R7:0@0-0; c=R0$@0-7]
+ahm15: R4:1@6-7
+  R4:1: Expression ::= Lvalue . MultiplyAssignOp Expression
+  [p=R4:0@6-6; c=R6$@6-7]
+ahm11: R3:1@6-7
+  R3:1: Expression ::= Lvalue . MinusAssignOp Expression
+  [p=R3:0@6-6; c=R6$@6-7]
+ahm7: R2:1@6-7
+  R2:1: Expression ::= Lvalue . AddAssignOp Expression
+  [p=R2:0@6-6; c=R6$@6-7]
+ahm3: R1:1@6-7
+  R1:1: Expression ::= Lvalue . AssignOp Expression
+  [p=R1:0@6-6; c=R6$@6-7]
 Earley Set 8
-S14@6-8 [p=S13@6-7; s=MultiplyAssignOp; t=\'*=']
-S5@8-8
-L1@8 ["Expression"; L1@6; S14@6-8]
+ahm16: R4:2@6-8
+  R4:2: Expression ::= Lvalue MultiplyAssignOp . Expression
+  [c=R4:1@6-7; s=MultiplyAssignOp; t=\'*=']
+ahm2: R1:0@8-8
+  R1:0: Expression ::= . Lvalue AssignOp Expression
+ahm6: R2:0@8-8
+  R2:0: Expression ::= . Lvalue AddAssignOp Expression
+ahm10: R3:0@8-8
+  R3:0: Expression ::= . Lvalue MinusAssignOp Expression
+ahm14: R4:0@8-8
+  R4:0: Expression ::= . Lvalue MultiplyAssignOp Expression
+ahm18: R5:0@8-8
+  R5:0: Expression ::= . Variable
+ahm20: R6:0@8-8
+  R6:0: Lvalue ::= . Variable
+L1@8 ["Expression"; L1@6; S16@6-8]
 Earley Set 9
-S2@0-9 [p=S1@0-0; c=S6@0-9]
-S6@0-9 [l=L1@8; c=S16@8-9]
-S18@0-9 [p=S0@0-0; c=S2@0-9]
-S3@8-9 [p=S5@8-8; c=S17@8-9]
-S7@8-9 [p=S5@8-8; c=S17@8-9]
-S10@8-9 [p=S5@8-8; c=S17@8-9]
-S13@8-9 [p=S5@8-8; c=S17@8-9]
-S16@8-9 [p=S5@8-8; s=Variable; t=\'e']
-S17@8-9 [p=S5@8-8; s=Variable; t=\'e']
+ahm21: R6$@8-9
+  R6$: Lvalue ::= Variable .
+  [c=R6:0@8-8; s=Variable; t=\'e']
+ahm19: R5$@8-9
+  R5$: Expression ::= Variable .
+  [c=R5:0@8-8; s=Variable; t=\'e']
+ahm5: R1$@0-9
+  R1$: Expression ::= Lvalue AssignOp Expression .
+  [l=L1@8; c=R5$@8-9]
+ahm1: R0$@0-9
+  R0$: Statement ::= Expression .
+  [p=R0:0@0-0; c=R1$@0-9]
+ahm23: R7$@0-9
+  R7$: Statement['] ::= Statement .
+  [p=R7:0@0-0; c=R0$@0-9]
+ahm15: R4:1@8-9
+  R4:1: Expression ::= Lvalue . MultiplyAssignOp Expression
+  [p=R4:0@8-8; c=R6$@8-9]
+ahm11: R3:1@8-9
+  R3:1: Expression ::= Lvalue . MinusAssignOp Expression
+  [p=R3:0@8-8; c=R6$@8-9]
+ahm7: R2:1@8-9
+  R2:1: Expression ::= Lvalue . AddAssignOp Expression
+  [p=R2:0@8-8; c=R6$@8-9]
+ahm3: R1:1@8-9
+  R1:1: Expression ::= Lvalue . AssignOp Expression
+  [p=R1:0@8-8; c=R6$@8-9]
 END_EARLEY_SETS
 
 my $trace_output;
