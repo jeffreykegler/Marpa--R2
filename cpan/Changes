@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.079_012
+
+   * Phase 2 of Marpa parse engine rewrite
+
 2.079_011
 
    * Phase 1/2 "inter-phase"
