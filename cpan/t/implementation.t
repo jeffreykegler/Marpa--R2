@@ -103,83 +103,147 @@ END_RULES
 my $show_ahms_output = $grammar->show_ahms();
 
 Marpa::R2::Test::is( $show_ahms_output,
-    <<'END_AHFA', 'Implementation Example AHFA' );
-* S0:
-Expression['] -> . Expression
-* S1: predict
-Expression -> . Term
-Term -> . Factor
-Factor -> . Number
-Term -> . Term Add Term
-Factor -> . Factor Multiply Factor
-* S2:
-Expression -> Term .
-* S3:
-Term -> Factor .
-* S4:
-Factor -> Number .
-* S5:
-Term -> Term . Add Term
-* S6:
-Term -> Term Add . Term
-* S7: predict
-Term -> . Factor
-Factor -> . Number
-Term -> . Term Add Term
-Factor -> . Factor Multiply Factor
-* S8:
-Term -> Term Add Term .
-* S9:
-Factor -> Factor . Multiply Factor
-* S10:
-Factor -> Factor Multiply . Factor
-* S11: predict
-Factor -> . Number
-Factor -> . Factor Multiply Factor
-* S12:
-Factor -> Factor Multiply Factor .
-* S13:
-Expression['] -> Expression .
-END_AHFA
+    <<'END_AHM', 'Implementation Example AHMs' );
+AHM 0: postdot = "Term"
+    Expression ::= . Term
+AHM 1: completion
+    Expression ::= Term .
+AHM 2: postdot = "Factor"
+    Term ::= . Factor
+AHM 3: completion
+    Term ::= Factor .
+AHM 4: postdot = "Number"
+    Factor ::= . Number
+AHM 5: completion
+    Factor ::= Number .
+AHM 6: postdot = "Term"
+    Term ::= . Term Add Term
+AHM 7: postdot = "Add"
+    Term ::= Term . Add Term
+AHM 8: postdot = "Term"
+    Term ::= Term Add . Term
+AHM 9: completion
+    Term ::= Term Add Term .
+AHM 10: postdot = "Factor"
+    Factor ::= . Factor Multiply Factor
+AHM 11: postdot = "Multiply"
+    Factor ::= Factor . Multiply Factor
+AHM 12: postdot = "Factor"
+    Factor ::= Factor Multiply . Factor
+AHM 13: completion
+    Factor ::= Factor Multiply Factor .
+AHM 14: postdot = "Expression"
+    Expression['] ::= . Expression
+AHM 15: completion
+    Expression['] ::= Expression .
+END_AHM
 
 my $show_earley_sets_output = $recce->show_earley_sets();
 
 my $expected_earley_sets = <<'END_EARLEY_SETS';
 Last Completed: 5; Furthest: 5
 Earley Set 0
-S0@0-0
-S1@0-0
+ahm14: R5:0@0-0
+  R5:0: Expression['] ::= . Expression
+ahm0: R0:0@0-0
+  R0:0: Expression ::= . Term
+ahm2: R1:0@0-0
+  R1:0: Term ::= . Factor
+ahm4: R2:0@0-0
+  R2:0: Factor ::= . Number
+ahm6: R3:0@0-0
+  R3:0: Term ::= . Term Add Term
+ahm10: R4:0@0-0
+  R4:0: Factor ::= . Factor Multiply Factor
 Earley Set 1
-S2@0-1 [p=S1@0-0; c=S3@0-1]
-S3@0-1 [p=S1@0-0; c=S4@0-1]
-S4@0-1 [p=S1@0-0; s=Number; t=\42]
-S5@0-1 [p=S1@0-0; c=S3@0-1]
-S9@0-1 [p=S1@0-0; c=S4@0-1]
-S13@0-1 [p=S0@0-0; c=S2@0-1]
+ahm5: R2$@0-1
+  R2$: Factor ::= Number .
+  [c=R2:0@0-0; s=Number; t=\42]
+ahm11: R4:1@0-1
+  R4:1: Factor ::= Factor . Multiply Factor
+  [p=R4:0@0-0; c=R2$@0-1]
+ahm3: R1$@0-1
+  R1$: Term ::= Factor .
+  [p=R1:0@0-0; c=R2$@0-1]
+ahm7: R3:1@0-1
+  R3:1: Term ::= Term . Add Term
+  [p=R3:0@0-0; c=R1$@0-1]
+ahm1: R0$@0-1
+  R0$: Expression ::= Term .
+  [p=R0:0@0-0; c=R1$@0-1]
+ahm15: R5$@0-1
+  R5$: Expression['] ::= Expression .
+  [p=R5:0@0-0; c=R0$@0-1]
 Earley Set 2
-S10@0-2 [p=S9@0-1; s=Multiply; t=\'*']
-S11@2-2
+ahm12: R4:2@0-2
+  R4:2: Factor ::= Factor Multiply . Factor
+  [c=R4:1@0-1; s=Multiply; t=\'*']
+ahm4: R2:0@2-2
+  R2:0: Factor ::= . Number
+ahm10: R4:0@2-2
+  R4:0: Factor ::= . Factor Multiply Factor
 Earley Set 3
-S2@0-3 [p=S1@0-0; c=S3@0-3]
-S3@0-3 [p=S1@0-0; c=S12@0-3]
-S5@0-3 [p=S1@0-0; c=S3@0-3]
-S9@0-3 [p=S1@0-0; c=S12@0-3]
-S12@0-3 [p=S10@0-2; c=S4@2-3]
-S13@0-3 [p=S0@0-0; c=S2@0-3]
-S4@2-3 [p=S11@2-2; s=Number; t=\1]
-S9@2-3 [p=S11@2-2; c=S4@2-3]
+ahm5: R2$@2-3
+  R2$: Factor ::= Number .
+  [c=R2:0@2-2; s=Number; t=\1]
+ahm11: R4:1@2-3
+  R4:1: Factor ::= Factor . Multiply Factor
+  [p=R4:0@2-2; c=R2$@2-3]
+ahm13: R4$@0-3
+  R4$: Factor ::= Factor Multiply Factor .
+  [p=R4:2@0-2; c=R2$@2-3]
+ahm11: R4:1@0-3
+  R4:1: Factor ::= Factor . Multiply Factor
+  [p=R4:0@0-0; c=R4$@0-3]
+ahm3: R1$@0-3
+  R1$: Term ::= Factor .
+  [p=R1:0@0-0; c=R4$@0-3]
+ahm7: R3:1@0-3
+  R3:1: Term ::= Term . Add Term
+  [p=R3:0@0-0; c=R1$@0-3]
+ahm1: R0$@0-3
+  R0$: Expression ::= Term .
+  [p=R0:0@0-0; c=R1$@0-3]
+ahm15: R5$@0-3
+  R5$: Expression['] ::= Expression .
+  [p=R5:0@0-0; c=R0$@0-3]
 Earley Set 4
-S6@0-4 [p=S5@0-3; s=Add; t=\'+']
-S7@4-4
+ahm8: R3:2@0-4
+  R3:2: Term ::= Term Add . Term
+  [c=R3:1@0-3; s=Add; t=\'+']
+ahm2: R1:0@4-4
+  R1:0: Term ::= . Factor
+ahm4: R2:0@4-4
+  R2:0: Factor ::= . Number
+ahm6: R3:0@4-4
+  R3:0: Term ::= . Term Add Term
+ahm10: R4:0@4-4
+  R4:0: Factor ::= . Factor Multiply Factor
 Earley Set 5
-S2@0-5 [p=S1@0-0; c=S8@0-5]
-S5@0-5 [p=S1@0-0; c=S8@0-5]
-S8@0-5 [p=S6@0-4; c=S3@4-5]
-S13@0-5 [p=S0@0-0; c=S2@0-5]
-S3@4-5 [p=S7@4-4; c=S4@4-5]
-S4@4-5 [p=S7@4-4; s=Number; t=\7]
-S5@4-5 [p=S7@4-4; c=S3@4-5]
-S9@4-5 [p=S7@4-4; c=S4@4-5]
+ahm5: R2$@4-5
+  R2$: Factor ::= Number .
+  [c=R2:0@4-4; s=Number; t=\7]
+ahm11: R4:1@4-5
+  R4:1: Factor ::= Factor . Multiply Factor
+  [p=R4:0@4-4; c=R2$@4-5]
+ahm3: R1$@4-5
+  R1$: Term ::= Factor .
+  [p=R1:0@4-4; c=R2$@4-5]
+ahm7: R3:1@4-5
+  R3:1: Term ::= Term . Add Term
+  [p=R3:0@4-4; c=R1$@4-5]
+ahm9: R3$@0-5
+  R3$: Term ::= Term Add Term .
+  [p=R3:2@0-4; c=R1$@4-5]
+ahm7: R3:1@0-5
+  R3:1: Term ::= Term . Add Term
+  [p=R3:0@0-0; c=R3$@0-5]
+ahm1: R0$@0-5
+  R0$: Expression ::= Term .
+  [p=R0:0@0-0; c=R3$@0-5]
+ahm15: R5$@0-5
+  R5$: Expression['] ::= Expression .
+  [p=R5:0@0-0; c=R0$@0-5]
 END_EARLEY_SETS
 
 Marpa::R2::Test::is( $show_earley_sets_output, $expected_earley_sets,
