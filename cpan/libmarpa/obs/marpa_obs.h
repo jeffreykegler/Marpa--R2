@@ -34,7 +34,7 @@
 #pragma warning(disable:4116)
 #endif
 
-#define ALIGNOF(type) offsetof (struct { char c; type member; }, member)
+#define ALIGNOF(type) offsetof (struct { char c; type element; }, element)
 
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type
