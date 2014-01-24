@@ -64,17 +64,17 @@ Glade 2 has 2 symches
           Glade 8 has 2 symches
             Glade 8, Symch 0, item ::= Hesperus
                 Glade 13, Hesperus ::= 'a'
-                    Glade 14, Symbol 'a': "a"
+                    Glade 15, Symbol 'a': "a"
             Glade 8, Symch 1, item ::= Phosphorus
                 Glade 1, Phosphorus ::= 'a'
-                    Glade 16, Symbol 'a': "a"
+                    Glade 17, Symbol 'a': "a"
           Glade 7 has 2 symches
-            Glade 7, Symch 0, item ::= Phosphorus
-                Glade 9, Phosphorus ::= 'a'
-                    Glade 21, Symbol 'a': "a"
-            Glade 7, Symch 1, item ::= Hesperus
-                Glade 20, Hesperus ::= 'a'
+            Glade 7, Symch 0, item ::= Hesperus
+                Glade 22, Hesperus ::= 'a'
                     Glade 24, Symbol 'a': "a"
+            Glade 7, Symch 1, item ::= Phosphorus
+                Glade 9, Phosphorus ::= 'a'
+                    Glade 26, Symbol 'a': "a"
   Glade 2, Symch 1, pair ::= item item
       Glade 8 revisited
       Glade 7 revisited
