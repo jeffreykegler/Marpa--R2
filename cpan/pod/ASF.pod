@@ -457,6 +457,17 @@ the integer zero, so applications checking for failure
 should be careful to check for a Perl defined value,
 and not for a Perl true value.
 
+In addition, because 
+the L<C<rule_id()> method|/"rule_id()"> 
+remains constant only within a symch, and 
+the L<C<next()> method|/"next()"> may 
+change the current symch, 
+L<C<rule_id()> method|/"rule_id()">
+must always be called to obtain the current rule ID 
+in a C<while> loop where 
+L<C<next()> method|/"next()"> 
+is used as the exit condition. 
+
 =head1 Details
 
 This section contains additional explanations, not essential to understanding
