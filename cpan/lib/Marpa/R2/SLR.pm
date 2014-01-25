@@ -1315,11 +1315,13 @@ sub Marpa::R2::Scanless::R::rule_closure {
 
     my ( $slr, $rule_id ) = @_;
     
-    my $recce = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
-
+    return unless defined $rule_id;
+    
+    my $recce   = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
 
-        my $grammar           = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
         my $grammar_c         = $grammar->[Marpa::R2::Internal::Grammar::C];
         my $per_parse_arg     = {};
         my $trace_actions     = $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
@@ -1343,9 +1345,52 @@ sub Marpa::R2::Scanless::R::rule_closure {
 
     } ## end if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS...])
     
-    my $rule_closure = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID]->[$rule_id];
-    if (defined $rule_closure and ref $rule_closure eq 'CODE'){
-        return $rule_closure;
+    my $thingy_ref = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID]->[$rule_id];
+    if (defined $thingy_ref){
+        # this code is adapted form the block labelled DO_CONSTANT: in Value.pm
+        my $ref_type = Scalar::Util::reftype $thingy_ref;
+        if ( $ref_type eq q{} ) {
+            my $rule_desc;
+            if ( defined $slr ) {
+                $rule_desc = $slr->rule_show($rule_id);
+            }
+            else { $rule_desc = $grammar->brief_rule($rule_id); }
+            Marpa::R2::exception(
+                qq{An action resolved to a scalar.\n},
+                qq{  This is not allowed.\n},
+                qq{  A constant action must be a reference.\n},
+                qq{  Rule was $rule_desc\n}
+            );
+        } ## end if ( $ref_type eq q{} )
+        elsif ( $ref_type eq 'CODE' ) {
+            return $thingy_ref
+        } ## end if ( $ref_type eq 'CODE' )
+        elsif ( $ref_type eq 'SCALAR' ) {
+            my $thingy = ${$thingy_ref};
+            if ( not defined $thingy ) {
+                return sub { undef };
+            }
+            return sub { $thingy_ref };
+        } ## end if ( $ref_type eq 'SCALAR' )
+
+        # No test for 'ARRAY' or 'HASH' --
+        # The ref is currenly only to scalar and code slots in the symbol table,
+        # and therefore cannot be to (among other things) an ARRAY or HASH
+
+        elsif ( $ref_type eq 'REF' ) {
+            return sub { $thingy_ref };
+        }
+
+        my $rule_desc;
+        if ( defined $slr ) {
+            $rule_desc = $slr->rule_show($rule_id);
+        }
+        else { $rule_desc = $grammar->brief_rule($rule_id); }
+        Marpa::R2::exception(
+            qq{Constant action is not of an allowed type.\n},
+            qq{  It was of type reference to $ref_type.\n},
+            qq{  Rule was $rule_desc\n}
+        );
     }
     else{
         return
