@@ -1321,7 +1321,6 @@ sub Marpa::R2::Scanless::R::rule_closure {
 
         my $grammar           = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
         my $grammar_c         = $grammar->[Marpa::R2::Internal::Grammar::C];
-        my $recce_c           = $recce->[Marpa::R2::Internal::Recognizer::C];
         my $per_parse_arg     = {};
         my $trace_actions     = $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
         my $trace_file_handle = $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
@@ -1345,14 +1344,8 @@ sub Marpa::R2::Scanless::R::rule_closure {
     } ## end if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS...])
     
     my $rule_closure = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID]->[$rule_id];
-    if (defined $rule_closure){
-        my $ref_rule_closure = ref $rule_closure;
-        if (    $ref_rule_closure eq 'CODE' ){
-            return $rule_closure;
-        }
-        elsif ( $ref_rule_closure eq 'SCALAR' ){
-            return $rule_closure;
-        }
+    if (defined $rule_closure and ref $rule_closure eq 'CODE'){
+        return $rule_closure;
     }
     else{
         return
