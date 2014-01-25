@@ -567,6 +567,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :default ::= action => [lhs,values]
+
+=for Marpa::R2::Display::End
+
 The purpose of
 the default pseudo-rule is to change the defaults for
 rule adverbs.
@@ -627,6 +636,15 @@ partial: 1
 normalize-whitespace: 1
 
     lexeme default = action => [start,length,value] bless => ::name
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    lexeme default = action => [start,length,lhs,value]
 
 =for Marpa::R2::Display::End
 
