@@ -215,9 +215,9 @@ sub new {
 
     my ($class) = @_;
 
-    my $self = bless {}, $class;
+    my $parser = bless {}, $class;
     
-    $self->{grammar} = Marpa::R2::Scanless::G->new(
+    $parser->{grammar} = Marpa::R2::Scanless::G->new(
         {
             source         => \(<<'END_OF_SOURCE'),
 
@@ -283,40 +283,40 @@ END_OF_SOURCE
         }
     );
 
-    return $self;
+    return $parser;
 }
 
 sub parse {
-    my ( $self, $string ) = @_;
+    my ( $parser, $string ) = @_;
 
     my $re = Marpa::R2::Scanless::R->new(
-        {   grammar           => $self->{grammar},
+        {   grammar           => $parser->{grammar},
         }
     );
     $re->read( \$string );
     my $ast = ${ $re->value() };
-    return $self->decode ( $ast );
+    return $parser->decode ( $ast );
 } ## end sub parse
 
 sub decode {
-    my $self = shift;
+    my $parser = shift;
     
     my $ast  = shift;
     
     if (ref $ast){
         my ($id, @nodes) = @$ast;
-        $id = $self->{grammar}->symbol_display_form($id);
+        $id = $parser->{grammar}->symbol_display_form($id);
         if ($id eq 'json'){
-            $self->decode(@nodes);
+            $parser->decode(@nodes);
         }
         elsif ($id eq 'members'){
-            return { map { $self->decode($_) } @nodes }; 
+            return { map { $parser->decode($_) } @nodes }; 
         }
         elsif ($id eq 'pair'){
-            return map { $self->decode($_) } @nodes; 
+            return map { $parser->decode($_) } @nodes; 
         }
         elsif ($id eq 'elements'){
-            return [ map { $self->decode($_) } @nodes ]; 
+            return [ map { $parser->decode($_) } @nodes ]; 
         }
         elsif ($id eq 'string'){
             return decode_string( substr $nodes[0]->[1], 1, -1 );
@@ -326,14 +326,14 @@ sub decode {
         }
         elsif ($id eq 'object'){
             return {} unless @nodes;
-            return $self->decode($_) for @nodes; 
+            return $parser->decode($_) for @nodes; 
         }
         elsif ($id eq 'array'){
             return [] unless @nodes;
-            return $self->decode($_) for @nodes; 
+            return $parser->decode($_) for @nodes; 
         }
         else{
-            return $self->decode($_) for @nodes; 
+            return $parser->decode($_) for @nodes; 
         }
     }
     else
@@ -345,8 +345,8 @@ sub decode {
 }
 
 sub parse_json {
-    my ($self, $string) = @_;
-    return $self->parse($string);
+    my ($parser, $string) = @_;
+    return $parser->parse($string);
 }
 
 sub decode_string {
