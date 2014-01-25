@@ -303,10 +303,10 @@ At rule alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the
 ID of the LHS of the rule.
 
 At rule alternatives,
-the L<C<rh_count()>|/"rh_count()"> and
+the L<C<rh_length()>|/"rh_length()"> and
 the L<C<rh_value()>|/"rh_value()"> glade methods
 are of use.
-The C<rh_count()> method returns the length of the RHS,
+The C<rh_length()> method returns the length of the RHS,
 and the C<rh_value()> method returns the value of one of the
 RHS children, as determined using its traverser.
 
