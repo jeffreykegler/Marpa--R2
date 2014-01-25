@@ -29,7 +29,7 @@ normalize-whitespace: 1
         {   bless_package => 'My_Nodes',
             source        => \(<<'END_OF_SOURCE'),
     :default ::= action => [values] bless => ::lhs
-    lexeme default = action => [start,length,value] bless => ::name
+    lexeme default = action => [ start, length, value ] bless => ::name
 
     :start ::= Script
     Script ::= Expression+ separator => comma
@@ -449,7 +449,7 @@ name: SLIF DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [start,length,lhs,value] bless => ::name
+    lexeme default = action => [start,length,value] bless => ::name
 
 =for Marpa::R2::Display::End
 

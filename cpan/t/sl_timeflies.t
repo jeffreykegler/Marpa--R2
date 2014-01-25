@@ -52,6 +52,9 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
+# Marpa::R2::Display
+# name: SLIF JSON DSL synopsis
+
 my $grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
         
@@ -89,6 +92,8 @@ VBP ~ 'time':i
 END_OF_SOURCE
     }
 );
+
+# Marpa::R2::Display::End
 
 my $expected = <<'EOS';
 (S 

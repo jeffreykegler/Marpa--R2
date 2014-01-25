@@ -568,11 +568,11 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLIF DSL synopsis
+name: SLIF JSON DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    :default ::= action => [lhs,values]
+    :default ::= action => [lhs, values ]
 
 =for Marpa::R2::Display::End
 
@@ -640,11 +640,11 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLIF DSL synopsis
+name: SLIF JSON DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [start,length,lhs,value]
+    lexeme default = action => [ lhs, value ]
 
 =for Marpa::R2::Display::End
 

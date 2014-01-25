@@ -895,7 +895,7 @@ partial: 1
 normalize-whitespace: 1
 
     my $re = Marpa::R2::Scanless::R->new(
-        {   grammar           => $self->{grammar},
+        {   grammar           => $parser->{grammar},
             semantics_package => 'MarpaX::JSON::Actions'
         }
     );

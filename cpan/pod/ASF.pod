@@ -57,8 +57,8 @@ normalize-whitespace: 1
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-  :default ::= action => [values] bless => ::lhs
-  lexeme default = action => [value] bless => ::name
+  :default ::= action => [ values ] bless => ::lhs
+  lexeme default = action => [ value ] bless => ::name
 
   S   ::= NP  VP  period  bless => S
 
