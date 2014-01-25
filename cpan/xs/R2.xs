@@ -330,6 +330,7 @@ set_error_from_string (G_Wrapper * g_wrapper, char *string)
   dTHX;
   Marpa_Grammar g = g_wrapper->g;
   char *buffer = g_wrapper->message_buffer;
+  PERL_UNUSED_ARG(my_perl);
   if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = string;
   g_wrapper->message_is_marpa_thin_error = 1;
@@ -488,6 +489,7 @@ u_r0_clear (Scanless_R * slr)
 {
   dTHX;
   Marpa_Recce r0 = slr->r0;
+  PERL_UNUSED_ARG(my_perl);
   if (!r0)
     return;
   marpa_r_unref (r0);
@@ -500,6 +502,7 @@ u_r0_new (Scanless_R * slr)
   dTHX;
   Marpa_Recce r0 = slr->r0;
   G_Wrapper *lexer_wrapper = slr->current_lexer->g_wrapper;
+  PERL_UNUSED_ARG(my_perl);
   if (r0)
     {
       marpa_r_unref (r0);
@@ -537,6 +540,7 @@ u_convert_events (Scanless_R * slr)
   int event_ix;
   Marpa_Grammar g = slr->current_lexer->g_wrapper->g;
   const int event_count = marpa_g_event_count (g);
+  PERL_UNUSED_ARG(my_perl);
   for (event_ix = 0; event_ix < event_count; event_ix++)
     {
       Marpa_Event marpa_event;
@@ -833,6 +837,7 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
   const STRLEN input_length = slr->pos_db_logical_size;
   int new_perl_pos;
   int new_end_pos;
+  PERL_UNUSED_ARG(my_perl);
 
   if (start_pos_arg < 0) {
       new_perl_pos = input_length + start_pos_arg;
@@ -891,6 +896,7 @@ u_substring (Scanless_R * slr, const char *name, int start_pos_arg,
   int end_pos;
   const int input_length = slr->pos_db_logical_size;
   int substring_length;
+  PERL_UNUSED_ARG(my_perl);
 
   start_pos =
     start_pos_arg < 0 ? input_length + start_pos_arg : start_pos_arg;
@@ -1584,6 +1590,7 @@ slr_discard (Scanless_R * slr)
   int lexemes_found = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
+  PERL_UNUSED_ARG(my_perl);
 
   r0 = slr->r0;
   if (!r0)
@@ -1709,6 +1716,7 @@ slr_convert_events (Scanless_R * slr)
   int event_ix;
   Marpa_Grammar g = slr->r1_wrapper->base->g;
   const int event_count = marpa_g_event_count (g);
+  PERL_UNUSED_ARG(my_perl);
   for (event_ix = 0; event_ix < event_count; event_ix++)
     {
       Marpa_Event marpa_event;
@@ -1875,7 +1883,6 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
-
   /* |high_lexeme_priority| is not valid unless |is_priority_set| is set. */
   int is_priority_set = 0;
   int high_lexeme_priority = 0;
@@ -1884,6 +1891,7 @@ slr_alternatives (Scanless_R * slr)
   int rejected = 0;
   int forgiven = 0;
   int working_pos = slr->start_of_lexeme;
+  PERL_UNUSED_ARG(my_perl);
 
   r0 = slr->r0;
   if (!r0)
@@ -2252,6 +2260,7 @@ slr_es_to_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
 {
   dTHX;
   int result = 0;
+  PERL_UNUSED_ARG(my_perl);
   /* We fake the values for Earley set 0,
    */
   if (earley_set <= 0)
@@ -2283,6 +2292,7 @@ slr_es_to_literal_span (Scanless_R * slr,
   const Marpa_Recce r1 = slr->r1;
   const Marpa_Earley_Set_ID latest_earley_set =
     marpa_r_latest_earley_set (r1);
+  PERL_UNUSED_ARG(my_perl);
   if (start_earley_set >= latest_earley_set)
     {
       /* Should only happen if length == 0 */
