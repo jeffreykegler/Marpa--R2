@@ -327,6 +327,7 @@ error_description_generate (G_Wrapper *g_wrapper)
 static const char *
 set_error_from_string (G_Wrapper * g_wrapper, char *string)
 {
+  dTHX;
   Marpa_Grammar g = g_wrapper->g;
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
@@ -485,6 +486,7 @@ static void lexer_destroy(Lexer *lexer)
 static void
 u_r0_clear (Scanless_R * slr)
 {
+  dTHX;
   Marpa_Recce r0 = slr->r0;
   if (!r0)
     return;
@@ -495,6 +497,7 @@ u_r0_clear (Scanless_R * slr)
 static Marpa_Recce
 u_r0_new (Scanless_R * slr)
 {
+  dTHX;
   Marpa_Recce r0 = slr->r0;
   G_Wrapper *lexer_wrapper = slr->current_lexer->g_wrapper;
   if (r0)
@@ -530,6 +533,7 @@ u_r0_new (Scanless_R * slr)
 static void
 u_convert_events (Scanless_R * slr)
 {
+  dTHX;
   int event_ix;
   Marpa_Grammar g = slr->current_lexer->g_wrapper->g;
   const int event_count = marpa_g_event_count (g);
@@ -824,6 +828,7 @@ if (trace_lexers >= 1)
 static STRLEN
 u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg)
 {
+  dTHX;
   const STRLEN old_perl_pos = slr->perl_pos;
   const STRLEN input_length = slr->pos_db_logical_size;
   int new_perl_pos;
@@ -881,6 +886,7 @@ static SV*
 u_substring (Scanless_R * slr, const char *name, int start_pos_arg,
              int length_arg)
 {
+  dTHX;
   int start_pos;
   int end_pos;
   const int input_length = slr->pos_db_logical_size;
@@ -1573,6 +1579,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 static IV
 slr_discard (Scanless_R * slr)
 {
+  dTHX;
   int lexemes_discarded = 0;
   int lexemes_found = 0;
   Marpa_Recce r0;
@@ -1698,6 +1705,7 @@ MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_IGNORED;
 static void
 slr_convert_events (Scanless_R * slr)
 {
+  dTHX;
   int event_ix;
   Marpa_Grammar g = slr->r1_wrapper->base->g;
   const int event_count = marpa_g_event_count (g);
@@ -1862,6 +1870,7 @@ r_convert_events (R_Wrapper * r_wrapper)
 static const char *
 slr_alternatives (Scanless_R * slr)
 {
+  dTHX;
   Marpa_Recce r0;
   Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
@@ -2241,6 +2250,7 @@ static void
 slr_es_to_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
                int *p_length)
 {
+  dTHX;
   int result = 0;
   /* We fake the values for Earley set 0,
    */
@@ -2269,6 +2279,7 @@ slr_es_to_literal_span (Scanless_R * slr,
                         Marpa_Earley_Set_ID start_earley_set, int length,
                         int *p_start, int *p_length)
 {
+  dTHX;
   const Marpa_Recce r1 = slr->r1;
   const Marpa_Earley_Set_ID latest_earley_set =
     marpa_r_latest_earley_set (r1);
