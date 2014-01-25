@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 24;
+use Test::More tests => 28;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -226,6 +226,41 @@ END_OF_SOURCE
         $grammar,      'abcdef',
         [qw(a b c d e f)], 'Parse OK',
         'Grammar with nested statement groups'
+        ];
+}
+
+#####
+# test discarding of spaces in array descriptor actions
+
+{
+    my $grammar = \(<<'END_OF_SOURCE');
+    :default ::= action => [lhs, value]
+    lexeme default = action => [ lhs, value ]
+    s ::= a
+    a ~ '42'
+END_OF_SOURCE
+
+    push @tests_data,
+        [
+        $grammar,      '42',
+        [ 1, [ 2, '42' ] ], 'Parse OK',
+        'Grammar with spaces in array descriptor actions'
+        ];
+}
+
+{
+    my $grammar = \(<<'END_OF_SOURCE');
+    :default ::= action => [ lhs, value]
+    lexeme default = action => [lhs, value ]
+    s ::= a
+    a ~ '42'
+END_OF_SOURCE
+
+    push @tests_data,
+        [
+        $grammar,      '42',
+        [ 1, [ 2, '42' ] ], 'Parse OK',
+        'Grammar with spaces in array descriptor actions'
         ];
 }
 
