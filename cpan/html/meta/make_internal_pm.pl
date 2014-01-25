@@ -1,4 +1,4 @@
-# Copyright 2013 Jeffrey Kegler
+# Copyright 2014 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
@@ -71,7 +71,7 @@ say "\n1;";
 BEGIN {
 
 $HEADER = <<'END_OF_HEADER';
-# Copyright 2013 Jeffrey Kegler
+# Copyright 2014 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
