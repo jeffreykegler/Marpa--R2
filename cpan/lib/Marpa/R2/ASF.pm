@@ -1451,6 +1451,12 @@ sub Marpa::R2::Internal::ASF::Traverse::rh_value {
     return $value;
 } ## end sub Marpa::R2::Internal::ASF::Traverse::rh_value
 
+sub Marpa::R2::Internal::ASF::Traverse::rh_values {
+    my ( $traverser ) = @_;
+    return map { Marpa::R2::Internal::ASF::Traverse::rh_value( $traverser, $_ ) } 
+        0 .. Marpa::R2::Internal::ASF::Traverse::rh_length( $traverser ) - 1;
+}
+
 sub Marpa::R2::Internal::ASF::Traverse::next_factoring {
     my ($traverser) = @_;
     my $glade       = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];

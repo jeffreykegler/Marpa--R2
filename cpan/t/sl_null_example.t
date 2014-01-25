@@ -19,7 +19,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 12;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -114,6 +114,26 @@ S(L(null A;null B;X(x));null R)
 END_OF_OUTPUT
 
 # Marpa::R2::Display::End
+
+my @rule_actions = (
+\&do_S,
+\&do_L,
+\$null_L,
+\&do_R,
+\$null_R,
+\$null_A,
+\$null_B,
+\$null_X,
+\&do_X,
+\$null_Y,
+\&do_Y
+);
+
+for my $rule_id ( sort { $a <=> $b } $slg->rule_ids( 'G1' ) ){
+    my $closure = $slr->rule_closure($rule_id);
+    next unless defined $closure;
+    ok $closure eq $rule_actions[$rule_id], "closure of rule $rule_id";
+}
 
 my $value = $slr->value();
 Marpa::R2::Test::is( ${$value}, $expected, 'Null example' );
