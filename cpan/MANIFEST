@@ -353,6 +353,7 @@ t/sl_gie.t
 t/sl_gif1.t
 t/sl_gsyn.t
 t/sl_json.t
+t/sl_json_ast.t
 t/sl_leo.t
 t/sl_leo2.t
 t/sl_lexevent.t
