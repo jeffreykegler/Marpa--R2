@@ -28,11 +28,6 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-# Marpa::R2::Display
-# name: ASF synopsis grammar
-# start-after-line: END_OF_SOURCE
-# end-before-line: '^END_OF_SOURCE$'
-
 my $dsl = <<'END_OF_SOURCE';
 
 S   ::= NP  VP  period  action => do_S
@@ -62,15 +57,8 @@ VBZ ~ 'eats' | 'shoots' | 'leaves'
 
 END_OF_SOURCE
 
-# Marpa::R2::Display::End
-
 my $grammar = Marpa::R2::Scanless::G->new(
     { source => \$dsl } );
-
-# Marpa::R2::Display
-# name: ASF synopsis output
-# start-after-line: END_OF_OUTPUT
-# end-before-line: '^END_OF_OUTPUT$'
 
 my $full_expected = <<'END_OF_OUTPUT';
 (S (NP (DT a) (NN panda))
@@ -84,14 +72,7 @@ my $full_expected = <<'END_OF_OUTPUT';
    (. .))
 END_OF_OUTPUT
 
-# Marpa::R2::Display::End
-
-# Marpa::R2::Display
-# name: ASF synopsis input
-
 my $sentence = 'a panda eats shoots and leaves.';
-
-# Marpa::R2::Display::End
 
 my @actual = ();
 
@@ -110,9 +91,6 @@ while ( defined( my $value_ref = $recce->value() ) ) {
 Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
     $full_expected, 'Ambiguous English sentence using value()' );
 
-# Marpa::R2::Display
-# name: ASF synopsis code
-
 my $panda_grammar = Marpa::R2::Scanless::G->new(
     { source => \$dsl } );
 my $panda_recce = Marpa::R2::Scanless::R->new( 
@@ -123,10 +101,6 @@ my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
 my $full_result = $asf->traverse( {}, \&full_traverser );
 my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 
-# Marpa::R2::Display::End
-
-# Marpa::R2::Display
-# name: ASF synopsis full traverser code
 sub full_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements
@@ -204,14 +178,9 @@ sub full_traverser {
     return \@return_value;
 } ## end sub full_traverser
 
-# Marpa::R2::Display::End
-
 my $cooked_result =  join "\n", (sort @{$full_result}), q{};
 Marpa::R2::Test::is( $cooked_result, $full_expected,
     'Ambiguous English sentence using ASF' );
-
-# Marpa::R2::Display
-# name: ASF synopsis pruning traverser code
 
 sub pruning_traverser {
 
@@ -240,20 +209,11 @@ sub pruning_traverser {
     }
 }
 
-# Marpa::R2::Display::End
-
-# Marpa::R2::Display
-# name: ASF pruned synopsis output
-# start-after-line: END_OF_OUTPUT
-# end-before-line: '^END_OF_OUTPUT$'
-
 my $pruned_expected = <<'END_OF_OUTPUT';
 (S (NP (DT a) (NN panda))
    (VP (VBZ eats) (NP (NNS shoots) (CC and) (NNS leaves)))
    (. .))
 END_OF_OUTPUT
-
-# Marpa::R2::Display::End
 
 Marpa::R2::Test::is( $pruned_result, $pruned_expected,
     'Ambiguous English sentence using ASF: pruned' );
