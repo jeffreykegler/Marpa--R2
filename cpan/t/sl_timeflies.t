@@ -53,7 +53,7 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 # Marpa::R2::Display
-# name: SLIF JSON DSL synopsis
+# name: SLIF "time flies" DSL synopsis
 
 my $grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),

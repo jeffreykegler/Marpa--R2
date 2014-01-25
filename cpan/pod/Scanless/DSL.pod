@@ -568,7 +568,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLIF JSON DSL synopsis
+name: SLIF "time flies" DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -640,7 +640,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLIF JSON DSL synopsis
+name: SLIF "time flies" DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
