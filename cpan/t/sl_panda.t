@@ -149,7 +149,18 @@ sub full_traverser {
         # The results at each position are a list of choices, so
         # to produce a new result list, we need to take a Cartesian
         # product of all the choices
-        my @results = $glade->all_choices();
+        my $length = $glade->rh_length();
+        my @results = ( [] );
+        for my $rh_ix ( 0 .. $length - 1 ) {
+            my @new_results = ();
+            for my $old_result (@results) {
+                my $child_value = $glade->rh_value($rh_ix);
+                for my $new_value ( @{ $child_value } ) {
+                    push @new_results, [ @{$old_result}, $new_value ];
+                }
+            }
+            @results = @new_results;
+        } ## end for my $rh_ix ( 0 .. $length - 1 )
 
         # Special case for the start rule
         if ( $symbol_name eq '[:start]' ) {

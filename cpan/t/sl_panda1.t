@@ -125,7 +125,18 @@ sub full_traverser {
         # The parse results at each position are a list of choices, so
         # to produce a new result list, we need to take a Cartesian
         # product of all the choices
-        my @results = $glade->all_choices();
+        my @values = $glade->rh_values();
+        my @results = ( [] );
+        for my $rh_ix ( 0 .. @values - 1 ) {
+            my @new_results = ();
+            for my $old_result (@results) {
+                my $child_value = $values[$rh_ix];
+                for my $new_value ( @{ $child_value } ) {
+                    push @new_results, [ @{$old_result}, $new_value ];
+                }
+            }
+            @results = @new_results;
+        } ## end for my $rh_ix ( 0 .. $length - 1 )
 
         # Special case for the start rule: just collapse one level of lists
         if ( $symbol_name eq '[:start]' ) {
