@@ -101,13 +101,13 @@ sub Marpa::R2::Internal::Scanless::G::set {
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
         if ( not $ref_type ) {
-            Marpa::R2::exception( q{$slr->}
+            Marpa::R2::exception( q{$slg->}
                     . $method
                     . qq{() expects args as ref to HASH; got non-reference instead}
             );
         } ## end if ( not $ref_type )
         if ( $ref_type ne 'HASH' ) {
-            Marpa::R2::exception( q{$slr->}
+            Marpa::R2::exception( q{$slg->}
                     . $method
                     . qq{() expects args as ref to HASH, got ref to $ref_type instead}
             );
@@ -126,7 +126,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
     my @bad_args = grep { not $ok_args->{$_} } keys %flat_args;
     if ( scalar @bad_args ) {
         Marpa::R2::exception(
-            q{Bad named argument(s) to $slr->}
+            q{Bad named argument(s) to $slg->}
                 . $method
                 . q{() method: }
                 . join q{ },
