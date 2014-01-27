@@ -85,9 +85,9 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         my $resolve_package =
             $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
         if (not defined $resolve_package) {
-            ${$p_error} = Marpa::R2::Internal::X->new(
+            ${$p_error} = Marpa::R2::Internal::X->new( {
                 message => qq{Could not fully qualify "$closure_name": no resolve package},
-                name => 'NO RESOLVE PACKAGE'
+                name => 'NO RESOLVE PACKAGE' }
             );
             return;
         }
