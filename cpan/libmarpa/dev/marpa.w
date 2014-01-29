@@ -9946,19 +9946,21 @@ may be accessed via different members of a union.
 @<Or-node common initial sequence@> =
 int t_position;
 int t_end_set_ordinal;
-IRL t_irl;
 int t_start_set_ordinal;
 ORID t_id;
+@ @<Or-node less common initial sequence@> =
+  @<Or-node common initial sequence@>@;
+  IRL t_irl;
 @ @<Private structures@> =
 struct s_draft_or_node
 {
-    @<Or-node common initial sequence@>@;
+    @<Or-node less common initial sequence@>@;
   DAND t_draft_and_node;
 };
 @ @<Private structures@> =
 struct s_final_or_node
 {
-    @<Or-node common initial sequence@>@;
+    @<Or-node less common initial sequence@>@;
     int t_first_and_node_id;
     int t_and_node_count;
 };
@@ -13278,112 +13280,136 @@ for the rule.
         NOOK_of_V(v) = Size_of_TREE(t);
     }
 
-    while (1) {
+    while (1)
+      {
         OR or;
         IRL nook_irl;
-        Token_Value_of_V(v) = -1;
-        RULEID_of_V(v) = -1;
-        NOOK_of_V(v)--;
-        if (NOOK_of_V(v) < 0) {
-            Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
+        Token_Value_of_V (v) = -1;
+        RULEID_of_V (v) = -1;
+        NOOK_of_V (v)--;
+        if (NOOK_of_V (v) < 0)
+          {
+            Next_Value_Type_of_V (v) = MARPA_STEP_INACTIVE;
             break;
-        }
-        if (pop_arguments) {
-          /* Pop the arguments for the last rule execution off of
-          the stack */
-          Arg_N_of_V(v) = Arg_0_of_V(v);
-          pop_arguments = 0;
-        }
+          }
+        if (pop_arguments)
+          {
+            /* Pop the arguments for the last rule execution off of
+               the stack */
+            Arg_N_of_V (v) = Arg_0_of_V (v);
+            pop_arguments = 0;
+          }
         {
           ANDID and_node_id;
           AND and_node;
-          TOK tkn;
-          int tkn_type;
+          TOK tkn = NULL;
+          int cause_or_node_type;
           const NOOK nook = NOOK_of_TREE_by_IX (t, NOOK_of_V (v));
           const int choice = Choice_of_NOOK (nook);
           or = OR_of_NOOK (nook);
-          YS_ID_of_V(v) = YS_Ord_of_OR(or);
+          YS_ID_of_V (v) = YS_Ord_of_OR (or);
           and_node_id = and_order_get (o, or, choice);
           and_node = and_nodes + and_node_id;
-          tkn = and_node_token (and_node);
-          tkn_type = tkn ? Type_of_TOK(tkn) : DUMMY_OR_NODE;
-          Token_Type_of_V (v) = tkn_type;
-          if (tkn_type != DUMMY_OR_NODE)
-          {
-            const NSYID tkn_nsyid = NSYID_of_TOK (tkn);
-            Arg_0_of_V (v) = ++Arg_N_of_V (v);
-            if (tkn_type == VALUED_TOKEN_OR_NODE)
-              {
-                const OR predecessor = Predecessor_OR_of_AND (and_node);
-                XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_NSYID (tkn_nsyid));
-                Token_Start_of_V (v) =
-                  predecessor ? YS_Ord_of_OR (predecessor) : Origin_Ord_of_OR (or);
-                Token_Value_of_V (v) = Value_of_TOK (tkn);
-              }
-            else if (tkn_type == NULLING_TOKEN_OR_NODE)
-              {
-                const XSY source_xsy = Source_XSY_of_NSYID(tkn_nsyid);
-                const XSYID source_xsy_id = ID_of_XSY(source_xsy);
-                if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsy_id))
+          cause_or_node_type = Type_of_OR (Cause_OR_of_AND (and_node));
+          switch (cause_or_node_type)
+            {
+            case VALUED_TOKEN_OR_NODE:
+            case NULLING_TOKEN_OR_NODE:
+              tkn = and_node_token (and_node);
+              Token_Type_of_V (v) = cause_or_node_type;
+              break;
+            default:
+              Token_Type_of_V (v) = DUMMY_OR_NODE;
+            }
+          if (tkn)
+            {
+              const NSYID tkn_nsyid = NSYID_of_TOK (tkn);
+              Arg_0_of_V (v) = ++Arg_N_of_V (v);
+              switch (cause_or_node_type)
+                {
+                case VALUED_TOKEN_OR_NODE:
                   {
-                    XSYID_of_V (v) = source_xsy_id;
-                    Token_Start_of_V(v) = YS_ID_of_V(v);
+                    const OR predecessor = Predecessor_OR_of_AND (and_node);
+                    XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_NSYID (tkn_nsyid));
+                    Token_Start_of_V (v) =
+                      predecessor ? YS_Ord_of_OR (predecessor) :
+                      Origin_Ord_of_OR (or);
+                    Token_Value_of_V (v) = Value_of_TOK (tkn);
+                  }
+                  break;
+                case NULLING_TOKEN_OR_NODE:
+                  {
+                    const XSY source_xsy = Source_XSY_of_NSYID (tkn_nsyid);
+                    const XSYID source_xsy_id = ID_of_XSY (source_xsy);
+                    if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsy_id))
+                      {
+                        XSYID_of_V (v) = source_xsy_id;
+                        Token_Start_of_V (v) = YS_ID_of_V (v);
+                      }
+                    else
+                      {
+                        Token_Type_of_V (v) = DUMMY_OR_NODE;
+                        /* |DUMMY_OR_NODE| indicates arbitrary semantics for
+                           this token */
+                      }
+                  }
+                  break;
+                }
+            }
+        }
+        nook_irl = IRL_of_OR (or);
+        if (Position_of_OR (or) == Length_of_IRL (nook_irl))
+          {
+            int virtual_rhs = IRL_has_Virtual_RHS (nook_irl);
+            int virtual_lhs = IRL_has_Virtual_LHS (nook_irl);
+            int real_symbol_count;
+            const MARPA_DSTACK virtual_stack = &VStack_of_V (v);
+            if (virtual_lhs)
+              {
+                real_symbol_count = Real_SYM_Count_of_IRL (nook_irl);
+                if (virtual_rhs)
+                  {
+                    *(MARPA_DSTACK_TOP (*virtual_stack, int)) += real_symbol_count;
                   }
                 else
                   {
-                    Token_Type_of_V (v) = DUMMY_OR_NODE;
-                    /* |DUMMY_OR_NODE| indicates arbitrary semantics for
-                       this token */
+                    *MARPA_DSTACK_PUSH (*virtual_stack, int) = real_symbol_count;
                   }
               }
             else
               {
-                Token_Type_of_V (v) = DUMMY_OR_NODE;
-                /* |DUMMY_OR_NODE| indicates arbitrary semantics for
-                   this token */
-              }
-          }
-        }
-        nook_irl = IRL_of_OR(or);
-        if (Position_of_OR(or) == Length_of_IRL(nook_irl)) {
-            int virtual_rhs = IRL_has_Virtual_RHS(nook_irl);
-            int virtual_lhs = IRL_has_Virtual_LHS(nook_irl);
-            int real_symbol_count;
-            const MARPA_DSTACK virtual_stack = &VStack_of_V(v);
-            if (virtual_lhs) {
-                real_symbol_count = Real_SYM_Count_of_IRL(nook_irl);
-                if (virtual_rhs) {
-                    *(MARPA_DSTACK_TOP(*virtual_stack, int)) += real_symbol_count;
-                } else {
-                    *MARPA_DSTACK_PUSH(*virtual_stack, int) = real_symbol_count;
-                }
-            } else {
 
-                if (virtual_rhs) {
-                    real_symbol_count = Real_SYM_Count_of_IRL(nook_irl);
-                    real_symbol_count += *MARPA_DSTACK_POP(*virtual_stack, int);
-                } else {
-                    real_symbol_count = Length_of_IRL(nook_irl);
-                }
+                if (virtual_rhs)
+                  {
+                    real_symbol_count = Real_SYM_Count_of_IRL (nook_irl);
+                    real_symbol_count += *MARPA_DSTACK_POP (*virtual_stack, int);
+                  }
+                else
+                  {
+                    real_symbol_count = Length_of_IRL (nook_irl);
+                  }
                 {
                   // Currently all rules with a non-virtual LHS are
                   // "semantic" rules.
                   XRLID original_rule_id = ID_of_XRL (Source_XRL_of_IRL (nook_irl));
                   Arg_0_of_V (v) = Arg_N_of_V (v) - real_symbol_count + 1;
                   pop_arguments = 1;
-              if (lbv_bit_test(XRL_is_Valued_BV_of_V(v), original_rule_id))
+                  if (lbv_bit_test (XRL_is_Valued_BV_of_V (v), original_rule_id))
                     {
                       RULEID_of_V (v) = original_rule_id;
                       Rule_Start_of_V (v) = Origin_Ord_of_OR (or);
                     }
                 }
 
-            }
-        }
-        if ( RULEID_of_V(v) >= 0 ) break;
-        if ( Token_Type_of_V(v) != DUMMY_OR_NODE ) break;
-        if ( V_is_Trace(v)) break;
-    }
+              }
+          }
+        if (RULEID_of_V (v) >= 0)
+          break;
+        if (Token_Type_of_V (v) != DUMMY_OR_NODE)
+          break;
+        if (V_is_Trace (v))
+          break;
+      }
 }
 
 @** Lightweight boolean vectors (LBV).
