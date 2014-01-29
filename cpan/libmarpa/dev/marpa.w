@@ -10026,7 +10026,6 @@ Top_ORID_of_B(b) = -1;
   PSAR_Object or_per_ys_arena;
   const PSAR or_psar = &or_per_ys_arena;
   int work_earley_set_ordinal;
-  OR last_or_node = NULL ;
   OR_Capacity_of_B(b) = count_of_earley_items_in_parse;
   ORs_of_B (b) = marpa_new (OR, OR_Capacity_of_B(b));
   psar_init (or_psar, SYMI_Count_of_G (g));
@@ -10086,8 +10085,11 @@ Top_ORID_of_B(b) = -1;
           @<Claim the or-node PSL for |psl_ys_ord| as |claimed_psl|@>@;
           or_psl = claimed_psl;
         }
-        @<Add main or-node@>@;
-        @<Add nulling token or-nodes@>@;
+        {
+          OR last_or_node = NULL;
+          @<Add main or-node@>@;
+          @<Add nulling token or-nodes@>@;
+        }
     }
     /* Replace the dummy or-node with
     the last one added */
@@ -10228,8 +10230,11 @@ requirements in the process.
       const AHM path_aim = Base_to_AHM_of_LIM(previous_leo_item);
       const IRL path_irl = IRL_of_AHM(path_aim);
       const int symbol_instance_of_path_aim = SYMI_of_AHM(path_aim);
-      @<Add main Leo path or-node@>@;
-      @<Add Leo path nulling token or-nodes@>@;
+      {
+        OR last_or_node = NULL;
+        @<Add main Leo path or-node@>@;
+        @<Add Leo path nulling token or-nodes@>@;
+      }
       previous_leo_item = this_leo_item;
     }
 }
