@@ -9728,7 +9728,7 @@ PRIVATE int psia_test_and_set(
         {
           if (YIM_was_Predicted (predecessor_earley_item))
             {
-                Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
+                Set_boolean_in_PSIA_for_initial_nulls (per_ys_data,
                                                        predecessor_earley_item,
                                                        predecessor_aim);
             }
@@ -9750,21 +9750,12 @@ so that I will know to create the chain of or-nodes for them.
 We don't need to stack the prediction, because it can have
 no other descendants.
 @<Function definitions@> =
-PRIVATE int
-Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
-				       struct s_bocage_setup_per_ys
-				       *per_ys_data, YIM yim, AHM aim)
+PRIVATE void
+Set_boolean_in_PSIA_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
+  YIM yim, AHM aim)
 {
-  int null_count = 0;
-  if (Position_of_AHM (aim) > 0)
-    {
-      null_count = Null_Count_of_AHM (aim);
-      if (null_count)
-	{
+  if (Null_Count_of_AHM (aim))
 	  psia_test_and_set (per_ys_data, (yim));
-	}
-    }
-  return null_count;
 }
 
 @ @<Push child Earley items from completion sources@> =
@@ -9795,7 +9786,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
 	  if (YIM_was_Predicted (predecessor_earley_item))
 	    {
 	       Set_boolean_in_PSIA_for_initial_nulls
-		(bocage_setup_obs, per_ys_data,
+		(per_ys_data,
 		 predecessor_earley_item, predecessor_aim);
 	    }
 	  else
@@ -9835,7 +9826,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
             {
                 const AHM leo_final_aim = Base_to_AHM_of_LIM(leo_predecessor);
                 const AHM prediction_aim = Prev_AHM_of_AHM(leo_final_aim);
-                Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
+                Set_boolean_in_PSIA_for_initial_nulls (per_ys_data,
                                                        leo_base_yim, prediction_aim);
             }
           else
@@ -10116,8 +10107,7 @@ MARPA_ASSERT(aim_symbol_instance < SYMI_Count_of_G(g))@;
       if (!or_node || YS_Ord_of_OR(or_node) != work_earley_set_ordinal)
         {
           const IRL irl = IRL_of_AHM(aim);
-          @<Set |last_or_node| to a new or-node@>@;
-          or_node = last_or_node;
+          or_node = last_or_node = or_node_new(b);
           PSL_Datum (or_psl, aim_symbol_instance) = last_or_node;
           Origin_Ord_of_OR(or_node) = Origin_Ord_of_YIM(work_earley_item);
           YS_Ord_of_OR(or_node) = work_earley_set_ordinal;
@@ -10130,26 +10120,21 @@ MARPA_ASSERT(aim_symbol_instance < SYMI_Count_of_G(g))@;
     }
 }
 
-@ The resizing of the or-node array here presents an issue.
-It should not be invoked, which means it is never tested,
-which raises the question of either having confidence in the logic
-and deleting the code,
-or arranging to test it.
-r
-@<Set |last_or_node| to a new or-node@> =
+@ @<Function definitions@> =
+PRIVATE OR or_node_new(BOCAGE b)
 {
   const int or_node_id = OR_Count_of_B (b)++;
-  last_or_node = (OR)marpa_obs_new (OBS_of_B(b), OR_Object, 1);
-  ID_of_OR(last_or_node) = or_node_id;
+  const OR new_or_node = (OR)marpa_obs_new (OBS_of_B(b), OR_Object, 1);
+  ID_of_OR(new_or_node) = or_node_id;
   if (_MARPA_UNLIKELY(or_node_id >= OR_Capacity_of_B(b)))
     {
       OR_Capacity_of_B(b) *= 2;
       ORs_of_B (b) =
         marpa_renew (OR, ORs_of_B(b), OR_Capacity_of_B(b));
     }
-  OR_of_B_by_ID(b,or_node_id) = last_or_node;
+  OR_of_B_by_ID(b,or_node_id) = new_or_node;
+  return new_or_node;
 }
-
 
 @  In the following logic, the order matters.
 The one added last in this logic,
@@ -10180,8 +10165,8 @@ and this is the case if |Position_of_OR(or_node) == 0|.
                 const int rhs_ix = symbol_instance - symbol_instance_of_rule;
                 const OR predecessor = rhs_ix ? last_or_node : NULL;
                 const OR cause = Nulling_OR_by_NSYID( RHSID_of_IRL (irl, rhs_ix ) );
-                @<Set |last_or_node| to a new or-node@>@;
-                or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
+                or_node = PSL_Datum (or_psl, symbol_instance)
+                  = last_or_node = or_node_new(b);
                 Origin_Ord_of_OR (or_node) = work_origin_ordinal;
                 YS_Ord_of_OR (or_node) = work_earley_set_ordinal;
                 IRL_of_OR (or_node) = irl;
@@ -10256,7 +10241,7 @@ corresponds to the Leo predecessor.
       or_node = PSL_Datum (leo_psl, symbol_instance_of_path_aim);
       if (!or_node || YS_Ord_of_OR(or_node) != work_earley_set_ordinal)
         {
-          @<Set |last_or_node| to a new or-node@>@;
+          last_or_node = or_node_new(b);
           PSL_Datum (leo_psl, symbol_instance_of_path_aim) = or_node =
               last_or_node;
           Origin_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
@@ -10291,8 +10276,8 @@ or-nodes follow a completion.
           const OR cause = Nulling_OR_by_NSYID( RHSID_of_IRL (path_irl, rhs_ix ) );
           MARPA_ASSERT (symbol_instance < Length_of_IRL (path_irl)) @;
           MARPA_ASSERT (symbol_instance >= 0) @;
-          @<Set |last_or_node| to a new or-node@>@;
-          PSL_Datum (this_earley_set_psl, symbol_instance) = or_node = last_or_node;
+          or_node = last_or_node = or_node_new(b);
+          PSL_Datum (this_earley_set_psl, symbol_instance) = or_node;
           Origin_Ord_of_OR (or_node) = ordinal_of_set_of_this_leo_item;
           YS_Ord_of_OR (or_node) = work_earley_set_ordinal;
           IRL_of_OR (or_node) = path_irl;
