@@ -5085,8 +5085,6 @@ we are traversing backwards.
   CIL t_prediction_xsyids;
 
 @*0 AHM container.
-@ @s AEX int
-@<Private typedefs@> = typedef int AEX;
 
 @*0 Is AHM predicted?.
 @ This boolean indicates source, not contents.
@@ -9555,7 +9553,6 @@ will need to be changed.
 @d Prev_UR_of_UR(ur) ((ur)->t_prev)
 @d Next_UR_of_UR(ur) ((ur)->t_next)
 @d YIM_of_UR(ur) ((ur)->t_earley_item)
-@d AEX_of_UR(ur) ((ur)->t_aex)
 
 @<Private structures@> =
 struct s_ur_node_stack {
@@ -9569,7 +9566,6 @@ struct s_ur_node {
    UR t_prev;
    UR t_next;
    YIM t_earley_item;
-   AEX t_aex;
 };
 typedef struct s_ur_node UR_Object;
 
@@ -9618,12 +9614,11 @@ PRIVATE UR ur_node_new(URS stack, UR prev)
 
 @ @<Function definitions@> =
 PRIVATE void
-ur_node_push (URS stack, YIM earley_item, AEX aex)
+ur_node_push (URS stack, YIM earley_item)
 {
   UR old_top = stack->t_top;
   UR new_top = Next_UR_of_UR (old_top);
   YIM_of_UR (old_top) = earley_item;
-  AEX_of_UR (old_top) = aex;
   if (!new_top)
     {
       new_top = ur_node_new (stack, old_top);
@@ -9681,22 +9676,22 @@ never on the stack.
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
-        (bocage_setup_obs, per_ys_data, ur_earley_item, 0))
+        (per_ys_data, ur_earley_item))
       {
-        ur_node_push (ur_node_stack, ur_earley_item, 0);
+        ur_node_push (ur_node_stack, ur_earley_item);
       }
 }
 
-@ The |PSIA| is a container of data that is per Earley-set, per Earley item,
-and per AEX.  Thus, Per-Set-Item-Aex, or PSIA.
-This function ensures that the appropriate |PSIA| boolean is set.
+@ The |PSI| is a container of data that is per Earley-set,
+and with that, per Earley item.
+(For historical reasons, it is sometimes called a PSIA.)
+This function ensures that the appropriate |PSI| boolean is set.
 It returns that boolean's value {\bf prior} to the call.
 @<Function definitions@> = 
 PRIVATE int psia_test_and_set(
-    struct marpa_obstack* obs,
     struct s_bocage_setup_per_ys* per_ys_data,
-    YIM earley_item,
-    AEX ahfa_element_ix)
+    YIM earley_item
+    )
 {
   const Marpa_Earley_Set_ID set_ordinal = YS_Ord_of_YIM (earley_item);
   const int item_ordinal = Ord_of_YIM (earley_item);
@@ -9766,9 +9761,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
       null_count = Null_Count_of_AHM (aim);
       if (null_count)
 	{
-	  // the AEX is now always zero.
-          const int aex = 0;
-	  psia_test_and_set (bocage_setup_obs, per_ys_data, (yim), aex);
+	  psia_test_and_set (per_ys_data, (yim));
 	}
     }
   return null_count;
@@ -9813,7 +9806,6 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
 	}
       {
 	const YIM ur_earley_item = cause_earley_item;
-	/* There is now only one AEX in a completion */
 	@<Push ur-node if new@>@;
       }
       if (!source_link)
@@ -9834,7 +9826,6 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
       LIM leo_predecessor = LIM_of_SRCL (source_link);
       {
         const YIM ur_earley_item = cause_earley_item;
-        /* There is now only one AEX in a completion */
         @<Push ur-node if new@>@;
       }
       while (leo_predecessor)
@@ -10103,7 +10094,7 @@ Top_ORID_of_B(b) = -1;
     /* The following assertion is now not necessarily true.
     it is kept for documentation, but eventually should be removed */
     MARPA_OFF_ASSERT (psia_or_node)@;
-    LV_OR_by_PSI(per_ys_data, working_ys_ordinal, working_yim_ordinal)
+    OR_by_PSI(per_ys_data, working_ys_ordinal, working_yim_ordinal)
       = psia_or_node;
     @<Add Leo or-nodes for |work_earley_item|@>@;
 }
@@ -10698,7 +10689,6 @@ predecessor.  Set |or_node| to 0 if there is none.
 @ @<Add draft and-nodes to the bottom or-node@> =
 {
   OR dand_cause;
-    /* There is now only one AEX in a completion */
   Set_OR_from_YIM(dand_cause, cause_earley_item);
   draft_and_node_add (bocage_setup_obs, path_or_node,
 		      dand_predecessor, dand_cause);
@@ -10826,7 +10816,6 @@ been eliminated.)
   OR dand_predecessor;
   OR dand_cause;
   const int middle_ordinal = Origin_Ord_of_YIM(cause_earley_item);
-  /* There is now only one AEX in a completion */
   const AHM cause_aim = AHM_of_YIM(cause_earley_item);
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_IRL(IRL_of_AHM(cause_aim));
@@ -11487,7 +11476,6 @@ BOCAGE b = NULL;
 YS end_of_parse_earley_set;
 JEARLEME end_of_parse_earleme;
 YIM start_yim = NULL;
-const AEX start_aex = 0;
 struct marpa_obstack* bocage_setup_obs = NULL;
 int count_of_earley_items_in_parse;
 const int earley_set_count_of_r = YS_Count_of_R (r);
@@ -11498,8 +11486,6 @@ struct s_bocage_setup_per_ys;
 They may be worth keeping.
 @d OR_by_PSI(psi_data, set_ordinal, item_ordinal)
    (((psi_data)[(set_ordinal)].t_or_node_by_item)[(item_ordinal)])
-@d LV_OR_by_PSI(psi_data, set_ordinal, item_ordinal)
-  OR_by_PSI(psi_data, set_ordinal, item_ordinal)
 @<Private structures@> =
 struct s_bocage_setup_per_ys {
      OR * t_or_node_by_item;
@@ -11546,8 +11532,8 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
       count_of_earley_items_in_parse += item_count;
       {
         struct s_bocage_setup_per_ys *per_ys = per_ys_data + earley_set_ordinal;
-        OR *const per_yim_or_nodes = per_ys->t_or_node_by_item =
-          marpa_obs_new (bocage_setup_obs, OR *, item_count);
+        per_ys->t_or_node_by_item =
+          marpa_obs_new (bocage_setup_obs, OR, item_count);
         int item_ordinal;
         per_ys->t_or_psl = NULL;
         per_ys->t_and_psl = NULL;
