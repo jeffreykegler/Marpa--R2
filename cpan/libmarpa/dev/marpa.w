@@ -10091,6 +10091,8 @@ Top_ORID_of_B(b) = -1;
 @ @<Create the or-nodes for |work_earley_item|@> =
 {
   AHM aim = AHM_of_YIM(work_earley_item);
+  const int working_ys_ordinal = YS_Ord_of_YIM(work_earley_item);
+  const int working_yim_ordinal = Ord_of_YIM(work_earley_item);
   SYMI aim_symbol_instance;
   OR psia_or_node = NULL;
   aim_symbol_instance = SYMI_of_AHM(aim);
@@ -10110,7 +10112,8 @@ Top_ORID_of_B(b) = -1;
     /* The following assertion is now not necessarily true.
     it is kept for documentation, but eventually should be removed */
     MARPA_OFF_ASSERT (psia_or_node)@;
-    work_nodes_by_aex[0] = psia_or_node;
+    LV_OR_by_PSI(per_ys_data, working_ys_ordinal, working_yim_ordinal)
+      = psia_or_node;
     @<Add Leo or-nodes for |work_earley_item|@>@;
 }
 
@@ -10717,11 +10720,8 @@ been eliminated.)
 @d Set_OR_from_YIM(psia_or, psia_yim) {
   const YIM psia_earley_item = psia_yim;
   const int psia_earley_set_ordinal = YS_Ord_of_YIM (psia_earley_item);
-  OR **const psia_nodes_by_item =
-    per_ys_data[psia_earley_set_ordinal].t_aexes_by_item;
   const int psia_item_ordinal = Ord_of_YIM (psia_earley_item);
-  OR *const psia_nodes_by_aex = psia_nodes_by_item[psia_item_ordinal];
-  psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[0] : NULL;
+  psia_or = OR_by_PSI(per_ys_data, psia_earley_set_ordinal, psia_item_ordinal);
 }
 
 @ @<Use Leo base data to set |path_or_node|@> =
@@ -11509,6 +11509,8 @@ They may be worth keeping.
    (((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)] ?
    ((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)][0]
    : NULL)
+@d LV_OR_by_PSI(psi_data, set_ordinal, item_ordinal)
+   (((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)][0])
 @<Private structures@> =
 struct s_bocage_setup_per_ys {
      OR ** t_aexes_by_item;
