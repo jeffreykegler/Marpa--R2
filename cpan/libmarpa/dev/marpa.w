@@ -9679,9 +9679,7 @@ never on the stack.
     }
 }
 
-@ There is now only one AHM unless the item is a prediction, which it never is
-if we are here.
-@<Push ur-node if new@> = {
+@ @<Push ur-node if new@> = {
     if (!psia_test_and_set
         (bocage_setup_obs, per_ys_data, ur_earley_item, 0))
       {
@@ -11505,7 +11503,13 @@ const int earley_set_count_of_r = YS_Count_of_R (r);
 
 @ @<Private incomplete structures@> =
 struct s_bocage_setup_per_ys;
-@ @<Private structures@> =
+@ These macros were introduced for development.
+They may be worth keeping.
+@d OR_by_PSI(psi_data, set_ordinal, item_ordinal)
+   (((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)] ?
+   ((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)][0]
+   : NULL)
+@<Private structures@> =
 struct s_bocage_setup_per_ys {
      OR ** t_aexes_by_item;
      PSL t_or_psl;
@@ -11603,11 +11607,9 @@ to make sense.
 @ @<Set top or node id in |b|@> =
 {
   const YSID end_of_parse_ordinal = Ord_of_YS (end_of_parse_earley_set);
-  OR **const nodes_by_item =
-    per_ys_data[end_of_parse_ordinal].t_aexes_by_item;
   const int start_earley_item_ordinal = Ord_of_YIM (start_yim);
-  OR *const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
-  const OR root_or_node = nodes_by_aex[start_aex];
+  const OR root_or_node =
+    OR_by_PSI(per_ys_data, end_of_parse_ordinal, start_earley_item_ordinal);
   Top_ORID_of_B (b) = ID_of_OR (root_or_node);
 }
 
