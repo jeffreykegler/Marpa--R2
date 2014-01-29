@@ -10072,15 +10072,9 @@ Top_ORID_of_B(b) = -1;
   for (item_ordinal = 0; item_ordinal < item_count;
        item_ordinal++)
     {
-      OR *const work_nodes_by_aex =
-        nodes_by_item[item_ordinal];
-      if (work_nodes_by_aex)
+      if (OR_by_PSI(per_ys_data, work_earley_set_ordinal, item_ordinal))
         {
-          const YIM work_earley_item =
-            yims_of_ys[item_ordinal];
-          const int work_origin_ordinal =
-            Ord_of_YS (Origin_of_YIM (work_earley_item));
-              if (work_nodes_by_aex[0])
+          const YIM work_earley_item = yims_of_ys[item_ordinal];
             {
               @<Create the or-nodes for |work_earley_item|@>@;
             }
@@ -10093,6 +10087,8 @@ Top_ORID_of_B(b) = -1;
   AHM aim = AHM_of_YIM(work_earley_item);
   const int working_ys_ordinal = YS_Ord_of_YIM(work_earley_item);
   const int working_yim_ordinal = Ord_of_YIM(work_earley_item);
+  const int work_origin_ordinal =
+            Ord_of_YS (Origin_of_YIM (work_earley_item));
   SYMI aim_symbol_instance;
   OR psia_or_node = NULL;
   aim_symbol_instance = SYMI_of_AHM(aim);
