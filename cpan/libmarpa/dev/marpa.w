@@ -9698,20 +9698,16 @@ PRIVATE int psia_test_and_set(
     YIM earley_item,
     AEX ahfa_element_ix)
 {
-    const Marpa_Earley_Set_ID set_ordinal = YS_Ord_of_YIM(earley_item);
-    OR** nodes_by_item = per_ys_data[set_ordinal].t_aexes_by_item;
-    const int item_ordinal = Ord_of_YIM(earley_item);
-    OR* nodes_by_aex = nodes_by_item[item_ordinal];
-    if (!nodes_by_aex) {
-        nodes_by_aex = nodes_by_item[item_ordinal] =
-            marpa_obs_new(obs, OR, 1);
-            nodes_by_aex[0] = NULL;
+  const Marpa_Earley_Set_ID set_ordinal = YS_Ord_of_YIM (earley_item);
+  const int item_ordinal = Ord_of_YIM (earley_item);
+  const OR previous_or_node =
+    OR_by_PSI (per_ys_data, set_ordinal, item_ordinal);
+  if (!previous_or_node)
+    {
+      OR_by_PSI (per_ys_data, set_ordinal, item_ordinal) = dummy_or_node;
+      return 0;
     }
-    if (!nodes_by_aex[ahfa_element_ix]) {
-        nodes_by_aex[ahfa_element_ix] = dummy_or_node;
-        return 0;
-    }
-    return 1;
+  return 1;
 }
 
 @ @<Push child Earley items from token sources@> =
@@ -11501,14 +11497,12 @@ struct s_bocage_setup_per_ys;
 @ These macros were introduced for development.
 They may be worth keeping.
 @d OR_by_PSI(psi_data, set_ordinal, item_ordinal)
-   (((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)] ?
-   ((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)][0]
-   : NULL)
+   (((psi_data)[(set_ordinal)].t_or_node_by_item)[(item_ordinal)])
 @d LV_OR_by_PSI(psi_data, set_ordinal, item_ordinal)
-   (((psi_data)[(set_ordinal)].t_aexes_by_item)[(item_ordinal)][0])
+  OR_by_PSI(psi_data, set_ordinal, item_ordinal)
 @<Private structures@> =
 struct s_bocage_setup_per_ys {
-     OR ** t_aexes_by_item;
+     OR * t_or_node_by_item;
      PSL t_or_psl;
      PSL t_and_psl;
 };
@@ -11539,29 +11533,30 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
 @
 @<Allocate bocage setup working data@>=
 {
-  int ix;
+  int earley_set_ordinal;
   int earley_set_count = YS_Count_of_R (r);
   count_of_earley_items_in_parse = 0;
-  per_ys_data =
-    marpa_obs_new (bocage_setup_obs, struct s_bocage_setup_per_ys, earley_set_count);
-  for (ix = 0; ix < earley_set_count; ix++)
+  per_ys_data = marpa_obs_new (
+    bocage_setup_obs, struct s_bocage_setup_per_ys, earley_set_count);
+  for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count;
+       earley_set_ordinal++)
     {
-      const YS_Const earley_set = YS_of_R_by_Ord (r, ix);
+      const YS_Const earley_set = YS_of_R_by_Ord (r, earley_set_ordinal);
       const int item_count = YIM_Count_of_YS (earley_set);
       count_of_earley_items_in_parse += item_count;
-        {
-          struct s_bocage_setup_per_ys *per_ys = per_ys_data + ix;
-          OR ** const per_yim_yixes = per_ys->t_aexes_by_item =
-            marpa_obs_new (bocage_setup_obs, OR *, item_count);
-          int item_ordinal;
-          per_ys->t_or_psl = NULL;
-          per_ys->t_and_psl = NULL;
-          for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
-            {
-              per_yim_yixes[item_ordinal] = NULL;
-            }
-        }
-    }
+      {
+        struct s_bocage_setup_per_ys *per_ys = per_ys_data + earley_set_ordinal;
+        OR *const per_yim_or_nodes = per_ys->t_or_node_by_item =
+          marpa_obs_new (bocage_setup_obs, OR *, item_count);
+        int item_ordinal;
+        per_ys->t_or_psl = NULL;
+        per_ys->t_and_psl = NULL;
+        for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
+          {
+            OR_by_PSI (per_ys_data, earley_set_ordinal, item_ordinal) = NULL;
+          }
+      }
+  }
 }
 
 @ Predicted AHFA states can be skipped since they
