@@ -10686,11 +10686,7 @@ predecessor.  Set |or_node| to 0 if there is none.
 		      dand_predecessor, dand_cause);
 }
 
-@ It is assumed that there is an or-node entry for
-|psia_yim| at index 0.
-(The index is obsolete now that the LR(0) states have
-been eliminated.)
-@d Set_OR_from_YIM(psia_or, psia_yim) {
+@ @d Set_OR_from_YIM(psia_or, psia_yim) {
   const YIM psia_earley_item = psia_yim;
   const int psia_earley_set_ordinal = YS_Ord_of_YIM (psia_earley_item);
   const int psia_item_ordinal = Ord_of_YIM (psia_earley_item);
