@@ -10051,7 +10051,6 @@ Top_ORID_of_B(b) = -1;
     YIM* const yims_of_ys = YIMs_of_YS(earley_set);
     const int item_count = YIM_Count_of_YS (earley_set);
       PSL this_earley_set_psl;
-    OR** const nodes_by_item = per_ys_data[work_earley_set_ordinal].t_aexes_by_item;
       psar_dealloc(or_psar);
       {
         const int psl_ys_ord = work_earley_set_ordinal;
@@ -10599,7 +10598,7 @@ void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR
     int item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
     {
-        OR or_node = nodes_by_item[item_ordinal] ? nodes_by_item[item_ordinal][0] : NULL;
+        OR or_node = OR_by_PSI(per_ys_data, work_earley_set_ordinal, item_ordinal);
         const YIM work_earley_item = yims_of_ys[item_ordinal];
         const int work_origin_ordinal = Ord_of_YS (Origin_of_YIM (work_earley_item));
         @<Reset |or_node| to proper predecessor@>@;
