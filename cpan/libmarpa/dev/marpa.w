@@ -13299,64 +13299,59 @@ for the rule.
             Arg_N_of_V (v) = Arg_0_of_V (v);
             pop_arguments = 0;
           }
-        {
-          ANDID and_node_id;
-          AND and_node;
-          TOK tkn = NULL;
-          int cause_or_node_type;
-          const NOOK nook = NOOK_of_TREE_by_IX (t, NOOK_of_V (v));
-          const int choice = Choice_of_NOOK (nook);
-          or = OR_of_NOOK (nook);
-          YS_ID_of_V (v) = YS_Ord_of_OR (or);
-          and_node_id = and_order_get (o, or, choice);
-          and_node = and_nodes + and_node_id;
-          cause_or_node_type = Type_of_OR (Cause_OR_of_AND (and_node));
-          switch (cause_or_node_type)
-            {
-            case VALUED_TOKEN_OR_NODE:
-            case NULLING_TOKEN_OR_NODE:
-              tkn = and_node_token (and_node);
-              Token_Type_of_V (v) = cause_or_node_type;
-              break;
-            default:
-              Token_Type_of_V (v) = DUMMY_OR_NODE;
-            }
-          if (tkn)
-            {
-              const NSYID tkn_nsyid = NSYID_of_TOK (tkn);
-              Arg_0_of_V (v) = ++Arg_N_of_V (v);
-              switch (cause_or_node_type)
+          {
+            ANDID and_node_id;
+            AND and_node;
+            int cause_or_node_type;
+            OR cause_or_node;
+            const NOOK nook = NOOK_of_TREE_by_IX (t, NOOK_of_V (v));
+            const int choice = Choice_of_NOOK (nook);
+            or = OR_of_NOOK (nook);
+            YS_ID_of_V (v) = YS_Ord_of_OR (or);
+            and_node_id = and_order_get (o, or, choice);
+            and_node = and_nodes + and_node_id;
+            cause_or_node = Cause_OR_of_AND (and_node);
+            cause_or_node_type = Type_of_OR (cause_or_node);
+            switch (cause_or_node_type)
+              {
+              case VALUED_TOKEN_OR_NODE:
+                Token_Type_of_V (v) = cause_or_node_type;
+                Arg_0_of_V (v) = ++Arg_N_of_V (v);
                 {
-                case VALUED_TOKEN_OR_NODE:
-                  {
-                    const OR predecessor = Predecessor_OR_of_AND (and_node);
-                    XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_NSYID (tkn_nsyid));
-                    Token_Start_of_V (v) =
-                      predecessor ? YS_Ord_of_OR (predecessor) :
-                      Origin_Ord_of_OR (or);
-                    Token_Value_of_V (v) = Value_of_TOK (tkn);
-                  }
-                  break;
-                case NULLING_TOKEN_OR_NODE:
-                  {
-                    const XSY source_xsy = Source_XSY_of_NSYID (tkn_nsyid);
-                    const XSYID source_xsy_id = ID_of_XSY (source_xsy);
-                    if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsy_id))
-                      {
-                        XSYID_of_V (v) = source_xsy_id;
-                        Token_Start_of_V (v) = YS_ID_of_V (v);
-                      }
-                    else
-                      {
-                        Token_Type_of_V (v) = DUMMY_OR_NODE;
-                        /* |DUMMY_OR_NODE| indicates arbitrary semantics for
-                           this token */
-                      }
-                  }
-                  break;
+                  const OR predecessor = Predecessor_OR_of_AND (and_node);
+                  XSYID_of_V (v) =
+                    ID_of_XSY (Source_XSY_of_NSYID (NSYID_of_OR (cause_or_node)));
+                  Token_Start_of_V (v) =
+                    predecessor ? YS_Ord_of_OR (predecessor) : Origin_Ord_of_OR (or);
+                  Token_Value_of_V (v) = Value_of_OR (cause_or_node);
                 }
-            }
-        }
+
+                break;
+              case NULLING_TOKEN_OR_NODE:
+                Token_Type_of_V (v) = cause_or_node_type;
+                Arg_0_of_V (v) = ++Arg_N_of_V (v);
+                {
+                  const XSY source_xsy =
+                    Source_XSY_of_NSYID (NSYID_of_OR (cause_or_node));
+                  const XSYID source_xsy_id = ID_of_XSY (source_xsy);
+                  if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsy_id))
+                    {
+                      XSYID_of_V (v) = source_xsy_id;
+                      Token_Start_of_V (v) = YS_ID_of_V (v);
+                    }
+                  else
+                    {
+                      Token_Type_of_V (v) = DUMMY_OR_NODE;
+                      /* |DUMMY_OR_NODE| indicates arbitrary semantics for
+                         this token */
+                    }
+                }
+
+                break;
+              default:
+                Token_Type_of_V (v) = DUMMY_OR_NODE;
+              }
+          }
         nook_irl = IRL_of_OR (or);
         if (Position_of_OR (or) == Length_of_IRL (nook_irl))
           {
