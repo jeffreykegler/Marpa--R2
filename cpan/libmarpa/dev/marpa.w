@@ -10031,12 +10031,7 @@ Top_ORID_of_B(b) = -1;
     const int item_count = YIM_Count_of_YS (earley_set);
       PSL this_earley_set_psl;
       psar_dealloc(or_psar);
-      {
-        const int psl_ys_ord = work_earley_set_ordinal;
-        PSL claimed_psl;
-        @<Claim the or-node PSL for |psl_ys_ord| as |claimed_psl|@>@;
-        this_earley_set_psl = claimed_psl;
-      }
+      this_earley_set_psl = psl_claim_by_es(or_psar, per_ys_data, work_earley_set_ordinal);
     @<Create the or-nodes for |work_earley_set_ordinal|@>@;
     @<Create the draft and-nodes for |work_earley_set_ordinal|@>@;
   }
@@ -10071,18 +10066,10 @@ Top_ORID_of_B(b) = -1;
   OR psia_or_node = NULL;
   aim_symbol_instance = SYMI_of_AHM(aim);
   {
-        PSL or_psl;
-        {
-          const int psl_ys_ord = work_origin_ordinal;
-          PSL claimed_psl;
-          @<Claim the or-node PSL for |psl_ys_ord| as |claimed_psl|@>@;
-          or_psl = claimed_psl;
-        }
-        {
-          OR last_or_node = NULL;
-          @<Add main or-node@>@;
+        PSL or_psl = psl_claim_by_es(or_psar, per_ys_data, work_origin_ordinal);
+        OR last_or_node = NULL;
+        @<Add main or-node@>@;
           @<Add nulling token or-nodes@>@;
-        }
     }
     /* Replace the dummy or-node with
     the last one added */
@@ -10233,13 +10220,7 @@ corresponds to the Leo predecessor.
 {
     {
       OR or_node;
-      PSL leo_psl;
-      {
-        const int psl_ys_ord = ordinal_of_set_of_this_leo_item;
-        PSL claimed_psl;
-        @<Claim the or-node PSL for |psl_ys_ord| as |claimed_psl|@>@;
-        leo_psl = claimed_psl ;
-      }
+      PSL leo_psl = psl_claim_by_es(or_psar, per_ys_data, ordinal_of_set_of_this_leo_item);
       or_node = PSL_Datum (leo_psl, symbol_instance_of_path_aim);
       if (!or_node || YS_Ord_of_OR(or_node) != work_earley_set_ordinal)
         {
@@ -14755,12 +14736,17 @@ PRIVATE void psl_claim(
      new_psl->t_owner = psl_owner;
 }
 
-@ @<Claim the or-node PSL for |psl_ys_ord| as |claimed_psl|@> =
+
+@ @<Function definitions@> =
+PRIVATE PSL psl_claim_by_es(
+    PSAR or_psar,
+    struct s_bocage_setup_per_ys* per_ys_data,
+    YSID ysid)
 {
-      PSL *psl_owner = &per_ys_data[psl_ys_ord].t_or_psl;
-      if (!*psl_owner)
-        psl_claim (psl_owner, or_psar);
-      claimed_psl = *psl_owner;
+    PSL *psl_owner = &(per_ys_data[ysid].t_or_psl);
+    if (!*psl_owner)
+      psl_claim (psl_owner, or_psar);
+    return *psl_owner;
 }
 
 @ This function ``allocates" a PSL.
