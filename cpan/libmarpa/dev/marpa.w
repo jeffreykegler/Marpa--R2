@@ -10080,19 +10080,17 @@ Top_ORID_of_B(b) = -1;
         {
           const YIM work_earley_item =
             yims_of_ys[item_ordinal];
-          const AEX work_aex = 0;
           const int work_origin_ordinal =
             Ord_of_YS (Origin_of_YIM (work_earley_item));
-              if (work_nodes_by_aex[work_aex])
+              if (work_nodes_by_aex[0])
             {
-              @<Create the or-nodes for
-                  |work_earley_item| and |work_aex|@>@;
+              @<Create the or-nodes for |work_earley_item|@>@;
             }
         }
     }
 }
 
-@ @<Create the or-nodes for |work_earley_item| and |work_aex|@> =
+@ @<Create the or-nodes for |work_earley_item|@> =
 {
   AHM aim = AHM_of_YIM(work_earley_item);
   SYMI aim_symbol_instance;
@@ -10114,8 +10112,8 @@ Top_ORID_of_B(b) = -1;
     /* The following assertion is now not necessarily true.
     it is kept for documentation, but eventually should be removed */
     MARPA_OFF_ASSERT (psia_or_node)@;
-    work_nodes_by_aex[work_aex] = psia_or_node;
-    @<Add Leo or-nodes for |work_earley_item| and |work_aex|@>@;
+    work_nodes_by_aex[0] = psia_or_node;
+    @<Add Leo or-nodes for |work_earley_item|@>@;
 }
 
 @*0 Non-Leo or-nodes.
@@ -10215,7 +10213,7 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 }
 
 @*0 Leo or-nodes.
-@<Add Leo or-nodes for |work_earley_item| and |work_aex|@> =
+@<Add Leo or-nodes for |work_earley_item|@> =
 {
   SRCL source_link;
   for (source_link = First_Leo_SRCL_of_YIM (work_earley_item);
@@ -10604,23 +10602,19 @@ void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR
     int item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
     {
-        OR* const nodes_by_aex = nodes_by_item[item_ordinal];
-        if (nodes_by_aex) {
-            const YIM work_earley_item = yims_of_ys[item_ordinal];
-            const int work_origin_ordinal = Ord_of_YS (Origin_of_YIM (work_earley_item));
-            const AEX work_aex = 0;
-            OR or_node = nodes_by_aex[work_aex];
-            @<Move |or_node| to proper predecessor@>@;
-            if (or_node) {
-                @<Create draft and-nodes for |or_node|@>@;
-            }
+        OR or_node = nodes_by_item[item_ordinal] ? nodes_by_item[item_ordinal][0] : NULL;
+        const YIM work_earley_item = yims_of_ys[item_ordinal];
+        const int work_origin_ordinal = Ord_of_YS (Origin_of_YIM (work_earley_item));
+        @<Reset |or_node| to proper predecessor@>@;
+        if (or_node) {
+            @<Create draft and-nodes for |or_node|@>@;
         }
     }
 }
 
 @ From an or-node, which may be nulling, determine its proper
 predecessor.  Set |or_node| to 0 if there is none.
-@<Move |or_node| to proper predecessor@> =
+@<Reset |or_node| to proper predecessor@> =
 {
     while (or_node)  {
         DAND draft_and_node = DANDs_of_OR(or_node);
@@ -15093,12 +15087,13 @@ int marpa__debug_level = 0;
 A function to print a descriptive tag for
 an Earley item.
 @<Debug function prototypes@> =
-static const char* yim_tag_safe(char *buffer, YIM yim) @,@, UNUSED;
-static const char* yim_tag(YIM yim) @,@, UNUSED;
+static const char* yim_tag_safe(
+  char *buffer, GRAMMAR g, YIM yim) @,@, UNUSED;
+static const char* yim_tag(GRAMMAR g, YIM yim) @,@, UNUSED;
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
 static const char *
-yim_tag_safe (char * buffer, YIM yim)
+yim_tag_safe (char * buffer, GRAMMAR g, YIM yim)
 {
   if (!yim) return "NULL";
   sprintf (buffer, "S%d@@%d-%d",
@@ -15109,9 +15104,9 @@ yim_tag_safe (char * buffer, YIM yim)
 
 static char DEBUG_yim_tag_buffer[1000];
 static const char*
-yim_tag (YIM yim)
+yim_tag (GRAMMAR g, YIM yim)
 {
-  return yim_tag_safe (DEBUG_yim_tag_buffer, yim);
+  return yim_tag_safe (DEBUG_yim_tag_buffer, g, yim);
 }
 
 @*0 Leo item tag.
