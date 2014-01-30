@@ -8904,6 +8904,257 @@ If an Earley item in a Leo path already exists, a new Earley
 item is not created ---
 instead a source link is added to the present Earley item.
 
+@** Progress report code.
+@<Private typedefs@> =
+   typedef struct marpa_progress_item* PROGRESS;
+@ @<Widely aligned recognizer elements@> =
+   const struct marpa_progress_item* t_current_report_item;
+   MARPA_AVL_TRAV t_progress_report_traverser;
+@ @<Initialize recognizer elements@> =
+   r->t_current_report_item = &progress_report_not_ready;
+   r->t_progress_report_traverser = NULL;
+@ @<Clear progress report in |r|@> =
+   r->t_current_report_item = &progress_report_not_ready;
+    if (r->t_progress_report_traverser) {
+    _marpa_avl_destroy ( MARPA_TREE_OF_AVL_TRAV(r->t_progress_report_traverser) );
+    }
+   r->t_progress_report_traverser = NULL;
+@ @<Destroy recognizer elements@> =
+   @<Clear progress report in |r|@>;
+@ @<Public structures@> =
+struct marpa_progress_item {
+    Marpa_Rule_ID t_rule_id;
+    int t_position;
+    int t_origin;
+};
+
+@ A dummy progress report item to allow the macros to
+produce error reports without having to use a ternary,
+and getting into issues of evaluation the argument twice.
+@<Global constant variables@> =
+static const struct marpa_progress_item progress_report_not_ready = { -2, -2, -2 };
+
+@
+@d RULEID_of_PROGRESS(report) ((report)->t_rule_id)
+@d Position_of_PROGRESS(report) ((report)->t_position)
+@d Origin_of_PROGRESS(report) ((report)->t_origin)
+
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE int report_item_cmp (
+    const void* ap,
+    const void* bp,
+    void *param @,@, UNUSED)
+{
+    const struct marpa_progress_item* const report_a = ap;
+    const struct marpa_progress_item* const report_b = bp;
+    if (Position_of_PROGRESS(report_a) > Position_of_PROGRESS(report_b)) return 1;
+    if (Position_of_PROGRESS(report_a) < Position_of_PROGRESS(report_b)) return -1;
+    if (RULEID_of_PROGRESS(report_a) > RULEID_of_PROGRESS(report_b)) return 1;
+    if (RULEID_of_PROGRESS(report_a) < RULEID_of_PROGRESS(report_b)) return -1;
+    if (Origin_of_PROGRESS(report_a) > Origin_of_PROGRESS(report_b)) return 1;
+    if (Origin_of_PROGRESS(report_a) < Origin_of_PROGRESS(report_b)) return -1;
+    return 0;
+}
+
+@ @<Function definitions@> =
+int marpa_r_progress_report_start(
+  Marpa_Recognizer r,
+  Marpa_Earley_Set_ID set_id)
+{
+  @<Return |-2| on failure@>@;
+  YS earley_set;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  if (set_id < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_LOCATION);
+      return failure_indicator;
+    }
+  r_update_earley_sets (r);
+  if (!YS_Ord_is_Valid (r, set_id))
+    {
+      MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
+      return failure_indicator;
+    }
+  earley_set = YS_of_R_by_Ord (r, set_id);
+  @<Clear progress report in |r|@>@;
+  {
+    const MARPA_AVL_TREE report_tree =
+      _marpa_avl_create (report_item_cmp, NULL);
+    const YIM *const earley_items = YIMs_of_YS (earley_set);
+    const int earley_item_count = YIM_Count_of_YS (earley_set);
+    int earley_item_id;
+    for (earley_item_id = 0; earley_item_id < earley_item_count;
+         earley_item_id++)
+      {
+        @<Do the progress report for |earley_item|@>@;
+      }
+    r->t_progress_report_traverser = _marpa_avl_t_init(report_tree);
+    return (int)marpa_avl_count (report_tree);
+  }
+}
+@ Start the progress report again.
+@<Function definitions@> =
+int marpa_r_progress_report_reset( Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  MARPA_AVL_TRAV traverser = r->t_progress_report_traverser;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  @<Fail if no |traverser|@>@;
+  _marpa_avl_t_reset(traverser);
+  return 1;
+}
+
+@ @<Do the progress report for |earley_item|@> =
+{
+  const int initial_phase = 1;
+  const int leo_source_link_phase = 2;
+  const int leo_path_item_phase = 3;
+  int next_phase = initial_phase;
+  SRCL leo_source_link = NULL;
+  LIM next_leo_item = NULL;
+  const YIM earley_item = earley_items[earley_item_id];
+  while (1)
+    {
+      YSID report_origin;
+      AHM report_aim;
+      while (1)
+        {                       // this loop finds the next AHM to report
+          const int phase = next_phase;
+          if (phase == initial_phase)
+            {
+              report_origin = Origin_Ord_of_YIM (earley_item);
+              report_aim = AHM_of_YIM (earley_item);
+              next_phase = leo_source_link_phase;
+              goto INSERT_ITEMS_INTO_TREE;
+            }
+          if (phase == leo_source_link_phase)
+            {
+              leo_source_link = leo_source_link ?
+                Next_SRCL_of_SRCL (leo_source_link) :
+                First_Leo_SRCL_of_YIM (earley_item);
+              if (leo_source_link)
+                {
+                  next_leo_item = LIM_of_SRCL (leo_source_link);
+                  next_phase = leo_path_item_phase;
+                  goto NEXT_PHASE;
+                }
+              goto NEXT_EARLEY_ITEM;
+              // If there are no more Leo source links,
+              // we are finished with this Earley item
+            }
+          if (phase == leo_path_item_phase)
+            {
+              const LIM leo_item = next_leo_item;
+              if (!leo_item)
+                {
+                  next_phase = leo_source_link_phase;
+                  goto NEXT_PHASE;
+                }
+              {
+                report_origin = Ord_of_YS (YS_of_LIM (leo_item));
+                report_aim = Base_to_AHM_of_LIM(leo_item);
+                next_leo_item = Predecessor_LIM_of_LIM (leo_item);
+                goto INSERT_ITEMS_INTO_TREE;
+              }
+            }
+        NEXT_PHASE:;
+        }
+    INSERT_ITEMS_INTO_TREE:
+      @<Insert items into tree for |report_aim| and |report_origin|@>@;
+    }
+NEXT_EARLEY_ITEM:;
+}
+
+@ @<Insert items into tree for |report_aim| and |report_origin|@> =
+{
+  const IRL irl = IRL_of_AHM (report_aim);
+  const XRL source_xrl = Source_XRL_of_IRL (irl);
+  if (source_xrl)
+    {
+      const int irl_position = Position_of_AHM (report_aim);
+      int xrl_position = irl_position;
+      const int virtual_start = Virtual_Start_of_IRL (irl);
+      if (virtual_start >= 0)
+	{
+	  xrl_position += virtual_start;
+	}
+      if (XRL_is_Sequence (source_xrl))
+	{
+	  if (IRL_has_Virtual_LHS (irl))
+	    {
+	      if (irl_position <= 0)
+		goto NEXT_AHM;
+	      xrl_position = -1;
+	    }
+	  else
+	    {
+	      xrl_position = irl_position > 0 ? -1 : 0;
+	    }
+	}
+      {
+	const PROGRESS new_report_item =
+	  marpa_obs_new (MARPA_AVL_OBSTACK (report_tree),
+			 struct marpa_progress_item,
+			 1);
+	Position_of_PROGRESS (new_report_item) = xrl_position;
+	Origin_of_PROGRESS (new_report_item) = report_origin;
+	RULEID_of_PROGRESS (new_report_item) = ID_of_XRL (source_xrl);
+	_marpa_avl_insert (report_tree, new_report_item);
+      }
+    }
+NEXT_AHM:;
+}
+
+@ @<Function definitions@> =
+int marpa_r_progress_report_finish(Marpa_Recognizer r) {
+  const int success = 1;
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  const MARPA_AVL_TRAV traverser = r->t_progress_report_traverser;
+  @<Fail if no |traverser|@>@;
+    @<Clear progress report in |r|@>@;
+    return success;
+}
+
+@ @<Function definitions@> =
+Marpa_Rule_ID marpa_r_progress_item(
+  Marpa_Recognizer r, int* position, Marpa_Earley_Set_ID* origin
+) {
+  @<Return |-2| on failure@>@;
+  PROGRESS report_item;
+  MARPA_AVL_TRAV traverser;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  traverser = r->t_progress_report_traverser;
+  if (_MARPA_UNLIKELY(!position || !origin)) {
+      MARPA_ERROR (MARPA_ERR_POINTER_ARG_NULL);
+      return failure_indicator;
+  }
+  @<Fail if no |traverser|@>@;
+  report_item = _marpa_avl_t_next(traverser);
+  if (!report_item) {
+      MARPA_ERROR(MARPA_ERR_PROGRESS_REPORT_EXHAUSTED);
+      return -1;
+  }
+  *position = Position_of_PROGRESS(report_item);
+  *origin = Origin_of_PROGRESS(report_item);
+  return RULEID_of_PROGRESS(report_item);
+}
+
+@ @<Fail if no |traverser|@> =
+{
+  if (!traverser)
+    {
+      MARPA_ERROR (MARPA_ERR_PROGRESS_REPORT_NOT_STARTED);
+      return failure_indicator;
+    }
+}
+
 @** Some notes on evaluation.
 
 @*0 Statistics on completed LHS symbols per AHFA state.
@@ -10197,256 +10448,6 @@ typedef struct s_and_node AND_Object;
     MARPA_ASSERT(and_node_id == unique_draft_and_node_count);
 }
 
-@** Progress report code.
-@<Private typedefs@> =
-   typedef struct marpa_progress_item* PROGRESS;
-@ @<Widely aligned recognizer elements@> =
-   const struct marpa_progress_item* t_current_report_item;
-   MARPA_AVL_TRAV t_progress_report_traverser;
-@ @<Initialize recognizer elements@> =
-   r->t_current_report_item = &progress_report_not_ready;
-   r->t_progress_report_traverser = NULL;
-@ @<Clear progress report in |r|@> =
-   r->t_current_report_item = &progress_report_not_ready;
-    if (r->t_progress_report_traverser) {
-    _marpa_avl_destroy ( MARPA_TREE_OF_AVL_TRAV(r->t_progress_report_traverser) );
-    }
-   r->t_progress_report_traverser = NULL;
-@ @<Destroy recognizer elements@> =
-   @<Clear progress report in |r|@>;
-@ @<Public structures@> =
-struct marpa_progress_item {
-    Marpa_Rule_ID t_rule_id;
-    int t_position;
-    int t_origin;
-};
-
-@ A dummy progress report item to allow the macros to
-produce error reports without having to use a ternary,
-and getting into issues of evaluation the argument twice.
-@<Global constant variables@> =
-static const struct marpa_progress_item progress_report_not_ready = { -2, -2, -2 };
-
-@
-@d RULEID_of_PROGRESS(report) ((report)->t_rule_id)
-@d Position_of_PROGRESS(report) ((report)->t_position)
-@d Origin_of_PROGRESS(report) ((report)->t_origin)
-
-@ @<Function definitions@> =
-PRIVATE_NOT_INLINE int report_item_cmp (
-    const void* ap,
-    const void* bp,
-    void *param @,@, UNUSED)
-{
-    const struct marpa_progress_item* const report_a = ap;
-    const struct marpa_progress_item* const report_b = bp;
-    if (Position_of_PROGRESS(report_a) > Position_of_PROGRESS(report_b)) return 1;
-    if (Position_of_PROGRESS(report_a) < Position_of_PROGRESS(report_b)) return -1;
-    if (RULEID_of_PROGRESS(report_a) > RULEID_of_PROGRESS(report_b)) return 1;
-    if (RULEID_of_PROGRESS(report_a) < RULEID_of_PROGRESS(report_b)) return -1;
-    if (Origin_of_PROGRESS(report_a) > Origin_of_PROGRESS(report_b)) return 1;
-    if (Origin_of_PROGRESS(report_a) < Origin_of_PROGRESS(report_b)) return -1;
-    return 0;
-}
-
-@ @<Function definitions@> =
-int marpa_r_progress_report_start(
-  Marpa_Recognizer r,
-  Marpa_Earley_Set_ID set_id)
-{
-  @<Return |-2| on failure@>@;
-  YS earley_set;
-  @<Unpack recognizer objects@>@;
-  @<Fail if fatal error@>@;
-  @<Fail if recognizer not started@>@;
-  if (set_id < 0)
-    {
-      MARPA_ERROR (MARPA_ERR_INVALID_LOCATION);
-      return failure_indicator;
-    }
-  r_update_earley_sets (r);
-  if (!YS_Ord_is_Valid (r, set_id))
-    {
-      MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
-      return failure_indicator;
-    }
-  earley_set = YS_of_R_by_Ord (r, set_id);
-  @<Clear progress report in |r|@>@;
-  {
-    const MARPA_AVL_TREE report_tree =
-      _marpa_avl_create (report_item_cmp, NULL);
-    const YIM *const earley_items = YIMs_of_YS (earley_set);
-    const int earley_item_count = YIM_Count_of_YS (earley_set);
-    int earley_item_id;
-    for (earley_item_id = 0; earley_item_id < earley_item_count;
-         earley_item_id++)
-      {
-        @<Do the progress report for |earley_item|@>@;
-      }
-    r->t_progress_report_traverser = _marpa_avl_t_init(report_tree);
-    return (int)marpa_avl_count (report_tree);
-  }
-}
-@ Start the progress report again.
-@<Function definitions@> =
-int marpa_r_progress_report_reset( Marpa_Recognizer r)
-{
-  @<Return |-2| on failure@>@;
-  MARPA_AVL_TRAV traverser = r->t_progress_report_traverser;
-  @<Unpack recognizer objects@>@;
-  @<Fail if fatal error@>@;
-  @<Fail if recognizer not started@>@;
-  @<Fail if no |traverser|@>@;
-  _marpa_avl_t_reset(traverser);
-  return 1;
-}
-
-@ @<Do the progress report for |earley_item|@> =
-{
-  const int initial_phase = 1;
-  const int leo_source_link_phase = 2;
-  const int leo_path_item_phase = 3;
-  int next_phase = initial_phase;
-  SRCL leo_source_link = NULL;
-  LIM next_leo_item = NULL;
-  const YIM earley_item = earley_items[earley_item_id];
-  while (1)
-    {
-      YSID report_origin;
-      AHM report_aim;
-      while (1)
-        {                       // this loop finds the next AHM to report
-          const int phase = next_phase;
-          if (phase == initial_phase)
-            {
-              report_origin = Origin_Ord_of_YIM (earley_item);
-              report_aim = AHM_of_YIM (earley_item);
-              next_phase = leo_source_link_phase;
-              goto INSERT_ITEMS_INTO_TREE;
-            }
-          if (phase == leo_source_link_phase)
-            {
-              leo_source_link = leo_source_link ?
-                Next_SRCL_of_SRCL (leo_source_link) :
-                First_Leo_SRCL_of_YIM (earley_item);
-              if (leo_source_link)
-                {
-                  next_leo_item = LIM_of_SRCL (leo_source_link);
-                  next_phase = leo_path_item_phase;
-                  goto NEXT_PHASE;
-                }
-              goto NEXT_EARLEY_ITEM;
-              // If there are no more Leo source links,
-              // we are finished with this Earley item
-            }
-          if (phase == leo_path_item_phase)
-            {
-              const LIM leo_item = next_leo_item;
-              if (!leo_item)
-                {
-                  next_phase = leo_source_link_phase;
-                  goto NEXT_PHASE;
-                }
-              {
-                report_origin = Ord_of_YS (YS_of_LIM (leo_item));
-                report_aim = Base_to_AHM_of_LIM(leo_item);
-                next_leo_item = Predecessor_LIM_of_LIM (leo_item);
-                goto INSERT_ITEMS_INTO_TREE;
-              }
-            }
-        NEXT_PHASE:;
-        }
-    INSERT_ITEMS_INTO_TREE:
-      @<Insert items into tree for |report_aim| and |report_origin|@>@;
-    }
-NEXT_EARLEY_ITEM:;
-}
-
-@ @<Insert items into tree for |report_aim| and |report_origin|@> =
-{
-  const IRL irl = IRL_of_AHM (report_aim);
-  const XRL source_xrl = Source_XRL_of_IRL (irl);
-  if (source_xrl)
-    {
-      const int irl_position = Position_of_AHM (report_aim);
-      int xrl_position = irl_position;
-      const int virtual_start = Virtual_Start_of_IRL (irl);
-      if (virtual_start >= 0)
-	{
-	  xrl_position += virtual_start;
-	}
-      if (XRL_is_Sequence (source_xrl))
-	{
-	  if (IRL_has_Virtual_LHS (irl))
-	    {
-	      if (irl_position <= 0)
-		goto NEXT_AHM;
-	      xrl_position = -1;
-	    }
-	  else
-	    {
-	      xrl_position = irl_position > 0 ? -1 : 0;
-	    }
-	}
-      {
-	const PROGRESS new_report_item =
-	  marpa_obs_new (MARPA_AVL_OBSTACK (report_tree),
-			 struct marpa_progress_item,
-			 1);
-	Position_of_PROGRESS (new_report_item) = xrl_position;
-	Origin_of_PROGRESS (new_report_item) = report_origin;
-	RULEID_of_PROGRESS (new_report_item) = ID_of_XRL (source_xrl);
-	_marpa_avl_insert (report_tree, new_report_item);
-      }
-    }
-NEXT_AHM:;
-}
-
-@ @<Function definitions@> =
-int marpa_r_progress_report_finish(Marpa_Recognizer r) {
-  const int success = 1;
-  @<Return |-2| on failure@>@;
-  @<Unpack recognizer objects@>@;
-  const MARPA_AVL_TRAV traverser = r->t_progress_report_traverser;
-  @<Fail if no |traverser|@>@;
-    @<Clear progress report in |r|@>@;
-    return success;
-}
-
-@ @<Function definitions@> =
-Marpa_Rule_ID marpa_r_progress_item(
-  Marpa_Recognizer r, int* position, Marpa_Earley_Set_ID* origin
-) {
-  @<Return |-2| on failure@>@;
-  PROGRESS report_item;
-  MARPA_AVL_TRAV traverser;
-  @<Unpack recognizer objects@>@;
-  @<Fail if fatal error@>@;
-  @<Fail if recognizer not started@>@;
-  traverser = r->t_progress_report_traverser;
-  if (_MARPA_UNLIKELY(!position || !origin)) {
-      MARPA_ERROR (MARPA_ERR_POINTER_ARG_NULL);
-      return failure_indicator;
-  }
-  @<Fail if no |traverser|@>@;
-  report_item = _marpa_avl_t_next(traverser);
-  if (!report_item) {
-      MARPA_ERROR(MARPA_ERR_PROGRESS_REPORT_EXHAUSTED);
-      return -1;
-  }
-  *position = Position_of_PROGRESS(report_item);
-  *origin = Origin_of_PROGRESS(report_item);
-  return RULEID_of_PROGRESS(report_item);
-}
-
-@ @<Fail if no |traverser|@> =
-{
-  if (!traverser)
-    {
-      MARPA_ERROR (MARPA_ERR_PROGRESS_REPORT_NOT_STARTED);
-      return failure_indicator;
-    }
-}
 
 @** Parse bocage code (B, BOCAGE).
 @ Pre-initialization is making the elements safe for the deallocation logic
