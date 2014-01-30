@@ -6696,58 +6696,7 @@ tkn_link_add (RECCE r,
   LV_First_Token_SRCL_of_YIM (item) = new_link;
 }
 
-@ Duplicate completion links can occur.
-Each possible cause
-link is only visited once.
-But a cause link may be paired with several different predecessors.
-Each cause may complete several different LHS symbols
-and Marpa will seek predecessors for each at
-the parent location.
-Two different completed LHS symbols might be postdot
-symbols for the same predecessor Earley item.
-For this reason,
-the same predecessor-cause pair
-may be chosen more than once.
-@ Since a completion link consists entirely of
-the predecessor-cause pair, a duplicate
-predecessor-cause pair means a duplicate
-completion link.
-The maximum possible number of such duplicates is the
-number of complete LHS symbols for the current AHFA state.
-This is always a constant and typically a small one,
-but it is also typically larger than 1.
-@ This is not an issue for unambiguous parsing.
-It {\bf is} an issue for iterating ambiguous parses.
-The strategy currently taken is to do nothing about duplicates
-in the recognition phase,
-and to eliminate them in the evaluation phase.
-Ultimately, duplicates must be eliminated by rule and
-position -- eliminating duplicates by AHFA state is
-{\bf not} sufficient.
-Since I do not pull out the
-individual rules and positions until the evaluation phase,
-at this writing it seems to make sense to deal with
-duplicates there.
-@ As shown above, the number of duplicate completion links
-is never more than $O(c \times n) = O(n)$,
-where $c$ is the number of LHS symbols in the grammar
-and $n$ is the number of Earley items.
-For academic purposes, it
-is probably possible to contrive a parse which generates
-a lot of duplicates.
-The actual numbers
-I have encountered have always been very small,
-even in grammars of only academic interest.
-@ The carrying cost of the extra completion links can be safely
-assumed to be very low,
-in comparision with the cost of searching for them.
-This means that the major consideration in deciding
-where to eliminate duplicates,
-is time efficiency.
-Duplicate completion links should be eliminated
-at the point where that elimination can be accomplished
-most efficiently.
-@<Function definitions@> =
+@ @<Function definitions@> =
 PRIVATE
 void
 completion_link_add (RECCE r,
@@ -8672,38 +8621,6 @@ Marpa_Rule_ID marpa_r_progress_item(
 
 @** Some notes on evaluation.
 
-@*0 CHAF duplicate and-nodes.
-There are three ways in which the same and-node can occur multiple
-times as the descendant of a single or-node.
-@ First, an or-node can have several different Earley items as
-its source.  This is dealt with by noticing that in building the
-or-node, we only use the source links of an Earley item, and
-that these are always identical.  Therefore we can arbitrarily
-select any one of the possible source Earley items to be
-the or-node's ``unique" Earley item source.
-@ The second source of duplication is duplicate source links
-for the same Earley item.
-I prevent token source links from duplicating,
-and the Leo logic does not allow duplicate Leo source links.
-@ Completion source links could be prevented from duplicating by
-making the transition symbol part of its ``signature",
-and making sure the source link transition symbol matches
-the predot symbol of the or-node.
-This would only impose a small overhead.
-But given that I need to look for duplicates from other
-sources, there does not seem to enough of a payoff to justify
-even a small overhead.
-@ A third source of duplication occurs
-when different source links
-have different AHFA states in their predecessors; but
-share the the same AHFA item.
-There will be
-pairs of these source links which share the same middle earleme,
-because if an AHFA item (dotted rule) in one is justified at a
-location, the same AHFA item in the other must be, also.
-This happens frequently enough to be an issue even for practical
-grammars.
-
 @*0 Sources of Leo path items.
 A Leo path consists of a series of Earley items:
 \li at the bottom, exactly one Leo base item;
@@ -8722,12 +8639,18 @@ As consequences:
 Earley item predecessor,
 the Leo base item of the Leo predecessor.
 \li All these sources will also have the same middle
-earleme, the Earley set of the Leo predecessor.
-\li Every source of the Leo path item will have a cause
-and the transition symbol of the Leo predecessor
-will be on the LHS of at least one completion in all of those causes.
-\li The Leo transition symbol will be the postdot symbol in exactly
-one AHFA item in the AHFA state of the Earley item predecessor.
+earleme and the same origin,
+both taken from the Earley item predecessor.
+\li If the cause is a token, the transition symbol will
+be the token symbol.
+Only one source may have a token cause.
+\li If the cause is a rule completion, the transition symbol
+will be the LHS of that rule.
+Several source may have rule completion causes, but the maximum
+number is limited by the number of rule's with the transition symbol
+on their LHS.
+\li The number of sources of a Leo path item is therefore limited
+by a constant that depends on the grammar.
 
 @** Ur-node (UR) code.
 Ur is a German word for ``primordial", which is used
@@ -9460,26 +9383,11 @@ DAND draft_and_node_new(struct marpa_obstack *obs, OR predecessor, OR cause)
     return draft_and_node;
 }
 
-@ Currently, I do not check draft and-nodes for duplicates.
-This will be done when they are copied to final and-nodes.
-In the future, it may be more efficient to do a linear search for
-duplicates until the number of draft and-nodes reaches a small
-constant $n$.
-(Optimal $n$ is perhaps something like 7.)
-Alernatively, it could always check for duplicates, but limit
-the search to the first $n$ draft and-nodes.
-@ In that case, the logic to copy the final and-nodes can
-rely on chains of length less than $n$ being non-duplicated,
-and the PSARs can be reserved for the unusual case where this
-is not sufficient.
-@<Function definitions@> =
+@ @<Function definitions@> =
 PRIVATE
 void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR cause)
 {
     MARPA_OFF_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
-    if (dand_is_duplicate(parent, predecessor, cause)) {
-        MARPA_DEBUG2("Adding Duplicate DAND to or %s", or_tag(parent));
-    }
     const DAND new = draft_and_node_new(obs, predecessor, cause);
     Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
     DANDs_of_OR(parent) = new;
@@ -9607,6 +9515,18 @@ predecessor.  Set |or_node| to 0 if there is none.
 Leo path
 is deterministic, there can be multiple Leo paths, and they can
 overlap, and they can overlap with nodes from other sources.
+@ {\bf To Do}: @^To Do@> I need to justify the claim
+that the time complexity is not altered by the check for duplicates.
+In the case of unambiguous grammars, there is only one Leo path and
+only once source, so the proof is straightforward.
+For ambiguous grammars, I believe I can show that the number of traversals
+of each Leo path item is bounded by a constant, and the time
+complexity bound follows.
+@ {\bf To Do}: @^To Do@>
+On the more practical side, I conjecture that, once a duplicate has
+been found when ascending a Leo path, it can be assumed that all attempts
+to add |DAND|'s to higher Leo path items will also duplicate.
+If so, the loop that ascends the Leo path can be ended at that point.
 @<Add the draft and-nodes to an upper Leo path or-node@> =
 {
   OR dand_cause;
@@ -9664,8 +9584,9 @@ int dands_are_equal(OR predecessor_a, OR cause_a,
   // Not reached
 }
 
-@ Would a new dand made up of |predecessor| and |cause| duplicate any already
-in |parent|?
+@ Return 1 if a new dand made up of |predecessor| and |cause| would
+duplicate any already in |parent|.
+Otherwise, return 0.
 @<Function definitions@> =
 PRIVATE
 int dand_is_duplicate(OR parent, OR predecessor, OR cause)
@@ -9811,40 +9732,23 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
           dand_predecessor, dand_cause);
 }
 
-@ @<Mark duplicate draft and-nodes@> =
+@ The need for this count is a vestige of duplicate checking.
+Now that duplicates no longer occur,
+the whole process probably can and should be simplified.
+@<Count draft and-nodes@> =
 {
-  const int or_node_count_of_b = OR_Count_of_B(b);
+  const int or_node_count_of_b = OR_Count_of_B (b);
   int or_node_id = 0;
-  while (or_node_id < or_node_count_of_b) {
-      const OR work_or_node = OR_of_B_by_ID(b, or_node_id);
-    @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
-    or_node_id++;
-  }
-}
-
-@ I think the and-PSL's and or-PSL's are not actually used at the
-same time, so the same field might be used for both.
-More significantly, a simple $O(n^2)$ sort of the 
-draft and-nodes would spot duplicates more efficiently in 99\%
-of cases, although it would not be $O(n)$ as the PSL's are.
-The best of both worlds could be had by using the sort when
-there are less than, say, 7 and-nodes, and the PSL's otherwise.
-@ The use of PSL's is slightly different here.
-The PSL is not needed to find the draft and-nodes -- it's
-essentially just a boolean to indicate whether it exists.
-But "stale" booleans must still be detected.
-The solution adopted is to put the parent or-node
-into the PSL.
-If the PSL contains the current parent or-node,
-the draft and-node is a duplicate within that or-node.
-Otherwise, it's the first such draft and-node.
-@<Mark the duplicate draft and-nodes for |work_or_node|@> =
-{
-  DAND dand = DANDs_of_OR (work_or_node);
-  while (dand)
+  while (or_node_id < or_node_count_of_b)
     {
-      unique_draft_and_node_count++;
-      dand = Next_DAND_of_DAND (dand);
+      const OR work_or_node = OR_of_B_by_ID (b, or_node_id);
+      DAND dand = DANDs_of_OR (work_or_node);
+      while (dand)
+	{
+	  unique_draft_and_node_count++;
+	  dand = Next_DAND_of_DAND (dand);
+	}
+      or_node_id++;
     }
 }
 
@@ -9881,7 +9785,7 @@ typedef struct s_and_node AND_Object;
 @ @<Create the final and-nodes for all earley sets@> =
 {
   int unique_draft_and_node_count = 0;
-  @<Mark duplicate draft and-nodes@>@;
+  @<Count draft and-nodes@>@;
   @<Create the final and-node array@>@;
 }
 
@@ -9895,31 +9799,26 @@ typedef struct s_and_node AND_Object;
   for (or_node_id = 0; or_node_id < or_count_of_b; or_node_id++)
     {
       int and_count_of_parent_or = 0;
-      const OR or_node = OR_of_B_by_ID(b, or_node_id);
+      const OR or_node = OR_of_B_by_ID (b, or_node_id);
       DAND dand = DANDs_of_OR (or_node);
-        First_ANDID_of_OR(or_node) = and_node_id;
+      First_ANDID_of_OR (or_node) = and_node_id;
       while (dand)
-        {
-          const OR cause_or_node = Cause_OR_of_DAND (dand);
-          if (cause_or_node)
-            { /* Duplicates draft and-nodes
-            were marked by nulling the cause or-node */
-              const AND and_node = ands_of_b + and_node_id;
-              OR_of_AND (and_node) = or_node;
-              Predecessor_OR_of_AND (and_node) =
-                Predecessor_OR_of_DAND (dand);
-              Cause_OR_of_AND (and_node) = cause_or_node;
-              and_node_id++;
-              and_count_of_parent_or++;
-            }
-            dand = Next_DAND_of_DAND(dand);
-        }
-        AND_Count_of_OR(or_node) = and_count_of_parent_or;
-        Ambiguity_Metric_of_B (b) =
-          MAX (Ambiguity_Metric_of_B (b), and_count_of_parent_or);
+	{
+	  const OR cause_or_node = Cause_OR_of_DAND (dand);
+	  const AND and_node = ands_of_b + and_node_id;
+	  OR_of_AND (and_node) = or_node;
+	  Predecessor_OR_of_AND (and_node) = Predecessor_OR_of_DAND (dand);
+	  Cause_OR_of_AND (and_node) = cause_or_node;
+	  and_node_id++;
+	  and_count_of_parent_or++;
+	  dand = Next_DAND_of_DAND (dand);
+	}
+      AND_Count_of_OR (or_node) = and_count_of_parent_or;
+      Ambiguity_Metric_of_B (b) =
+	MAX (Ambiguity_Metric_of_B (b), and_count_of_parent_or);
     }
-    AND_Count_of_B (b) = and_node_id;
-    MARPA_ASSERT(and_node_id == unique_draft_and_node_count);
+  AND_Count_of_B (b) = and_node_id;
+  MARPA_ASSERT (and_node_id == unique_draft_and_node_count);
 }
 
 
@@ -10022,9 +9921,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
-const int nsy_count = NSY_Count_of_G(g);
 const int xsy_count = XSY_Count_of_G(g);
-const IRLID irl_count = IRL_Count_of_G(g);
 BOCAGE b = NULL;
 YS end_of_parse_earley_set;
 JEARLEME end_of_parse_earleme;

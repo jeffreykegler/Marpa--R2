@@ -489,3 +489,55 @@ The theorem for token source links follows from the YIM Lemma and the
 Token Source Lemma.
 {\bf QED}.
 
+@*0 AHFA states and duplicate completion links.
+@ Duplicate completion links can occur.
+Each possible cause
+link is only visited once.
+But a cause link may be paired with several different predecessors.
+Each cause may complete several different LHS symbols
+and Marpa will seek predecessors for each at
+the parent location.
+Two different completed LHS symbols might be postdot
+symbols for the same predecessor Earley item.
+For this reason,
+the same predecessor-cause pair
+may be chosen more than once.
+@ Since a completion link consists entirely of
+the predecessor-cause pair, a duplicate
+predecessor-cause pair means a duplicate
+completion link.
+The maximum possible number of such duplicates is the
+number of complete LHS symbols for the current AHFA state.
+This is always a constant and typically a small one,
+but it is also typically larger than 1.
+@ This is not an issue for unambiguous parsing.
+It {\bf is} an issue for iterating ambiguous parses.
+The strategy currently taken is to do nothing about duplicates
+in the recognition phase,
+and to eliminate them in the evaluation phase.
+Ultimately, duplicates must be eliminated by rule and
+position -- eliminating duplicates by AHFA state is
+{\bf not} sufficient.
+Since I do not pull out the
+individual rules and positions until the evaluation phase,
+at this writing it seems to make sense to deal with
+duplicates there.
+@ As shown above, the number of duplicate completion links
+is never more than $O(c \times n) = O(n)$,
+where $c$ is the number of LHS symbols in the grammar
+and $n$ is the number of Earley items.
+For academic purposes, it
+is probably possible to contrive a parse which generates
+a lot of duplicates.
+The actual numbers
+I have encountered have always been very small,
+even in grammars of only academic interest.
+@ The carrying cost of the extra completion links can be safely
+assumed to be very low,
+in comparision with the cost of searching for them.
+This means that the major consideration in deciding
+where to eliminate duplicates,
+is time efficiency.
+Duplicate completion links should be eliminated
+at the point where that elimination can be accomplished
+most efficiently.
