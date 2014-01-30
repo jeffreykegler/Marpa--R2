@@ -9556,7 +9556,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     OR dand_predecessor;
     OR path_or_node;
     YIM base_earley_item = Base_YIM_of_LIM(path_leo_item);
-    Set_OR_from_YIM(dand_predecessor, base_earley_item);
+    dand_predecessor = set_or_from_yim(per_ys_data, base_earley_item);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
     previous_path_irl = path_irl;
@@ -9564,7 +9564,8 @@ predecessor.  Set |or_node| to 0 if there is none.
         path_leo_item = higher_path_leo_item;
         higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
         base_earley_item = Base_YIM_of_LIM(path_leo_item);
-        Set_OR_from_YIM(dand_predecessor, base_earley_item);
+        dand_predecessor
+          = set_or_from_yim(per_ys_data, base_earley_item);
         @<Set |path_or_node|@>@;
         @<Add the draft and-nodes to an upper Leo path or-node@>@;
         previous_path_irl = path_irl;
@@ -9588,17 +9589,21 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Add draft and-nodes to the bottom or-node@> =
 {
-  OR dand_cause;
-  Set_OR_from_YIM(dand_cause, cause_earley_item);
+  const OR dand_cause
+    = set_or_from_yim(per_ys_data, cause_earley_item);
   draft_and_node_add (bocage_setup_obs, path_or_node,
 		      dand_predecessor, dand_cause);
 }
 
-@ @d Set_OR_from_YIM(psia_or, psia_yim) {
+@ @<Function definitions@> =
+PRIVATE
+OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
+  YIM psia_yim)
+{
   const YIM psia_earley_item = psia_yim;
   const int psia_earley_set_ordinal = YS_Ord_of_YIM (psia_earley_item);
   const int psia_item_ordinal = Ord_of_YIM (psia_earley_item);
-  psia_or = OR_by_PSI(per_ys_data, psia_earley_set_ordinal, psia_item_ordinal);
+  return OR_by_PSI(per_ys_data, psia_earley_set_ordinal, psia_item_ordinal);
 }
 
 @ @<Use Leo base data to set |path_or_node|@> =
@@ -9672,7 +9677,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     }
   else
     {
-      Set_OR_from_YIM (dand_predecessor, predecessor_earley_item);
+      dand_predecessor = set_or_from_yim (per_ys_data, predecessor_earley_item);
     }
 }
 
