@@ -9299,6 +9299,7 @@ and this is the case if |Position_of_OR(or_node) == 0|.
                 IRL_of_OR (or_node) = irl;
                 Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
+    MARPA_DEBUG2("At %s", STRLOC);
                 draft_and_node_add (bocage_setup_obs, or_node, predecessor,
                       cause);
               }
@@ -9396,6 +9397,7 @@ or-nodes follow a completion.
           IRL_of_OR (or_node) = path_irl;
           Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
+    MARPA_DEBUG2("At %s", STRLOC);
           draft_and_node_add (bocage_setup_obs, or_node, predecessor, cause);
         }
       MARPA_ASSERT (Position_of_OR (or_node) <=
@@ -9475,6 +9477,9 @@ PRIVATE
 void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR cause)
 {
     MARPA_OFF_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
+    if (dand_is_duplicate(parent, predecessor, cause)) {
+        MARPA_DEBUG2("Adding Duplicate DAND to or %s", or_tag(parent));
+    }
     const DAND new = draft_and_node_new(obs, predecessor, cause);
     Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
     DANDs_of_OR(parent) = new;
@@ -9592,12 +9597,17 @@ predecessor.  Set |or_node| to 0 if there is none.
   const OR dand_cause
     = set_or_from_yim(per_ys_data, cause_earley_item);
   if (!dand_is_duplicate(path_or_node, dand_predecessor, dand_cause)) {
+    MARPA_DEBUG2("At %s", STRLOC);
     draft_and_node_add (bocage_setup_obs, path_or_node,
 		      dand_predecessor, dand_cause);
   }
 }
 
-@ @<Add the draft and-nodes to an upper Leo path or-node@> =
+@ The test for duplication is necessary, because while a single
+Leo path
+is deterministic, there can be multiple Leo paths, and they can
+overlap, and they can overlap with nodes from other sources.
+@<Add the draft and-nodes to an upper Leo path or-node@> =
 {
   OR dand_cause;
   const SYMI symbol_instance = SYMI_of_Completed_IRL(previous_path_irl);
@@ -9605,6 +9615,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   OR* const p_or_node = &dand_cause;
   @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
   if (!dand_is_duplicate(path_or_node, dand_predecessor, dand_cause)) {
+    MARPA_DEBUG2("At %s", STRLOC);
     draft_and_node_add (bocage_setup_obs, path_or_node,
           dand_predecessor, dand_cause);
   }
@@ -9627,6 +9638,9 @@ PRIVATE
 int dands_are_equal(OR predecessor_a, OR cause_a,
   OR predecessor_b, OR cause_b)
 {
+  const int a_is_token = OR_is_Token(cause_a);
+  const int b_is_token = OR_is_Token(cause_b);
+  if (a_is_token != b_is_token) return 0;
   {
     /* -1 means equal to the
        start of the parent, which is sufficient for comparision purposes */
@@ -9635,26 +9649,19 @@ int dands_are_equal(OR predecessor_a, OR cause_a,
     if (middle_of_a != middle_of_b)
       return 0;
   }
-  if (OR_is_Token (cause_a))
+  if (a_is_token)
     {
-      if (!OR_is_Token (cause_b))
-	return 0;
-      {
 	const NSYID nsyid_of_a = NSYID_of_OR (cause_a);
 	const NSYID nsyid_of_b = NSYID_of_OR (cause_b);
-	if (nsyid_of_a != nsyid_of_b)
-	  return 0;
-	return 1;
-      }
+	return nsyid_of_a == nsyid_of_b;
     }
   {
     /* If here, we know that both causes are rule completions. */
     const IRLID irlid_of_a = IRLID_of_OR (cause_a);
     const IRLID irlid_of_b = IRLID_of_OR (cause_b);
-    if (irlid_of_a != irlid_of_b)
-      return 0;
+    return irlid_of_a == irlid_of_b;
   }
-  return 1;
+  // Not reached
 }
 
 @ Would a new dand made up of |predecessor| and |cause| duplicate any already
@@ -9671,7 +9678,7 @@ int dand_is_duplicate(OR parent, OR predecessor, OR cause)
           MARPA_DEBUG2("Would-be Duplicate DAND for or %s", or_tag(parent));
           MARPA_DEBUG2("Would-be Duplicate DAND predcessor is or %s", or_tag(predecessor));
           MARPA_DEBUG2("Would-be Duplicate DAND cause is or %s", or_tag(cause));
-          return 0;
+          return 1;
       }
   }
   return 0;
@@ -9700,17 +9707,6 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
      const int origin = origin_ordinal;
     @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
   }
-}
-
-@ @<Add the draft and-nodes to an upper Leo path or-node@> =
-{
-  OR dand_cause;
-  const SYMI symbol_instance = SYMI_of_Completed_IRL(previous_path_irl);
-  const int origin = Ord_of_YS(YS_of_LIM(path_leo_item));
-  OR* const p_or_node = &dand_cause;
-  @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
-  draft_and_node_add (bocage_setup_obs, path_or_node,
-          dand_predecessor, dand_cause);
 }
 
 @ @<Create draft and-nodes for token sources@> =
@@ -9747,6 +9743,7 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
 {
   OR dand_predecessor;
   @<Set |dand_predecessor|@>@;
+    MARPA_DEBUG2("At %s", STRLOC);
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
           dand_predecessor, (OR)tkn);
 }
@@ -9809,6 +9806,7 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
     OR* const p_or_node = &dand_cause;
     @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
   }
+    MARPA_DEBUG2("At %s", STRLOC);
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
           dand_predecessor, dand_cause);
 }
