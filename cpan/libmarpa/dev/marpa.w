@@ -9591,9 +9591,10 @@ predecessor.  Set |or_node| to 0 if there is none.
 {
   const OR dand_cause
     = set_or_from_yim(per_ys_data, cause_earley_item);
-  dand_is_duplicate(path_or_node, dand_predecessor, dand_cause);
-  draft_and_node_add (bocage_setup_obs, path_or_node,
+  if (!dand_is_duplicate(path_or_node, dand_predecessor, dand_cause)) {
+    draft_and_node_add (bocage_setup_obs, path_or_node,
 		      dand_predecessor, dand_cause);
+  }
 }
 
 @ @<Add the draft and-nodes to an upper Leo path or-node@> =
@@ -9603,9 +9604,10 @@ predecessor.  Set |or_node| to 0 if there is none.
   const int origin = Ord_of_YS(YS_of_LIM(path_leo_item));
   OR* const p_or_node = &dand_cause;
   @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
-  dand_is_duplicate(path_or_node, dand_predecessor, dand_cause);
-  draft_and_node_add (bocage_setup_obs, path_or_node,
+  if (!dand_is_duplicate(path_or_node, dand_predecessor, dand_cause)) {
+    draft_and_node_add (bocage_setup_obs, path_or_node,
           dand_predecessor, dand_cause);
+  }
 }
 
 @ Assuming they have the same parent, would the DANDs made up from these
