@@ -7037,149 +7037,6 @@ PRIVATE PIM first_pim_of_ys_by_nsyid(YS set, NSYID nsyid)
    return pim_nsy_p ? *pim_nsy_p : NULL;
 }
 
-@** PIM Trace functions.
-Many of the
-trace functions use
-a ``trace postdot item".
-This is
-tracked on a per-recognizer basis.
-@<Widely aligned recognizer elements@> =
-union u_postdot_item** t_trace_pim_nsy_p;
-union u_postdot_item* t_trace_postdot_item;
-@ @<Initialize recognizer elements@> =
-r->t_trace_pim_nsy_p = NULL;
-r->t_trace_postdot_item = NULL;
-@ |marpa_r_postdot_symbol_trace|
-takes a recognizer and a symbol ID
-as an argument.
-It sets the trace postdot item to the first
-postdot item for the symbol ID.
-If there is no postdot item 
-for that symbol ID,
-it returns |-1|.
-On failure for other reasons,
-it returns |-2|
-and clears the trace postdot item.
-@<Function definitions@> =
-Marpa_Symbol_ID
-_marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
-    Marpa_Symbol_ID xsy_id)
-{
-  @<Return |-2| on failure@>@;
-  YS current_ys = r->t_trace_earley_set;
-  PIM* pim_nsy_p;
-  PIM pim;
-  @<Unpack recognizer objects@>@;
-  @<Clear trace postdot item data@>@;
-  @<Fail if not trace-safe@>@;
-    @<Fail if |xsy_id| is malformed@>@;
-    @<Soft fail if |xsy_id| does not exist@>@;
-  if (!current_ys) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
-      return failure_indicator;
-  }
-  pim_nsy_p = PIM_NSY_P_of_YS_by_NSYID(current_ys, NSYID_by_XSYID(xsy_id));
-  pim = *pim_nsy_p;
-  if (!pim) return -1;
-  r->t_trace_pim_nsy_p = pim_nsy_p;
-  r->t_trace_postdot_item = pim;
-  return xsy_id;
-}
-
-@ @<Clear trace postdot item data@> =
-r->t_trace_pim_nsy_p = NULL;
-r->t_trace_postdot_item = NULL;
-
-@ Set trace postdot item to the first in the trace Earley set,
-and return its postdot symbol ID.
-If the trace Earley set has no postdot items, return -1 and
-clear the trace postdot item.
-On other failures, return -2 and clear the trace
-postdot item.
-@<Function definitions@> =
-Marpa_Symbol_ID
-_marpa_r_first_postdot_item_trace (Marpa_Recognizer r)
-{
-  @<Return |-2| on failure@>@;
-  YS current_earley_set = r->t_trace_earley_set;
-  PIM pim;
-  @<Unpack recognizer objects@>@;
-  PIM* pim_nsy_p;
-  @<Clear trace postdot item data@>@;
-  @<Fail if not trace-safe@>@;
-  if (!current_earley_set) {
-      @<Clear trace Earley item data@>@;
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
-      return failure_indicator;
-  }
-  if (current_earley_set->t_postdot_sym_count <= 0) return -1;
-  pim_nsy_p = current_earley_set->t_postdot_ary+0;
-  pim = pim_nsy_p[0];
-  r->t_trace_pim_nsy_p = pim_nsy_p;
-  r->t_trace_postdot_item = pim;
-  return Postdot_NSYID_of_PIM(pim);
-}
-
-@ Set the trace postdot item to the one after
-the current trace postdot item,
-and return its postdot symbol ID.
-If the current trace postdot item is the last,
-return -1 and clear the trace postdot item.
-On other failures, return -2 and clear the trace
-postdot item.
-@<Function definitions@> =
-Marpa_Symbol_ID
-_marpa_r_next_postdot_item_trace (Marpa_Recognizer r)
-{
-  const XSYID no_more_postdot_symbols = -1;
-  @<Return |-2| on failure@>@;
-  YS current_set = r->t_trace_earley_set;
-  PIM pim;
-  PIM* pim_nsy_p;
-  @<Unpack recognizer objects@>@;
-
-  pim_nsy_p = r->t_trace_pim_nsy_p;
-  pim = r->t_trace_postdot_item;
-  @<Clear trace postdot item data@>@;
-  if (!pim_nsy_p || !pim) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
-      return failure_indicator;
-  }
-  @<Fail if not trace-safe@>@;
-  if (!current_set) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
-      return failure_indicator;
-  }
-  pim = Next_PIM_of_PIM(pim);
-  if (!pim) { /* If no next postdot item for this symbol,
-       then look at next symbol */
-       pim_nsy_p++;
-       if (pim_nsy_p - current_set->t_postdot_ary
-           >= current_set->t_postdot_sym_count) {
-           return no_more_postdot_symbols;
-       }
-      pim = *pim_nsy_p;
-  }
-  r->t_trace_pim_nsy_p = pim_nsy_p;
-  r->t_trace_postdot_item = pim;
-  return Postdot_NSYID_of_PIM(pim);
-}
-
-@ @<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_postdot_item_symbol(Marpa_Recognizer r)
-{
-  @<Return |-2| on failure@>@;
-  PIM postdot_item = r->t_trace_postdot_item;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-  if (!postdot_item) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
-      return failure_indicator;
-  }
-  return Postdot_NSYID_of_PIM(postdot_item);
-}
-
-
 @** Source objects.
 Nothing internally distinguishes the various source objects
 by type.
@@ -7494,409 +7351,6 @@ void earley_item_ambiguate (struct marpa_r * r, YIM item)
   LV_First_Completion_SRCL_of_YIM (item) = NULL;
   LV_First_Token_SRCL_of_YIM (item) = NULL;
 }
-
-@** Link trace functions.
-Many trace functions track a ``trace source link".
-There is only one of these, shared among all types of
-source link.
-It is reported as an error if a trace function is called
-when it is
-inconsistent with the type of the current trace
-source link.
-@<Widely aligned recognizer elements@> =
-SRCL t_trace_source_link;
-@ @<Bit aligned recognizer elements@> =
-BITFIELD t_trace_source_type:3;
-@ @<Initialize recognizer elements@> =
-r->t_trace_source_link = NULL;
-r->t_trace_source_type = NO_SOURCE;
-
-@*1 Trace first token link.
-@ Set the trace source link to a token link,
-if there is one, otherwise clear the trace source link.
-Returns the symbol ID if there was a token source link,
-|-1| if there was none,
-and |-2| on some other kind of failure.
-@<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
-{
-   @<Return |-2| on failure@>@;
-   SRCL source_link;
-   unsigned int source_type;
-    YIM item = r->t_trace_earley_item;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@;
-    @<Set |item|, failing if necessary@>@;
-    source_type = Source_Type_of_YIM (item);
-    switch (source_type)
-      {
-      case SOURCE_IS_TOKEN:
-        r->t_trace_source_type = SOURCE_IS_TOKEN;
-        source_link = SRCL_of_YIM(item);
-        r->t_trace_source_link = source_link;
-        return NSYID_of_SRCL (source_link);
-      case SOURCE_IS_AMBIGUOUS:
-        {
-          source_link = LV_First_Token_SRCL_of_YIM (item);
-          if (source_link)
-            {
-              r->t_trace_source_type = SOURCE_IS_TOKEN;
-              r->t_trace_source_link = source_link;
-              return NSYID_of_SRCL (source_link);
-            }
-        }
-      }
-    trace_source_link_clear(r);
-    return -1;
-}
-
-@*1 Trace next token link.
-@ Set the trace source link to the next token link,
-if there is one.
-Otherwise clear the trace source link.
-@ Returns the symbol ID if there is
-a next token source link,
-|-1| if there was none,
-and |-2| on some other kind of failure.
-@<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_next_token_link_trace(Marpa_Recognizer r)
-{
-   @<Return |-2| on failure@>@;
-   SRCL source_link;
-    YIM item;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@;
-    @<Set |item|, failing if necessary@>@;
-    if (r->t_trace_source_type != SOURCE_IS_TOKEN) {
-        trace_source_link_clear(r);
-        MARPA_ERROR(MARPA_ERR_NOT_TRACING_TOKEN_LINKS);
-        return failure_indicator;
-    }
-    source_link = Next_SRCL_of_SRCL( r->t_trace_source_link);
-    if (!source_link) {
-        trace_source_link_clear(r);
-        return -1;
-    }
-    r->t_trace_source_link = source_link;
-    return NSYID_of_SRCL (source_link);
-}
-
-@*1 Trace first completion link.
-@ Set the trace source link to a completion link,
-if there is one, otherwise clear the completion source link.
-Returns the AHM ID
-(not the obsolete AHFA state ID) of the cause
-if there was a completion source link,
-|-1| if there was none,
-and |-2| on some other kind of failure.
-@<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
-{
-   @<Return |-2| on failure@>@;
-   SRCL source_link;
-   unsigned int source_type;
-    YIM item = r->t_trace_earley_item;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@;
-    @<Set |item|, failing if necessary@>@;
-    switch ((source_type = Source_Type_of_YIM (item)))
-      {
-      case SOURCE_IS_COMPLETION:
-        r->t_trace_source_type = SOURCE_IS_COMPLETION;
-        source_link = SRCL_of_YIM(item);
-        r->t_trace_source_link = source_link;
-        return Cause_AHMID_of_SRCL (source_link);
-      case SOURCE_IS_AMBIGUOUS:
-        {
-          source_link = LV_First_Completion_SRCL_of_YIM (item);
-          if (source_link)
-            {
-              r->t_trace_source_type = SOURCE_IS_COMPLETION;
-              r->t_trace_source_link = source_link;
-              return Cause_AHMID_of_SRCL (source_link);
-            }
-        }
-      }
-    trace_source_link_clear(r);
-    return -1;
-}
-
-@*1 Trace next completion link.
-@ Set the trace source link to the next completion link,
-if there is one.
-Otherwise clear the trace source link.
-@ Returns the cause AHM ID if there is
-a next completion source link,
-|-1| if there was none,
-and |-2| on some other kind of failure.
-@<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_next_completion_link_trace(Marpa_Recognizer r)
-{
-   @<Return |-2| on failure@>@;
-   SRCL source_link;
-    YIM item;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@;
-    @<Set |item|, failing if necessary@>@;
-    if (r->t_trace_source_type != SOURCE_IS_COMPLETION) {
-        trace_source_link_clear(r);
-        MARPA_ERROR(MARPA_ERR_NOT_TRACING_COMPLETION_LINKS);
-        return failure_indicator;
-    }
-    source_link = Next_SRCL_of_SRCL (r->t_trace_source_link);
-    if (!source_link) {
-        trace_source_link_clear(r);
-        return -1;
-    }
-    r->t_trace_source_link = source_link;
-    return Cause_AHMID_of_SRCL (source_link);
-}
-
-@*1 Trace first Leo link.
-@ Set the trace source link to a Leo link,
-if there is one, otherwise clear the Leo source link.
-Returns the AHM ID (not
-the obsolete AHFA state ID) of the cause
-if there was a Leo source link,
-|-1| if there was none,
-and |-2| on some other kind of failure.
-@<Function definitions@> =
-Marpa_Symbol_ID
-_marpa_r_first_leo_link_trace (Marpa_Recognizer r)
-{
-  @<Return |-2| on failure@>@;
-  SRCL source_link;
-  YIM item = r->t_trace_earley_item;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-  @<Set |item|, failing if necessary@>@;
-  source_link = First_Leo_SRCL_of_YIM(item);
-  if (source_link) {
-      r->t_trace_source_type = SOURCE_IS_LEO;
-      r->t_trace_source_link = source_link;
-      return Cause_AHMID_of_SRCL (source_link);
-  }
-  trace_source_link_clear (r);
-  return -1;
-}
-
-@*1 Trace next Leo link.
-@ Set the trace source link to the next Leo link,
-if there is one.
-Otherwise clear the trace source link.
-@ Returns the AHM ID if there is
-a next Leo source link,
-|-1| if there was none,
-and |-2| on some other kind of failure.
-@<Function definitions@> =
-Marpa_Symbol_ID
-_marpa_r_next_leo_link_trace (Marpa_Recognizer r)
-{
-  @<Return |-2| on failure@>@/
-  SRCL source_link;
-  YIM item;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@/
-  @<Set |item|, failing if necessary@>@/
-  if (r->t_trace_source_type != SOURCE_IS_LEO)
-    {
-      trace_source_link_clear (r);
-      MARPA_ERROR(MARPA_ERR_NOT_TRACING_LEO_LINKS);
-      return failure_indicator;
-    }
-  source_link = Next_SRCL_of_SRCL(r->t_trace_source_link);
-  if (!source_link)
-    {
-      trace_source_link_clear (r);
-      return -1;
-    }
-  r->t_trace_source_link = source_link;
-  return Cause_AHMID_of_SRCL (source_link);
-}
-
-@ @<Set |item|, failing if necessary@> =
-    item = r->t_trace_earley_item;
-    if (!item) {
-        trace_source_link_clear(r);
-        MARPA_ERROR(MARPA_ERR_NO_TRACE_YIM);
-        return failure_indicator;
-    }
-
-@*1 Clear trace source link.
-@<Function definitions@> =
-PRIVATE void trace_source_link_clear(RECCE r)
-{
-    r->t_trace_source_link = NULL;
-    r->t_trace_source_type = NO_SOURCE;
-}
-
-@*1 Return the predecessor AHM ID.
-Returns the predecessor AHM ID,
-or -1 if there is no predecessor.
-If the recognizer is not trace-safe,
-if there is no trace source link,
-if the trace source link is a Leo source,
-or if there is some other failure,
-|-2| is returned.
-@<Function definitions@> =
-AHMID _marpa_r_source_predecessor_state(Marpa_Recognizer r)
-{
-   @<Return |-2| on failure@>@/
-   unsigned int source_type;
-   SRCL source_link;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@/
-   source_type = r->t_trace_source_type;
-    @<Set source link, failing if necessary@>@/
-    switch (source_type)
-    {
-    case SOURCE_IS_TOKEN:
-    case SOURCE_IS_COMPLETION: {
-        YIM predecessor = Predecessor_of_SRCL(source_link);
-        if (!predecessor) return -1;
-        return AHMID_of_YIM(predecessor);
-    }
-    }
-    MARPA_ERROR(invalid_source_type_code(source_type));
-    return failure_indicator;
-}
-
-@*1 Return the token.
-Returns the token.
-The symbol id is the return value,
-and the value is written to |*value_p|,
-if it is non-null.
-If the recognizer is not trace-safe,
-there is no trace source link,
-if the trace source link is not a token source,
-or there is some other failure,
-|-2| is returned.
-\par
-There is no function to return just the token value
-for two reasons.
-First, since token value can be anything
-an additional return value is needed to indicate errors,
-which means the symbol ID comes at essentially zero cost.
-Second, whenever the token value is
-wanted, the symbol ID is almost always wanted as well.
-@<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_source_token(Marpa_Recognizer r, int *value_p)
-{
-   @<Return |-2| on failure@>@;
-   unsigned int source_type;
-   SRCL source_link;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@;
-   source_type = r->t_trace_source_type;
-    @<Set source link, failing if necessary@>@;
-    if (source_type == SOURCE_IS_TOKEN) {
-        const TOK tkn = TOK_of_SRCL(source_link);
-        if (value_p) *value_p = Value_of_TOK(tkn);
-        return NSYID_of_TOK(tkn);
-    }
-    MARPA_ERROR(invalid_source_type_code(source_type));
-    return failure_indicator;
-}
-
-@*1 Return the Leo transition symbol.
-The Leo transition symbol is defined only for sources
-with a Leo predecessor.
-The transition from a predecessor to the Earley item
-containing a source will always be over exactly one symbol.
-In the case of a Leo source, this symbol will be
-the Leo transition symbol.
-@ Returns the symbol ID of the Leo transition symbol.
-If the recognizer is not trace-safe,
-if there is no trace source link,
-if the trace source link is not a Leo source,
-or there is some other failure,
-|-2| is returned.
-@<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol(Marpa_Recognizer r)
-{
-   @<Return |-2| on failure@>@/
-   unsigned int source_type;
-   SRCL source_link;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@/
-   source_type = r->t_trace_source_type;
-    @<Set source link, failing if necessary@>@/
-    switch (source_type)
-    {
-    case SOURCE_IS_LEO:
-        return Leo_Transition_NSYID_of_SRCL(source_link);
-    }
-    MARPA_ERROR(invalid_source_type_code(source_type));
-    return failure_indicator;
-}
-
-@*1 Return the middle Earley set ordinal.
-Every source has the following defined:
-\li An origin (or start ordinal).
-\li An end ordinal (the current set).
-\li A ``middle ordinal".
-An Earley item can be thought of as covering a ``span"
-from its origin to the current set.
-For each source,
-this span is divided into two pieces at the middle
-ordinal.
-@ Informally, the middle ordinal can be thought of as
-dividing the span between the predecessor and either
-the source's cause or its token.
-If the source has no predecessor, the middle ordinal
-is the same as the origin.
-If there is a predecessor, the middle ordinal is
-the current set of the predecessor.
-If there is a cause, the middle ordinal is always the same
-as the origin of the cause.
-If there is a token,
-the middle ordinal is always where the token starts.
-On failure, such as
-there being no source link,
-|-2| is returned.
-@<Function definitions@> =
-Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
-{
-   @<Return |-2| on failure@>@/
-   YIM predecessor_yim = NULL;
-   unsigned int source_type;
-   SRCL source_link;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@/
-   source_type = r->t_trace_source_type;
-    @<Set source link, failing if necessary@>@/
-
-  switch (source_type)
-    {
-    case SOURCE_IS_LEO:
-      {
-        LIM predecessor = LIM_of_SRCL (source_link);
-        if (predecessor)
-          predecessor_yim = Base_YIM_of_LIM (predecessor);
-        break;
-      }
-    case SOURCE_IS_TOKEN:
-    case SOURCE_IS_COMPLETION:
-      {
-        predecessor_yim = Predecessor_of_SRCL (source_link);
-        break;
-      }
-    default:
-      MARPA_ERROR (invalid_source_type_code (source_type));
-      return failure_indicator;
-  }
-
-  if (predecessor_yim)
-    return YS_Ord_of_YIM (predecessor_yim);
-  return Origin_Ord_of_YIM (r->t_trace_earley_item);
-}
-
-@ @<Set source link, failing if necessary@> =
-    source_link = r->t_trace_source_link;
-    if (!source_link) {
-        MARPA_ERROR(MARPA_ERR_NO_TRACE_SRCL);
-        return failure_indicator;
-    }
 
 @** Token code (TOK).
 @ Tokens are duples of symbol ID and token value.
@@ -10276,207 +9730,6 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
     }
 }
 
-@** Or-node trace functions.
-
-@ This is common logic in the or-node trace functions.
-In the case of a nulling bocage, the or count of
-the bocage is zero,
-so that any |or_node_id| is either a soft
-or a hard error,
-depending on whether it is non-negative
-or negative.
-@<Check |or_node_id|@> =
-{
-  if (_MARPA_UNLIKELY (or_node_id >= OR_Count_of_B (b)))
-    {
-      return -1;
-    }
-  if (_MARPA_UNLIKELY (or_node_id < 0))
-    {
-      MARPA_ERROR (MARPA_ERR_ORID_NEGATIVE);
-      return failure_indicator;
-    }
-}
-@ @<Set |or_node| or fail@> =
-{
-  if (_MARPA_UNLIKELY (!ORs_of_B(b)))
-    {
-      MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
-      return failure_indicator;
-    }
-  or_node = OR_of_B_by_ID(b, or_node_id);
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_set(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return YS_Ord_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_origin(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return Origin_Ord_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-Marpa_IRL_ID _marpa_b_or_node_irl(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return ID_of_IRL(IRL_of_OR(or_node));
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_position(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return Position_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_is_whole(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return Position_of_OR(or_node) >= Length_of_IRL(IRL_of_OR(or_node)) ? 1 : 0;
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_is_semantic(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return ! IRL_has_Virtual_LHS(IRL_of_OR(or_node));
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_first_and(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return First_ANDID_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_last_and(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return First_ANDID_of_OR(or_node)
-      + AND_Count_of_OR(or_node) - 1;
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_and_count(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  @<Set |or_node| or fail@>@;
-  return AND_Count_of_OR(or_node);
-}
-
-@** Ordering trace functions.
-
-@ This is common logic in the ordering trace functions.
-In the case of a nulling ordering, the or count of
-the ordering is zero,
-so that any |or_node_id| is either a soft
-or a hard error,
-depending on whether it is non-negative
-or negative.
-
-@ @<Function definitions@> =
-int _marpa_o_or_node_and_node_count(Marpa_Order o,
-  Marpa_Or_Node_ID or_node_id)
-{
-  @<Return |-2| on failure@>@;
-  @<Unpack order objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  if (!O_is_Default(o))
-  {
-    ANDID ** const and_node_orderings = o->t_and_node_orderings;
-    ANDID *ordering = and_node_orderings[or_node_id];
-    if (ordering) return ordering[0];
-  }
-  {
-    OR or_node;
-    @<Set |or_node| or fail@>@;
-    return AND_Count_of_OR (or_node);
-  }
-}
-
-@ @<Function definitions@> =
-int _marpa_o_or_node_and_node_id_by_ix(Marpa_Order o,
-  Marpa_Or_Node_ID or_node_id, int ix)
-{
-  @<Return |-2| on failure@>@;
-  @<Unpack order objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|@>@;
-  if (!O_is_Default(o))
-  {
-      ANDID ** const and_node_orderings = o->t_and_node_orderings;
-      ANDID *ordering = and_node_orderings[or_node_id];
-      if (ordering) return ordering[1 + ix];
-  }
-  {
-    OR or_node;
-    @<Set |or_node| or fail@>@;
-    return First_ANDID_of_OR (or_node) + ix;
-  }
-}
-
 @** Whole element ID (WHEID) code.
 The "whole elements" of the grammar are the symbols
 and the completed rules.
@@ -10856,6 +10109,7 @@ Otherwise, it's the first such draft and-node.
           if (psl_or_node && ID_of_OR(psl_or_node) == work_or_node_id)
           {
               /* Mark this draft and-node as a duplicate */
+              MARPA_ASSERT(0);
               Cause_OR_of_DAND(dand) = NULL;
           } else {
               /* Increment the count of unique draft and-nodes */
@@ -10941,151 +10195,6 @@ typedef struct s_and_node AND_Object;
     }
     AND_Count_of_B (b) = and_node_id;
     MARPA_ASSERT(and_node_id == unique_draft_and_node_count);
-}
-
-@** And-node trace functions.
-
-@ @<Function definitions@> =
-int _marpa_b_and_node_count(Marpa_Bocage b)
-{
-  @<Unpack bocage objects@>@;
-  @<Return |-2| on failure@>@;
-  @<Fail if fatal error@>@;
-  return AND_Count_of_B(b);
-}
-
-@ @<Check bocage |and_node_id|; set |and_node|@> =
-{
-  if (and_node_id >= AND_Count_of_B (b))
-    {
-      return -1;
-    }
-  if (and_node_id < 0)
-    {
-      MARPA_ERROR (MARPA_ERR_ANDID_NEGATIVE);
-      return failure_indicator;
-    }
-  {
-    AND and_nodes = ANDs_of_B (b);
-    if (!and_nodes)
-      {
-        MARPA_ERROR (MARPA_ERR_NO_AND_NODES);
-        return failure_indicator;
-      }
-    and_node = and_nodes + and_node_id;
-  }
-}
-
-@ @<Function definitions@> =
-int _marpa_b_and_node_parent(Marpa_Bocage b,
-  Marpa_And_Node_ID and_node_id)
-{
-  AND and_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Check bocage |and_node_id|; set |and_node|@>@;
-  return ID_of_OR (OR_of_AND (and_node));
-}
-
-@ @<Function definitions@> =
-int _marpa_b_and_node_predecessor(Marpa_Bocage b,
-  Marpa_And_Node_ID and_node_id)
-{
-  AND and_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Check bocage |and_node_id|; set |and_node|@>@;
-    {
-      const OR predecessor_or = Predecessor_OR_of_AND (and_node);
-      const ORID predecessor_or_id =
-        predecessor_or ? ID_of_OR (predecessor_or) : -1;
-      return predecessor_or_id;
-      }
-}
-
-@ @<Function definitions@> =
-int _marpa_b_and_node_cause(Marpa_Bocage b,
-  Marpa_And_Node_ID and_node_id)
-{
-  AND and_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-    @<Check bocage |and_node_id|; set |and_node|@>@;
-    {
-      const OR cause_or = Cause_OR_of_AND (and_node);
-      const ORID cause_or_id =
-        OR_is_Token(cause_or) ? -1 : ID_of_OR (cause_or);
-      return cause_or_id;
-    }
-}
-
-@ @<Function definitions@> =
-int _marpa_b_and_node_symbol(Marpa_Bocage b,
-  Marpa_And_Node_ID and_node_id)
-{
-  AND and_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Check bocage |and_node_id|; set |and_node|@>@;
-  {
-    const OR cause_or = Cause_OR_of_AND (and_node);
-    const XSYID symbol_id =
-      OR_is_Token (cause_or) ? NSYID_of_OR (cause_or) : -1;
-    return symbol_id;
-  }
-}
-
-@ @<Function definitions@> =
-Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
-    Marpa_And_Node_ID and_node_id, int* value_p)
-{
-  TOK tkn;
-  AND and_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-    @<Check bocage |and_node_id|; set |and_node|@>@;
-    tkn = and_node_token(and_node);
-    if (tkn) {
-      if (value_p)
-        *value_p = Value_of_TOK (tkn);
-      return NSYID_of_TOK (tkn);
-    }
-    return -1;
-}
-@ @<Function definitions@> =
-PRIVATE TOK and_node_token(AND and_node)
-{
-  const OR cause_or = Cause_OR_of_AND (and_node);
-  if (OR_is_Token (cause_or))
-    {
-      return TOK_of_OR (cause_or);
-    }
-    return NULL;
-}
-
-@ The ``middle'' earley set of the and-node.
-It is most simply defined as equivalent to
-the start of the cause, but the cause can be token,
-and in that case the simpler definition is not helpful.
-Instead, the end of the predecessor is used, if there is one.
-If there is no predecessor, the origin of the parent or-node will
-always be the same as ``middle'' of the or-node.
-@<Function definitions@> =
-Marpa_Earley_Set_ID _marpa_b_and_node_middle(Marpa_Bocage b,
-    Marpa_And_Node_ID and_node_id)
-{
-  AND and_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Check bocage |and_node_id|; set |and_node|@>@;
-  {
-    const OR predecessor_or = Predecessor_OR_of_AND (and_node);
-    if (predecessor_or)
-      {
-        return YS_Ord_of_OR (predecessor_or);
-      }
-  }
-  return Origin_Ord_of_OR (OR_of_AND (and_node));
 }
 
 @** Progress report code.
@@ -12597,98 +11706,6 @@ struct s_nook {
     BITFIELD t_is_predecessor_of_parent:1;
 };
 typedef struct s_nook NOOK_Object;
-
-@** Nook trace functions.
-
-@ This is common logic in the |NOOK| trace functions.
-@<Check |r| and |nook_id|;
-set |nook|@> = {
-  NOOK base_nook;
-  @<Fail if fatal error@>@;
-  if (T_is_Exhausted(t)) {
-      MARPA_ERROR(MARPA_ERR_BOCAGE_ITERATION_EXHAUSTED);
-      return failure_indicator;
-  }
-  if (nook_id < 0) {
-      MARPA_ERROR(MARPA_ERR_NOOKID_NEGATIVE);
-      return failure_indicator;
-  }
-  if (nook_id >= Size_of_T(t)) {
-      return -1;
-  }
-  base_nook = FSTACK_BASE(t->t_nook_stack, NOOK_Object);
-  nook = base_nook + nook_id;
-}
-
-@ @<Function definitions@> =
-int _marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
-{
-  NOOK nook;
-  @<Return |-2| on failure@>@;
-  @<Unpack tree objects@>@;
-   @<Check |r| and |nook_id|; set |nook|@>@;
-  return ID_of_OR(OR_of_NOOK(nook));
-}
-
-@ @<Function definitions@> =
-int _marpa_t_nook_choice(Marpa_Tree t, int nook_id)
-{
-  NOOK nook;
-  @<Return |-2| on failure@>@;
-  @<Unpack tree objects@>@;
-   @<Check |r| and |nook_id|; set |nook|@>@;
-    return Choice_of_NOOK(nook);
-}
-
-@ @<Function definitions@> =
-int _marpa_t_nook_parent(Marpa_Tree t, int nook_id)
-{
-  NOOK nook;
-  @<Return |-2| on failure@>@;
-  @<Unpack tree objects@>@;
-   @<Check |r| and |nook_id|; set |nook|@>@;
-    return Parent_of_NOOK(nook);
-}
-
-@ @<Function definitions@> =
-int _marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
-{
-  NOOK nook;
-  @<Return |-2| on failure@>@;
-  @<Unpack tree objects@>@;
-   @<Check |r| and |nook_id|; set |nook|@>@;
-    return NOOK_Cause_is_Expanded(nook);
-}
-
-@ @<Function definitions@> =
-int _marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
-{
-  NOOK nook;
-  @<Return |-2| on failure@>@;
-  @<Unpack tree objects@>@;
-   @<Check |r| and |nook_id|; set |nook|@>@;
-    return NOOK_Predecessor_is_Expanded(nook);
-}
-
-@ @<Function definitions@> =
-int _marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
-{
-  NOOK nook;
-  @<Return |-2| on failure@>@;
-  @<Unpack tree objects@>@;
-   @<Check |r| and |nook_id|; set |nook|@>@;
-    return NOOK_is_Cause(nook);
-}
-
-@ @<Function definitions@> =
-int _marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
-{
-  NOOK nook;
-  @<Return |-2| on failure@>@;
-  @<Unpack tree objects@>@;
-   @<Check |r| and |nook_id|; set |nook|@>@;
-    return NOOK_is_Predecessor(nook);
-}
 
 @** Evaluation (V, VALUE) code.
 @ This code helps
@@ -15020,6 +14037,991 @@ extern void* (* const marpa__out_of_memory)(void);
 
 @ @<Public typedefs@> =
 typedef const char* Marpa_Message_ID;
+
+@** Trace functions.
+
+@*0 PIM Trace functions.
+Many of the
+trace functions use
+a ``trace postdot item".
+This is
+tracked on a per-recognizer basis.
+@<Widely aligned recognizer elements@> =
+union u_postdot_item** t_trace_pim_nsy_p;
+union u_postdot_item* t_trace_postdot_item;
+@ @<Initialize recognizer elements@> =
+r->t_trace_pim_nsy_p = NULL;
+r->t_trace_postdot_item = NULL;
+@ |marpa_r_postdot_symbol_trace|
+takes a recognizer and a symbol ID
+as an argument.
+It sets the trace postdot item to the first
+postdot item for the symbol ID.
+If there is no postdot item 
+for that symbol ID,
+it returns |-1|.
+On failure for other reasons,
+it returns |-2|
+and clears the trace postdot item.
+@<Function definitions@> =
+Marpa_Symbol_ID
+_marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
+    Marpa_Symbol_ID xsy_id)
+{
+  @<Return |-2| on failure@>@;
+  YS current_ys = r->t_trace_earley_set;
+  PIM* pim_nsy_p;
+  PIM pim;
+  @<Unpack recognizer objects@>@;
+  @<Clear trace postdot item data@>@;
+  @<Fail if not trace-safe@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+  if (!current_ys) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
+      return failure_indicator;
+  }
+  pim_nsy_p = PIM_NSY_P_of_YS_by_NSYID(current_ys, NSYID_by_XSYID(xsy_id));
+  pim = *pim_nsy_p;
+  if (!pim) return -1;
+  r->t_trace_pim_nsy_p = pim_nsy_p;
+  r->t_trace_postdot_item = pim;
+  return xsy_id;
+}
+
+@ @<Clear trace postdot item data@> =
+r->t_trace_pim_nsy_p = NULL;
+r->t_trace_postdot_item = NULL;
+
+@ Set trace postdot item to the first in the trace Earley set,
+and return its postdot symbol ID.
+If the trace Earley set has no postdot items, return -1 and
+clear the trace postdot item.
+On other failures, return -2 and clear the trace
+postdot item.
+@<Function definitions@> =
+Marpa_Symbol_ID
+_marpa_r_first_postdot_item_trace (Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  YS current_earley_set = r->t_trace_earley_set;
+  PIM pim;
+  @<Unpack recognizer objects@>@;
+  PIM* pim_nsy_p;
+  @<Clear trace postdot item data@>@;
+  @<Fail if not trace-safe@>@;
+  if (!current_earley_set) {
+      @<Clear trace Earley item data@>@;
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
+      return failure_indicator;
+  }
+  if (current_earley_set->t_postdot_sym_count <= 0) return -1;
+  pim_nsy_p = current_earley_set->t_postdot_ary+0;
+  pim = pim_nsy_p[0];
+  r->t_trace_pim_nsy_p = pim_nsy_p;
+  r->t_trace_postdot_item = pim;
+  return Postdot_NSYID_of_PIM(pim);
+}
+
+@ Set the trace postdot item to the one after
+the current trace postdot item,
+and return its postdot symbol ID.
+If the current trace postdot item is the last,
+return -1 and clear the trace postdot item.
+On other failures, return -2 and clear the trace
+postdot item.
+@<Function definitions@> =
+Marpa_Symbol_ID
+_marpa_r_next_postdot_item_trace (Marpa_Recognizer r)
+{
+  const XSYID no_more_postdot_symbols = -1;
+  @<Return |-2| on failure@>@;
+  YS current_set = r->t_trace_earley_set;
+  PIM pim;
+  PIM* pim_nsy_p;
+  @<Unpack recognizer objects@>@;
+
+  pim_nsy_p = r->t_trace_pim_nsy_p;
+  pim = r->t_trace_postdot_item;
+  @<Clear trace postdot item data@>@;
+  if (!pim_nsy_p || !pim) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
+      return failure_indicator;
+  }
+  @<Fail if not trace-safe@>@;
+  if (!current_set) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
+      return failure_indicator;
+  }
+  pim = Next_PIM_of_PIM(pim);
+  if (!pim) { /* If no next postdot item for this symbol,
+       then look at next symbol */
+       pim_nsy_p++;
+       if (pim_nsy_p - current_set->t_postdot_ary
+           >= current_set->t_postdot_sym_count) {
+           return no_more_postdot_symbols;
+       }
+      pim = *pim_nsy_p;
+  }
+  r->t_trace_pim_nsy_p = pim_nsy_p;
+  r->t_trace_postdot_item = pim;
+  return Postdot_NSYID_of_PIM(pim);
+}
+
+@ @<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_postdot_item_symbol(Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  PIM postdot_item = r->t_trace_postdot_item;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+  if (!postdot_item) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
+      return failure_indicator;
+  }
+  return Postdot_NSYID_of_PIM(postdot_item);
+}
+
+@*0 Link trace functions.
+Many trace functions track a ``trace source link".
+There is only one of these, shared among all types of
+source link.
+It is reported as an error if a trace function is called
+when it is
+inconsistent with the type of the current trace
+source link.
+@<Widely aligned recognizer elements@> =
+SRCL t_trace_source_link;
+@ @<Bit aligned recognizer elements@> =
+BITFIELD t_trace_source_type:3;
+@ @<Initialize recognizer elements@> =
+r->t_trace_source_link = NULL;
+r->t_trace_source_type = NO_SOURCE;
+
+@*1 Trace first token link.
+@ Set the trace source link to a token link,
+if there is one, otherwise clear the trace source link.
+Returns the symbol ID if there was a token source link,
+|-1| if there was none,
+and |-2| on some other kind of failure.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
+{
+   @<Return |-2| on failure@>@;
+   SRCL source_link;
+   unsigned int source_type;
+    YIM item = r->t_trace_earley_item;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@;
+    @<Set |item|, failing if necessary@>@;
+    source_type = Source_Type_of_YIM (item);
+    switch (source_type)
+      {
+      case SOURCE_IS_TOKEN:
+        r->t_trace_source_type = SOURCE_IS_TOKEN;
+        source_link = SRCL_of_YIM(item);
+        r->t_trace_source_link = source_link;
+        return NSYID_of_SRCL (source_link);
+      case SOURCE_IS_AMBIGUOUS:
+        {
+          source_link = LV_First_Token_SRCL_of_YIM (item);
+          if (source_link)
+            {
+              r->t_trace_source_type = SOURCE_IS_TOKEN;
+              r->t_trace_source_link = source_link;
+              return NSYID_of_SRCL (source_link);
+            }
+        }
+      }
+    trace_source_link_clear(r);
+    return -1;
+}
+
+@*1 Trace next token link.
+@ Set the trace source link to the next token link,
+if there is one.
+Otherwise clear the trace source link.
+@ Returns the symbol ID if there is
+a next token source link,
+|-1| if there was none,
+and |-2| on some other kind of failure.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_next_token_link_trace(Marpa_Recognizer r)
+{
+   @<Return |-2| on failure@>@;
+   SRCL source_link;
+    YIM item;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@;
+    @<Set |item|, failing if necessary@>@;
+    if (r->t_trace_source_type != SOURCE_IS_TOKEN) {
+        trace_source_link_clear(r);
+        MARPA_ERROR(MARPA_ERR_NOT_TRACING_TOKEN_LINKS);
+        return failure_indicator;
+    }
+    source_link = Next_SRCL_of_SRCL( r->t_trace_source_link);
+    if (!source_link) {
+        trace_source_link_clear(r);
+        return -1;
+    }
+    r->t_trace_source_link = source_link;
+    return NSYID_of_SRCL (source_link);
+}
+
+@*1 Trace first completion link.
+@ Set the trace source link to a completion link,
+if there is one, otherwise clear the completion source link.
+Returns the AHM ID
+(not the obsolete AHFA state ID) of the cause
+if there was a completion source link,
+|-1| if there was none,
+and |-2| on some other kind of failure.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
+{
+   @<Return |-2| on failure@>@;
+   SRCL source_link;
+   unsigned int source_type;
+    YIM item = r->t_trace_earley_item;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@;
+    @<Set |item|, failing if necessary@>@;
+    switch ((source_type = Source_Type_of_YIM (item)))
+      {
+      case SOURCE_IS_COMPLETION:
+        r->t_trace_source_type = SOURCE_IS_COMPLETION;
+        source_link = SRCL_of_YIM(item);
+        r->t_trace_source_link = source_link;
+        return Cause_AHMID_of_SRCL (source_link);
+      case SOURCE_IS_AMBIGUOUS:
+        {
+          source_link = LV_First_Completion_SRCL_of_YIM (item);
+          if (source_link)
+            {
+              r->t_trace_source_type = SOURCE_IS_COMPLETION;
+              r->t_trace_source_link = source_link;
+              return Cause_AHMID_of_SRCL (source_link);
+            }
+        }
+      }
+    trace_source_link_clear(r);
+    return -1;
+}
+
+@*1 Trace next completion link.
+@ Set the trace source link to the next completion link,
+if there is one.
+Otherwise clear the trace source link.
+@ Returns the cause AHM ID if there is
+a next completion source link,
+|-1| if there was none,
+and |-2| on some other kind of failure.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_next_completion_link_trace(Marpa_Recognizer r)
+{
+   @<Return |-2| on failure@>@;
+   SRCL source_link;
+    YIM item;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@;
+    @<Set |item|, failing if necessary@>@;
+    if (r->t_trace_source_type != SOURCE_IS_COMPLETION) {
+        trace_source_link_clear(r);
+        MARPA_ERROR(MARPA_ERR_NOT_TRACING_COMPLETION_LINKS);
+        return failure_indicator;
+    }
+    source_link = Next_SRCL_of_SRCL (r->t_trace_source_link);
+    if (!source_link) {
+        trace_source_link_clear(r);
+        return -1;
+    }
+    r->t_trace_source_link = source_link;
+    return Cause_AHMID_of_SRCL (source_link);
+}
+
+@*1 Trace first Leo link.
+@ Set the trace source link to a Leo link,
+if there is one, otherwise clear the Leo source link.
+Returns the AHM ID (not
+the obsolete AHFA state ID) of the cause
+if there was a Leo source link,
+|-1| if there was none,
+and |-2| on some other kind of failure.
+@<Function definitions@> =
+Marpa_Symbol_ID
+_marpa_r_first_leo_link_trace (Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  SRCL source_link;
+  YIM item = r->t_trace_earley_item;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+  @<Set |item|, failing if necessary@>@;
+  source_link = First_Leo_SRCL_of_YIM(item);
+  if (source_link) {
+      r->t_trace_source_type = SOURCE_IS_LEO;
+      r->t_trace_source_link = source_link;
+      return Cause_AHMID_of_SRCL (source_link);
+  }
+  trace_source_link_clear (r);
+  return -1;
+}
+
+@*1 Trace next Leo link.
+@ Set the trace source link to the next Leo link,
+if there is one.
+Otherwise clear the trace source link.
+@ Returns the AHM ID if there is
+a next Leo source link,
+|-1| if there was none,
+and |-2| on some other kind of failure.
+@<Function definitions@> =
+Marpa_Symbol_ID
+_marpa_r_next_leo_link_trace (Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@/
+  SRCL source_link;
+  YIM item;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@/
+  @<Set |item|, failing if necessary@>@/
+  if (r->t_trace_source_type != SOURCE_IS_LEO)
+    {
+      trace_source_link_clear (r);
+      MARPA_ERROR(MARPA_ERR_NOT_TRACING_LEO_LINKS);
+      return failure_indicator;
+    }
+  source_link = Next_SRCL_of_SRCL(r->t_trace_source_link);
+  if (!source_link)
+    {
+      trace_source_link_clear (r);
+      return -1;
+    }
+  r->t_trace_source_link = source_link;
+  return Cause_AHMID_of_SRCL (source_link);
+}
+
+@ @<Set |item|, failing if necessary@> =
+    item = r->t_trace_earley_item;
+    if (!item) {
+        trace_source_link_clear(r);
+        MARPA_ERROR(MARPA_ERR_NO_TRACE_YIM);
+        return failure_indicator;
+    }
+
+@*1 Clear trace source link.
+@<Function definitions@> =
+PRIVATE void trace_source_link_clear(RECCE r)
+{
+    r->t_trace_source_link = NULL;
+    r->t_trace_source_type = NO_SOURCE;
+}
+
+@*1 Return the predecessor AHM ID.
+Returns the predecessor AHM ID,
+or -1 if there is no predecessor.
+If the recognizer is not trace-safe,
+if there is no trace source link,
+if the trace source link is a Leo source,
+or if there is some other failure,
+|-2| is returned.
+@<Function definitions@> =
+AHMID _marpa_r_source_predecessor_state(Marpa_Recognizer r)
+{
+   @<Return |-2| on failure@>@/
+   unsigned int source_type;
+   SRCL source_link;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@/
+   source_type = r->t_trace_source_type;
+    @<Set source link, failing if necessary@>@/
+    switch (source_type)
+    {
+    case SOURCE_IS_TOKEN:
+    case SOURCE_IS_COMPLETION: {
+        YIM predecessor = Predecessor_of_SRCL(source_link);
+        if (!predecessor) return -1;
+        return AHMID_of_YIM(predecessor);
+    }
+    }
+    MARPA_ERROR(invalid_source_type_code(source_type));
+    return failure_indicator;
+}
+
+@*1 Return the token.
+Returns the token.
+The symbol id is the return value,
+and the value is written to |*value_p|,
+if it is non-null.
+If the recognizer is not trace-safe,
+there is no trace source link,
+if the trace source link is not a token source,
+or there is some other failure,
+|-2| is returned.
+\par
+There is no function to return just the token value
+for two reasons.
+First, since token value can be anything
+an additional return value is needed to indicate errors,
+which means the symbol ID comes at essentially zero cost.
+Second, whenever the token value is
+wanted, the symbol ID is almost always wanted as well.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_source_token(Marpa_Recognizer r, int *value_p)
+{
+   @<Return |-2| on failure@>@;
+   unsigned int source_type;
+   SRCL source_link;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@;
+   source_type = r->t_trace_source_type;
+    @<Set source link, failing if necessary@>@;
+    if (source_type == SOURCE_IS_TOKEN) {
+        const TOK tkn = TOK_of_SRCL(source_link);
+        if (value_p) *value_p = Value_of_TOK(tkn);
+        return NSYID_of_TOK(tkn);
+    }
+    MARPA_ERROR(invalid_source_type_code(source_type));
+    return failure_indicator;
+}
+
+@*1 Return the Leo transition symbol.
+The Leo transition symbol is defined only for sources
+with a Leo predecessor.
+The transition from a predecessor to the Earley item
+containing a source will always be over exactly one symbol.
+In the case of a Leo source, this symbol will be
+the Leo transition symbol.
+@ Returns the symbol ID of the Leo transition symbol.
+If the recognizer is not trace-safe,
+if there is no trace source link,
+if the trace source link is not a Leo source,
+or there is some other failure,
+|-2| is returned.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol(Marpa_Recognizer r)
+{
+   @<Return |-2| on failure@>@/
+   unsigned int source_type;
+   SRCL source_link;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@/
+   source_type = r->t_trace_source_type;
+    @<Set source link, failing if necessary@>@/
+    switch (source_type)
+    {
+    case SOURCE_IS_LEO:
+        return Leo_Transition_NSYID_of_SRCL(source_link);
+    }
+    MARPA_ERROR(invalid_source_type_code(source_type));
+    return failure_indicator;
+}
+
+@*1 Return the middle Earley set ordinal.
+Every source has the following defined:
+\li An origin (or start ordinal).
+\li An end ordinal (the current set).
+\li A ``middle ordinal".
+An Earley item can be thought of as covering a ``span"
+from its origin to the current set.
+For each source,
+this span is divided into two pieces at the middle
+ordinal.
+@ Informally, the middle ordinal can be thought of as
+dividing the span between the predecessor and either
+the source's cause or its token.
+If the source has no predecessor, the middle ordinal
+is the same as the origin.
+If there is a predecessor, the middle ordinal is
+the current set of the predecessor.
+If there is a cause, the middle ordinal is always the same
+as the origin of the cause.
+If there is a token,
+the middle ordinal is always where the token starts.
+On failure, such as
+there being no source link,
+|-2| is returned.
+@<Function definitions@> =
+Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
+{
+   @<Return |-2| on failure@>@/
+   YIM predecessor_yim = NULL;
+   unsigned int source_type;
+   SRCL source_link;
+  @<Unpack recognizer objects@>@;
+    @<Fail if not trace-safe@>@/
+   source_type = r->t_trace_source_type;
+    @<Set source link, failing if necessary@>@/
+
+  switch (source_type)
+    {
+    case SOURCE_IS_LEO:
+      {
+        LIM predecessor = LIM_of_SRCL (source_link);
+        if (predecessor)
+          predecessor_yim = Base_YIM_of_LIM (predecessor);
+        break;
+      }
+    case SOURCE_IS_TOKEN:
+    case SOURCE_IS_COMPLETION:
+      {
+        predecessor_yim = Predecessor_of_SRCL (source_link);
+        break;
+      }
+    default:
+      MARPA_ERROR (invalid_source_type_code (source_type));
+      return failure_indicator;
+  }
+
+  if (predecessor_yim)
+    return YS_Ord_of_YIM (predecessor_yim);
+  return Origin_Ord_of_YIM (r->t_trace_earley_item);
+}
+
+@ @<Set source link, failing if necessary@> =
+    source_link = r->t_trace_source_link;
+    if (!source_link) {
+        MARPA_ERROR(MARPA_ERR_NO_TRACE_SRCL);
+        return failure_indicator;
+    }
+
+@*0 Or-node trace functions.
+
+@ This is common logic in the or-node trace functions.
+In the case of a nulling bocage, the or count of
+the bocage is zero,
+so that any |or_node_id| is either a soft
+or a hard error,
+depending on whether it is non-negative
+or negative.
+@<Check |or_node_id|@> =
+{
+  if (_MARPA_UNLIKELY (or_node_id >= OR_Count_of_B (b)))
+    {
+      return -1;
+    }
+  if (_MARPA_UNLIKELY (or_node_id < 0))
+    {
+      MARPA_ERROR (MARPA_ERR_ORID_NEGATIVE);
+      return failure_indicator;
+    }
+}
+@ @<Set |or_node| or fail@> =
+{
+  if (_MARPA_UNLIKELY (!ORs_of_B(b)))
+    {
+      MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
+      return failure_indicator;
+    }
+  or_node = OR_of_B_by_ID(b, or_node_id);
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_set(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return YS_Ord_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_origin(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return Origin_Ord_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+Marpa_IRL_ID _marpa_b_or_node_irl(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return ID_of_IRL(IRL_of_OR(or_node));
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_position(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return Position_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_is_whole(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return Position_of_OR(or_node) >= Length_of_IRL(IRL_of_OR(or_node)) ? 1 : 0;
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_is_semantic(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return ! IRL_has_Virtual_LHS(IRL_of_OR(or_node));
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_first_and(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return First_ANDID_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_last_and(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return First_ANDID_of_OR(or_node)
+      + AND_Count_of_OR(or_node) - 1;
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_and_count(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return AND_Count_of_OR(or_node);
+}
+
+@*0 Ordering trace functions.
+
+@ This is common logic in the ordering trace functions.
+In the case of a nulling ordering, the or count of
+the ordering is zero,
+so that any |or_node_id| is either a soft
+or a hard error,
+depending on whether it is non-negative
+or negative.
+
+@ @<Function definitions@> =
+int _marpa_o_or_node_and_node_count(Marpa_Order o,
+  Marpa_Or_Node_ID or_node_id)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  if (!O_is_Default(o))
+  {
+    ANDID ** const and_node_orderings = o->t_and_node_orderings;
+    ANDID *ordering = and_node_orderings[or_node_id];
+    if (ordering) return ordering[0];
+  }
+  {
+    OR or_node;
+    @<Set |or_node| or fail@>@;
+    return AND_Count_of_OR (or_node);
+  }
+}
+
+@ @<Function definitions@> =
+int _marpa_o_or_node_and_node_id_by_ix(Marpa_Order o,
+  Marpa_Or_Node_ID or_node_id, int ix)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  if (!O_is_Default(o))
+  {
+      ANDID ** const and_node_orderings = o->t_and_node_orderings;
+      ANDID *ordering = and_node_orderings[or_node_id];
+      if (ordering) return ordering[1 + ix];
+  }
+  {
+    OR or_node;
+    @<Set |or_node| or fail@>@;
+    return First_ANDID_of_OR (or_node) + ix;
+  }
+}
+
+@*0 And-node trace functions.
+
+@ @<Function definitions@> =
+int _marpa_b_and_node_count(Marpa_Bocage b)
+{
+  @<Unpack bocage objects@>@;
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  return AND_Count_of_B(b);
+}
+
+@ @<Check bocage |and_node_id|; set |and_node|@> =
+{
+  if (and_node_id >= AND_Count_of_B (b))
+    {
+      return -1;
+    }
+  if (and_node_id < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_ANDID_NEGATIVE);
+      return failure_indicator;
+    }
+  {
+    AND and_nodes = ANDs_of_B (b);
+    if (!and_nodes)
+      {
+        MARPA_ERROR (MARPA_ERR_NO_AND_NODES);
+        return failure_indicator;
+      }
+    and_node = and_nodes + and_node_id;
+  }
+}
+
+@ @<Function definitions@> =
+int _marpa_b_and_node_parent(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
+{
+  AND and_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
+  return ID_of_OR (OR_of_AND (and_node));
+}
+
+@ @<Function definitions@> =
+int _marpa_b_and_node_predecessor(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
+{
+  AND and_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
+    {
+      const OR predecessor_or = Predecessor_OR_of_AND (and_node);
+      const ORID predecessor_or_id =
+        predecessor_or ? ID_of_OR (predecessor_or) : -1;
+      return predecessor_or_id;
+      }
+}
+
+@ @<Function definitions@> =
+int _marpa_b_and_node_cause(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
+{
+  AND and_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+    @<Check bocage |and_node_id|; set |and_node|@>@;
+    {
+      const OR cause_or = Cause_OR_of_AND (and_node);
+      const ORID cause_or_id =
+        OR_is_Token(cause_or) ? -1 : ID_of_OR (cause_or);
+      return cause_or_id;
+    }
+}
+
+@ @<Function definitions@> =
+int _marpa_b_and_node_symbol(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
+{
+  AND and_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
+  {
+    const OR cause_or = Cause_OR_of_AND (and_node);
+    const XSYID symbol_id =
+      OR_is_Token (cause_or) ? NSYID_of_OR (cause_or) : -1;
+    return symbol_id;
+  }
+}
+
+@ @<Function definitions@> =
+Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
+    Marpa_And_Node_ID and_node_id, int* value_p)
+{
+  TOK tkn;
+  AND and_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+    @<Check bocage |and_node_id|; set |and_node|@>@;
+    tkn = and_node_token(and_node);
+    if (tkn) {
+      if (value_p)
+        *value_p = Value_of_TOK (tkn);
+      return NSYID_of_TOK (tkn);
+    }
+    return -1;
+}
+@ @<Function definitions@> =
+PRIVATE TOK and_node_token(AND and_node)
+{
+  const OR cause_or = Cause_OR_of_AND (and_node);
+  if (OR_is_Token (cause_or))
+    {
+      return TOK_of_OR (cause_or);
+    }
+    return NULL;
+}
+
+@ The ``middle'' earley set of the and-node.
+It is most simply defined as equivalent to
+the start of the cause, but the cause can be token,
+and in that case the simpler definition is not helpful.
+Instead, the end of the predecessor is used, if there is one.
+If there is no predecessor, the origin of the parent or-node will
+always be the same as ``middle'' of the or-node.
+@<Function definitions@> =
+Marpa_Earley_Set_ID _marpa_b_and_node_middle(Marpa_Bocage b,
+    Marpa_And_Node_ID and_node_id)
+{
+  AND and_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
+  {
+    const OR predecessor_or = Predecessor_OR_of_AND (and_node);
+    if (predecessor_or)
+      {
+        return YS_Ord_of_OR (predecessor_or);
+      }
+  }
+  return Origin_Ord_of_OR (OR_of_AND (and_node));
+}
+
+@*0 Nook trace functions.
+
+@ This is common logic in the |NOOK| trace functions.
+@<Check |r| and |nook_id|;
+set |nook|@> = {
+  NOOK base_nook;
+  @<Fail if fatal error@>@;
+  if (T_is_Exhausted(t)) {
+      MARPA_ERROR(MARPA_ERR_BOCAGE_ITERATION_EXHAUSTED);
+      return failure_indicator;
+  }
+  if (nook_id < 0) {
+      MARPA_ERROR(MARPA_ERR_NOOKID_NEGATIVE);
+      return failure_indicator;
+  }
+  if (nook_id >= Size_of_T(t)) {
+      return -1;
+  }
+  base_nook = FSTACK_BASE(t->t_nook_stack, NOOK_Object);
+  nook = base_nook + nook_id;
+}
+
+@ @<Function definitions@> =
+int _marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
+{
+  NOOK nook;
+  @<Return |-2| on failure@>@;
+  @<Unpack tree objects@>@;
+   @<Check |r| and |nook_id|; set |nook|@>@;
+  return ID_of_OR(OR_of_NOOK(nook));
+}
+
+@ @<Function definitions@> =
+int _marpa_t_nook_choice(Marpa_Tree t, int nook_id)
+{
+  NOOK nook;
+  @<Return |-2| on failure@>@;
+  @<Unpack tree objects@>@;
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return Choice_of_NOOK(nook);
+}
+
+@ @<Function definitions@> =
+int _marpa_t_nook_parent(Marpa_Tree t, int nook_id)
+{
+  NOOK nook;
+  @<Return |-2| on failure@>@;
+  @<Unpack tree objects@>@;
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return Parent_of_NOOK(nook);
+}
+
+@ @<Function definitions@> =
+int _marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
+{
+  NOOK nook;
+  @<Return |-2| on failure@>@;
+  @<Unpack tree objects@>@;
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_Cause_is_Expanded(nook);
+}
+
+@ @<Function definitions@> =
+int _marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
+{
+  NOOK nook;
+  @<Return |-2| on failure@>@;
+  @<Unpack tree objects@>@;
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_Predecessor_is_Expanded(nook);
+}
+
+@ @<Function definitions@> =
+int _marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
+{
+  NOOK nook;
+  @<Return |-2| on failure@>@;
+  @<Unpack tree objects@>@;
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_is_Cause(nook);
+}
+
+@ @<Function definitions@> =
+int _marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
+{
+  NOOK nook;
+  @<Return |-2| on failure@>@;
+  @<Unpack tree objects@>@;
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_is_Predecessor(nook);
+}
 
 @** Debugging functions.
 Much of the debugging logic is in other documents.
