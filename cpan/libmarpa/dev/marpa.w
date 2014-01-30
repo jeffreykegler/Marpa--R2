@@ -9072,6 +9072,7 @@ Position is the dot position.
 @d Position_of_OR(or) ((or)->t_final.t_position)
 @d Type_of_OR(or) ((or)->t_final.t_position)
 @d IRL_of_OR(or) ((or)->t_final.t_irl)
+@d IRLID_of_OR(or) ID_of_IRL(IRL_of_OR(or))
 @d Origin_Ord_of_OR(or) ((or)->t_final.t_start_set_ordinal)
 @d ID_of_OR(or) ((or)->t_final.t_id)
 @d YS_Ord_of_OR(or) ((or)->t_draft.t_end_set_ordinal)
@@ -9288,7 +9289,6 @@ and this is the case if |Position_of_OR(or_node) == 0|.
           const int symbol_instance = first_null_symbol_instance + i;
           OR or_node = PSL_Datum (or_psl, symbol_instance);
           if (!or_node || YS_Ord_of_OR (or_node) != work_earley_set_ordinal) {
-                DAND draft_and_node;
                 const int rhs_ix = symbol_instance - symbol_instance_of_rule;
                 const OR predecessor = rhs_ix ? last_or_node : NULL;
                 const OR cause = Nulling_OR_by_NSYID( RHSID_of_IRL (irl, rhs_ix ) );
@@ -9593,6 +9593,73 @@ predecessor.  Set |or_node| to 0 if there is none.
     = set_or_from_yim(per_ys_data, cause_earley_item);
   draft_and_node_add (bocage_setup_obs, path_or_node,
 		      dand_predecessor, dand_cause);
+}
+
+@ Assuming they have the same parent, would the DANDs made up from these
+OR node's be equivalent.
+For locations, the parent dictates the beginning and end, so only the start
+of the cause and the end of predecessor matter.  These must be the same
+(the ``middle'' location) so that only this middle location needs to be
+compared.
+For the predecessors, dotted rule is a function of the parent.
+For token causes, the alternative reading logic guaranteed that there would
+be no two tokens which differed only in value, so only the symbols needs to
+be compared.
+For component causes, they are always completions, so that only the IRL ID
+needs to be compared.
+@<Function definitions@> =
+PRIVATE
+int dands_are_equal(OR predecessor_a, OR cause_a,
+  OR predecessor_b, OR cause_b)
+{
+  {
+    /* -1 means equal to the
+       start of the parent, which is sufficient for comparision purposes */
+    const int middle_of_a = predecessor_a ? YS_Ord_of_OR (predecessor_a) : -1;
+    const int middle_of_b = predecessor_b ? YS_Ord_of_OR (predecessor_b) : -1;
+    if (middle_of_a != middle_of_b)
+      return 0;
+  }
+  if (OR_is_Token (cause_a))
+    {
+      if (!OR_is_Token (cause_b))
+	return 0;
+      {
+	const NSYID nsyid_of_a = NSYID_of_OR (cause_a);
+	const NSYID nsyid_of_b = NSYID_of_OR (cause_b);
+	if (nsyid_of_a != nsyid_of_b)
+	  return 0;
+	return 1;
+      }
+    }
+  {
+    /* If here, we know that both causes are rule completions. */
+    const IRLID irlid_of_a = IRLID_of_OR (cause_a);
+    const IRLID irlid_of_b = IRLID_of_OR (cause_b);
+    if (irlid_of_a != irlid_of_b)
+      return 0;
+  }
+  return 1;
+}
+
+@ Would a new dand made up of |predecessor| and |cause| duplicate any already
+in |parent|?
+@<Function definitions@> =
+PRIVATE
+int dand_is_duplicate(OR parent, OR predecessor, OR cause)
+{
+  DAND dand;
+  for (dand = DANDs_of_OR (parent); dand; dand = Next_DAND_of_DAND (dand)) {
+      if (dands_are_equal(predecessor, cause,
+        Predecessor_OR_of_DAND(dand), Cause_OR_of_DAND(dand)))
+      {
+          MARPA_DEBUG2("Would-be Duplicate DAND for or %s", or_tag(parent));
+          MARPA_DEBUG2("Would-be Duplicate DAND predcessor is or %s", or_tag(predecessor));
+          MARPA_DEBUG2("Would-be Duplicate DAND cause is or %s", or_tag(cause));
+          return 0;
+      }
+  }
+  return 0;
 }
 
 @ @<Function definitions@> =
@@ -14359,7 +14426,7 @@ Marpa_IRL_ID _marpa_b_or_node_irl(Marpa_Bocage b,
   @<Fail if fatal error@>@;
   @<Check |or_node_id|@>@;
   @<Set |or_node| or fail@>@;
-  return ID_of_IRL(IRL_of_OR(or_node));
+  return IRLID_of_OR(or_node);
 }
 
 @ @<Function definitions@> =
@@ -14832,7 +14899,7 @@ or_tag_safe (char * buffer, OR or)
   if (OR_is_Token(or)) return "TOKEN";
   if (Type_of_OR(or) == DUMMY_OR_NODE) return "DUMMY";
   sprintf (buffer, "R%d:%d@@%d-%d",
-           ID_of_IRL(IRL_of_OR (or)), Position_of_OR (or),
+           IRLID_of_OR (or), Position_of_OR (or),
            Origin_Ord_of_OR (or),
            YS_Ord_of_OR (or));
   return buffer;
