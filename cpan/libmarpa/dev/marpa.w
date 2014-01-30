@@ -4610,211 +4610,6 @@ rule with |nonnulling_id| on the LHS.
     }
 }
 
-@** The Aycock-Horspool finite automata.
-
-@*0 Some statistics on AHFA states.
-
-@*1 Discovered states.
-
-@ For Perl's grammar, the discovered states range in size from 1 to 20 items,
-but the numbers are heavily skewed toward the low
-end.  Here are the item counts that appear, with the percent of the total
-discovered AHFA states with that item count in parentheses.
-in parentheses:
-\par
-\vskip\baselineskip
-\vbox{\offinterlineskip
-\halign{&#&
-  \strut\quad\hfil#\quad\cr
-&\omit&&\omit&\cr
-&Size\hfil&&Perl discovered&\cr\
-&&&states (percent)\hfil&\cr\
-&\omit&&\omit&\cr
-&1&&67.05\%&\cr
-&2&&25.67\%\cr
-&3&&2.87\%\cr
-&4&&2.68\%\cr
-&5&&0.19\%\cr
-&6&&0.38\%\cr
-&7&&0.19\%\cr
-&8&&0.57\%\cr
-&9&&0.19\%\cr
-&20&&0.19\%\cr
-&\omit&&\omit&\cr}
-}
-\vskip\baselineskip
-\par
-As can be seen, well over 90\% of the total discovered states have
-just one or two items.
-The average size is 1.5235,
-and the average of the $|size|^2$ is 3.9405.
-
-@ For HTML, I looked at a parser which generates grammars on
-the fly, aggregating the states in all of them.
-For the the HTML grammars I used, the totals are even more lopsided:
-80.96\% of all discovered states have only 1 item.
-All the others (19.04\%) have 2 items.
-The average size is 1.1904,
-and the average of the $|size|^2$ is 1.5712.
-
-@ For a compiler-quality C grammar,
-the discovered states range in size from 1 to 15 items but again,
-the numbers are heavily skewed toward the low
-end.  Here are the item counts that appear, with the percent of the total
-discovered AHFA states with that item count in parentheses.
-in parentheses:
-\par
-\vskip\baselineskip
-\vbox{\offinterlineskip
-\halign{&#&
-  \strut\quad\hfil#\quad\cr
-&\omit&&\omit&\cr
-&Size\hfil&&C discovered states&\cr\
-&\omit&&\omit&\cr
-&1&&695&\cr
-&2&&188&\cr
-&3&&40&\cr
-&4&&17&\cr
-&5&&6&\cr
-&6&&8&\cr
-&7&&6&\cr
-&8&&4&\cr
-&9&&1&\cr
-&10&&2&\cr
-&12&&2&\cr
-&15&&1&\cr
-&\omit&&\omit&\cr}
-}
-\vskip\baselineskip
-\par
-There were 970 discovered C states.
-The average size was 1.52.
-The average of the size squared was 3.98.
-
-@*1 Predicted states.
-
-@ The number of predicted states tends to be much more
-evenly distributed.
-It also tends to be much larger, and
-the average for practical grammars may be $O(s)$,
-where $s$ is the size of the grammar.
-This is the same as the theoretical worst case.
-
-@ Here are the number of items for predicted states for the Perl grammar.
-Here in tabular form are the sizes most common sizes, in order of
-decreasing frequency:
-\par
-\vskip\baselineskip
-\vbox{\offinterlineskip
-\halign{&#&
-  \strut\quad\hfil#\quad\cr
-&\omit&&\omit&\cr
-&Size\hfil&&Frequency&\cr\
-&\omit&&\omit&\cr
-&2&&5&\cr
-&3, 142&&4&\cr
-&1, 4&&3&\cr
-&6, 7, 143&&2&\cr
-&\omit&&\omit&\cr}
-}
-\vskip\baselineskip
-\par
-
-In addition, the Perl grammar had exactly one predicted state of
-the following sizes:
-5,
-64,
-71,
-77,
-79,
-81,
-83,
-85,
-88,
-90,
-98,
-100,
-102,
-104,
-106,
-108,
-111,
-116,
-127,
-129,
-132,
-135,
-136,
-137,
-141,
-144,
-149,
-151,
-156,
-157,
-220,
-224, and
-225.
-
-@ The number of predicted states in the Perl grammar was 58.
-The average size was 83.59 AHFA items.
-The average of the size squared was 11356.41.
-
-@ And here is the same data for the collection of HTML grammars:
-\par
-\vskip\baselineskip
-\vbox{\offinterlineskip
-\halign{&#&
-  \strut\quad\hfil#\quad\cr
-&\omit&&\omit&\cr
-&Size\hfil&&HTML predicted states&\cr\
-&\omit&&\omit&\cr
-&1&&95&\cr
-&2&&95&\cr
-&4&&95&\cr
-&11&&181&\cr
-&14&&181&\cr
-&15&&294&\cr
-&16&&112&\cr
-&18&&349&\cr
-&19&&120&\cr
-&20&&190&\cr
-&21&&63&\cr
-&22&&22&\cr
-&24&&8&\cr
-&25&&16&\cr
-&26&&16&\cr
-&28&&2&\cr
-&29&&16&\cr
-&\omit&&\omit&\cr}
-}
-\vskip\baselineskip
-
-@
-The total number of predicted states in the HTML grammars was 1855.
-Their average size was 14.60.
-Their average size squared was 250.93.
-
-@ The number of predicted states in the C grammar was 114.
-The average size was 54.81.
-The average size squared was 5361.28.
-The sizes of the predicted states for the C grammar were spread from 1 
-to 222.
-\li The most frequent sizes were 2 and 3, tied at
-six states each.
-\li There were five states of size 8.
-\li There were four states in each of the sizes 4 and 90.
-\li There were three states in each of the following sizes:
-      6, 11, 31, and 47
-\li There were two states in each of the following sizes:
-           5, 14, 42, 64, 68, 78, 91, 95, and 98.
-\li There was a single state of each of the following sizes:
-     1, 7, 9, 12, 15, 17, 18, 19, 21, 22, 25, 28, 29, 33, 34, 36,
-    37, 40, 43, 44, 45, 46, 52, 53, 54, 57, 58, 61, 65, 66, 69, 72,
-    74, 76, 80, 81, 86, 87, 89, 94, 96, 97, 99, 102, 105, 108,
-   115, 117, 119, 123, 125, 127, 144, 149, 150, 154, 181, 219,
-   and 222.
-
 @** Aycock-Horspool item (AHM) code.
 These were formerly called AHFA items,
 where AHFA stood for ``Aycock-Horspool finite automaton''.
@@ -5220,7 +5015,6 @@ one non-nulling symbol in each IRL. */
     }
 }
 
-@* Discovered AHFA states.
 @ @<Declare variables for the internal grammar
         memoizations@> =
   const RULEID irl_count = IRL_Count_of_G(g);
@@ -8878,28 +8672,6 @@ Marpa_Rule_ID marpa_r_progress_item(
 
 @** Some notes on evaluation.
 
-@*0 Statistics on completed LHS symbols per AHFA state.
-An AHFA state may contain completions for more than one LHS,
-but that is rare in practical use, and the number of completed
-LHS symbols in the exceptions remains low.
-The very complex Perl AHFA contains 271 states with completions.
-Of these 268 have only one completed symbol.
-The other three AHFA states complete only two different LHS symbols.
-Two states have completions with both
-a |term_hi| and a |indirob| on the LHS.
-One state has completions for both a
-|sideff| and an |mexpr|.
-@ My HTML test grammars make the
-same point more strongly.
-My HTML parser generates grammars on the fly.
-These HTML grammars can differ from each other.
-because Marpa takes the HTML input into account when
-generating the grammar.
-In my HTML test suite,
-every single one
-of the 14,782 AHFA states
-has only one completed LHS symbol.
-
 @*0 CHAF duplicate and-nodes.
 There are three ways in which the same and-node can occur multiple
 times as the descendant of a single or-node.
@@ -9276,67 +9048,6 @@ typedef int Marpa_Or_Node_ID;
 @ @<Private typedefs@> =
 typedef Marpa_Or_Node_ID ORID;
 
-@*0 Relationship of Earley items to or-nodes.
-Several Earley items may be the source of the same or-node,
-but the or-node only keeps track of one.  This is sufficient,
-because the Earley item is tracked by the or-node only for its
-links and,
-by the following theorem,
-the links for every Earley item which is the source
-of the same or-node must be the same.
-
-@ {\bf Theorem}: If two Earley items are sources of the same or-node,
-they have the same links.
-{\bf Outline of Proof}:
-No or-node results from a predicted Earley
-item, so every Earley item which is the source of an or-node
-is itself the result of a transition over a symbol from
-another Earley item.  
-So I can restrict my discussion to discovered Earley items.
-For the same reason, I can assume all source links have
-predecessors defined.
-
-@ {\bf Shared Predot Lemma}: An AHFA state is either predicted,
-or all its LR0 items share the same predot symbol.
-{\bf Proof}:  Straightforward, based on the construction of
-an AHFA.
-
-@ {\bf YIM Lemma }: If two Earley items are sources of the same or-node,
-they share the same origin YS, the same current YS and the same
-predot symbol.
-{\bf Proof of Lemma}:
-Showing that the Earley items share the same origin and current
-YS is straightforward, based on the or-node's construction.
-They share at least one LR0 item in their AHFA states ---
-the LR0 item which defines the or-node.
-Because they share at least one LR0 item and because, by the
-Shared Predot Lemma, every LR0
-item in a discovered AHFA state has the same predot symbol,
-the two Earley items also
-share the same predot symbol.
-
-@ {\bf Completion Source Lemma}:
-A discovered Earley item has a completion source link if and only if
-the origin YS of the link's predecessor,
-the current YS of the link's cause
-and the transition symbol match, respectively,
-the origin YS, current YS and predot symbol of the discovered YIM.
-{\bf Proof}: Based on the construction of YIMs.
-
-@ {\bf Token Source Lemma}:
-A discovered Earley item has a token source link if and only if
-origin YS of the link's predecessor, the current YS of the link's cause
-and the token symbol match, respectively,
-the origin YS, current YS and predot symbol of the discovered YIM.
-{\bf Proof}: Based on the construction of YIMs.
-
-@ Source links are either completion source links or token source links.
-The theorem for completion source links follows from the YIM Lemma and the
-Completion Source Lemma.
-The theorem for token source links follows from the YIM Lemma and the
-Token Source Lemma.
-{\bf QED}.
-
 @ @<Private incomplete structures@> =
 union u_or_node;
 typedef union u_or_node* OR;
@@ -9615,11 +9326,6 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 The successor of the first Leo predecessor is the base of the Leo path,
 which already exists, and therefore the first Leo predecessor is not
 expanded.
-@ The unwrapping of the information for the Leo path item is quite the
-process, and some memoization might be useful.
-But it is not clear that memoization does more than move
-the processing from one place to another, increasing space
-requirements in the process.
 @<Add or-nodes for chain starting with |leo_predecessor|@> =
 {
   LIM this_leo_item = leo_predecessor;
