@@ -9252,6 +9252,7 @@ PRIVATE OR or_node_new(BOCAGE b)
   const int or_node_id = OR_Count_of_B (b)++;
   const OR new_or_node = (OR)marpa_obs_new (OBS_of_B(b), OR_Object, 1);
   ID_of_OR(new_or_node) = or_node_id;
+  DANDs_of_OR(new_or_node) = NULL;
   if (_MARPA_UNLIKELY(or_node_id >= OR_Capacity_of_B(b)))
     {
       OR_Capacity_of_B(b) *= 2;
@@ -9298,10 +9299,8 @@ and this is the case if |Position_of_OR(or_node) == 0|.
                 IRL_of_OR (or_node) = irl;
                 Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
-                draft_and_node = DANDs_of_OR (or_node) =
-                  draft_and_node_new (bocage_setup_obs, predecessor,
+                draft_and_node_add (bocage_setup_obs, or_node, predecessor,
                       cause);
-                Next_DAND_of_DAND (draft_and_node) = NULL;
               }
               psia_or_node = or_node;
         }
@@ -9384,7 +9383,6 @@ or-nodes follow a completion.
       MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g)) @;
       if (!or_node || YS_Ord_of_OR (or_node) != work_earley_set_ordinal)
         {
-          DAND draft_and_node;
           const int rhs_ix = symbol_instance - SYMI_of_IRL(path_irl);
           MARPA_ASSERT (rhs_ix < Length_of_IRL (path_irl)) @;
           const OR predecessor = rhs_ix ? last_or_node : NULL;
@@ -9398,9 +9396,7 @@ or-nodes follow a completion.
           IRL_of_OR (or_node) = path_irl;
           Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
-          DANDs_of_OR (or_node) = draft_and_node =
-              draft_and_node_new (bocage_setup_obs, predecessor, cause);
-          Next_DAND_of_DAND (draft_and_node) = NULL;
+          draft_and_node_add (bocage_setup_obs, or_node, predecessor, cause);
         }
       MARPA_ASSERT (Position_of_OR (or_node) <=
                     SYMI_of_IRL (path_irl) + Length_of_IRL (path_irl)) @;
