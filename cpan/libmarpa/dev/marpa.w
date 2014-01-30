@@ -875,9 +875,6 @@ with no proper start rule is considered trivial.
 IRL t_start_irl;
 @ @<Initialize grammar elements@> =
 g->t_start_irl = NULL;
-@
-{\bf To Do}: @^To Do@>
-Check that all trace functions are safe if G is trivial.
 
 @*0 The grammar's size.
 Intuitively,
@@ -6447,218 +6444,6 @@ earley_set_new( RECCE r, JEARLEME id)
   return set;
 }
 
-@** Earley set trace functions.
-Many of the
-trace functions use
-a ``trace Earley set" which is
-tracked on a per-recognizer basis.
-The ``trace Earley set" is tracked separately
-from the current Earley set for the parse.
-The two may coincide, but should not be confused.
-@<Widely aligned recognizer elements@> =
-struct s_earley_set* t_trace_earley_set;
-@ @<Initialize recognizer elements@> =
-r->t_trace_earley_set = NULL;
-
-@ @<Function definitions@> =
-Marpa_Earley_Set_ID _marpa_r_trace_earley_set(Marpa_Recognizer r)
-{
-  @<Return |-2| on failure@>@;
-  @<Unpack recognizer objects@>@;
-  YS trace_earley_set = r->t_trace_earley_set;
-  @<Fail if not trace-safe@>@;
-  if (!trace_earley_set) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
-      return failure_indicator;
-  }
-  return Ord_of_YS(trace_earley_set);
-}
-
-@ @<Function definitions@> =
-Marpa_Earley_Set_ID marpa_r_latest_earley_set(Marpa_Recognizer r)
-{
-  @<Return |-2| on failure@>@;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-  return Ord_of_YS(Latest_YS_of_R(r));
-}
-
-@ @<Function definitions@> =
-Marpa_Earleme marpa_r_earleme(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
-{
-  @<Unpack recognizer objects@>@;
-    @<Return |-2| on failure@>@;
-    YS earley_set;
-    @<Fail if recognizer not started@>@;
-    @<Fail if fatal error@>@;
-    if (set_id < 0) {
-        MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
-        return failure_indicator;
-    }
-    r_update_earley_sets (r);
-    if (!YS_Ord_is_Valid (r, set_id))
-      {
-        MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
-        return failure_indicator;
-      }
-    earley_set = YS_of_R_by_Ord (r, set_id);
-    return Earleme_of_YS (earley_set);
-}
-
-@ Note that this trace function returns the earley set size
-of the {\bf current earley set}.
-It includes rejected |YIM|'s.
-@ @<Function definitions@> =
-int _marpa_r_earley_set_size(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
-{
-    @<Return |-2| on failure@>@;
-    YS earley_set;
-  @<Unpack recognizer objects@>@;
-    @<Fail if recognizer not started@>@;
-    @<Fail if fatal error@>@;
-    r_update_earley_sets (r);
-    if (!YS_Ord_is_Valid (r, set_id))
-      {
-        MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
-        return failure_indicator;
-      }
-    earley_set = YS_of_R_by_Ord (r, set_id);
-    return YIM_Count_of_YS (earley_set);
-}
-
-@ Many of the
-trace functions use
-a ``trace Earley item" which is
-tracked on a per-recognizer basis.
-@<Widely aligned recognizer elements@> =
-YIM t_trace_earley_item;
-@ @<Initialize recognizer elements@> =
-r->t_trace_earley_item = NULL;
-
-@ This function sets
-the trace Earley set to the one indicated
-by the ID
-of the argument.
-On success,
-the earleme of the new trace Earley set is
-returned.
-@ Various other trace data depends on the Earley
-set, and must be consistent with it.
-This function clears all such data,
-unless it is called while the recognizer is in
-a trace-unsafe state (initial, fatal, etc.)
-or unless the the Earley set requested by the
-argument is already the trace Earley set.
-On failure because the ID is for a non-existent
-Earley set which does not
-exist, |-1| is returned.
-The upper levels may choose to treat this as a soft failure.
-This may be treated as a soft failure by the upper levels.
-On failure because the ID is illegal (less than zero)
-or for other failures, |-2| is returned.
-The upper levels may choose to treat these as hard failures.
-@ @<Function definitions@> =
-Marpa_Earleme
-_marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
-{
-  YS earley_set;
-  const int es_does_not_exist = -1;
-  @<Return |-2| on failure@>@/
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-    if (r->t_trace_earley_set && Ord_of_YS (r->t_trace_earley_set) == set_id)
-      { /* If the set is already
-           the current earley set,
-           return successfully without resetting any of the dependant data */
-        return Earleme_of_YS (r->t_trace_earley_set);
-      }
-  @<Clear trace Earley set dependent data@>@;
-    if (set_id < 0)
-    {
-        MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
-        return failure_indicator;
-    }
-  r_update_earley_sets (r);
-    if (set_id >= MARPA_DSTACK_LENGTH (r->t_earley_set_stack))
-      {
-        return es_does_not_exist;
-      }
-    earley_set = YS_of_R_by_Ord (r, set_id);
-  r->t_trace_earley_set = earley_set;
-  return Earleme_of_YS(earley_set);
-}
-
-@ @<Clear trace Earley set dependent data@> = {
-  r->t_trace_earley_set = NULL;
-  trace_earley_item_clear(r);
-  @<Clear trace postdot item data@>@;
-}
-
-@ @<Function definitions@> =
-Marpa_AHM_ID
-_marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
-{
-  const int yim_does_not_exist = -1;
-  @<Return |-2| on failure@>@;
-  YS trace_earley_set;
-  YIM earley_item;
-  YIM *earley_items;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-  trace_earley_set = r->t_trace_earley_set;
-  if (!trace_earley_set)
-    {
-      @<Clear trace Earley set dependent data@>@;
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
-      return failure_indicator;
-    }
-  trace_earley_item_clear (r);
-  if (item_id < 0)
-    {
-      MARPA_ERROR (MARPA_ERR_YIM_ID_INVALID);
-      return failure_indicator;
-    }
-  if (item_id >= YIM_Count_of_YS (trace_earley_set))
-    {
-      return yim_does_not_exist;
-    }
-  earley_items = YIMs_of_YS (trace_earley_set);
-  earley_item = earley_items[item_id];
-  r->t_trace_earley_item = earley_item;
-  return AHMID_of_YIM (earley_item);
-}
-
-@ Clear all the data elements specifically
-for the trace Earley item.
-The difference between this code and
-|trace_earley_item_clear| is
-that |trace_earley_item_clear| 
-also clears the source link.
-@<Clear trace Earley item data@> =
-      r->t_trace_earley_item = NULL;
-
-@ @<Function definitions@> =
-PRIVATE void trace_earley_item_clear(RECCE r)
-{
-    @<Clear trace Earley item data@>@/
-    trace_source_link_clear(r);
-}
-
-@ @<Function definitions@> =
-Marpa_Earley_Set_ID _marpa_r_earley_item_origin(Marpa_Recognizer r)
-{
-    @<Return |-2| on failure@>@;
-    YIM item = r->t_trace_earley_item;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-    if (!item) {
-        @<Clear trace Earley item data@>@;
-        MARPA_ERROR(MARPA_ERR_NO_TRACE_YIM);
-        return failure_indicator;
-    }
-    return Origin_Ord_of_YIM(item);
-}
-
 @** Earley item (YIM) code.
 @ {\bf Optimization Principles:}
 \li Optimization should favor unambiguous grammars,
@@ -6916,70 +6701,6 @@ typedef struct s_leo_item LIM_Object;
 @ @d CIL_of_LIM(lim) ((lim)->t_cil)
 @<Widely aligned LIM elements@> =
     CIL t_cil;
-
-@** Leo item (LIM) trace functions.
-The functions in this section are all accessors.
-The trace Leo item is selected by setting the trace postdot item
-to a Leo item.
-
-@ @<Function definitions@> =
-Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol(Marpa_Recognizer r)
-{
-  const Marpa_Symbol_ID no_predecessor = -1;
-  @<Return |-2| on failure@>@;
-  PIM postdot_item = r->t_trace_postdot_item;
-  LIM predecessor_leo_item;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-  if (!postdot_item) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
-      return failure_indicator;
-  }
-  if (YIM_of_PIM(postdot_item)) {
-      MARPA_ERROR(MARPA_ERR_PIM_IS_NOT_LIM);
-      return failure_indicator;
-  }
-  predecessor_leo_item = Predecessor_LIM_of_LIM(LIM_of_PIM(postdot_item));
-  if (!predecessor_leo_item) return no_predecessor;
-  return Postdot_NSYID_of_LIM(predecessor_leo_item);
-}
-
-@ @<Function definitions@> =
-Marpa_Earley_Set_ID _marpa_r_leo_base_origin(Marpa_Recognizer r)
-{
-  const JEARLEME pim_is_not_a_leo_item = -1;
-  @<Return |-2| on failure@>@;
-  PIM postdot_item = r->t_trace_postdot_item;
-  @<Unpack recognizer objects@>@;
-  YIM base_earley_item;
-  @<Fail if not trace-safe@>@;
-  if (!postdot_item) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
-      return failure_indicator;
-  }
-  if (YIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
-  base_earley_item = Base_YIM_of_LIM(LIM_of_PIM(postdot_item));
-  return Origin_Ord_of_YIM(base_earley_item);
-}
-
-@ Actually return AHM ID, not the obsolete AHFA ID.
-@<Function definitions@> =
-Marpa_AHM_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
-{
-  const JEARLEME pim_is_not_a_leo_item = -1;
-  @<Return |-2| on failure@>@;
-  PIM postdot_item = r->t_trace_postdot_item;
-  YIM base_earley_item;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-  if (!postdot_item) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
-      return failure_indicator;
-  }
-  if (YIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
-  base_earley_item = Base_YIM_of_LIM(LIM_of_PIM(postdot_item));
-  return AHMID_of_YIM(base_earley_item);
-}
 
 @** Postdot item (PIM) code.
 Postdot items are entries in an index,
@@ -10360,7 +10081,9 @@ Otherwise, it's the first such draft and-node.
           if (psl_or_node && ID_of_OR(psl_or_node) == work_or_node_id)
           {
               /* Mark this draft and-node as a duplicate */
-              MARPA_ASSERT(0);
+              MARPA_DEBUG2("Duplicate DAND for or %s", or_tag(work_or_node));
+              MARPA_DEBUG2("Duplicate DAND predcessor is or %s", or_tag(Predecessor_OR_of_DAND(dand)));
+              MARPA_DEBUG2("Duplicate DAND cause is or %s", or_tag(Cause_OR_of_DAND(dand)));
               Cause_OR_of_DAND(dand) = NULL;
           } else {
               /* Increment the count of unique draft and-nodes */
@@ -14020,8 +13743,8 @@ First, it is not tested.
 Second,
 What else an application can do is not at all clear.
 Nearly universal practice
-is to treatment memory allocation errors are
-fatal, irrecoverable problems.
+is to treat memory allocation errors as
+irrecoverable and fatal.
 These functions all return |void*| in order
 to avoid compiler warnings about void returns.
 @<Function definitions@> =
@@ -14040,6 +13763,282 @@ extern void* (* const marpa__out_of_memory)(void);
 typedef const char* Marpa_Message_ID;
 
 @** Trace functions.
+
+@** Earley set trace functions.
+Many of the
+trace functions use
+a ``trace Earley set" which is
+tracked on a per-recognizer basis.
+The ``trace Earley set" is tracked separately
+from the current Earley set for the parse.
+The two may coincide, but should not be confused.
+@<Widely aligned recognizer elements@> =
+struct s_earley_set* t_trace_earley_set;
+@ @<Initialize recognizer elements@> =
+r->t_trace_earley_set = NULL;
+
+@ @<Function definitions@> =
+Marpa_Earley_Set_ID _marpa_r_trace_earley_set(Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  YS trace_earley_set = r->t_trace_earley_set;
+  @<Fail if not trace-safe@>@;
+  if (!trace_earley_set) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
+      return failure_indicator;
+  }
+  return Ord_of_YS(trace_earley_set);
+}
+
+@ @<Function definitions@> =
+Marpa_Earley_Set_ID marpa_r_latest_earley_set(Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+  return Ord_of_YS(Latest_YS_of_R(r));
+}
+
+@ @<Function definitions@> =
+Marpa_Earleme marpa_r_earleme(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
+{
+  @<Unpack recognizer objects@>@;
+    @<Return |-2| on failure@>@;
+    YS earley_set;
+    @<Fail if recognizer not started@>@;
+    @<Fail if fatal error@>@;
+    if (set_id < 0) {
+        MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
+        return failure_indicator;
+    }
+    r_update_earley_sets (r);
+    if (!YS_Ord_is_Valid (r, set_id))
+      {
+        MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
+        return failure_indicator;
+      }
+    earley_set = YS_of_R_by_Ord (r, set_id);
+    return Earleme_of_YS (earley_set);
+}
+
+@ Note that this trace function returns the earley set size
+of the {\bf current earley set}.
+It includes rejected |YIM|'s.
+@ @<Function definitions@> =
+int _marpa_r_earley_set_size(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
+{
+    @<Return |-2| on failure@>@;
+    YS earley_set;
+  @<Unpack recognizer objects@>@;
+    @<Fail if recognizer not started@>@;
+    @<Fail if fatal error@>@;
+    r_update_earley_sets (r);
+    if (!YS_Ord_is_Valid (r, set_id))
+      {
+        MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
+        return failure_indicator;
+      }
+    earley_set = YS_of_R_by_Ord (r, set_id);
+    return YIM_Count_of_YS (earley_set);
+}
+
+@ Many of the
+trace functions use
+a ``trace Earley item" which is
+tracked on a per-recognizer basis.
+@<Widely aligned recognizer elements@> =
+YIM t_trace_earley_item;
+@ @<Initialize recognizer elements@> =
+r->t_trace_earley_item = NULL;
+
+@ This function sets
+the trace Earley set to the one indicated
+by the ID
+of the argument.
+On success,
+the earleme of the new trace Earley set is
+returned.
+@ Various other trace data depends on the Earley
+set, and must be consistent with it.
+This function clears all such data,
+unless it is called while the recognizer is in
+a trace-unsafe state (initial, fatal, etc.)
+or unless the the Earley set requested by the
+argument is already the trace Earley set.
+On failure because the ID is for a non-existent
+Earley set which does not
+exist, |-1| is returned.
+The upper levels may choose to treat this as a soft failure.
+This may be treated as a soft failure by the upper levels.
+On failure because the ID is illegal (less than zero)
+or for other failures, |-2| is returned.
+The upper levels may choose to treat these as hard failures.
+@ @<Function definitions@> =
+Marpa_Earleme
+_marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
+{
+  YS earley_set;
+  const int es_does_not_exist = -1;
+  @<Return |-2| on failure@>@/
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+    if (r->t_trace_earley_set && Ord_of_YS (r->t_trace_earley_set) == set_id)
+      { /* If the set is already
+           the current earley set,
+           return successfully without resetting any of the dependant data */
+        return Earleme_of_YS (r->t_trace_earley_set);
+      }
+  @<Clear trace Earley set dependent data@>@;
+    if (set_id < 0)
+    {
+        MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
+        return failure_indicator;
+    }
+  r_update_earley_sets (r);
+    if (set_id >= MARPA_DSTACK_LENGTH (r->t_earley_set_stack))
+      {
+        return es_does_not_exist;
+      }
+    earley_set = YS_of_R_by_Ord (r, set_id);
+  r->t_trace_earley_set = earley_set;
+  return Earleme_of_YS(earley_set);
+}
+
+@ @<Clear trace Earley set dependent data@> = {
+  r->t_trace_earley_set = NULL;
+  trace_earley_item_clear(r);
+  @<Clear trace postdot item data@>@;
+}
+
+@ @<Function definitions@> =
+Marpa_AHM_ID
+_marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
+{
+  const int yim_does_not_exist = -1;
+  @<Return |-2| on failure@>@;
+  YS trace_earley_set;
+  YIM earley_item;
+  YIM *earley_items;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+  trace_earley_set = r->t_trace_earley_set;
+  if (!trace_earley_set)
+    {
+      @<Clear trace Earley set dependent data@>@;
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
+      return failure_indicator;
+    }
+  trace_earley_item_clear (r);
+  if (item_id < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_YIM_ID_INVALID);
+      return failure_indicator;
+    }
+  if (item_id >= YIM_Count_of_YS (trace_earley_set))
+    {
+      return yim_does_not_exist;
+    }
+  earley_items = YIMs_of_YS (trace_earley_set);
+  earley_item = earley_items[item_id];
+  r->t_trace_earley_item = earley_item;
+  return AHMID_of_YIM (earley_item);
+}
+
+@ Clear all the data elements specifically
+for the trace Earley item.
+The difference between this code and
+|trace_earley_item_clear| is
+that |trace_earley_item_clear| 
+also clears the source link.
+@<Clear trace Earley item data@> =
+      r->t_trace_earley_item = NULL;
+
+@ @<Function definitions@> =
+PRIVATE void trace_earley_item_clear(RECCE r)
+{
+    @<Clear trace Earley item data@>@/
+    trace_source_link_clear(r);
+}
+
+@ @<Function definitions@> =
+Marpa_Earley_Set_ID _marpa_r_earley_item_origin(Marpa_Recognizer r)
+{
+    @<Return |-2| on failure@>@;
+    YIM item = r->t_trace_earley_item;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+    if (!item) {
+        @<Clear trace Earley item data@>@;
+        MARPA_ERROR(MARPA_ERR_NO_TRACE_YIM);
+        return failure_indicator;
+    }
+    return Origin_Ord_of_YIM(item);
+}
+
+@** Leo item (LIM) trace functions.
+The functions in this section are all accessors.
+The trace Leo item is selected by setting the trace postdot item
+to a Leo item.
+
+@ @<Function definitions@> =
+Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol(Marpa_Recognizer r)
+{
+  const Marpa_Symbol_ID no_predecessor = -1;
+  @<Return |-2| on failure@>@;
+  PIM postdot_item = r->t_trace_postdot_item;
+  LIM predecessor_leo_item;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+  if (!postdot_item) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
+      return failure_indicator;
+  }
+  if (YIM_of_PIM(postdot_item)) {
+      MARPA_ERROR(MARPA_ERR_PIM_IS_NOT_LIM);
+      return failure_indicator;
+  }
+  predecessor_leo_item = Predecessor_LIM_of_LIM(LIM_of_PIM(postdot_item));
+  if (!predecessor_leo_item) return no_predecessor;
+  return Postdot_NSYID_of_LIM(predecessor_leo_item);
+}
+
+@ @<Function definitions@> =
+Marpa_Earley_Set_ID _marpa_r_leo_base_origin(Marpa_Recognizer r)
+{
+  const JEARLEME pim_is_not_a_leo_item = -1;
+  @<Return |-2| on failure@>@;
+  PIM postdot_item = r->t_trace_postdot_item;
+  @<Unpack recognizer objects@>@;
+  YIM base_earley_item;
+  @<Fail if not trace-safe@>@;
+  if (!postdot_item) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
+      return failure_indicator;
+  }
+  if (YIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
+  base_earley_item = Base_YIM_of_LIM(LIM_of_PIM(postdot_item));
+  return Origin_Ord_of_YIM(base_earley_item);
+}
+
+@ Actually return AHM ID, not the obsolete AHFA ID.
+@<Function definitions@> =
+Marpa_AHM_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
+{
+  const JEARLEME pim_is_not_a_leo_item = -1;
+  @<Return |-2| on failure@>@;
+  PIM postdot_item = r->t_trace_postdot_item;
+  YIM base_earley_item;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+  if (!postdot_item) {
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
+      return failure_indicator;
+  }
+  if (YIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
+  base_earley_item = Base_YIM_of_LIM(LIM_of_PIM(postdot_item));
+  return AHMID_of_YIM(base_earley_item);
+}
 
 @*0 PIM Trace functions.
 Many of the
