@@ -9814,16 +9814,12 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
 @ @<Mark duplicate draft and-nodes@> =
 {
   const int or_node_count_of_b = OR_Count_of_B(b);
-  PSAR_Object and_per_ys_arena;
-  const PSAR and_psar = &and_per_ys_arena;
   int or_node_id = 0;
-  psar_init (and_psar, irl_count+nsy_count);
   while (or_node_id < or_node_count_of_b) {
       const OR work_or_node = OR_of_B_by_ID(b, or_node_id);
     @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
     or_node_id++;
   }
-  psar_destroy (and_psar);
 }
 
 @ I think the and-PSL's and or-PSL's are not actually used at the
@@ -9845,42 +9841,10 @@ Otherwise, it's the first such draft and-node.
 @<Mark the duplicate draft and-nodes for |work_or_node|@> =
 {
   DAND dand = DANDs_of_OR (work_or_node);
-  DAND next_dand = Next_DAND_of_DAND (dand);
-  ORID work_or_node_id = ID_of_OR(work_or_node);
-  /* Only if there is more than one draft and-node */
-  if (next_dand)
+  while (dand)
     {
-      int origin_ordinal = Origin_Ord_of_OR (work_or_node);
-      psar_dealloc(and_psar);
-      while (dand)
-        {
-          OR psl_or_node;
-          OR predecessor = Predecessor_OR_of_DAND (dand);
-          WHEID wheid = WHEID_of_OR(Cause_OR_of_DAND(dand));
-          const int middle_ordinal =
-            predecessor ? YS_Ord_of_OR (predecessor) : origin_ordinal;
-          PSL and_psl;
-          PSL *psl_owner = &per_ys_data[middle_ordinal].t_and_psl;
-          /* The or-node used as a boolean in the PSL */
-          if (!*psl_owner) psl_claim (psl_owner, and_psar);
-          and_psl = *psl_owner;
-          psl_or_node = PSL_Datum(and_psl, wheid);
-          if (psl_or_node && ID_of_OR(psl_or_node) == work_or_node_id)
-          {
-              /* Mark this draft and-node as a duplicate */
-              MARPA_DEBUG2("Duplicate DAND for or %s", or_tag(work_or_node));
-              MARPA_DEBUG2("Duplicate DAND predcessor is or %s", or_tag(Predecessor_OR_of_DAND(dand)));
-              MARPA_DEBUG2("Duplicate DAND cause is or %s", or_tag(Cause_OR_of_DAND(dand)));
-              Cause_OR_of_DAND(dand) = NULL;
-          } else {
-              /* Increment the count of unique draft and-nodes */
-              PSL_Datum(and_psl, wheid) = work_or_node;
-              unique_draft_and_node_count++;
-          }
-          dand = Next_DAND_of_DAND (dand);
-        }
-    } else {
-          unique_draft_and_node_count++;
+      unique_draft_and_node_count++;
+      dand = Next_DAND_of_DAND (dand);
     }
 }
 
