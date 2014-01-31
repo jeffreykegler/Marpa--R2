@@ -6641,6 +6641,7 @@ union u_source_container {
 
 @
 @d Source_of_SRCL(link) ((link)->t_source)
+@d SRC_of_SRCL(link) (&Source_of_SRCL(link))
 @d SRCL_of_YIM(yim) (&(yim)->t_container.t_unique)
 @d Source_of_YIM(yim) ((yim)->t_container.t_unique.t_source)
 @d SRC_of_YIM(yim) (&Source_of_YIM(yim))
@@ -6661,6 +6662,8 @@ union u_source_container {
 @d NSYID_of_SRC(source) NSYID_of_Source(*(source))
 @d NSYID_of_YIM(yim) NSYID_of_Source(Source_of_YIM(yim))
 @d NSYID_of_SRCL(link) NSYID_of_Source(Source_of_SRCL(link))
+@d Value_of_Source(srcd) Value_of_TOK(TOK_of_Source(srcd))
+@d Value_of_SRC(source) Value_of_Source(*(source))
 
 @ @d Cause_AHMID_of_SRCL(srcl)
     AHMID_of_YIM((YIM)Cause_of_SRCL(srcl))
@@ -7009,6 +7012,9 @@ in sorted order,
 if the alternative is not a duplicate.
 It returns -1 if the alternative is a duplicate,
 and the insertion point (which must be zero or more) otherwise.
+@ {\bf To Do}: @^To Do@>
+I wonder if this would not have been better implemented as a
+linked list.
 @<Function definitions@> =
 PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 {
@@ -9118,7 +9124,7 @@ Top_ORID_of_B(b) = -1;
       psar_dealloc(or_psar);
       this_earley_set_psl = psl_claim_by_es(or_psar, per_ys_data, work_earley_set_ordinal);
     @<Create the or-nodes for |work_earley_set_ordinal|@>@;
-    @<Create the draft and-nodes for |work_earley_set_ordinal|@>@;
+    @<Create draft and-nodes for |work_earley_set_ordinal|@>@;
   }
   psar_destroy (or_psar);
   ORs_of_B(b) = marpa_renew (OR, ORs_of_B(b), OR_Count_of_B(b));
@@ -9415,7 +9421,7 @@ void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR
     DANDs_of_OR(parent) = new;
 }
 
-@ @<Create the draft and-nodes for |work_earley_set_ordinal|@> =
+@ @<Create draft and-nodes for |work_earley_set_ordinal|@> =
 {
     int item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
@@ -9656,28 +9662,28 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
 {
   SRCL source_link = NULL;
   YIM predecessor_earley_item = NULL;
-  TOK tkn = NULL;
+  SRC token_source = NULL;
   switch (work_source_type)
     {
     case SOURCE_IS_TOKEN:
       predecessor_earley_item = Predecessor_of_YIM (work_earley_item);
-      tkn = TOK_of_YIM(work_earley_item);
+      token_source = SRC_of_YIM(work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = LV_First_Token_SRCL_of_YIM (work_earley_item);
       if (source_link)
         {
           predecessor_earley_item = Predecessor_of_SRCL (source_link);
-          tkn = TOK_of_SRCL(source_link);
+          token_source = SRC_of_SRCL(source_link);
           source_link = Next_SRCL_of_SRCL (source_link);
         }
     }
-    while (tkn) 
+    while (token_source) 
       {
-        @<Add draft and-node for token source@>@;
+        @<Add draft and-node for |token_source|@>@;
         if (!source_link) break;
         predecessor_earley_item = Predecessor_of_SRCL (source_link);
-        tkn = TOK_of_SRCL(source_link);
+        token_source = SRC_of_SRCL(source_link);
         source_link = Next_SRCL_of_SRCL (source_link);
       }
 }
@@ -9692,39 +9698,40 @@ The nullable tokens are already handled this way.
 They are not included in the count of or-nodes,
 are not coverted to final or-nodes,
 and are not traversed when traversing or-nodes by ID.
-@<Add draft and-node for token source@> =
+@<Add draft and-node for |token_source|@> =
 {
   OR new_token_or_node;
   OR dand_predecessor;
-  @<Set |dand_predecessor|@>@;
+  const TOK tkn = TOK_of_SRC(token_source);
+  dand_predecessor = safe_or_from_yim(per_ys_data,
+    work_predecessor_aim, predecessor_earley_item);
   MARPA_DEBUG2 ("At %s", STRLOC);
   if (TOK_is_Valued (tkn))
     {
       new_token_or_node = (OR) marpa_obs_new (OBS_of_B (b), OR_Object, 1);
       /* Probably can use smaller allocation */
       Type_of_OR (new_token_or_node) = VALUED_TOKEN_OR_NODE;
-      NSYID_of_OR (new_token_or_node) = NSYID_of_TOK (tkn);
-      Value_of_OR (new_token_or_node) = Value_of_TOK (tkn);
+      NSYID_of_OR (new_token_or_node) = NSYID_of_SRC (token_source);
+      Value_of_OR (new_token_or_node) = Value_of_SRC (token_source);
     }
   else
     {
       MARPA_ASSERT(TOK_is_Unvalued(tkn));
-      new_token_or_node = Unvalued_OR_by_NSYID(NSYID_of_TOK(tkn));
+      new_token_or_node = Unvalued_OR_by_NSYID(NSYID_of_SRC(token_source));
     }
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
 		      dand_predecessor, new_token_or_node);
 }
 
-@ @<Set |dand_predecessor|@> =
+@ @<Function definitions@> =
+PRIVATE
+OR safe_or_from_yim(
+  struct s_bocage_setup_per_ys* per_ys_data,
+  AHM predecessor_aim,
+  YIM predecessor_earley_item)
 {
-  if (Position_of_AHM (work_predecessor_aim) < 1)
-    {
-      dand_predecessor = NULL;
-    }
-  else
-    {
-      dand_predecessor = set_or_from_yim (per_ys_data, predecessor_earley_item);
-    }
+  if (Position_of_AHM (predecessor_aim) < 1) return NULL;
+  return set_or_from_yim (per_ys_data, predecessor_earley_item);
 }
 
 @ @<Create draft and-nodes for completion sources@> =
@@ -9760,13 +9767,13 @@ and are not traversed when traversing or-nodes by ID.
 
 @ @<Add draft and-node for completion source@> =
 {
-  OR dand_predecessor;
   OR dand_cause;
   const int middle_ordinal = Origin_Ord_of_YIM(cause_earley_item);
   const AHM cause_aim = AHM_of_YIM(cause_earley_item);
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_IRL(IRL_of_AHM(cause_aim));
-  @<Set |dand_predecessor|@>@;
+  OR dand_predecessor = safe_or_from_yim(per_ys_data,
+    work_predecessor_aim, predecessor_earley_item);
   {
     const int origin = middle_ordinal;
     const SYMI symbol_instance = cause_symbol_instance;
