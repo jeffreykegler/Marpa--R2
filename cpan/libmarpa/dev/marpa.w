@@ -3108,6 +3108,18 @@ int marpa_g_precompute(Marpa_Grammar g)
     return return_value;
 }
 
+@ Reinitialize the CILAR, because its size requirement may vary wildly
+bewteen a base grammar and its recognizers.
+A large allocation may be required in the grammar, which
+thereafter would be wasted space.
+@<Reinitialize the CILAR@> =
+{ cilar_reinit(&g->t_cilar); }
+@ {\bf To Do}: @^To Do@>
+Perhaps someday there should be a CILAR for each recognizer.
+This probably is an issue to be dealt with,
+when adding the ability
+to clone grammars.
+
 @** The grammar census.
 
 @*0 Implementation: inacessible and unproductive Rules.
@@ -5379,106 +5391,6 @@ with |S2| on its LHS.
     }
 }
 
-@ Reinitialize the CILAR, because its size requirement may vary wildly
-bewteen a base grammar and its recognizers.
-A large allocation may be required in the grammar, which
-thereafter would be wasted space.
-@<Reinitialize the CILAR@> =
-{ cilar_reinit(&g->t_cilar); }
-@ {\bf To Do}: @^To Do@>
-Perhaps someday there should be a CILAR for each recognizer.
-This probably is an issue to be dealt with,
-when adding the ability
-to clone grammars.
-
-@** Input (I, INPUT) code.
-|INPUT| is a "hidden" class.
-It is manipulated
-entirely via the Recognizer class ---
-there are no public
-methods for it.
-@ @<Private typedefs@> =
-struct s_input;
-typedef struct s_input* INPUT;
-@ @<Private structures@> =
-struct s_input {
-    @<Widely aligned input elements@>@;
-    @<Int aligned input elements@>@;
-};
-
-@ @<Function definitions@> =
-PRIVATE INPUT input_new (GRAMMAR g)
-{
-  INPUT input = my_malloc (sizeof(struct s_input));
-  @<Initialize input elements@>@;
-  return input;
-}
-
-@*0 Reference counting and destructors.
-@ @<Int aligned input elements@>=
-    int t_ref_count;
-@ @<Initialize input elements@> =
-    input->t_ref_count = 1;
-
-@ Decrement the input reference count.
-@<Function definitions@> =
-PRIVATE void
-input_unref (INPUT input)
-{
-  MARPA_ASSERT (input->t_ref_count > 0)
-  input->t_ref_count--;
-  if (input->t_ref_count <= 0)
-    {
-        input_free(input);
-    }
-}
-
-@ Increment the input reference count.
-@<Function definitions@> =
-PRIVATE INPUT
-input_ref (INPUT input)
-{
-  MARPA_ASSERT(input->t_ref_count > 0)
-  input->t_ref_count++;
-  return input;
-}
-
-@ The token obstack has exactly the same lifetime as its
-container |input| object,
-so there is no need for a flag to
-guarantee that it is safe to destroy it.
-@<Function definitions@> =
-PRIVATE void input_free(INPUT input)
-{
-    my_free( input);
-}
-
-@*0 Token obstack.
-@ An obstack dedicated to the tokens and an array
-with default tokens for each symbol.
-Currently,
-the default tokens are used to provide
-null values, since all non-tokens are given
-values when read.
-There is a special obstack for the tokens, to
-to separate the token stream from the rest of the recognizer
-data.
-Once the bocage is built, the token data is all that
-it needs, and someday I may want to take advantage of
-this fact by freeing up the rest of recognizer memory.
-@<Widely aligned input elements@> =
-struct marpa_obstack* t_token_obs;
-
-@*0 Base objects.
-@ @d G_of_I(i) ((i)->t_grammar)
-@<Widely aligned input elements@> =
-    GRAMMAR t_grammar;
-@ @<Initialize input elements@> =
-{
-    G_of_I(input) = g;
-    grammar_ref(g);
-}
-
 @** Recognizer (R, RECCE) code.
 @<Public incomplete structures@> =
 struct marpa_r;
@@ -5486,10 +5398,8 @@ typedef struct marpa_r* Marpa_Recognizer;
 typedef Marpa_Recognizer Marpa_Recce;
 @ @<Private typedefs@> =
 typedef struct marpa_r* RECCE;
-@ @d I_of_R(r) ((r)->t_input)
-@<Recognizer structure@> =
+@ @<Recognizer structure@> =
 struct marpa_r {
-    INPUT t_input;
     @<Widely aligned recognizer elements@>@;
     @<Int aligned recognizer elements@>@;
     @<Bit aligned recognizer elements@>@;
@@ -5560,18 +5470,23 @@ void recce_free(struct marpa_r *r)
 {
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
-    grammar_unref(g);
     @<Destroy recognizer obstack@>@;
     my_free( r);
 }
 
 @*0 Base objects.
 Initialized in |marpa_r_new|.
-@d G_of_R(r) (G_of_I((r)->t_input))
-@<Unpack recognizer objects@> =
-const INPUT input = I_of_R(r);
-const GRAMMAR g = G_of_I(input);
-@ @<Destroy recognizer elements@> = input_unref(input);
+@d G_of_R(r) ((r)->t_grammar)
+@<Widely aligned recognizer elements@> =
+    GRAMMAR t_grammar;
+@ @<Initialize recognizer elements@> =
+{
+  G_of_R(r) = g;
+  grammar_ref(g);
+}
+@ @<Unpack recognizer objects@> =
+const GRAMMAR g = G_of_R(r);
+@ @<Destroy recognizer elements@> = grammar_unref(g);
 
 @*0 Input phase.
 The recognizer always is
@@ -6833,11 +6748,6 @@ void earley_item_ambiguate (struct marpa_r * r, YIM item)
   LV_First_Leo_SRCL_of_YIM (item) = new_link;
   LV_First_Completion_SRCL_of_YIM (item) = NULL;
   LV_First_Token_SRCL_of_YIM (item) = NULL;
-}
-
-@ @<Initialize recognizer elements@> =
-{
-  I_of_R(r) = input_new(g);
 }
 
 @** Alternative tokens (ALT) code.
@@ -9022,12 +8932,23 @@ Top_ORID_of_B(b) = -1;
 
 @ @<Destroy bocage elements, main phase@> =
 {
+  grammar_unref (G_of_B(b));
   OR* or_nodes = ORs_of_B (b);
   AND and_nodes = ANDs_of_B (b);
   my_free (or_nodes);
   ORs_of_B (b) = NULL;
   my_free (and_nodes);
   ANDs_of_B (b) = NULL;
+}
+
+@ @d G_of_B(b) ((b)->t_grammar)
+@<Widely aligned bocage elements@> =
+    GRAMMAR t_grammar;
+
+@ @<Initialize bocage elements@> =
+{
+    G_of_B(b) = G_of_R(r);
+    grammar_ref(g);
 }
 
 @*0 Create the or-nodes.
@@ -9806,13 +9727,9 @@ struct marpa_bocage {
 };
 
 @*0 The base objects of the bocage.
-@ @d I_of_B(b) ((b)->t_input)
-@<Widely aligned bocage elements@> =
-    INPUT t_input;
 
 @ @<Unpack bocage objects@> =
-    const INPUT input = I_of_B(b);
-    const GRAMMAR g @,@, UNUSED = G_of_I(input);
+    const GRAMMAR g @,@, UNUSED = G_of_B(b);
 
 @*0 The bocage obstack.
 An obstack with the lifetime of the bocage.
@@ -9829,7 +9746,6 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 {
     @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
-    INPUT input;
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
     {
@@ -9838,8 +9754,6 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
         OBS_of_B(b) = obstack;
     }
     @<Initialize bocage elements@>@;
-    input = I_of_B(b) = I_of_R(r);
-    input_ref(input);
 
     if (G_is_Trivial(g)) {
         if (ordinal_arg > 0) goto NO_PARSE;
@@ -9867,7 +9781,6 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     return b;
     NO_PARSE: ;
           MARPA_ERROR(MARPA_ERR_NO_PARSE);
-    input_unref(input);
     if (b) {
         @<Destroy bocage elements, all phases@>;
     }
@@ -10091,7 +10004,6 @@ PRIVATE void
 bocage_free (BOCAGE b)
 {
   @<Unpack bocage objects@>@;
-  input_unref (input);
   if (b)
     {
       @<Destroy bocage elements, all phases@>;
