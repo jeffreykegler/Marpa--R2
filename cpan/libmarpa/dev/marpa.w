@@ -9704,7 +9704,7 @@ and are not traversed when traversing or-nodes by ID.
   OR dand_predecessor;
   const TOK tkn = TOK_of_SRC(token_source);
   dand_predecessor = safe_or_from_yim(per_ys_data,
-    work_predecessor_aim, predecessor_earley_item);
+    predecessor_earley_item);
   MARPA_DEBUG2 ("At %s", STRLOC);
   if (TOK_is_Valued (tkn))
     {
@@ -9723,15 +9723,16 @@ and are not traversed when traversing or-nodes by ID.
 		      dand_predecessor, new_token_or_node);
 }
 
-@ @<Function definitions@> =
+@ ``Safe'' because it does not require called to ensure the such
+an or-node exists.
+@<Function definitions@> =
 PRIVATE
 OR safe_or_from_yim(
   struct s_bocage_setup_per_ys* per_ys_data,
-  AHM predecessor_aim,
-  YIM predecessor_earley_item)
+  YIM yim)
 {
-  if (Position_of_AHM (predecessor_aim) < 1) return NULL;
-  return set_or_from_yim (per_ys_data, predecessor_earley_item);
+  if (Position_of_AHM (AHM_of_YIM(yim)) < 1) return NULL;
+  return set_or_from_yim (per_ys_data, yim);
 }
 
 @ @<Create draft and-nodes for completion sources@> =
@@ -9773,7 +9774,7 @@ OR safe_or_from_yim(
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_IRL(IRL_of_AHM(cause_aim));
   OR dand_predecessor = safe_or_from_yim(per_ys_data,
-    work_predecessor_aim, predecessor_earley_item);
+    predecessor_earley_item);
   {
     const int origin = middle_ordinal;
     const SYMI symbol_instance = cause_symbol_instance;
@@ -13311,7 +13312,9 @@ if (_MARPA_UNLIKELY(XRLID_is_Malformed(xrl_id))) {
 }
 
 @ ``AIMID'' in the error code name is a legacy
-of a previous implementation, and must be kept
+of a previous implementation.
+The name
+of the error code must be kept the same
 for backward compatibility.
 @<Fail if |item_id| is invalid@> =
 if (_MARPA_UNLIKELY(!aim_is_valid(g, item_id))) {
