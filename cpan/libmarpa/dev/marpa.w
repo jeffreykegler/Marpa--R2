@@ -9457,15 +9457,9 @@ predecessor.  Set |or_node| to 0 if there is none.
     unsigned int work_source_type = Source_Type_of_YIM (work_earley_item);
     const AHM work_aim = AHM_of_YIM (work_earley_item);
     MARPA_ASSERT (work_aim >= AHM_by_ID (1))@;
-    const AHM work_predecessor_aim = work_aim - 1;
     const int work_symbol_instance = SYMI_of_AHM (work_aim);
-    OR work_proper_or_node;
-    {
-      const int origin = work_origin_ordinal;
-      const SYMI symbol_instance = work_symbol_instance;
-      OR* const p_or_node = &work_proper_or_node;
-      @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
-    }
+    const OR work_proper_or_node = or_by_origin_and_symi(per_ys_data,
+      work_origin_ordinal, work_symbol_instance);
     @<Create Leo draft and-nodes@>@;
     @<Create draft and-nodes for token sources@>@;
     @<Create draft and-nodes for completion sources@>@;
@@ -9522,10 +9516,14 @@ predecessor.  Set |or_node| to 0 if there is none.
   }
 }
 
-@ @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@> =
+@ @<Function definitions@> =
+PRIVATE
+OR or_by_origin_and_symi ( struct s_bocage_setup_per_ys *per_ys_data,
+    YSID origin,
+    SYMI symbol_instance)
 {
   const PSL or_psl_at_origin = per_ys_data[(origin)].t_or_psl;
-  (*p_or_node) = PSL_Datum (or_psl_at_origin, (symbol_instance));
+  return PSL_Datum (or_psl_at_origin, (symbol_instance));
 }
 
 @ @<Add draft and-nodes to the bottom or-node@> =
@@ -9557,11 +9555,9 @@ to add |DAND|'s to higher Leo path items will also duplicate.
 If so, the loop that ascends the Leo path can be ended at that point.
 @<Add the draft and-nodes to an upper Leo path or-node@> =
 {
-  OR dand_cause;
   const SYMI symbol_instance = SYMI_of_Completed_IRL(previous_path_irl);
   const int origin = Ord_of_YS(YS_of_LIM(path_leo_item));
-  OR* const p_or_node = &dand_cause;
-  @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
+  const OR dand_cause = or_by_origin_and_symi(per_ys_data, origin, symbol_instance);
   if (!dand_is_duplicate(path_or_node, dand_predecessor, dand_cause)) {
     MARPA_DEBUG2("At %s", STRLOC);
     draft_and_node_add (bocage_setup_obs, path_or_node,
@@ -9651,11 +9647,7 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
   const AHM aim = AHM_of_YIM (base_earley_item);
   path_irl = IRL_of_AHM (aim);
   symbol_instance = Last_Proper_SYMI_of_IRL (path_irl);
-  {
-     OR* const p_or_node = &path_or_node;
-     const int origin = origin_ordinal;
-    @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
-  }
+  path_or_node = or_by_origin_and_symi(per_ys_data, origin_ordinal, symbol_instance);
 }
 
 @ @<Create draft and-nodes for token sources@> =
@@ -9768,20 +9760,15 @@ OR safe_or_from_yim(
 
 @ @<Add draft and-node for completion source@> =
 {
-  OR dand_cause;
   const int middle_ordinal = Origin_Ord_of_YIM(cause_earley_item);
   const AHM cause_aim = AHM_of_YIM(cause_earley_item);
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_IRL(IRL_of_AHM(cause_aim));
   OR dand_predecessor = safe_or_from_yim(per_ys_data,
     predecessor_earley_item);
-  {
-    const int origin = middle_ordinal;
-    const SYMI symbol_instance = cause_symbol_instance;
-    OR* const p_or_node = &dand_cause;
-    @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
-  }
-    MARPA_DEBUG2("At %s", STRLOC);
+  const OR dand_cause =
+    or_by_origin_and_symi(per_ys_data, middle_ordinal, cause_symbol_instance);
+  MARPA_DEBUG2("At %s", STRLOC);
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
           dand_predecessor, dand_cause);
 }
