@@ -8640,7 +8640,7 @@ ur_node_pop (URS stack)
 @
 {\bf To Do}: @^To Do@>
 No predictions are used in creating or-nodes.
-Most (all but the start?) are eliminating in creating the PSIA data,
+Most (all but the start?) are eliminating in creating the PSI data,
 but then predictions are tested for when creating or-nodes.
 For efficiency, there should be only one check.
 I need to decide where to make it.
@@ -8649,7 +8649,7 @@ I need to decide where to make it.
 are guaranteed to be defined,
 since predictions are
 never on the stack.
-@<Populate the PSIA data@>=
+@<Populate the PSI data@>=
 {
     UR_Const ur_node;
     const URS ur_node_stack = URS_of_R(r);
@@ -8675,7 +8675,7 @@ never on the stack.
 }
 
 @ @<Push ur-node if new@> = {
-    if (!psia_test_and_set
+    if (!psi_test_and_set
         (per_ys_data, ur_earley_item))
       {
         ur_node_push (ur_node_stack, ur_earley_item);
@@ -8683,12 +8683,12 @@ never on the stack.
 }
 
 @ The |PSI| is a container of data that is per Earley-set,
-and with that, per Earley item.
-(For historical reasons, it is sometimes called a PSIA.)
+and within that, per Earley item.
+(In the past, it has also been called the PSIA.)
 This function ensures that the appropriate |PSI| boolean is set.
 It returns that boolean's value {\bf prior} to the call.
 @<Function definitions@> = 
-PRIVATE int psia_test_and_set(
+PRIVATE int psi_test_and_set(
     struct s_bocage_setup_per_ys* per_ys_data,
     YIM earley_item
     )
@@ -8728,7 +8728,7 @@ PRIVATE int psia_test_and_set(
         {
           if (YIM_was_Predicted (predecessor_earley_item))
             {
-                Set_boolean_in_PSIA_for_initial_nulls (per_ys_data,
+                Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
                                                        predecessor_earley_item,
                                                        predecessor_aim);
             }
@@ -8745,17 +8745,17 @@ PRIVATE int psia_test_and_set(
     }
 }
 
-@ If there are initial nulls, set a boolean in the PSIA
+@ If there are initial nulls, set a boolean in the PSI
 so that I will know to create the chain of or-nodes for them.
 We don't need to stack the prediction, because it can have
 no other descendants.
 @<Function definitions@> =
 PRIVATE void
-Set_boolean_in_PSIA_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
+Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
   YIM yim, AHM aim)
 {
   if (Null_Count_of_AHM (aim))
-	  psia_test_and_set (per_ys_data, (yim));
+	  psi_test_and_set (per_ys_data, (yim));
 }
 
 @ @<Push child Earley items from completion sources@> =
@@ -8785,7 +8785,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data
 	{
 	  if (YIM_was_Predicted (predecessor_earley_item))
 	    {
-	       Set_boolean_in_PSIA_for_initial_nulls
+	       Set_boolean_in_PSI_for_initial_nulls
 		(per_ys_data,
 		 predecessor_earley_item, predecessor_aim);
 	    }
@@ -8826,7 +8826,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data
             {
                 const AHM leo_final_aim = Base_to_AHM_of_LIM(leo_predecessor);
                 const AHM prediction_aim = Prev_AHM_of_AHM(leo_final_aim);
-                Set_boolean_in_PSIA_for_initial_nulls (per_ys_data,
+                Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
                                                        leo_base_yim, prediction_aim);
             }
           else
@@ -9025,7 +9025,7 @@ Top_ORID_of_B(b) = -1;
   const int work_origin_ordinal =
             Ord_of_YS (Origin_of_YIM (work_earley_item));
   SYMI aim_symbol_instance;
-  OR psia_or_node = NULL;
+  OR psi_or_node = NULL;
   aim_symbol_instance = SYMI_of_AHM(aim);
   {
         PSL or_psl = psl_claim_by_es(or_psar, per_ys_data, work_origin_ordinal);
@@ -9037,9 +9037,9 @@ Top_ORID_of_B(b) = -1;
     the last one added */
     /* The following assertion is now not necessarily true.
     it is kept for documentation, but eventually should be removed */
-    MARPA_OFF_ASSERT (psia_or_node)@;
+    MARPA_OFF_ASSERT (psi_or_node)@;
     OR_by_PSI(per_ys_data, working_ys_ordinal, working_yim_ordinal)
-      = psia_or_node;
+      = psi_or_node;
     @<Add Leo or-nodes for |work_earley_item|@>@;
 }
 
@@ -9066,7 +9066,7 @@ MARPA_ASSERT(aim_symbol_instance < SYMI_Count_of_G(g))@;
           Position_of_OR (or_node) =
               aim_symbol_instance - SYMI_of_IRL (irl) + 1;
         }
-        psia_or_node = or_node;
+        psi_or_node = or_node;
     }
 }
 
@@ -9091,9 +9091,9 @@ PRIVATE OR or_node_new(BOCAGE b)
 The one added last in this logic,
 or in the logic for adding the main item,
 will be used as the or-node
-in the PSIA.
+in the PSI.
 @ In building the final or-node, the predecessor can be
-determined using the PSIA for $|symbol_instance|-1$.
+determined using the PSI for $|symbol_instance|-1$.
 The exception is where there is no predecessor,
 and this is the case if |Position_of_OR(or_node) == 0|.
 @<Add nulling token or-nodes@> =
@@ -9126,7 +9126,7 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
                 draft_and_node_add (bocage_setup_obs, or_node, predecessor,
                       cause);
               }
-              psia_or_node = or_node;
+              psi_or_node = or_node;
         }
     }
 }
@@ -9192,7 +9192,7 @@ corresponds to the Leo predecessor.
 }
 
 @ In building the final or-node, the predecessor can be
-determined using the PSIA for $|symbol_instance|-1$.
+determined using the PSI for $|symbol_instance|-1$.
 There will always be a predecessor, since these nulling
 or-nodes follow a completion.
 @<Add Leo path nulling token or-nodes@> =
@@ -9503,12 +9503,12 @@ int dand_is_duplicate(OR parent, OR predecessor, OR cause)
 @ @<Function definitions@> =
 PRIVATE
 OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
-  YIM psia_yim)
+  YIM psi_yim)
 {
-  const YIM psia_earley_item = psia_yim;
-  const int psia_earley_set_ordinal = YS_Ord_of_YIM (psia_earley_item);
-  const int psia_item_ordinal = Ord_of_YIM (psia_earley_item);
-  return OR_by_PSI(per_ys_data, psia_earley_set_ordinal, psia_item_ordinal);
+  const YIM psi_earley_item = psi_yim;
+  const int psi_earley_set_ordinal = YS_Ord_of_YIM (psi_earley_item);
+  const int psi_item_ordinal = Ord_of_YIM (psi_earley_item);
+  return OR_by_PSI(per_ys_data, psi_earley_set_ordinal, psi_item_ordinal);
 }
 
 @ @<Use Leo base data to set |path_or_node|@> =
@@ -9797,7 +9797,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     if (!start_yim) goto NO_PARSE;
     bocage_setup_obs = marpa_obs_init;
     @<Allocate bocage setup working data@>@;
-    @<Populate the PSIA data@>@;
+    @<Populate the PSI data@>@;
     @<Create the or-nodes for all earley sets@>@;
     @<Create the final and-nodes for all earley sets@>@;
     @<Set top or node id in |b|@>;
