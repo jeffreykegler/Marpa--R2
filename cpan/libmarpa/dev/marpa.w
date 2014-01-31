@@ -1752,21 +1752,30 @@ so that the
 symbol structure may be used
 where token or-nodes are
 expected.
-@d Nulling_OR_by_NSYID(nsyid) ((OR)NSY_by_ID(nsyid))
+@d Nulling_OR_by_NSYID(nsyid) ((OR)&NSY_by_ID(nsyid)->t_nulling_or_node)
+@d Unvalued_OR_by_NSYID(nsyid) ((OR)&NSY_by_ID(nsyid)->t_unvalued_or_node)
 @<Private structures@> =
-struct s_nsy {
+struct s_unvalued_token_or_node {
   int t_or_node_type;
   NSYID t_nsyid;
+};
+
+struct s_nsy {
   @<Widely aligned NSY elements@>@;
   @<Int aligned NSY elements@>@;
   @<Bit aligned NSY elements@>@;
+  struct s_unvalued_token_or_node t_nulling_or_node;
+  struct s_unvalued_token_or_node t_unvalued_or_node;
 };
 @ |t_nsyid| is initialized when the symbol is
 added to the list of symbols.
 Symbols are used a nulling tokens, and
 |t_or_node_type| is set accordingly.
 @<Initialize NSY elements@> =
-    nsy->t_or_node_type = NULLING_TOKEN_OR_NODE;
+    nsy->t_nulling_or_node.t_or_node_type = NULLING_TOKEN_OR_NODE;
+    /* ID of nulling or-node is already set */
+    nsy->t_unvalued_or_node.t_or_node_type = UNVALUED_TOKEN_OR_NODE;
+    nsy->t_unvalued_or_node.t_nsyid = ID_of_NSY(nsy);
 
 @*0 Constructors.
 @ Common logic for creating an NSY.
@@ -1824,7 +1833,7 @@ acts as the unique identifier for an NSY.
 The NSY ID is initialized when the NSY is
 added to the list of rules.
 @d NSY_by_ID(id) (*MARPA_DSTACK_INDEX (g->t_nsy_stack, NSY, (id)))
-@d ID_of_NSY(nsy) ((nsy)->t_nsyid)
+@d ID_of_NSY(nsy) ((nsy)->t_nulling_or_node.t_nsyid)
 
 @ Symbol count accesors.
 @d NSY_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_nsy_stack))
@@ -9010,18 +9019,21 @@ Position is the dot position.
 may be accessed via different members of a union.
 @<Or-node common initial sequence@> =
 int t_position;
-int t_end_set_ordinal;
-int t_start_set_ordinal;
-ORID t_id;
+
 @ @<Or-node less common initial sequence@> =
   @<Or-node common initial sequence@>@;
+  int t_end_set_ordinal;
+  int t_start_set_ordinal;
+  ORID t_id;
   IRL t_irl;
+
 @ @<Private structures@> =
 struct s_draft_or_node
 {
     @<Or-node less common initial sequence@>@;
   DAND t_draft_and_node;
 };
+
 @ @<Private structures@> =
 struct s_final_or_node
 {
@@ -9029,15 +9041,23 @@ struct s_final_or_node
     int t_first_and_node_id;
     int t_and_node_count;
 };
+
+@ @<Private structures@> =
+struct s_valued_token_or_node
+{
+  @<Or-node common initial sequence@>@;
+  NSYID t_nsyid;
+  int t_value;
+};
+
 @
-@d TOK_of_OR(or) (&(or)->t_token)
-@d NSYID_of_OR(or) NSYID_of_TOK(TOK_of_OR(or))
-@d Value_of_OR(or) Value_of_TOK(TOK_of_OR(or))
+@d NSYID_of_OR(or) ((or)->t_token.t_nsyid)
+@d Value_of_OR(or) ((or)->t_token.t_value)
 @<Private structures@> =
 union u_or_node {
     struct s_draft_or_node t_draft;
     struct s_final_or_node t_final;
-    struct s_token t_token;
+    struct s_valued_token_or_node t_token;
 };
 typedef union u_or_node OR_Object;
 
@@ -9674,22 +9694,23 @@ are not coverted to final or-nodes,
 and are not traversed when traversing or-nodes by ID.
 @<Add draft and-node for token source@> =
 {
+  OR new_token_or_node;
   OR dand_predecessor;
-  OR new_token_or_node = (OR) marpa_obs_new (OBS_of_B (b), OR_Object, 1);
-  /* Probably can use smaller allocation */
   @<Set |dand_predecessor|@>@;
   MARPA_DEBUG2 ("At %s", STRLOC);
   if (TOK_is_Valued (tkn))
     {
+      new_token_or_node = (OR) marpa_obs_new (OBS_of_B (b), OR_Object, 1);
+      /* Probably can use smaller allocation */
       Type_of_OR (new_token_or_node) = VALUED_TOKEN_OR_NODE;
+      NSYID_of_OR (new_token_or_node) = NSYID_of_TOK (tkn);
+      Value_of_OR (new_token_or_node) = Value_of_TOK (tkn);
     }
   else
     {
       MARPA_ASSERT(TOK_is_Unvalued(tkn));
-      Type_of_OR (new_token_or_node) = UNVALUED_TOKEN_OR_NODE;
+      new_token_or_node = Unvalued_OR_by_NSYID(NSYID_of_TOK(tkn));
     }
-  NSYID_of_OR (new_token_or_node) = NSYID_of_TOK (tkn);
-  Value_of_OR (new_token_or_node) = Value_of_TOK (tkn);
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
 		      dand_predecessor, new_token_or_node);
 }
@@ -14555,28 +14576,16 @@ int _marpa_b_and_node_symbol(Marpa_Bocage b,
 Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
     Marpa_And_Node_ID and_node_id, int* value_p)
 {
-  TOK tkn;
   AND and_node;
+  OR cause_or;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
     @<Check bocage |and_node_id|; set |and_node|@>@;
-    tkn = and_node_token(and_node);
-    if (tkn) {
-      if (value_p)
-        *value_p = Value_of_TOK (tkn);
-      return NSYID_of_TOK (tkn);
-    }
-    return -1;
-}
-@ @<Function definitions@> =
-PRIVATE TOK and_node_token(AND and_node)
-{
-  const OR cause_or = Cause_OR_of_AND (and_node);
-  if (OR_is_Token (cause_or))
-    {
-      return TOK_of_OR (cause_or);
-    }
-    return NULL;
+
+  cause_or = Cause_OR_of_AND (and_node);
+  if (!OR_is_Token (cause_or)) return -1;
+  if (value_p) *value_p = Value_of_OR (cause_or);
+  return NSYID_of_OR (cause_or);
 }
 
 @ The ``middle'' earley set of the and-node.
