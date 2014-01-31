@@ -9164,7 +9164,6 @@ MARPA_ASSERT(aim_symbol_instance < SYMI_Count_of_G(g))@;
           IRL_of_OR(or_node) = irl;
           Position_of_OR (or_node) =
               aim_symbol_instance - SYMI_of_IRL (irl) + 1;
-          DANDs_of_OR(or_node) = NULL;
         }
         psia_or_node = or_node;
     }
@@ -9287,7 +9286,6 @@ corresponds to the Leo predecessor.
           IRL_of_OR(or_node) = path_irl;
           Position_of_OR (or_node) =
               symbol_instance_of_path_aim - SYMI_of_IRL (path_irl) + 1;
-          DANDs_of_OR(or_node) = NULL;
         }
     }
 }
@@ -9660,13 +9658,24 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
       }
 }
 
-@ @<Add draft and-node for token source@> =
+@ This code ignores the issue of duplicate or-nodes when
+it comes to the newly-created token or-nodes.
+@ Token or-nodes are pseudo-or-nodes.
+They are not included in the count of or-nodes,
+are not coverted to final or-nodes,
+and are not traversed when traversing or-nodes by ID.
+@<Add draft and-node for token source@> =
 {
   OR dand_predecessor;
+  OR new_token_or_node = (OR)marpa_obs_new (OBS_of_B(b), OR_Object, 1);
+  /* Probably can use smaller allocation */
   @<Set |dand_predecessor|@>@;
     MARPA_DEBUG2("At %s", STRLOC);
+  Type_of_OR(new_token_or_node) = Type_of_TOK(tkn);
+  NSYID_of_OR(new_token_or_node) = NSYID_of_TOK(tkn);
+  Value_of_OR(new_token_or_node) = Value_of_TOK(tkn);
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
-          dand_predecessor, (OR)tkn);
+          dand_predecessor, new_token_or_node);
 }
 
 @ @<Set |dand_predecessor|@> =
@@ -9981,10 +9990,10 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
       const int item_count = YIM_Count_of_YS (earley_set);
       count_of_earley_items_in_parse += item_count;
       {
+        int item_ordinal;
         struct s_bocage_setup_per_ys *per_ys = per_ys_data + earley_set_ordinal;
         per_ys->t_or_node_by_item =
           marpa_obs_new (bocage_setup_obs, OR, item_count);
-        int item_ordinal;
         per_ys->t_or_psl = NULL;
         per_ys->t_and_psl = NULL;
         for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
