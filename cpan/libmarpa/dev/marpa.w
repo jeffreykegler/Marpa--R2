@@ -6866,6 +6866,9 @@ typedef struct s_token* TOK;
 @ The |t_type| field is to allow |TOK|
 objects to act as or-nodes.
 @d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
+@d TOK_is_Valued(tok) ((tok)->t_unvalued.t_type = VALUED_TOKEN_OR_NODE)
+@d TOK_is_Nulling(tok) ((tok)->t_unvalued.t_type = NULLING_TOKEN_OR_NODE)
+@d TOK_is_Unvalued(tok) ((tok)->t_unvalued.t_type = UNVALUED_TOKEN_OR_NODE)
 @d NSYID_of_TOK(tok) ((tok)->t_unvalued.t_nsyid)
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
@@ -9660,6 +9663,10 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
 
 @ This code ignores the issue of duplicate or-nodes when
 it comes to the newly-created token or-nodes.
+Ultimately, I will probably move the token values
+elsewhere and use per-symbol pseudo-or-nodes.
+This will be fast, and save space.
+The nullable tokens are already handled this way.
 @ Token or-nodes are pseudo-or-nodes.
 They are not included in the count of or-nodes,
 are not coverted to final or-nodes,
@@ -9667,15 +9674,26 @@ and are not traversed when traversing or-nodes by ID.
 @<Add draft and-node for token source@> =
 {
   OR dand_predecessor;
-  OR new_token_or_node = (OR)marpa_obs_new (OBS_of_B(b), OR_Object, 1);
+  OR new_token_or_node = (OR) marpa_obs_new (OBS_of_B (b), OR_Object, 1);
   /* Probably can use smaller allocation */
   @<Set |dand_predecessor|@>@;
-    MARPA_DEBUG2("At %s", STRLOC);
-  Type_of_OR(new_token_or_node) = Type_of_TOK(tkn);
-  NSYID_of_OR(new_token_or_node) = NSYID_of_TOK(tkn);
-  Value_of_OR(new_token_or_node) = Value_of_TOK(tkn);
+  MARPA_DEBUG2 ("At %s", STRLOC);
+  if (TOK_is_Valued (tkn))
+    {
+      Type_of_OR (new_token_or_node) = VALUED_TOKEN_OR_NODE;
+    }
+  else if (TOK_is_Nulling (tkn))
+    {
+      Type_of_OR (new_token_or_node) = NULLING_TOKEN_OR_NODE;
+    }
+  else
+    {
+      Type_of_OR (new_token_or_node) = UNVALUED_TOKEN_OR_NODE;
+    }
+  NSYID_of_OR (new_token_or_node) = NSYID_of_TOK (tkn);
+  Value_of_OR (new_token_or_node) = Value_of_TOK (tkn);
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
-          dand_predecessor, new_token_or_node);
+		      dand_predecessor, new_token_or_node);
 }
 
 @ @<Set |dand_predecessor|@> =
