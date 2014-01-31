@@ -5410,7 +5410,6 @@ struct s_input {
 PRIVATE INPUT input_new (GRAMMAR g)
 {
   INPUT input = my_malloc (sizeof(struct s_input));
-  TOK_Obs_of_I (input) = marpa_obs_init;
   @<Initialize input elements@>@;
   return input;
 }
@@ -5451,7 +5450,6 @@ guarantee that it is safe to destroy it.
 @<Function definitions@> =
 PRIVATE void input_free(INPUT input)
 {
-    marpa_obs_free(TOK_Obs_of_I(input));
     my_free( input);
 }
 
@@ -5468,8 +5466,6 @@ data.
 Once the bocage is built, the token data is all that
 it needs, and someday I may want to take advantage of
 this fact by freeing up the rest of recognizer memory.
-@d TOK_Obs_of_I(i)
-    ((i)->t_token_obs)
 @<Widely aligned input elements@> =
 struct marpa_obstack* t_token_obs;
 
@@ -6610,11 +6606,17 @@ attention in the source links.
 struct s_source;
 typedef struct s_source* SRC;
 @ @<Source object structure@>= 
+struct s_token_source {
+    NSYID t_nsyid;
+    int t_value;
+};
+
+@ @<Source object structure@>= 
 struct s_source {
      void * t_predecessor;
      union {
          void * t_completion;
-         TOK t_token;
+         struct s_token_source t_token;
      } t_cause;
 };
 
@@ -6660,12 +6662,13 @@ union u_source_container {
 @d TOK_of_SRC(source) TOK_of_Source(*(source))
 @d TOK_of_YIM(yim) TOK_of_Source(Source_of_YIM(yim))
 @d TOK_of_SRCL(link) TOK_of_Source(Source_of_SRCL(link))
-@d NSYID_of_Source(srcd) NSYID_of_TOK(TOK_of_Source(srcd))
+@d NSYID_of_Source(srcd) ((srcd).t_cause.t_token.t_nsyid)
 @d NSYID_of_SRC(source) NSYID_of_Source(*(source))
 @d NSYID_of_YIM(yim) NSYID_of_Source(Source_of_YIM(yim))
 @d NSYID_of_SRCL(link) NSYID_of_Source(Source_of_SRCL(link))
-@d Value_of_Source(srcd) Value_of_TOK(TOK_of_Source(srcd))
+@d Value_of_Source(srcd) ((srcd).t_cause.t_token.t_value)
 @d Value_of_SRC(source) Value_of_Source(*(source))
+@d Value_of_SRCL(link) Value_of_Source(Source_of_SRCL(link))
 
 @ @d Cause_AHMID_of_SRCL(srcl)
     AHMID_of_YIM((YIM)Cause_of_SRCL(srcl))
@@ -6686,7 +6689,7 @@ void
 tkn_link_add (RECCE r,
                 YIM item,
                 YIM predecessor,
-                TOK tkn)
+                ALT alternative)
 {
   SRCL new_link;
   unsigned int previous_source_type = Source_Type_of_YIM (item);
@@ -6695,7 +6698,8 @@ tkn_link_add (RECCE r,
       const SRCL source_link = SRCL_of_YIM(item);
       Source_Type_of_YIM (item) = SOURCE_IS_TOKEN;
       Predecessor_of_SRCL(source_link) = predecessor;
-      TOK_of_SRCL(source_link) = tkn;
+      NSYID_of_SRCL(source_link) = NSYID_of_ALT(alternative);
+      Value_of_SRCL(source_link) = Value_of_ALT(alternative);
       Next_SRCL_of_SRCL(source_link) = NULL;
       return;
     }
@@ -6706,7 +6710,8 @@ tkn_link_add (RECCE r,
   new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
   new_link->t_next = LV_First_Token_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  TOK_of_Source(new_link->t_source) = tkn;
+  NSYID_of_Source(new_link->t_source) = NSYID_of_ALT(alternative);
+  Value_of_Source(new_link->t_source) = Value_of_ALT(alternative);
   LV_First_Token_SRCL_of_YIM (item) = new_link;
 }
 
@@ -6830,74 +6835,6 @@ void earley_item_ambiguate (struct marpa_r * r, YIM item)
   LV_First_Token_SRCL_of_YIM (item) = NULL;
 }
 
-@** Token code (TOK).
-@ Tokens are duples of symbol ID and token value.
-They do {\bf not} store location information,
-so the same token
-can occur many times in a parse.
-On the other hand, duplicate tokens are also allowed.
-How much, if any, trouble to take to avoid duplication
-is up to the application --
-duplicates have their cost, but so does the
-tracking necessary to avoid them.
-@ My strong preference is that token values
-{\bf always} be integers, but
-token values are |void *|'s to allow applications
-full generality.
-Using |glib|, integers can portably be stored in a
-|void *|, but the reverse is not true.
-@ In my prefered semantic scheme, the integers are
-used by the higher levels to index the actual data.
-In this way no direct pointer to any data "owned"
-by the higher level is ever under libmarpa's control.
-Problems with mismatches between libmarpa and the
-higher levels are almost impossible to avoid in
-development
-and once an application gets in maintenance mode
-things become, if possible, worse.
-@ "But," you say, "pointers are faster,
-and mismatches occur whether
-you index the data with an integer or directly.
-So if you are in trouble either way, why not go
-for speed?"
-\par
-The above objection is true, but overlooks a very
-important issue.  A bad pointer can cause very
-serious problems --
-a core dump, or even worse, undetected data corruption.
-There is no good way to detect a bad pointer before it
-does it's damage.
-\par
-If an integer index, on the other hand, is out of bounds,
-the higher levels can catch this and react.
-Worst case, the higher level may have to throw a controlled
-fatal error.
-This is a much better than a core dump
-and far better than undetected data corruption.
-@<Private incomplete structures@> =
-struct s_token;
-typedef struct s_token* TOK;
-@ The |t_type| field is to allow |TOK|
-objects to act as or-nodes.
-@d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
-@d VALUED_TOKEN_SOURCE (2)
-@d UNVALUED_TOKEN_SOURCE (4)
-@d TOK_is_Valued(tok) ((tok)->t_unvalued.t_type == VALUED_TOKEN_SOURCE)
-@d TOK_is_Unvalued(tok) ((tok)->t_unvalued.t_type == UNVALUED_TOKEN_SOURCE)
-@d NSYID_of_TOK(tok) ((tok)->t_unvalued.t_nsyid)
-@d Value_of_TOK(tok) ((tok)->t_value)
-@<Private structures@> =
-struct s_token_unvalued {
-    int t_type;
-    NSYID t_nsyid;
-};
-struct s_token {
-    struct s_token_unvalued t_unvalued;
-    int t_value;
-};
-typedef struct s_token TOK_Object;
-
-@ @d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
 @ @<Initialize recognizer elements@> =
 {
   I_of_R(r) = input_new(g);
@@ -7508,14 +7445,8 @@ The return value means success, with no events.
 @ @<Scan an Earley item from alternative@> =
 {
   YS start_earley_set = Start_YS_of_ALT (alternative);
-  TOK tkn = marpa_obs_new (TOK_Obs_of_I (input), TOK_Object, 1);
-  const NSYID tkn_nsyid = NSYID_of_ALT (alternative);
-  PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set, tkn_nsyid);
-
-  NSYID_of_TOK (tkn) = tkn_nsyid;
-  Value_of_TOK (tkn) = Value_of_ALT (alternative);
-  Type_of_TOK (tkn) =
-    ALT_is_Valued (alternative) ? VALUED_TOKEN_SOURCE : UNVALUED_TOKEN_SOURCE;
+  PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set,
+    NSYID_of_ALT(alternative));
   for (; pim; pim = Next_PIM_of_PIM (pim))
     {
       const YIM predecessor = YIM_of_PIM (pim);
@@ -7536,7 +7467,7 @@ The return value means success, with no events.
 						      Origin_of_YIM
 						      (predecessor),
 						      scanned_aim);
-  tkn_link_add (r, scanned_earley_item, predecessor, tkn);
+  tkn_link_add (r, scanned_earley_item, predecessor, alternative);
 }
 
 @ @<Pre-populate the completion stack@> = {
@@ -14166,9 +14097,8 @@ Marpa_Symbol_ID _marpa_r_source_token(Marpa_Recognizer r, int *value_p)
    source_type = r->t_trace_source_type;
     @<Set source link, failing if necessary@>@;
     if (source_type == SOURCE_IS_TOKEN) {
-        const TOK tkn = TOK_of_SRCL(source_link);
-        if (value_p) *value_p = Value_of_TOK(tkn);
-        return NSYID_of_TOK(tkn);
+        if (value_p) *value_p = Value_of_SRCL(source_link);
+        return NSYID_of_SRCL(source_link);
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
