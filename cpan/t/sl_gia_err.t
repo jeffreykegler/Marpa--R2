@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 28;
+use Test::More tests => 30;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -122,6 +122,22 @@ Error in SLIF parse: No lexeme found at line 1, column 12
 * here: $ ::= a b c d e f\n
 END_OF_MESSAGE
     'Grammar with syntax error'
+];
+
+# test <>-wrapping of SLIF symbol names containing spaces
+
+my $non_unique_sequence_grammar = \(<<'END_OF_SOURCE');
+    <sequence of items> ::= item* proper => 1
+    <sequence of items> ::= <forty two>
+END_OF_SOURCE
+
+push @tests_data, [
+    $non_unique_sequence_grammar, 'n/a',
+    'SLIF grammar failed',
+    <<'END_OF_MESSAGE',
+LHS of sequence rule would not be unique: <sequence of items> -> <forty two>
+END_OF_MESSAGE
+    'Grammar with non-unique LHS sequence symbols'
 ];
 
 #####

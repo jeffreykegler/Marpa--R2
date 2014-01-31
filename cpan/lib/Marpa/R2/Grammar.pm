@@ -1422,8 +1422,7 @@ sub add_user_rule {
         $grammar_c->throw_set(1);
 
         if ( $ordinary_rule_id < 0 ) {
-            my $rule_description =
-                "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
+            my $rule_description = rule_description( $lhs_name, $rhs_names );
             my ( $error_code, $error_string ) = $grammar_c->error();
             $error_code //= -1;
             my $problem_description =
@@ -1488,7 +1487,7 @@ sub add_user_rule {
     );
     $grammar_c->throw_set(1);
     if ( not defined $original_rule_id or $original_rule_id < 0) {
-        my $rule_description = "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
+        my $rule_description = rule_description( $lhs_name, $rhs_names );
         my ( $error_code, $error_string ) = $grammar_c->error();
         $error_code //= -1;
         my $problem_description =
@@ -1526,6 +1525,13 @@ sub add_user_rule {
     return;
 
 } ## end sub add_user_rule
+
+sub rule_description {
+    my ( $lhs_name, $rhs_names ) = @_;
+    # wrap symbol names with whitespaces allowed by SLIF
+    $lhs_name = "<$lhs_name>" if $lhs_name =~ / /;
+    return "$lhs_name -> " . ( join q{ }, map { / / ? "<$_>" : $_ } @{$rhs_names} );
+} ## end sub rule_description
 
 sub set_start_symbol {
     my $grammar = shift;
