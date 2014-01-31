@@ -1912,6 +1912,8 @@ It is used in ranking, and is also convenient
 for tracing and debugging.
 @d Source_XSY_of_NSY(nsy) ((nsy)->t_source_xsy)
 @d Source_XSY_of_NSYID(nsyid) (Source_XSY_of_NSY(NSY_by_ID(nsyid)))
+@d Source_XSYID_of_NSYID(nsyid)
+  ID_of_XSY(Source_XSY_of_NSYID(nsyid))
 @<Widely aligned NSY elements@> = XSY t_source_xsy;
 @ @<Initialize NSY elements@> = Source_XSY_of_NSY(nsy) = NULL;
 @ @<Function definitions@> =
@@ -9687,22 +9689,21 @@ and are not traversed when traversing or-nodes by ID.
 {
   OR new_token_or_node;
   OR dand_predecessor;
-  const TOK tkn = TOK_of_SRC(token_source);
+  const NSYID token_nsyid = NSYID_of_SRC (token_source);
   dand_predecessor = safe_or_from_yim(per_ys_data,
     predecessor_earley_item);
   MARPA_DEBUG2 ("At %s", STRLOC);
-  if (TOK_is_Valued (tkn))
+  if (NSYID_is_Valued_in_B(b, token_nsyid))
     {
       new_token_or_node = (OR) marpa_obs_new (OBS_of_B (b), OR_Object, 1);
       /* Probably can use smaller allocation */
       Type_of_OR (new_token_or_node) = VALUED_TOKEN_OR_NODE;
-      NSYID_of_OR (new_token_or_node) = NSYID_of_SRC (token_source);
+      NSYID_of_OR (new_token_or_node) = token_nsyid;
       Value_of_OR (new_token_or_node) = Value_of_SRC (token_source);
     }
   else
     {
-      MARPA_ASSERT(TOK_is_Unvalued(tkn));
-      new_token_or_node = Unvalued_OR_by_NSYID(NSYID_of_SRC(token_source));
+      new_token_or_node = Unvalued_OR_by_NSYID(token_nsyid);
     }
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
 		      dand_predecessor, new_token_or_node);
@@ -9944,6 +9945,10 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
 @ @d Valued_BV_of_B(b) ((b)->t_valued_bv)
 @d Valued_Locked_BV_of_B(b) ((b)->t_valued_locked_bv)
+@d XSYID_is_Valued_in_B(b, xsyid)
+  (lbv_bit_test(Valued_BV_of_B(b), (xsyid)))
+@d NSYID_is_Valued_in_B(b, nsyid)
+  XSYID_is_Valued_in_B((b), Source_XSYID_of_NSYID(nsyid))
 @<Widely aligned bocage elements@> =
     LBV t_valued_bv;
     LBV t_valued_locked_bv;
