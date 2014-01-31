@@ -6228,6 +6228,8 @@ should not be restrictive in practice.
 @d YIM_ORDINAL_WIDTH 16
 @d YIM_ORDINAL_CLAMP(x) (((1<<(YIM_ORDINAL_WIDTH))-1) & (x))
 @d YIM_FATAL_THRESHOLD ((1<<(YIM_ORDINAL_WIDTH))-2)
+@d YIM_is_Rejected(yim) ((yim)->t_is_rejected)
+@d YIM_is_Active(yim) ((yim)->t_is_active)
 @<Earley item structure@> =
 struct s_earley_item_key {
      AHM t_aim;
@@ -6240,7 +6242,8 @@ struct s_earley_item {
      union u_source_container t_container;
      BITFIELD t_ordinal:YIM_ORDINAL_WIDTH;
     BITFIELD t_source_type:3;
-    BITFIELD t_rejected:1;
+    BITFIELD t_is_rejected:1;
+    BITFIELD t_is_active:1;
 };
 typedef struct s_earley_item YIM_Object;
 
@@ -6264,7 +6267,8 @@ PRIVATE YIM earley_item_create(const RECCE r,
   new_item = marpa_obs_new (r->t_obs, struct s_earley_item, 1);
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
-  new_item->t_rejected = 0;
+  YIM_is_Rejected(new_item) = 0;
+  YIM_is_Active(new_item) = 1;
   Ord_of_YIM(new_item) = YIM_ORDINAL_CLAMP((unsigned int)count - 1);
   end_of_work_stack = WORK_YIM_PUSH(r);
   *end_of_work_stack = new_item;
@@ -6526,13 +6530,19 @@ struct s_token_source {
     int t_value;
 };
 
-@ @<Source object structure@>= 
+@ {\bf To Do}: @^To Do@>
+There are a lot of these and some tricks to reduce the
+space used can be justified.
+@<Source object structure@>= 
 struct s_source {
      void * t_predecessor;
      union {
          void * t_completion;
          struct s_token_source t_token;
      } t_cause;
+     BITFIELD t_is_rejected:1;
+     BITFIELD t_is_active:1;
+     /* A type field could go here */
 };
 
 @ @<Private typedefs@> =
@@ -6585,6 +6595,9 @@ union u_source_container {
 @d Value_of_SRC(source) Value_of_Source(*(source))
 @d Value_of_SRCL(link) Value_of_Source(Source_of_SRCL(link))
 
+@d SRCL_is_Active(link) ((link)->t_source.t_is_active)
+@d SRCL_is_Rejected(link) ((link)->t_source.t_is_rejected)
+
 @ @d Cause_AHMID_of_SRCL(srcl)
     AHMID_of_YIM((YIM)Cause_of_SRCL(srcl))
 @d Leo_Transition_NSYID_of_SRCL(leo_source_link)
@@ -6598,6 +6611,17 @@ union u_source_container {
   ( Source_Type_of_YIM(item) == SOURCE_IS_LEO ? (SRCL)SRCL_of_YIM(item) :
   Source_Type_of_YIM(item) == SOURCE_IS_AMBIGUOUS ? 
     LV_First_Leo_SRCL_of_YIM(item) : NULL)
+
+@ Creates unique (that is, not ambiguous) SRCL's.
+@<Function definitions@> =
+PRIVATE
+SRCL unique_srcl_new( struct marpa_obstack* t_obs)
+{
+  const SRCL new_srcl = marpa_obs_new (t_obs, SRCL_Object, 1);
+  SRCL_is_Rejected(new_srcl) = 0;
+  SRCL_is_Active(new_srcl) = 1;
+  return new_srcl;
+}
 
 @ @<Function definitions@> = PRIVATE
 void
@@ -6622,7 +6646,7 @@ tkn_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
+  new_link = unique_srcl_new (r->t_obs);
   new_link->t_next = LV_First_Token_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
   NSYID_of_Source(new_link->t_source) = NSYID_of_ALT(alternative);
@@ -6653,7 +6677,7 @@ completion_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
+  new_link = unique_srcl_new (r->t_obs);
   new_link->t_next = LV_First_Completion_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
@@ -6682,7 +6706,7 @@ leo_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
+  new_link = unique_srcl_new (r->t_obs);
   new_link->t_next = LV_First_Leo_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
