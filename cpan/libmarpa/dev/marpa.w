@@ -6866,9 +6866,12 @@ typedef struct s_token* TOK;
 @ The |t_type| field is to allow |TOK|
 objects to act as or-nodes.
 @d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
-@d TOK_is_Valued(tok) ((tok)->t_unvalued.t_type = VALUED_TOKEN_OR_NODE)
-@d TOK_is_Nulling(tok) ((tok)->t_unvalued.t_type = NULLING_TOKEN_OR_NODE)
-@d TOK_is_Unvalued(tok) ((tok)->t_unvalued.t_type = UNVALUED_TOKEN_OR_NODE)
+@d VALUED_TOKEN_SOURCE (-2)
+@d NULLING_TOKEN_SOURCE (-3)
+@d UNVALUED_TOKEN_SOURCE (-4)
+@d TOK_is_Valued(tok) ((tok)->t_unvalued.t_type == VALUED_TOKEN_SOURCE)
+@d TOK_is_Nulling(tok) ((tok)->t_unvalued.t_type == NULLING_TOKEN_SOURCE)
+@d TOK_is_Unvalued(tok) ((tok)->t_unvalued.t_type == UNVALUED_TOKEN_SOURCE)
 @d NSYID_of_TOK(tok) ((tok)->t_unvalued.t_nsyid)
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
@@ -7312,7 +7315,7 @@ altered by the attempt.
       tkn =
 	marpa_obs_start (TOK_Obs_of_I (input), sizeof (*tkn), ALIGNOF (TOK));
       NSYID_of_TOK (tkn) = tkn_nsyid;
-      Type_of_TOK (tkn) = VALUED_TOKEN_OR_NODE;
+      Type_of_TOK (tkn) = VALUED_TOKEN_SOURCE;
       Value_of_TOK (tkn) = value;
     }
   else
@@ -7321,7 +7324,7 @@ altered by the attempt.
 	marpa_obs_start (TOK_Obs_of_I (input), sizeof (tkn->t_unvalued),
 			 ALIGNOF (struct s_token_unvalued));
       NSYID_of_TOK (tkn) = tkn_nsyid;
-      Type_of_TOK (tkn) = UNVALUED_TOKEN_OR_NODE;
+      Type_of_TOK (tkn) = UNVALUED_TOKEN_SOURCE;
     }
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
@@ -8983,10 +8986,10 @@ for final or-nodes.
 Position is |DUMMY_OR_NODE| for dummy or-nodes,
 and less than or equal to |MAX_TOKEN_OR_NODE|
 if the or-node is actually a symbol.
-It is |VALUED_TOKEN_OR_NODE} if the token has
+It is |VALUED_TOKEN_OR_NODE| if the token has
 a value assigned,
-|NULLING_TOKEN_OR_NODE} if the token is nulling,
-and |UNVALUED_TOKEN_OR_NODE} if the token is non-nulling,
+|NULLING_TOKEN_OR_NODE| if the token is nulling,
+and |UNVALUED_TOKEN_OR_NODE| if the token is non-nulling,
 but has no value assigned.
 Position is the dot position.
 @d DUMMY_OR_NODE -1
