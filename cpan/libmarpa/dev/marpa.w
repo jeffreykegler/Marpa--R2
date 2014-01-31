@@ -6866,11 +6866,9 @@ typedef struct s_token* TOK;
 @ The |t_type| field is to allow |TOK|
 objects to act as or-nodes.
 @d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
-@d VALUED_TOKEN_SOURCE (-2)
-@d NULLING_TOKEN_SOURCE (-3)
-@d UNVALUED_TOKEN_SOURCE (-4)
+@d VALUED_TOKEN_SOURCE (2)
+@d UNVALUED_TOKEN_SOURCE (4)
 @d TOK_is_Valued(tok) ((tok)->t_unvalued.t_type == VALUED_TOKEN_SOURCE)
-@d TOK_is_Nulling(tok) ((tok)->t_unvalued.t_type == NULLING_TOKEN_SOURCE)
 @d TOK_is_Unvalued(tok) ((tok)->t_unvalued.t_type == UNVALUED_TOKEN_SOURCE)
 @d NSYID_of_TOK(tok) ((tok)->t_unvalued.t_nsyid)
 @d Value_of_TOK(tok) ((tok)->t_value)
@@ -9685,12 +9683,9 @@ and are not traversed when traversing or-nodes by ID.
     {
       Type_of_OR (new_token_or_node) = VALUED_TOKEN_OR_NODE;
     }
-  else if (TOK_is_Nulling (tkn))
-    {
-      Type_of_OR (new_token_or_node) = NULLING_TOKEN_OR_NODE;
-    }
   else
     {
+      MARPA_ASSERT(TOK_is_Unvalued(tkn));
       Type_of_OR (new_token_or_node) = UNVALUED_TOKEN_OR_NODE;
     }
   NSYID_of_OR (new_token_or_node) = NSYID_of_TOK (tkn);
