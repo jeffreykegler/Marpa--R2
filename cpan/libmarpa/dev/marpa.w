@@ -7329,15 +7329,8 @@ altered by the attempt.
   going to be used */
   const ALT alternative = &alternative_object;
   NSYID_of_ALT (alternative) = tkn_nsyid;
-  if (value)
-    {
-      ALT_is_Valued(alternative) = 1;
-      Value_of_ALT (alternative) = value;
-    }
-  else
-    {
-      ALT_is_Valued(alternative) = 0;
-    }
+  Value_of_ALT (alternative) = value;
+  ALT_is_Valued(alternative) = value ? 1 : 0;
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
   alternative->t_start_earley_set = current_earley_set;

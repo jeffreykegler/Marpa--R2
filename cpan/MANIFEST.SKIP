@@ -117,6 +117,11 @@
 ^libmarpa/dev/marpa[.]scn$
 ^libmarpa/dev/marpa[.]tex$
 ^libmarpa/dev/marpa[.]toc$
+^libmarpa/dev/legacy[.]idx$
+^libmarpa/dev/legacy[.]log$
+^libmarpa/dev/legacy[.]scn$
+^libmarpa/dev/legacy[.]tex$
+^libmarpa/dev/legacy[.]toc$
 ^libmarpa/dev/marpa_int[.]h$
 ^libmarpa/dev/marpa_util[.]h$
 ^libmarpa/dev/old_pod/

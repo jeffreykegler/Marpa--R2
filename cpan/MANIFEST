@@ -146,6 +146,7 @@ libmarpa/dev/README
 libmarpa/dev/api.texi
 libmarpa/dev/internal.texi
 libmarpa/dev/marpa.w
+libmarpa/dev/legacy.w
 libmarpa/dev/w2private_h.pl
 libmarpa/obs/marpa_obs.c
 libmarpa/obs/marpa_obs.h
