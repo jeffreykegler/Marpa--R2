@@ -6890,6 +6890,7 @@ struct s_token {
     struct s_token_unvalued t_unvalued;
     int t_value;
 };
+typedef struct s_token TOK_Object;
 
 @ @d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
 @ @<Initialize recognizer elements@> =
@@ -6905,16 +6906,19 @@ struct s_alternative;
 typedef struct s_alternative* ALT;
 typedef const struct s_alternative* ALT_Const;
 @
-@d TOK_of_ALT(alt) ((alt)->t_token)
-@d NSYID_of_ALT(alt) NSYID_of_TOK(TOK_of_ALT(alt))
+@d NSYID_of_ALT(alt) ((alt)->t_nsyid)
+@d Value_of_ALT(alt) ((alt)->t_value)
+@d ALT_is_Valued(alt) ((alt)->t_is_valued)
 @d Start_YS_of_ALT(alt) ((alt)->t_start_earley_set)
 @d Start_Earleme_of_ALT(alt) Earleme_of_YS(Start_YS_of_ALT(alt))
 @d End_Earleme_of_ALT(alt) ((alt)->t_end_earleme)
 @<Private structures@> =
 struct s_alternative {
-    TOK t_token;
     YS t_start_earley_set;
     JEARLEME t_end_earleme;
+    NSYID t_nsyid;
+    int t_value;
+    BITFIELD t_is_valued:1;
 };
 typedef struct s_alternative ALT_Object;
 
@@ -7314,37 +7318,29 @@ The Earley sets and items will not have been
 altered by the attempt.
 @<Insert alternative into stack, failing if token is duplicate@> =
 {
-  TOK tkn;
-  ALT_Object alternative;
-  struct marpa_obstack *const tkn_obstack = TOK_Obs_of_I (input);
+  ALT_Object alternative_object; /* This is safe on the stack,
+  because |alternative_insert()| will copy it if it is actually
+  going to be used */
+  const ALT alternative = &alternative_object;
+  NSYID_of_ALT (alternative) = tkn_nsyid;
   if (value)
     {
-      tkn =
-	marpa_obs_start (TOK_Obs_of_I (input), sizeof (*tkn), ALIGNOF (TOK));
-      NSYID_of_TOK (tkn) = tkn_nsyid;
-      Type_of_TOK (tkn) = VALUED_TOKEN_SOURCE;
-      Value_of_TOK (tkn) = value;
+      ALT_is_Valued(alternative) = 1;
+      Value_of_ALT (alternative) = value;
     }
   else
     {
-      tkn =
-	marpa_obs_start (TOK_Obs_of_I (input), sizeof (tkn->t_unvalued),
-			 ALIGNOF (struct s_token_unvalued));
-      NSYID_of_TOK (tkn) = tkn_nsyid;
-      Type_of_TOK (tkn) = UNVALUED_TOKEN_SOURCE;
+      ALT_is_Valued(alternative) = 0;
     }
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
-  alternative.t_token = tkn;
-  alternative.t_start_earley_set = current_earley_set;
-  alternative.t_end_earleme = target_earleme;
-  if (alternative_insert (r, &alternative) < 0)
+  alternative->t_start_earley_set = current_earley_set;
+  alternative->t_end_earleme = target_earleme;
+  if (alternative_insert (r, alternative) < 0)
     {
-      marpa_obs_reject (tkn_obstack);
       MARPA_ERROR (MARPA_ERR_DUPLICATE_TOKEN);
       return MARPA_ERR_DUPLICATE_TOKEN;
     }
-  tkn = marpa_obs_finish (tkn_obstack);
 }
 
 @** Complete an Earley set.
@@ -7511,20 +7507,24 @@ The return value means success, with no events.
 @ @<Scan an Earley item from alternative@> =
 {
   YS start_earley_set = Start_YS_of_ALT (alternative);
-  TOK tkn = TOK_of_ALT (alternative);
-  NSYID tkn_nsyid = NSYID_of_TOK (tkn);
+  TOK tkn = marpa_obs_new (TOK_Obs_of_I (input), TOK_Object, 1);
+  const NSYID tkn_nsyid = NSYID_of_ALT (alternative);
   PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set, tkn_nsyid);
+
+  NSYID_of_TOK (tkn) = tkn_nsyid;
+  Value_of_TOK (tkn) = Value_of_ALT (alternative);
+  Type_of_TOK (tkn) =
+    ALT_is_Valued (alternative) ? VALUED_TOKEN_SOURCE : UNVALUED_TOKEN_SOURCE;
   for (; pim; pim = Next_PIM_of_PIM (pim))
     {
       const YIM predecessor = YIM_of_PIM (pim);
-      if (!predecessor)
-	continue;		// Ignore Leo items when scanning
-
+      if (predecessor)
 	{
-          const AHM predecessor_aim = AHM_of_YIM(predecessor);
-          const AHM scanned_aim = Next_AHM_of_AHM(predecessor_aim);
-        @<Create the earley items for |scanned_aim|@> @;
-        }
+          // Ignore Leo items when scanning
+	  const AHM predecessor_aim = AHM_of_YIM (predecessor);
+	  const AHM scanned_aim = Next_AHM_of_AHM (predecessor_aim);
+	  @<Create the earley items for |scanned_aim|@>@;
+	}
     }
 }
 
