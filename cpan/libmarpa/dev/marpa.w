@@ -54,7 +54,6 @@
 \def\size#1{\v #1\v}
 \def\gsize{\v g\v}
 \def\wsize{\v w\v}
-\def\comment{\vskip\baselineskip}
 
 @q Unreserve the C++ keywords @>
 @s asm normal
@@ -669,10 +668,12 @@ Marpa_Grammar marpa_g_new (Marpa_Config* configuration)
         return NULL;
     }
     g = my_malloc(sizeof(struct marpa_g));
-    /* \comment Set |t_is_ok| to a bad value, just in case */
+    @t}\7\4\4{@>
+    /* Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;
     @<Initialize grammar elements@>@;
-    /* \comment Properly initialized, so set |t_is_ok| to its proper value */
+    @t}\7\4\4{@>
+    /* Properly initialized, so set |t_is_ok| to its proper value */
     g->t_is_ok = I_AM_OK;
    return g;
 }
@@ -1046,7 +1047,8 @@ the locations of |MARPA_DSTACK| elements to change.
 PRIVATE
 void event_new(GRAMMAR g, int type)
 {
-  /* \comment may change base of dstack */
+    @t}\7\4\4{@>
+  /* may change base of dstack */
   GEV end_of_stack = G_EVENT_PUSH(g);
   end_of_stack->t_type = type;
   end_of_stack->t_value = 0;
@@ -1055,7 +1057,8 @@ void event_new(GRAMMAR g, int type)
 PRIVATE
 void int_event_new(GRAMMAR g, int type, int value)
 {
-  /* \comment may change base of dstack */
+  /* may change base of dstack */
+    @t}\7\4\4{@>
   GEV end_of_stack = G_EVENT_PUSH(g);
   end_of_stack->t_type = type;
   end_of_stack->t_value =  value;
@@ -2270,7 +2273,8 @@ duplicate_rule_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
   if (diff)
     return diff;
   {
-    /* \comment Length is a key in-between LHS.  That way
+    @t}\7\4\4{@>
+    /* Length is a key in-between LHS.  That way
       we only need to compare the RHS of
       rules of the same length */
     int ix;
@@ -3060,23 +3064,28 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
 
-    /* \comment After this point, errors are not recoverable */
+    @t}\7\4\4{@>
+    /* After this point, errors are not recoverable */
 
     @<Clear rule duplication tree@>@;
-    /* \comment Phase 1: census the external grammar */
+
+    @t}\7\4\4{@>
+    /* Phase 1: census the external grammar */
     { /* Scope with only external grammar */
         @<Declare census variables@>@;
         @<Perform census of grammar |g|@>@;
         @<Detect cycles@>@;
     }
 
-    //  \comment Phase 2: rewrite the grammar into internal form 
+    @t}\7\4\4{@>
+    //  Phase 2: rewrite the grammar into internal form 
     @<Initialize IRL stack@>@;
     @<Initialize NSY stack@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
 
-    /* \comment Phase 3: memoize the internal grammar */
+    @t}\7\4\4{@>
+    /* Phase 3: memoize the internal grammar */
      if (!G_is_Trivial(g)) {
         @<Declare variables for the internal grammar
         memoizations@>@;
@@ -3229,7 +3238,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 {
   Marpa_Rule_ID rule_id;
 
-  /* \comment AVL tree for RHS symbols */
+    @t}\7\4\4{@>
+  /* AVL tree for RHS symbols */
   const MARPA_AVL_TREE rhs_avl_tree = _marpa_avl_create (sym_rule_cmp, NULL);
     /* Size of G is sum of RHS lengths, plus 1 for each rule, which here is necessary
     for separator of sequences */
@@ -3238,7 +3248,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
                     (size_t)External_Size_of_G (g));
   struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
 
-  /* \comment AVL tree for LHS symbols */
+    @t}\7\4\4{@>
+  /* AVL tree for LHS symbols */
   const MARPA_AVL_TREE lhs_avl_tree = _marpa_avl_create (sym_rule_cmp, NULL);
   struct sym_rule_pair *const p_lh_sym_rule_pair_base =
     marpa_obs_new (MARPA_AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
@@ -3256,7 +3267,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 
       bv_bit_set (lhs_v, lhs_id);
 
-      /* \comment Insert the LH Sym / XRL pair into the LH AVL tree */
+    @t}\7\4\4{@>
+      /* Insert the LH Sym / XRL pair into the LH AVL tree */
       p_lh_sym_rule_pairs->t_symid = lhs_id;
         p_lh_sym_rule_pairs->t_ruleid = rule_id;
       _marpa_avl_insert (lhs_avl_tree, p_lh_sym_rule_pairs);
@@ -3301,7 +3313,9 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       marpa_obs_new (obs_precompute, RULEID, (size_t)External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
     traverser = _marpa_avl_t_init (rhs_avl_tree);
-    /* \comment One extra "symbol" as an end marker */
+
+    @t}\7\4\4{@>
+    /* One extra "symbol" as an end marker */
     xrl_list_x_rh_sym =
       marpa_obs_new (obs_precompute, RULEID *, (size_t)pre_census_xsy_count + 1);
     for (pair = _marpa_avl_t_first (traverser); pair;
@@ -3325,7 +3339,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       marpa_obs_new (obs_precompute, RULEID, (size_t)xrl_count);
     RULEID *p_rule_data = rule_data_base;
     traverser = _marpa_avl_t_init (lhs_avl_tree);
-    /* \comment One extra "symbol" as an end marker */
+    @t}\7\4\4{@>
+    /* One extra "symbol" as an end marker */
     xrl_list_x_lh_sym =
       marpa_obs_new (obs_precompute, RULEID *, (size_t)pre_census_xsy_count + 1);
     for (pair = _marpa_avl_t_first (traverser); pair;
@@ -3354,7 +3369,8 @@ and a flag which indicates if there are any.
   for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
       XSY symbol = XSY_by_ID (symid);
-          /* \comment If marked by the user, leave the symbol
+    @t}\7\4\4{@>
+          /* If marked by the user, leave the symbol
              as set by the user, and update the boolean vector */
       if (XSY_is_Locked_Terminal (symbol))
         {
@@ -3366,7 +3382,8 @@ and a flag which indicates if there are any.
           bv_bit_clear (terminal_v, symid);
           continue;
         }
-      /* \comment If not marked by the user, take the default
+    @t}\7\4\4{@>
+      /* If not marked by the user, take the default
          from the boolean vector and mark the symbol,
          if necessary. */
       if (bv_bit_test (terminal_v, symid))
@@ -3614,43 +3631,53 @@ But currently we don't both -- we just mark the rule unproductive.
   const XSY rh_xsy = XSY_by_ID (rhs_id);
   const XSYID separator_id = Separator_of_XRL (xrl);
 
-     /* \comment A sequence rule is nullable if it can be zero length or
+    @t}\7\4\4{@>
+     /* A sequence rule is nullable if it can be zero length or
     if its RHS is nullable */
   XRL_is_Nullable (xrl) = Minimum_of_XRL (xrl) <= 0
     || XSY_is_Nullable (rh_xsy);@;
 
-     /* \comment A sequence rule is nulling if its RHS is nulling */
+    @t}\7\4\4{@>
+     /* A sequence rule is nulling if its RHS is nulling */
   XRL_is_Nulling (xrl) = XSY_is_Nulling (rh_xsy);
     
-     /* \comment A sequence rule is productive
+    @t}\7\4\4{@>
+     /* A sequence rule is productive
      if it is nulling or if its RHS is productive */
   XRL_is_Productive (xrl) = XRL_is_Nullable (xrl) || XSY_is_Productive (rh_xsy);
 
-  // \comment Initialize to used if accessible and RHS is productive
+    @t}\7\4\4{@>
+  // Initialize to used if accessible and RHS is productive
   XRL_is_Used (xrl) = XRL_is_Accessible (xrl) && XSY_is_Productive (rh_xsy);
 
-  // \comment Touch-ups to account for the separator
+    @t}\7\4\4{@>
+  // Touch-ups to account for the separator
   if (separator_id >= 0)
     {
       const XSY separator_xsy = XSY_by_ID (separator_id);
-        /* \comment A non-nulling separator means a non-nulling rule */
+
+    @t}\7\4\4{@>
+        /* A non-nulling separator means a non-nulling rule */
       if (!XSY_is_Nulling (separator_xsy))
         {
           XRL_is_Nulling (xrl) = 0;
         }
 
-          /* \comment A unproductive separator means a unproductive rule,
+    @t}\7\4\4{@>
+          /* A unproductive separator means a unproductive rule,
           unless it is nullable.  */
       if (_MARPA_UNLIKELY(!XSY_is_Productive (separator_xsy)))
         {
           XRL_is_Productive (xrl) = XRL_is_Nullable(xrl);
 
-          // \comment Do not use a sequence rule with an unproductive separator
+    @t}\7\4\4{@>
+          // Do not use a sequence rule with an unproductive separator
           XRL_is_Used(xrl) = 0;
         }
   }
 
-  // \comment Do not use if nulling
+    @t}\7\4\4{@>
+  // Do not use if nulling
   if (XRL_is_Nulling (xrl)) XRL_is_Used (xrl) = 0;
 }
 
@@ -3666,7 +3693,8 @@ and cause an error in the recognizer.
 @<Mark valued symbols@> = 
 if (0)
   {
-    /* \comment Commented out.  The LHS terminal user is a sophisticated
+    @t}\7\4\4{@>
+    /* Commented out.  The LHS terminal user is a sophisticated
        user so it is probably the better course to allow her the
        choice.  */
     XSYID xsy_id;
@@ -4025,7 +4053,8 @@ rule.
     int second_factor_position = factor_positions[factor_position_ix+1];
     if (second_factor_position >= nullable_suffix_ix) {
         piece_end = second_factor_position-1;
-        /* \comment The last factor is in the nullable suffix,
+    @t}\7\4\4{@>
+        /* The last factor is in the nullable suffix,
             so the virtual RHS must be nullable */
         @<Create a CHAF virtual symbol@>@;
         @<Add CHAF rules for nullable continuation@>@;
@@ -6898,9 +6927,11 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
   int insertion_point = alternative_insertion_point (r, new_alternative);
   if (insertion_point < 0)
     return insertion_point;
-  // \comment may change base
+    @t}\7\4\4{@>
+  // may change base
   end_of_stack = MARPA_DSTACK_PUSH(*alternatives, ALT_Object);
-  // \comment base will not change after this
+    @t}\7\4\4{@>
+  // base will not change after this
   base_of_stack = MARPA_DSTACK_BASE(*alternatives, ALT_Object);
    for (ix = end_of_stack-base_of_stack; ix > insertion_point; ix--) {
        base_of_stack[ix] = base_of_stack[ix-1];
@@ -7283,7 +7314,8 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
   YS current_earley_set;
   JEARLEME current_earleme;
 
-  /* \comment Initialized to -2 just in case.
+    @t}\7\4\4{@>
+  /* Initialized to -2 just in case.
     Should be set before returning;
    */
   JEARLEME return_value = -2;
@@ -7308,7 +7340,8 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
     @<Add predictions@>@;
     postdot_items_create(r, bv_ok_for_chain, current_earley_set);
 
-      /* \comment If no terminals are expected, and there are no Earley items in
+    @t}\7\4\4{@>
+      /* If no terminals are expected, and there are no Earley items in
            uncompleted Earley sets, we can make no further progress.
            The parse is ``exhausted". */
     count_of_expected_terminals = bv_count (r->t_bv_nsyid_is_expected);
@@ -8101,7 +8134,8 @@ problems.
      is not added to a LIM chain again for this Earley set */
   while (1)
     {
-      /* \comment I know at this point that
+    @t}\7\4\4{@>
+      /* I know at this point that
        |predecessor_lim| is unpopulated, so I also know that
        |lim_to_process| is unpopulated.  This means I also know that
        |lim_to_process| is in the current Earley set, because all LIMs
@@ -8130,7 +8164,8 @@ problems.
                     postdot_nsyid_of_lim_to_process);
       /* Make sure this LIM
          is not added to a LIM chain again for this Earley set */
-        /* \comment |predecesssor_lim = NULL|,
+    @t}\7\4\4{@>
+        /* |predecesssor_lim = NULL|,
        so that we are forced to break the LIM chain before it */
       if (!predecessor_lim)
         break;                 
@@ -8163,7 +8198,8 @@ Secondary optimzations ensure this is fairly cheap as well.
 {
   const AHM new_top_aim = Top_AHM_of_LIM (predecessor_lim);
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-  /* \comment Initialize to be just the predcessor's list of AHM IDs.
+    @t}\7\4\4{@>
+  /* Initialize to be just the predcessor's list of AHM IDs.
        Overwrite if we need to add another. */
   CIL_of_LIM (lim_to_process) = predecessor_cil;        
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
@@ -8655,19 +8691,13 @@ never on the stack.
     UR_Const ur_node;
     const URS ur_node_stack = URS_of_R(r);
     ur_node_stack_reset(ur_node_stack);
-    {
-       const YIM ur_earley_item = start_yim;
-        @<Push ur-node if new@>@;
-    }
+    @t}\7\4\4{@>
+    /* |start_yim| is never rejected */
+    push_ur_if_new (per_ys_data, ur_node_stack, start_yim);
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
-        const YIM_Const parent_earley_item = YIM_of_UR(ur_node);
-        const AHM parent_aim = AHM_of_YIM(parent_earley_item);
-        MARPA_ASSERT(parent_aim >= AHM_by_ID(1))@;
-        const AHM predecessor_aim = parent_aim - 1;
-        /* Note that the postdot symbol of the predecessor is NOT necessarily the
-           predot symbol, because there may be nulling symbols in between. */
-        unsigned int source_type = Source_Type_of_YIM (parent_earley_item);
+        const YIM parent_earley_item = YIM_of_UR(ur_node);
+        const unsigned int source_type = Source_Type_of_YIM (parent_earley_item);
         MARPA_ASSERT(!YIM_was_Predicted(parent_earley_item))@;
         @<Push child Earley items from token sources@>@;
         @<Push child Earley items from completion sources@>@;
@@ -8675,12 +8705,15 @@ never on the stack.
     }
 }
 
-@ @<Push ur-node if new@> = {
-    if (!psi_test_and_set
-        (per_ys_data, ur_earley_item))
-      {
-        ur_node_push (ur_node_stack, ur_earley_item);
-      }
+@ @<Function definitions@> = 
+PRIVATE void push_ur_if_new(
+    struct s_bocage_setup_per_ys* per_ys_data,
+    URS ur_node_stack, YIM yim)
+{
+  if (!psi_test_and_set (per_ys_data, yim))
+    {
+      ur_node_push (ur_node_stack, yim);
+    }
 }
 
 @ The |PSI| is a container of data that is per Earley-set,
@@ -8718,9 +8751,11 @@ PRIVATE int psi_test_and_set(
     case SOURCE_IS_AMBIGUOUS:
       source_link = LV_First_Token_SRCL_of_YIM (parent_earley_item);
     }
-  while (source_link || token_source) {
+  while (source_link || token_source)
+    {
       YIM predecessor_earley_item;
-      if (source_link) token_source = SRC_of_SRCL (source_link);
+      if (source_link)
+	token_source = SRC_of_SRCL (source_link);
       predecessor_earley_item = Predecessor_of_SRC (token_source);
       if (!predecessor_earley_item)
 	continue;
@@ -8731,11 +8766,11 @@ PRIVATE int psi_test_and_set(
 	}
       else
 	{
-	  const YIM ur_earley_item = predecessor_earley_item;
-	  @<Push ur-node if new@>@;
+	  push_ur_if_new (per_ys_data, ur_node_stack,
+			  predecessor_earley_item);
 	}
-       token_source = NULL;
-       source_link = source_link ? Next_SRCL_of_SRCL (source_link) : NULL;
+      token_source = NULL;
+      source_link = source_link ? Next_SRCL_of_SRCL (source_link) : NULL;
     }
 }
 
@@ -8780,20 +8815,16 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
 	{
 	  if (YIM_was_Predicted (predecessor_earley_item))
 	    {
-	       Set_boolean_in_PSI_for_initial_nulls
-		(per_ys_data,
-		 predecessor_earley_item);
+	      Set_boolean_in_PSI_for_initial_nulls
+		(per_ys_data, predecessor_earley_item);
 	    }
 	  else
 	    {
-	      const YIM ur_earley_item = predecessor_earley_item;
-	      @<Push ur-node if new@>@;
+	      push_ur_if_new (per_ys_data, ur_node_stack,
+			      predecessor_earley_item);
 	    }
 	}
-      {
-	const YIM ur_earley_item = cause_earley_item;
-	@<Push ur-node if new@>@;
-      }
+      push_ur_if_new (per_ys_data, ur_node_stack, cause_earley_item);
       if (!source_link)
 	break;
       predecessor_earley_item = Predecessor_of_SRCL (source_link);
@@ -8811,23 +8842,21 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
       const YIM cause_earley_item = Cause_of_SRCL (source_link);
       LIM leo_predecessor = LIM_of_SRCL (source_link);
       {
-        const YIM ur_earley_item = cause_earley_item;
-        @<Push ur-node if new@>@;
+	    push_ur_if_new (per_ys_data, ur_node_stack,
+         cause_earley_item);
       }
       while (leo_predecessor)
         {
           const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
           if (YIM_was_Predicted (leo_base_yim))
             {
-                const AHM leo_final_aim = Base_to_AHM_of_LIM(leo_predecessor);
-                const AHM prediction_aim = Prev_AHM_of_AHM(leo_final_aim);
                 Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
                                                        leo_base_yim);
             }
           else
             {
-              const YIM ur_earley_item = leo_base_yim;
-              @<Push ur-node if new@>@;
+	    push_ur_if_new (per_ys_data, ur_node_stack,
+               leo_base_yim);
             }
           leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor);
         }
@@ -8951,9 +8980,10 @@ Top_ORID_of_B(b) = -1;
 
 @ @<Destroy bocage elements, main phase@> =
 {
-  grammar_unref (G_of_B(b));
   OR* or_nodes = ORs_of_B (b);
   AND and_nodes = ANDs_of_B (b);
+
+  grammar_unref (G_of_B(b));
   my_free (or_nodes);
   ORs_of_B (b) = NULL;
   my_free (and_nodes);
@@ -11524,8 +11554,10 @@ for the rule.
               return Step_Type_of_V (v) = MARPA_STEP_NULLING_SYMBOL;
           }
           
-          /* \comment No tracing of nulling valuators, at least at this point */
-          /* \comment Fall through */
+    @t}\7\4\4{@>
+          /* No tracing of nulling valuators, at least at this point */
+    @t}\7\4\4{@>
+          /* Fall through */
         }
     }
 }
@@ -11534,7 +11566,8 @@ for the rule.
 {
     AND and_nodes;
 
-    /* \comment flag to indicate whether the arguments of
+    @t}\7\4\4{@>
+    /* flag to indicate whether the arguments of
        a rule should be popped off the stack.  Coming
        into this loop that is always the case -- if
        no rule was executed, this is a no-op. */
@@ -12650,7 +12683,8 @@ PRIVATE void cil_buffer_clear(CILAR cilar)
 {
   const MARPA_DSTACK dstack = &cilar->t_buffer;
   MARPA_DSTACK_CLEAR(*dstack);
-  /* \comment Has same effect as 
+    @t}\7\4\4{@>
+  /* Has same effect as 
   |Count_of_CIL (cil_in_buffer) = 0|, except that it sets
   the |MARPA_DSTACK| up properly */
   *MARPA_DSTACK_PUSH(*dstack, int) = 0;
@@ -12665,7 +12699,8 @@ PRIVATE CIL cil_buffer_push(CILAR cilar, int new_item)
   CIL cil_in_buffer;
   MARPA_DSTACK dstack = &cilar->t_buffer;
   *MARPA_DSTACK_PUSH (*dstack, int) = new_item;
-/* \comment Note that the buffer CIL might have been moved
+    @t}\7\4\4{@>
+/* Note that the buffer CIL might have been moved
                    by the |MARPA_DSTACK_PUSH| */
   cil_in_buffer = MARPA_DSTACK_BASE (*dstack, int);
   Count_of_CIL (cil_in_buffer)++;
