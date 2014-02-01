@@ -6298,6 +6298,11 @@ PRIVATE YIM earley_item_create(const RECCE r,
   new_item->t_source_type = NO_SOURCE;
   YIM_is_Rejected(new_item) = 0;
   YIM_is_Active(new_item) = 1;
+  {
+    SRC unique_yim_src = SRC_of_YIM (new_item);
+    SRC_is_Rejected (unique_yim_src) = 0;
+    SRC_is_Active (unique_yim_src) = 1;
+  }
   Ord_of_YIM(new_item) = YIM_ORDINAL_CLAMP((unsigned int)count - 1);
   end_of_work_stack = WORK_YIM_PUSH(r);
   *end_of_work_stack = new_item;
@@ -8755,7 +8760,7 @@ PRIVATE int psi_test_and_set(
       YIM predecessor_earley_item;
       if (source_link)
 	token_source = SRC_of_SRCL (source_link);
-      if (0 && !SRC_is_Active (token_source))
+      if (!SRC_is_Active (token_source))
 	goto NEXT_SOURCE;
       predecessor_earley_item = Predecessor_of_SRC (token_source);
       if (!predecessor_earley_item)
