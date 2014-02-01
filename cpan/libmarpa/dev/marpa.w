@@ -8759,9 +8759,9 @@ PRIVATE int psi_test_and_set(
   for (source_link = First_Token_SRCL_of_YIM (parent_earley_item);
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-      SRC tkn_source = SRC_of_SRCL (source_link);
-      YIM predecessor_earley_item = Predecessor_of_SRC (tkn_source);
-      if (!SRC_is_Active (tkn_source)) continue;
+      YIM predecessor_earley_item;
+      if (!SRCL_is_Active (source_link)) continue;
+      predecessor_earley_item = Predecessor_of_SRCL (source_link);
       if (!predecessor_earley_item) continue;
       if (YIM_was_Predicted (predecessor_earley_item))
 	{
@@ -8789,69 +8789,57 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
 
 @ @<Push child Earley items from completion sources@> =
 {
-  SRCL source_link = NULL;
-  SRC completion_source = NULL;
-  switch (source_type)
-    {
-    case SOURCE_IS_COMPLETION:
-      completion_source = SRC_of_YIM (parent_earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = LV_First_Completion_SRCL_of_YIM (parent_earley_item);
-    }
-  while (source_link || completion_source)
+  SRCL source_link;
+  for (source_link = First_Completion_SRCL_of_YIM (parent_earley_item);
+       source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
       YIM predecessor_earley_item;
       YIM cause_earley_item;
-      if (source_link)
-	completion_source = SRC_of_SRCL (source_link);
-      if (!SRC_is_Active (completion_source))
-	goto NEXT_COMPLETION_SOURCE;
-      cause_earley_item = Cause_of_SRC (completion_source);
+      if (!SRCL_is_Active(source_link)) continue;
+      cause_earley_item = Cause_of_SRCL (source_link);
       push_ur_if_new (per_ys_data, ur_node_stack, cause_earley_item);
-      predecessor_earley_item = Predecessor_of_SRC (completion_source);
-      if (!predecessor_earley_item)
-	goto NEXT_COMPLETION_SOURCE;
+      predecessor_earley_item = Predecessor_of_SRCL (source_link);
+      if (!predecessor_earley_item) continue;
       if (YIM_was_Predicted (predecessor_earley_item))
 	{
 	  Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
 						predecessor_earley_item);
-	  goto NEXT_COMPLETION_SOURCE;
+	  continue;
 	}
       push_ur_if_new (per_ys_data, ur_node_stack, predecessor_earley_item);
-    NEXT_COMPLETION_SOURCE:;
-      completion_source = NULL;
-      source_link = source_link ? Next_SRCL_of_SRCL (source_link) : NULL;
     }
 }
 
 @ @<Push child Earley items from Leo sources@> =
 {
+    @t}\7\4\4{@>/* For every Leo source link */
   SRCL source_link;
   for (source_link = First_Leo_SRCL_of_YIM (parent_earley_item);
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-      const YIM cause_earley_item = Cause_of_SRCL (source_link);
-      LIM leo_predecessor = LIM_of_SRCL (source_link);
-      {
-	    push_ur_if_new (per_ys_data, ur_node_stack,
-         cause_earley_item);
-      }
-      while (leo_predecessor)
-        {
-          const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
-          if (YIM_was_Predicted (leo_base_yim))
-            {
-                Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
-                                                       leo_base_yim);
-            }
-          else
-            {
-	    push_ur_if_new (per_ys_data, ur_node_stack,
-               leo_base_yim);
-            }
-          leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor);
-        }
+      LIM leo_predecessor;
+      YIM cause_earley_item;
+      /* Ignore if not active -- if it {\bf is} active, then the whole chain
+      must be */
+      if (!SRCL_is_Active (source_link))
+	continue;
+      cause_earley_item = Cause_of_SRCL (source_link);
+      push_ur_if_new (per_ys_data, ur_node_stack, cause_earley_item);
+      for (leo_predecessor = LIM_of_SRCL (source_link); leo_predecessor;
+    @t}\7\4\4{@>/* Follow the predecessors chain back */
+	   leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor))
+	{
+	  const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
+	  if (YIM_was_Predicted (leo_base_yim))
+	    {
+	      Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
+						    leo_base_yim);
+	    }
+	  else
+	    {
+	      push_ur_if_new (per_ys_data, ur_node_stack, leo_base_yim);
+	    }
+	}
     }
 }
 
