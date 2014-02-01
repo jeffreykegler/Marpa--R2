@@ -6625,6 +6625,8 @@ union u_source_container {
 @d Value_of_SRC(source) Value_of_Source(*(source))
 @d Value_of_SRCL(link) Value_of_Source(Source_of_SRCL(link))
 
+@d SRC_is_Active(src) ((src)->t_is_active)
+@d SRC_is_Rejected(src) ((src)->t_is_rejected)
 @d SRCL_is_Active(link) ((link)->t_source.t_is_active)
 @d SRCL_is_Rejected(link) ((link)->t_source.t_is_rejected)
 
@@ -8677,15 +8679,11 @@ ur_node_pop (URS stack)
 @
 {\bf To Do}: @^To Do@>
 No predictions are used in creating or-nodes.
-Most (all but the start?) are eliminating in creating the PSI data,
-but then predictions are tested for when creating or-nodes.
-For efficiency, there should be only one check.
-I need to decide where to make it.
+Most (all?) are eliminating in creating the PSI data.
+But I think predictions are tested for, when creating or-nodes,
+which should not be necessary.
+I need to decide where to look at this.
 
-@ |predecessor_aim| and |predot|
-are guaranteed to be defined,
-since predictions are
-never on the stack.
 @<Populate the PSI data@>=
 {
     UR_Const ur_node;
@@ -8696,6 +8694,7 @@ never on the stack.
     push_ur_if_new (per_ys_data, ur_node_stack, start_yim);
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
+        @t}\7\4\4{@>/* rejected YIM's are never put on the ur-node stack */
         const YIM parent_earley_item = YIM_of_UR(ur_node);
         const unsigned int source_type = Source_Type_of_YIM (parent_earley_item);
         MARPA_ASSERT(!YIM_was_Predicted(parent_earley_item))@;
@@ -8756,19 +8755,19 @@ PRIVATE int psi_test_and_set(
       YIM predecessor_earley_item;
       if (source_link)
 	token_source = SRC_of_SRCL (source_link);
+      if (0 && !SRC_is_Active (token_source))
+	goto NEXT_SOURCE;
       predecessor_earley_item = Predecessor_of_SRC (token_source);
       if (!predecessor_earley_item)
-	continue;
+	goto NEXT_SOURCE;
       if (YIM_was_Predicted (predecessor_earley_item))
 	{
 	  Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
 						predecessor_earley_item);
+	  goto NEXT_SOURCE;
 	}
-      else
-	{
-	  push_ur_if_new (per_ys_data, ur_node_stack,
-			  predecessor_earley_item);
-	}
+      push_ur_if_new (per_ys_data, ur_node_stack, predecessor_earley_item);
+    NEXT_SOURCE:;
       token_source = NULL;
       source_link = source_link ? Next_SRCL_of_SRCL (source_link) : NULL;
     }
