@@ -6524,6 +6524,7 @@ attention in the source links.
 @ @<Private typedefs@> =
 struct s_source;
 typedef struct s_source* SRC;
+typedef const struct s_source* SRC_Const;
 @ @<Source object structure@>= 
 struct s_token_source {
     NSYID t_nsyid;
@@ -8708,40 +8709,33 @@ PRIVATE int psi_test_and_set(
 @ @<Push child Earley items from token sources@> =
 {
   SRCL source_link = NULL;
-  YIM predecessor_earley_item = NULL;
+  SRC token_source = NULL;
   switch (source_type)
     {
     case SOURCE_IS_TOKEN:
-      predecessor_earley_item = Predecessor_of_YIM (parent_earley_item);
+      token_source = SRC_of_YIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = LV_First_Token_SRCL_of_YIM (parent_earley_item);
-      if (source_link)
-        {
-          predecessor_earley_item = Predecessor_of_SRCL (source_link);
-          source_link = Next_SRCL_of_SRCL (source_link);
-        }
     }
-  for (;;)
-    {
-      if (predecessor_earley_item)
-        {
-          if (YIM_was_Predicted (predecessor_earley_item))
-            {
-                Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
-                                                       predecessor_earley_item,
-                                                       predecessor_aim);
-            }
-          else
-            {
-              const YIM ur_earley_item = predecessor_earley_item;
-              @<Push ur-node if new@>@;
-            }
-        }
-      if (!source_link)
-        break;
-      predecessor_earley_item = Predecessor_of_SRCL (source_link);
-      source_link = Next_SRCL_of_SRCL (source_link);
+  while (source_link || token_source) {
+      YIM predecessor_earley_item;
+      if (source_link) token_source = SRC_of_SRCL (source_link);
+      predecessor_earley_item = Predecessor_of_SRC (token_source);
+      if (!predecessor_earley_item)
+	continue;
+      if (YIM_was_Predicted (predecessor_earley_item))
+	{
+	  Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
+						predecessor_earley_item);
+	}
+      else
+	{
+	  const YIM ur_earley_item = predecessor_earley_item;
+	  @<Push ur-node if new@>@;
+	}
+       token_source = NULL;
+       source_link = source_link ? Next_SRCL_of_SRCL (source_link) : NULL;
     }
 }
 
@@ -8752,9 +8746,10 @@ no other descendants.
 @<Function definitions@> =
 PRIVATE void
 Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
-  YIM yim, AHM aim)
+  YIM yim)
 {
-  if (Null_Count_of_AHM (aim))
+  const AHM ahm = AHM_of_YIM(yim);
+  if (Null_Count_of_AHM (ahm))
 	  psi_test_and_set (per_ys_data, (yim));
 }
 
@@ -8787,7 +8782,7 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
 	    {
 	       Set_boolean_in_PSI_for_initial_nulls
 		(per_ys_data,
-		 predecessor_earley_item, predecessor_aim);
+		 predecessor_earley_item);
 	    }
 	  else
 	    {
@@ -8827,7 +8822,7 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
                 const AHM leo_final_aim = Base_to_AHM_of_LIM(leo_predecessor);
                 const AHM prediction_aim = Prev_AHM_of_AHM(leo_final_aim);
                 Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
-                                                       leo_base_yim, prediction_aim);
+                                                       leo_base_yim);
             }
           else
             {
