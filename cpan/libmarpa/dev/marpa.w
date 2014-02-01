@@ -27,6 +27,8 @@
 \def\skipxTeX{\\{skip\_\TEX/}}
 \def\copyxTeX{\\{copy\_\TEX/}}
 
+\def\comment{\par\medskip\6\4\4}
+
 \let\K=\Longleftarrow
 
 \secpagedepth=1
@@ -8812,13 +8814,14 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
 
 @ @<Push child Earley items from Leo sources@> =
 {
-    @t}\7\4\4{@>/* For every Leo source link */
   SRCL source_link;
+    @t}\comment{@>/* For every Leo source link */
   for (source_link = First_Leo_SRCL_of_YIM (parent_earley_item);
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
       LIM leo_predecessor;
       YIM cause_earley_item;
+      @t}\comment{@>
       /* Ignore if not active -- if it {\bf is} active, then the whole chain
       must be */
       if (!SRCL_is_Active (source_link))
@@ -8826,7 +8829,7 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
       cause_earley_item = Cause_of_SRCL (source_link);
       push_ur_if_new (per_ys_data, ur_node_stack, cause_earley_item);
       for (leo_predecessor = LIM_of_SRCL (source_link); leo_predecessor;
-    @t}\7\4\4{@>/* Follow the predecessors chain back */
+    @t}\comment{@>/* Follow the predecessors chain back */
 	   leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor))
 	{
 	  const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
