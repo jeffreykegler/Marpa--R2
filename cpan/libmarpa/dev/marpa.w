@@ -6642,7 +6642,17 @@ union u_source_container {
 
 @ Macros for setting and finding the first |SRCL|'s of each type.
 @d LV_First_Completion_SRCL_of_YIM(item) ((item)->t_container.t_ambiguous.t_completion)
+@d First_Completion_SRCL_of_YIM(item)
+  ( Source_Type_of_YIM(item) == SOURCE_IS_COMPLETION ? (SRCL)SRCL_of_YIM(item) :
+  Source_Type_of_YIM(item) == SOURCE_IS_AMBIGUOUS ? 
+    LV_First_Completion_SRCL_of_YIM(item) : NULL)
+
 @d LV_First_Token_SRCL_of_YIM(item) ((item)->t_container.t_ambiguous.t_token)
+@d First_Token_SRCL_of_YIM(item)
+  ( Source_Type_of_YIM(item) == SOURCE_IS_TOKEN ? (SRCL)SRCL_of_YIM(item) :
+  Source_Type_of_YIM(item) == SOURCE_IS_AMBIGUOUS ? 
+    LV_First_Token_SRCL_of_YIM(item) : NULL)
+
 @d LV_First_Leo_SRCL_of_YIM(item) ((item)->t_container.t_ambiguous.t_leo)
 @d First_Leo_SRCL_of_YIM(item)
   ( Source_Type_of_YIM(item) == SOURCE_IS_LEO ? (SRCL)SRCL_of_YIM(item) :
@@ -8745,36 +8755,21 @@ PRIVATE int psi_test_and_set(
 
 @ @<Push child Earley items from token sources@> =
 {
-  SRCL source_link = NULL;
-  SRC token_source = NULL;
-  switch (source_type)
+  SRCL source_link;
+  for (source_link = First_Token_SRCL_of_YIM (parent_earley_item);
+       source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-    case SOURCE_IS_TOKEN:
-      token_source = SRC_of_YIM (parent_earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = LV_First_Token_SRCL_of_YIM (parent_earley_item);
-    }
-  while (source_link || token_source)
-    {
-      YIM predecessor_earley_item;
-      if (source_link)
-	token_source = SRC_of_SRCL (source_link);
-      if (!SRC_is_Active (token_source))
-	goto NEXT_SOURCE;
-      predecessor_earley_item = Predecessor_of_SRC (token_source);
-      if (!predecessor_earley_item)
-	goto NEXT_SOURCE;
+      SRC tkn_source = SRC_of_SRCL (source_link);
+      YIM predecessor_earley_item = Predecessor_of_SRC (tkn_source);
+      if (!SRC_is_Active (tkn_source)) continue;
+      if (!predecessor_earley_item) continue;
       if (YIM_was_Predicted (predecessor_earley_item))
 	{
 	  Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
 						predecessor_earley_item);
-	  goto NEXT_SOURCE;
+	  continue;
 	}
       push_ur_if_new (per_ys_data, ur_node_stack, predecessor_earley_item);
-    NEXT_SOURCE:;
-      token_source = NULL;
-      source_link = source_link ? Next_SRCL_of_SRCL (source_link) : NULL;
     }
 }
 
@@ -8795,45 +8790,38 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
 @ @<Push child Earley items from completion sources@> =
 {
   SRCL source_link = NULL;
-  YIM predecessor_earley_item = NULL;
-  YIM cause_earley_item = NULL;
+  SRC completion_source = NULL;
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
-      predecessor_earley_item = Predecessor_of_YIM (parent_earley_item);
-      cause_earley_item = Cause_of_YIM (parent_earley_item);
+      completion_source = SRC_of_YIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = LV_First_Completion_SRCL_of_YIM (parent_earley_item);
-      if (source_link)
-	{
-	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
-	  cause_earley_item = Cause_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
-      break;
     }
-  while (cause_earley_item)
+  while (source_link || completion_source)
     {
-      if (predecessor_earley_item)
-	{
-	  if (YIM_was_Predicted (predecessor_earley_item))
-	    {
-	      Set_boolean_in_PSI_for_initial_nulls
-		(per_ys_data, predecessor_earley_item);
-	    }
-	  else
-	    {
-	      push_ur_if_new (per_ys_data, ur_node_stack,
-			      predecessor_earley_item);
-	    }
-	}
+      YIM predecessor_earley_item;
+      YIM cause_earley_item;
+      if (source_link)
+	completion_source = SRC_of_SRCL (source_link);
+      if (!SRC_is_Active (completion_source))
+	goto NEXT_COMPLETION_SOURCE;
+      cause_earley_item = Cause_of_SRC (completion_source);
       push_ur_if_new (per_ys_data, ur_node_stack, cause_earley_item);
-      if (!source_link)
-	break;
-      predecessor_earley_item = Predecessor_of_SRCL (source_link);
-      cause_earley_item = Cause_of_SRCL (source_link);
-      source_link = Next_SRCL_of_SRCL (source_link);
+      predecessor_earley_item = Predecessor_of_SRC (completion_source);
+      if (!predecessor_earley_item)
+	goto NEXT_COMPLETION_SOURCE;
+      if (YIM_was_Predicted (predecessor_earley_item))
+	{
+	  Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
+						predecessor_earley_item);
+	  goto NEXT_COMPLETION_SOURCE;
+	}
+      push_ur_if_new (per_ys_data, ur_node_stack, predecessor_earley_item);
+    NEXT_COMPLETION_SOURCE:;
+      completion_source = NULL;
+      source_link = source_link ? Next_SRCL_of_SRCL (source_link) : NULL;
     }
 }
 
