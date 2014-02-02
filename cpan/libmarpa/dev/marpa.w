@@ -9534,68 +9534,39 @@ OR set_or_from_yim ( struct s_bocage_setup_per_ys *per_ys_data,
   path_or_node = or_by_origin_and_symi(per_ys_data, origin_ordinal, symbol_instance);
 }
 
-@ @<Create draft and-nodes for token sources@> =
-{
-  SRCL source_link = NULL;
-  YIM predecessor_earley_item = NULL;
-  SRC token_source = NULL;
-  switch (work_source_type)
-    {
-    case SOURCE_IS_TOKEN:
-      predecessor_earley_item = Predecessor_of_YIM (work_earley_item);
-      token_source = SRC_of_YIM(work_earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = LV_First_Token_SRCL_of_YIM (work_earley_item);
-      if (source_link)
-        {
-          predecessor_earley_item = Predecessor_of_SRCL (source_link);
-          token_source = SRC_of_SRCL(source_link);
-          source_link = Next_SRCL_of_SRCL (source_link);
-        }
-    }
-    while (token_source) 
-      {
-        @<Add draft and-node for |token_source|@>@;
-        if (!source_link) break;
-        predecessor_earley_item = Predecessor_of_SRCL (source_link);
-        token_source = SRC_of_SRCL(source_link);
-        source_link = Next_SRCL_of_SRCL (source_link);
-      }
-}
 
-@ This code ignores the issue of duplicate or-nodes when
-it comes to the newly-created token or-nodes.
-Ultimately, I will probably move the token values
-elsewhere and use per-symbol pseudo-or-nodes.
-This will be fast, and save space.
-The nullable tokens are already handled this way.
 @ Token or-nodes are pseudo-or-nodes.
 They are not included in the count of or-nodes,
 are not coverted to final or-nodes,
 and are not traversed when traversing or-nodes by ID.
-@<Add draft and-node for |token_source|@> =
+@<Create draft and-nodes for token sources@> =
 {
-  OR new_token_or_node;
-  OR dand_predecessor;
-  const NSYID token_nsyid = NSYID_of_SRC (token_source);
-  dand_predecessor = safe_or_from_yim(per_ys_data,
-    predecessor_earley_item);
-  MARPA_DEBUG2 ("At %s", STRLOC);
-  if (NSYID_is_Valued_in_B(b, token_nsyid))
+  SRCL tkn_source_link;
+  for (tkn_source_link = First_Token_SRCL_of_YIM (work_earley_item);
+       tkn_source_link; tkn_source_link = Next_SRCL_of_SRCL (tkn_source_link))
     {
-      new_token_or_node = (OR) marpa_obs_new (OBS_of_B (b), OR_Object, 1);
-      /* Probably can use smaller allocation */
-      Type_of_OR (new_token_or_node) = VALUED_TOKEN_OR_NODE;
-      NSYID_of_OR (new_token_or_node) = token_nsyid;
-      Value_of_OR (new_token_or_node) = Value_of_SRC (token_source);
+      OR new_token_or_node;
+      const NSYID token_nsyid = NSYID_of_SRCL (tkn_source_link);
+      const YIM predecessor_earley_item = Predecessor_of_SRCL (tkn_source_link);
+      const OR dand_predecessor = safe_or_from_yim (per_ys_data,
+					      predecessor_earley_item);
+      if (NSYID_is_Valued_in_B (b, token_nsyid))
+	{
+          @t}\comment{@>
+	  /* I probably can and should use a smaller allocation,
+          sized just for a token or-node */
+	  new_token_or_node = (OR) marpa_obs_new (OBS_of_B (b), OR_Object, 1);
+	  Type_of_OR (new_token_or_node) = VALUED_TOKEN_OR_NODE;
+	  NSYID_of_OR (new_token_or_node) = token_nsyid;
+	  Value_of_OR (new_token_or_node) = Value_of_SRCL (tkn_source_link);
+	}
+      else
+	{
+	  new_token_or_node = Unvalued_OR_by_NSYID (token_nsyid);
+	}
+      draft_and_node_add (bocage_setup_obs, work_proper_or_node,
+			  dand_predecessor, new_token_or_node);
     }
-  else
-    {
-      new_token_or_node = Unvalued_OR_by_NSYID(token_nsyid);
-    }
-  draft_and_node_add (bocage_setup_obs, work_proper_or_node,
-		      dand_predecessor, new_token_or_node);
 }
 
 @ ``Safe'' because it does not require called to ensure the such
