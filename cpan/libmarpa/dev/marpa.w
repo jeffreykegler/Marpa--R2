@@ -27,7 +27,9 @@
 \def\skipxTeX{\\{skip\_\TEX/}}
 \def\copyxTeX{\\{copy\_\TEX/}}
 
-\def\comment{\par\medskip\6\4\4}
+\def\comment{\par\medskip\noindent
+  \ifmmode\else\par % forced break
+  \hangindent\ind em\ignorespaces\fi}
 
 \let\K=\Longleftarrow
 
@@ -6971,10 +6973,10 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
   if (insertion_point < 0)
     return insertion_point;
     @t}\comment{@>
-  // may change base
+  /* may change base */
   end_of_stack = MARPA_DSTACK_PUSH(*alternatives, ALT_Object);
     @t}\comment{@>
-  // base will not change after this
+  /* base will not change after this */
   base_of_stack = MARPA_DSTACK_BASE(*alternatives, ALT_Object);
    for (ix = end_of_stack-base_of_stack; ix > insertion_point; ix--) {
        base_of_stack[ix] = base_of_stack[ix-1];
@@ -9066,11 +9068,14 @@ Top_ORID_of_B(b) = -1;
         @<Add main or-node@>@;
           @<Add nulling token or-nodes@>@;
     }
-    /* Replace the dummy or-node with
-    the last one added */
+    @t}\comment{@>
     /* The following assertion is now not necessarily true.
     it is kept for documentation, but eventually should be removed */
     MARPA_OFF_ASSERT (psi_or_node)@;
+
+    @t}\comment{@>
+    /* Replace the dummy or-node with
+    the last one added */
     OR_by_PSI(per_ys_data, working_ys_ordinal, working_yim_ordinal)
       = psi_or_node;
     @<Add Leo or-nodes for |work_earley_item|@>@;
