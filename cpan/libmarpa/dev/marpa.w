@@ -54,7 +54,7 @@
 \def\libmarpa/{{\tt libmarpa}}
 \def\QED/{{\bf QED}}
 \def\Theorem/{{\bf Theorem}}
-\def\Proof/{{\bf Theorem}}
+\def\Proof/{{\bf Proof}}
 \def\size#1{\v #1\v}
 \def\gsize{\v g\v}
 \def\wsize{\v w\v}
@@ -8308,28 +8308,15 @@ of the base YIM.
     }
 }
 
-@** Expand the Leo items.
-\libmarpa/ expands Leo items on a ``lazy" basis,
-when it creates the parse bocage.
-Some of the "virtual" Earley items in the Leo paths will also
-be real Earley items.
-Earley items in the Leo path may actually exist
-for several reasons:
-\li The Leo completion item itself always exists before
-this function call.
-It is counted in the total path lengths,
-once for each Leo path.
-This means that the total of the Leo path lengths will never be less
-than the number of Leo paths.
-\li Any Leo competion base items.
-One of these exists for every path
-whose base is a
-completed Earley item, and not a token.
-\li Any other Earley item in the Leo path item which was already created
-for other reasons.
-If an Earley item in a Leo path already exists, a new Earley
-item is not created ---
-instead a source link is added to the present Earley item.
+
+@** Rejecting Earley items.
+@ Notes for making the recognizer consistent after rejecting tokens:
+\li Clear all events.  Document that you should poll events before any
+rejections.
+\li Reset the vector of expected terminals.
+\li Re-determine if the parse is exhausted.
+\li What about postdot items?  If a LIM is now rejected, I should look
+at the YIM/PIM, I think, because it was {\bf not} necessarily rejected.
 
 @** Progress report code.
 @<Private typedefs@> =
@@ -8614,6 +8601,99 @@ number is limited by the number of rule's with the transition symbol
 on their LHS.
 \li The number of sources of a Leo path item is therefore limited
 by a constant that depends on the grammar.
+
+@ {\bf To Do}: @^To Do@>
+Determine exactly when Leo path items may come from multiple
+souces.
+\li When can a Leo path item also be an item from a non-Leo
+source?  The top item can, but can any others?
+\li In the case of LHS terminals, any item can be scanned.
+\li A top item on a path is {\bf not} a transition over a Leo
+symbol, and so may have any number of predecessors,
+as long as any Leo sources have a unique middle Earley set.
+\li The bottom item does result does match a Leo transition,
+and so can only be matched one predecessor.
+But it itself may have many sources.
+It may, for example, be the top item of a Leo path for
+a different right recursion.
+
+@ In the following, I refer to Leo path bases, and Leo path
+top items.  It is assumed that these Earley items are active
+items in a consistent parse.
+Also, any SRCL's referred to are assumed to be active SRCL's
+in a consistent parse.
+
+@ Also in the following:
+\li Origin($y_{YIM}$) is the origin, or start, location of
+the YIM $y_{YIM}$.
+\li Symbol($cause$) if the LHS symbol of the YIM's rule is $cause$
+is a YIM.
+Symbol($cause$) is the token symbol if $cause$ is a token.
+
+@ {\bf Theorem:} Consider a Leo path with a base $b$, which
+is the cause of a Leo SRCL in the Leo path top YIM, $t$.
+$b$ will only be the base of that SRCL in that YIM.
+@ {\bf Proof:} Suppose it was the base of two different SRCL's.
+Since both SRCL's will have the same middle (the origin of $b$)
+and the same transition symbol (either the token symbol of $b$, or its LHS, call
+that $sym$), both
+will have the same Leo transition.
+SRCL must have a LIM at Origin($b$) with transition symbol $sym$.
+By the construction of LIM's, there can be other predecessor for $b$
+at Origin($b$).  So $b$'s Leo SRCL in $t$ is the only SRCL in which
+it is the cause.
+{\bf QED}
+
+@ Note, in the above theorem, that while $b$ must be unique to its
+SRCL, this is not true of Leo predecessors.  A Leo predecessor may
+be in more than one SRCL, so long as the symbols of the cause's in
+those SRCL's are the same: $sym$.  This means the number of SRCL's
+which can contain a given predecessor is a constant that depends on
+the grammar.  (Specifically, it is the number of rules with $sym$ on
+their LHS, plus one for a terminal.)
+
+@ {\bf Theorem:}
+Consider a item on a Leo path other than the top
+item.  Call this item $p_i$.
+$p_i$ must have an effect YIM, $p_{i+1}$.
+In other words, there must be an YIM above it on
+the Leo path.
+@ {\bf Proof:}
+Since we assumed that the top and bottom items are active items
+in a consistent parse, by the properties of Earley parsing we know
+that $p_i$ has a predecessor, and an effect.
+{\bf QED}
+
+@ {\bf Theorem:}
+Consider, $p_i$, a item on a Leo path other than the top
+item.
+All SRCL's containing $p_i$ as a cause have the same predecessor.
+@ {\bf Proof:}
+Since $p_i$ is on a Leo path, the transition over Symbol($p_i$)
+from Origin($p_i$) must be from a unique YIM.
+This YIM is Pred($p_i$), the unique predecessor of $p_i$.
+{\bf QED}
+
+@ {\bf Theorem:}
+Consider, $p_i$, a item on a Leo path other than the top
+item.
+Its effect, $p_{i+1}$ is unique.
+@ {\bf Proof:}
+Consider multiple effect YIM's of $p_i$.
+Call two of these $p_{i+1}$, $q_{i+1}$.
+By a previous theorem, both have the same predecessor,
+Pred($p_i$).
+Because
+$p_{i+1}$ and $q_{i+1}$ have
+the same predecessor and the same cause ($p_i$),
+we know that
+$p_{i+1}$ and $q_{i+1}$ also have the same origin, dotted rule
+and current earley set.
+If two YIM's
+have the same origin, dotted rule, and current earley set,
+they are identical.
+This shows that the effect YIM of the cause $p_i$ is unique.
+{\bf QED}
 
 @** Ur-node (UR) code.
 Ur is a German word for ``primordial", which is used
