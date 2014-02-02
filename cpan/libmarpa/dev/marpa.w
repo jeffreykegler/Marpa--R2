@@ -9332,7 +9332,6 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Create draft and-nodes for |or_node|@> =
 {
-    unsigned int work_source_type = Source_Type_of_YIM (work_earley_item);
     const AHM work_aim = AHM_of_YIM (work_earley_item);
     MARPA_ASSERT (work_aim >= AHM_by_ID (1))@;
     const int work_symbol_instance = SYMI_of_AHM (work_aim);
@@ -9583,48 +9582,24 @@ OR safe_or_from_yim(
 
 @ @<Create draft and-nodes for completion sources@> =
 {
-  SRCL source_link = NULL;
-  YIM predecessor_earley_item = NULL;
-  YIM cause_earley_item = NULL;
-  switch (work_source_type)
+  SRCL source_link;
+  for (source_link = First_Completion_SRCL_of_YIM (work_earley_item);
+       source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-    case SOURCE_IS_COMPLETION:
-      predecessor_earley_item = Predecessor_of_YIM (work_earley_item);
-      cause_earley_item = Cause_of_YIM (work_earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = LV_First_Completion_SRCL_of_YIM (work_earley_item);
-      if (source_link)
-        {
-          predecessor_earley_item = Predecessor_of_SRCL (source_link);
-          cause_earley_item = Cause_of_SRCL (source_link);
-          source_link = Next_SRCL_of_SRCL (source_link);
-        }
-        break;
+      YIM predecessor_earley_item = Predecessor_of_SRCL (source_link);
+      YIM cause_earley_item = Cause_of_SRCL (source_link);
+      const int middle_ordinal = Origin_Ord_of_YIM (cause_earley_item);
+      const AHM cause_aim = AHM_of_YIM (cause_earley_item);
+      const SYMI cause_symbol_instance =
+	SYMI_of_Completed_IRL (IRL_of_AHM (cause_aim));
+      OR dand_predecessor = safe_or_from_yim (per_ys_data,
+					      predecessor_earley_item);
+      const OR dand_cause =
+	or_by_origin_and_symi (per_ys_data, middle_ordinal,
+			       cause_symbol_instance);
+      draft_and_node_add (bocage_setup_obs, work_proper_or_node,
+			  dand_predecessor, dand_cause);
     }
-  while (cause_earley_item)
-    {
-            @<Add draft and-node for completion source@>@;
-      if (!source_link) break;
-      predecessor_earley_item = Predecessor_of_SRCL (source_link);
-      cause_earley_item = Cause_of_SRCL (source_link);
-      source_link = Next_SRCL_of_SRCL (source_link);
-    }
-}
-
-@ @<Add draft and-node for completion source@> =
-{
-  const int middle_ordinal = Origin_Ord_of_YIM(cause_earley_item);
-  const AHM cause_aim = AHM_of_YIM(cause_earley_item);
-  const SYMI cause_symbol_instance =
-      SYMI_of_Completed_IRL(IRL_of_AHM(cause_aim));
-  OR dand_predecessor = safe_or_from_yim(per_ys_data,
-    predecessor_earley_item);
-  const OR dand_cause =
-    or_by_origin_and_symi(per_ys_data, middle_ordinal, cause_symbol_instance);
-  MARPA_DEBUG2("At %s", STRLOC);
-  draft_and_node_add (bocage_setup_obs, work_proper_or_node,
-          dand_predecessor, dand_cause);
 }
 
 @ The need for this count is a vestige of duplicate checking.
