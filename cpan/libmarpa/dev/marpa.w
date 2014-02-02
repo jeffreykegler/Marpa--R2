@@ -9350,8 +9350,14 @@ predecessor.  Set |or_node| to 0 if there is none.
   for (source_link = First_Leo_SRCL_of_YIM (work_earley_item);
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-      YIM cause_earley_item = Cause_of_SRCL (source_link);
-      LIM leo_predecessor = LIM_of_SRCL (source_link);
+      YIM cause_earley_item;
+      LIM leo_predecessor;
+
+    @t}\comment{@>/* If |source_link| is active,
+    everything on the Leo path is active. */
+      if (!SRCL_is_Active(source_link)) continue;
+      cause_earley_item = Cause_of_SRCL (source_link);
+      leo_predecessor = LIM_of_SRCL (source_link);
       if (leo_predecessor) {
         @<Add draft and-nodes for chain starting with |leo_predecessor|@>@;
       }
