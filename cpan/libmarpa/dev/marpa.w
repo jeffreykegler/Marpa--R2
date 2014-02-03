@@ -5990,6 +5990,16 @@ int marpa_r_is_exhausted(Marpa_Recognizer r)
     return R_is_Exhausted(r);
 }
 
+@*1 Is the parser consistent?
+A parser becomes inconsistent when
+YIM's or LIM's or ALT's are rejected.
+It can be made consistent again by calling
+|marpa_r_consistent()|.
+@d Last_Consistent_YS ((r)->t_last_consistent_ys)
+@d R_is_Consistent(r) ((r)->t_last_consistent_ys < 0)
+@<Int aligned recognizer elements@> = YSID t_last_consistent_ys;
+@ @<Initialize recognizer elements@> = r->t_last_consistent_ys = -1;
+
 @*0 The recognizer obstack.
 Create an obstack with the lifetime of the recognizer.
 This is a very efficient way of allocating memory which won't be
@@ -7161,6 +7171,11 @@ Marpa_Earleme marpa_r_alternative(
     const JEARLEME current_earleme = Current_Earleme_of_R (r);
     JEARLEME target_earleme;
     NSYID tkn_nsyid;
+    if (_MARPA_UNLIKELY (!R_is_Consistent (r)))
+      {
+        MARPA_ERROR (MARPA_ERR_RECCE_IS_INCONSISTENT);
+        return MARPA_ERR_RECCE_IS_INCONSISTENT;
+      }
     if (_MARPA_UNLIKELY (Input_Phase_of_R (r) != R_DURING_INPUT))
       {
         MARPA_ERROR (MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
@@ -13294,6 +13309,10 @@ if (_MARPA_UNLIKELY(Input_Phase_of_R(r) == R_BEFORE_INPUT)) {
 @ @<Fail if recognizer not accepting input@> =
 if (_MARPA_UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
+    return failure_indicator;
+}
+if (_MARPA_UNLIKELY(!R_is_Consistent(r))) {
+    MARPA_ERROR(MARPA_ERR_RECCE_IS_INCONSISTENT);
     return failure_indicator;
 }
 

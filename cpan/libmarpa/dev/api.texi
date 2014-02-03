@@ -4744,6 +4744,16 @@ Numeric value: 86.
 Suggested message: "Rule or symbol rank too high".
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_RECCE_IS_INCONSISTENT
+The recognizer is ``inconsistent'',
+usually because the user has rejected one or
+more rules or terminals,
+and has not yet called 
+the  @code{marpa_r_consistent()} method.
+Numeric value: 95.
+Suggested message: "The recognizer is inconsistent.
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT
 The recognizer is not accepting input,
 and the application has attempted something that
