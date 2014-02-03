@@ -3176,9 +3176,7 @@ a lot of useless diagnostics.
     @<Census nulling symbols@>@;
     @<Classify rules@>@;
     @<Mark valued symbols@>@;
-    if (1) {
-      @<Populate nullification CILs@>@;
-    }
+    @<Populate nullification CILs@>@;
 }
 
 @ @<Declare precompute variables@> =
@@ -7060,9 +7058,9 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
           const IRLID prediction_irlid = Item_of_CIL (prediction_cil, cil_ix);
           if (!bv_bit_test_then_set(r->t_bv_irl_is_predicted, prediction_irlid)) {
           const IRL prediction_irl = IRL_by_ID(prediction_irlid);
-          const AHM prediction_aim = First_AHM_of_IRL(prediction_irl);
-          key.t_aim = prediction_aim;
-          if (1) { earley_item_create(r, key); }
+            const AHM prediction_aim = First_AHM_of_IRL(prediction_irl);
+            key.t_aim = prediction_aim;
+            earley_item_create(r, key);
           }
         }
     }
@@ -7619,26 +7617,23 @@ the Leo items.
 @<Add predictions@> =
 {
   int ix;
-  const int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack);
+  const int no_of_work_earley_items =
+    MARPA_DSTACK_LENGTH (r->t_yim_work_stack);
   for (ix = 0; ix < no_of_work_earley_items; ix++)
     {
-      YIM earley_item = WORK_YIM_ITEM(r, ix);
+      YIM earley_item = WORK_YIM_ITEM (r, ix);
 
-      if (1)
+      int cil_ix;
+      const AHM aim = AHM_of_YIM (earley_item);
+      const CIL prediction_cil = Predicted_IRL_CIL_of_AHM (aim);
+      const int prediction_count = Count_of_CIL (prediction_cil);
+      for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
 	{
-	  int cil_ix;
-	  const AHM aim = AHM_of_YIM (earley_item);
-	  const CIL prediction_cil = Predicted_IRL_CIL_of_AHM (aim);
-	  const int prediction_count = Count_of_CIL (prediction_cil);
-	  for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
-	    {
-	      const IRLID prediction_irlid =
-		Item_of_CIL (prediction_cil, cil_ix);
-	      const IRL prediction_irl = IRL_by_ID (prediction_irlid);
-	      const AHM prediction_aim = First_AHM_of_IRL (prediction_irl);
-	      earley_item_assign (r, current_earley_set, current_earley_set,
-				  prediction_aim);
-	    }
+	  const IRLID prediction_irlid = Item_of_CIL (prediction_cil, cil_ix);
+	  const IRL prediction_irl = IRL_by_ID (prediction_irlid);
+	  const AHM prediction_aim = First_AHM_of_IRL (prediction_irl);
+	  earley_item_assign (r, current_earley_set, current_earley_set,
+			      prediction_aim);
 	}
 
     }
@@ -9497,7 +9492,37 @@ predecessor.  Set |or_node| to 0 if there is none.
     @<Create draft and-nodes for completion sources@>@;
 }
 
-@ @<Create Leo draft and-nodes@> =
+@ {\bf To Do}: @^To Do@>
+I believe there's an easier and faster way to do this.
+I need to double-check the proofs, but it
+relies on these facts:
+\li Each item on a Leo path, other than the top node,
+had one and only one effect node.
+\li Each expanded item on a Leo path has exactly one
+Leo SRCL.  (An expanded YIM is a YIM which was not
+in the Earley sets, but which needed to be expanded later.
+All Leo YIM's, except the summit and trailhead YIM's are
+expanded nodes.)
+\li In ascending a Leo trail, adding SRCL as I proceed,
+I can stop when I hit the first YIM that already has
+a Leo SRCL, because I can assume that the process that
+added its Leo SRCL must have added Leo SRCL's to all the
+current Leo trail YIM's
+indirect effect YIM's, which are above it on this Leo trail.
+@ Therefore, the following should work:  For each draft or-node
+track whether it is a Leo trail or-node, and whether it has a Leo
+SRCL.
+(This is two booleans.)
+The summit Leo or-node counts as a Leo trail or-node
+for this purpose.
+The summit Leo YIM will have its "Leo-SRCL-added" boolean
+set when it is initialized.
+All other Leo trail or-nodes will have the
+"Leo-SRCL-added" bits unset, initially.
+For each Leo trailhead, ascend the trail, adding SRCL's as I
+climb, until I find a Leo path item  with the "Leo-SRCL-added"
+bit set.  At that point I can stop the ascent.
+@<Create Leo draft and-nodes@> =
 {
   SRCL source_link;
   for (source_link = First_Leo_SRCL_of_YIM (work_earley_item);
