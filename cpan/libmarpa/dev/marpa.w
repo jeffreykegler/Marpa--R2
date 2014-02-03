@@ -7453,6 +7453,7 @@ The return value means success, with no events.
 @ @<Scan from the alternative stack@> =
 {
   ALT alternative;
+    @t}\comment{@>/* |alternative_pop()| does not return inactive alternatives */
   while ((alternative = alternative_pop (r, current_earleme)))
     @<Scan an Earley item from alternative@>@;
 }
@@ -7465,7 +7466,7 @@ The return value means success, with no events.
   for (; pim; pim = Next_PIM_of_PIM (pim))
     {
       const YIM predecessor = YIM_of_PIM (pim);
-      if (predecessor)
+      if (predecessor && YIM_is_Active(predecessor))
 	{
           // Ignore Leo items when scanning
 	  const AHM predecessor_aim = AHM_of_YIM (predecessor);
