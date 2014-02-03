@@ -156,7 +156,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
 
     {
         my $error =
-            qq{Failed resolution of action "$closure_name" to $fully_qualified_name \n};
+            qq{Failed resolution of action "$closure_name" to $fully_qualified_name\n};
         ${$p_error} = $error if defined $p_error;
         if ($trace_actions) {
             print {$Marpa::R2::Internal::TRACE_FH} $error
@@ -447,19 +447,40 @@ sub Marpa::R2::Recognizer::ordering_create {
 } ## end sub Marpa::R2::Recognizer::ordering_create
 
 sub resolve_rule_by_id {
-    my ( $recce, $rule_id, $p_error ) = @_;
+    my ( $recce, $rule_id ) = @_;
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $rules       = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $rule        = $rules->[$rule_id];
     my $action_name = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
+    my $resolve_error;
     return if not defined $action_name;
-    return Marpa::R2::Internal::Recognizer::resolve_action( $recce,
-        $action_name, $p_error );
+    my $resolution = Marpa::R2::Internal::Recognizer::resolve_action( $recce,
+        $action_name, \$resolve_error );
+
+    if ( not $resolution ) {
+        my $rule_desc = describe_rule($grammar, $rule_id);
+        Marpa::R2::exception(
+            "Could not resolve rule action named '$action_name'\n",
+            "  Rule was $rule_desc\n",
+            q{  },
+            ( $resolve_error // 'Failed to resolve action' )
+        );
+    } ## end if ( not $resolution )
+    return $resolution;
 } ## end sub resolve_rule_by_id
+
+# For error messages -- checks if it is called in context with
+# SLR defined
+sub describe_rule {
+    my ( $grammar, $rule_id ) = @_;
+    return $Marpa::R2::Context::slr->rule_show($rule_id)
+        if $Marpa::R2::Context::slr;
+    return $grammar->brief_rule($rule_id);
+} ## end sub describe_rule
 
 sub resolve_recce {
 
-	my ($recce, $slr, $per_parse_arg) = @_;
+	my ($recce, $per_parse_arg) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
@@ -568,11 +589,7 @@ sub resolve_recce {
             $rule_resolution //= $default_action_resolution;
 
             if ( not $rule_resolution ) {
-                my $rule_desc;
-                if ( defined $slr ) {
-                    $rule_desc = $slr->rule_show($rule_id);
-                }
-                else { $rule_desc = $grammar->brief_rule($rule_id); }
+                my $rule_desc = describe_rule($grammar, $rule_id);
                 my $message =
                     "Could not resolve action\n  Rule was $rule_desc\n";
 
@@ -663,13 +680,13 @@ sub resolve_recce {
 }
 
 sub init_registrations {
-    my ( $recce, $slr, $grammar, $grammar_c, $per_parse_arg, $trace_actions, $trace_file_handle, $symbols, $rules, $tracer ) = @_;
+    my ( $recce, $grammar, $grammar_c, $per_parse_arg, $trace_actions, $trace_file_handle, $symbols, $rules, $tracer ) = @_;
 
     my @closure_by_rule_id   = ();
     my @semantics_by_rule_id = ();
     my @blessing_by_rule_id  = ();
 
-    my ($rule_resolutions, $lexeme_resolutions) = resolve_recce($recce, $slr, $per_parse_arg);
+    my ($rule_resolutions, $lexeme_resolutions) = resolve_recce($recce, $per_parse_arg);
 
     # Set the arrays, and perform various checks on the resolutions
     # we received
@@ -1021,11 +1038,7 @@ sub init_registrations {
                 last DO_CONSTANT if not defined $thingy_ref;
                 my $ref_type = Scalar::Util::reftype $thingy_ref;
                 if ( $ref_type eq q{} ) {
-                    my $rule_desc;
-                    if ( defined $slr ) {
-                        $rule_desc = $slr->rule_show($rule_id);
-                    }
-                    else { $rule_desc = $grammar->brief_rule($rule_id); }
+                    my $rule_desc = describe_rule($grammar, $rule_id);
                     Marpa::R2::exception(
                         qq{An action resolved to a scalar.\n},
                         qq{  This is not allowed.\n},
@@ -1061,11 +1074,7 @@ sub init_registrations {
                     last SET_OPS;
                 }
 
-                my $rule_desc;
-                if ( defined $slr ) {
-                    $rule_desc = $slr->rule_show($rule_id);
-                }
-                else { $rule_desc = $grammar->brief_rule($rule_id); }
+                my $rule_desc = describe_rule($grammar, $rule_id);
                 Marpa::R2::exception(
                     qq{Constant action is not of an allowed type.\n},
                     qq{  It was of type reference to $ref_type.\n},
@@ -1205,6 +1214,7 @@ sub init_registrations {
 
         if ( defined $nulling_symbol_id ) {
 
+            my $slr = $Marpa::R2::Context::slr;
             if (    defined $slr
                 and $tracer->symbol_name($nulling_symbol_id) eq '[:start]'
                 and defined(
@@ -1402,7 +1412,6 @@ sub Marpa::R2::Recognizer::value {
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
         init_registrations(
             $recce, 
-            $slr, 
             $grammar, 
             $grammar_c, 
             $per_parse_arg, 

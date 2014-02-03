@@ -248,6 +248,8 @@ END_OF_SOURCE
         ];
 }
 
+#####
+
 {
     my $grammar = \(<<'END_OF_SOURCE');
     :default ::= action => [ lhs, value]

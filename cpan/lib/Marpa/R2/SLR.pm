@@ -1331,7 +1331,6 @@ sub Marpa::R2::Scanless::R::rule_closure {
 
         Marpa::R2::Internal::Value::init_registrations(
             $recce, 
-            $slr, 
             $grammar, 
             $grammar_c, 
             $per_parse_arg, 
