@@ -6440,6 +6440,8 @@ with a |NULL| Earley item pointer.
 @d Base_YIM_of_LIM(leo) ((leo)->t_base)
 @d YS_of_LIM(leo) ((leo)->t_set)
 @d Earleme_of_LIM(lim) Earleme_of_YS(YS_of_LIM(lim))
+@d LIM_is_Rejected(lim) ((lim)->t_is_rejected)
+@d LIM_is_Active(lim) ((lim)->t_is_active)
 @<Private incomplete structures@> =
 struct s_leo_item;
 typedef struct s_leo_item* LIM;
@@ -6453,6 +6455,8 @@ struct s_leo_item {
      LIM t_predecessor;
      YIM t_base;
      YS t_set;
+     BITFIELD t_is_rejected:1;
+     BITFIELD t_is_active:1;
 };
 typedef struct s_leo_item LIM_Object;
 
@@ -7531,21 +7535,25 @@ add those Earley items it ``causes".
       const YIM predecessor = YIM_of_PIM (postdot_item);
       if (predecessor)
         {
-            @t}\comment{@>
+            @t}\comment\hskip 1em{@>
             /* Not a Leo item */
             if (!YIM_is_Active(predecessor)) continue;
 
-            @t}\comment{@>
+            @t}\comment\hskip 1em{@>
             /* If we are here, both cause and predecessor are active */
             @<Add |effect_aim|, plus any prediction,
               for non-Leo |predecessor|@>@;
         }
       else
-        {                       /* A Leo item */
-          @<Add effect of Leo item@>@;
-          break;                /* When I encounter a Leo item,
+        {                 
+           @t}\comment\hskip 1em{@>
+           /* A Leo item */
+           @<Add effect of Leo item@>@;
+           @t}\comment\hskip 1em{@>
+           /* When I encounter a Leo item,
                                    I skip everything else for this postdot
                                    symbol */
+          break;               
         }
     }
 }
@@ -7558,6 +7566,7 @@ add those Earley items it ``causes".
    const YIM effect = earley_item_assign(r, current_earley_set,
         origin, effect_aim);
    if (Earley_Item_has_No_Source(effect)) {
+       @t}\comment{@>
        /* If it has no source, then it is new */
        if (YIM_is_Completion(effect)) {
            @<Push |effect| onto completion stack@>@;
@@ -7575,16 +7584,19 @@ active.
 
 @ @<Add effect of Leo item@> = {
     const LIM leo_item = LIM_of_PIM (postdot_item);
-    const YS origin = Origin_of_LIM (leo_item);
-    const AHM effect_aim = Top_AHM_of_LIM (leo_item);
-    const YIM effect = earley_item_assign (r, current_earley_set,
-                                 origin, effect_aim);
-    if (Earley_Item_has_No_Source (effect))
-      {
-        /* If it has no source, then it is new */
-        @<Push |effect| onto completion stack@>@;
-      }
-    leo_link_add (r, effect, leo_item, cause);
+    if (LIM_is_Active(leo_item)) {
+      const YS origin = Origin_of_LIM (leo_item);
+      const AHM effect_aim = Top_AHM_of_LIM (leo_item);
+      const YIM effect = earley_item_assign (r, current_earley_set,
+                                   origin, effect_aim);
+      if (Earley_Item_has_No_Source (effect))
+        {
+          @t}\comment{@>
+          /* If it has no source, then it is new */
+          @<Push |effect| onto completion stack@>@;
+        }
+      leo_link_add (r, effect, leo_item, cause);
+    }
 }
 
 @ Note that there may already be predictions on the stack from
@@ -7998,6 +8010,8 @@ once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
     new_lim = marpa_obs_new(r->t_obs, LIM_Object, 1);
+    LIM_is_Active(new_lim) = 1;
+    LIM_is_Rejected(new_lim) = 1;
     Postdot_NSYID_of_LIM(new_lim) = nsyid;
     YIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
