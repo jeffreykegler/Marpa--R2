@@ -6228,7 +6228,7 @@ be recopied to make way for pointers to the linked lists.
   LHS_NSYID_of_AHM(AHM_of_YIM(yim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
-@d Earley_Item_is_Completion(item)
+@d YIM_is_Completion(item)
     (AHM_is_Completion(AHM_of_YIM(item)))
 @s Marpa_Earley_Item_ID int
 @<Public typedefs@> = typedef int Marpa_Earley_Item_ID;
@@ -7486,8 +7486,14 @@ The return value means success, with no events.
   tkn_link_add (r, scanned_earley_item, predecessor, alternative);
 }
 
-@ @<Pre-populate the completion stack@> = {
-    /* We know the no new items are added to the stack in this scope */
+@ At this point we know that only scanned items newly added
+are on the YIM working stack.
+Since they are newly added, and would not have been added
+if they were not active, we know that the YIM's on the working stack
+are all active.
+@<Pre-populate the completion stack@> = {
+    @t}\comment{@>
+    /* We know that no new items are added to the stack in this scope */
     YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_yim_work_stack, YIM );
     int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack );
     int ix;
@@ -7497,7 +7503,7 @@ The return value means success, with no events.
          ix++) {
         YIM earley_item = work_earley_items[ix];
         YIM* end_of_stack;
-        if (!Earley_Item_is_Completion (earley_item))
+        if (!YIM_is_Completion (earley_item))
           continue;
         end_of_stack = MARPA_DSTACK_PUSH (r->t_completion_stack, YIM);
         *end_of_stack = earley_item;
@@ -7508,7 +7514,7 @@ The return value means success, with no events.
 add those Earley items it ``causes".
 @<Add new Earley items for |cause|@> =
 {
-  if (Earley_Item_is_Completion(cause))
+  if (YIM_is_Active(cause) && YIM_is_Completion(cause))
     {
       NSYID complete_nsyid = LHS_NSYID_of_YIM(cause);
       const YS middle = Origin_of_YIM (cause);
@@ -7524,9 +7530,13 @@ add those Earley items it ``causes".
     {
       const YIM predecessor = YIM_of_PIM (postdot_item);
       if (predecessor)
-        { /* Not a Leo item */
-            const AHM predecessor_aim = AHM_of_YIM(predecessor);
-            const AHM effect_aim = Next_AHM_of_AHM(predecessor_aim);
+        {
+            @t}\comment{@>
+            /* Not a Leo item */
+            if (!YIM_is_Active(predecessor)) continue;
+
+            @t}\comment{@>
+            /* If we are here, both cause and predecessor are active */
             @<Add |effect_aim|, plus any prediction,
               for non-Leo |predecessor|@>@;
         }
@@ -7542,19 +7552,23 @@ add those Earley items it ``causes".
 
 @ @<Add |effect_aim|, plus any prediction, for non-Leo |predecessor|@> =
 {
+   const AHM predecessor_aim = AHM_of_YIM(predecessor);
+   const AHM effect_aim = Next_AHM_of_AHM(predecessor_aim);
    const YS origin = Origin_of_YIM(predecessor);
    const YIM effect = earley_item_assign(r, current_earley_set,
         origin, effect_aim);
    if (Earley_Item_has_No_Source(effect)) {
        /* If it has no source, then it is new */
-       if (Earley_Item_is_Completion(effect)) {
+       if (YIM_is_Completion(effect)) {
            @<Push |effect| onto completion stack@>@;
        }
    }
    completion_link_add(r, effect, predecessor, cause);
 }
 
-@ @<Push |effect| onto completion stack@> = {
+@ The context must make sure any YIM pushed on the stack is
+active.
+@<Push |effect| onto completion stack@> = {
     YIM* end_of_stack = MARPA_DSTACK_PUSH (r->t_completion_stack, YIM);
     *end_of_stack = effect;
 }
