@@ -5993,10 +5993,10 @@ A parser becomes inconsistent when
 YIM's or LIM's or ALT's are rejected.
 It can be made consistent again by calling
 |marpa_r_consistent()|.
-@d Last_Consistent_YS ((r)->t_last_consistent_ys)
-@d R_is_Consistent(r) ((r)->t_last_consistent_ys < 0)
-@<Int aligned recognizer elements@> = YSID t_last_consistent_ys;
-@ @<Initialize recognizer elements@> = r->t_last_consistent_ys = -1;
+@d First_Inconsistent_YS_of_R(r) ((r)->t_first_inconsistent_ys)
+@d R_is_Consistent(r) ((r)->t_first_inconsistent_ys < 0)
+@<Int aligned recognizer elements@> = YSID t_first_inconsistent_ys;
+@ @<Initialize recognizer elements@> = r->t_first_inconsistent_ys = -1;
 
 @*0 The recognizer obstack.
 Create an obstack with the lifetime of the recognizer.
@@ -7385,6 +7385,11 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
   JEARLEME return_value = -2;
 
   @<Fail if recognizer not accepting input@>@;
+  if (_MARPA_UNLIKELY(!R_is_Consistent(r))) {
+      MARPA_ERROR(MARPA_ERR_RECCE_IS_INCONSISTENT);
+      return failure_indicator;
+  }
+
   {
     int count_of_expected_terminals;
     @<Declare |marpa_r_earleme_complete| locals@>@;
@@ -8356,6 +8361,75 @@ rejections.
 \li Re-determine if the parse is exhausted.
 \li What about postdot items?  If a LIM is now rejected, I should look
 at the YIM/PIM, I think, because it was {\bf not} necessarily rejected.
+
+@ Various notes about revision:
+\li I need to make sure that the reading of alternatives
+and the rejection of rules and terminals cannot be mixed.
+Rejected must be made, and revision complete, before any
+alternatives can be attempted.
+Or, in other words, attempting to reject a rule or terminal
+once an alternative has been read must be a fatal error.
+@<Function definitions@> =
+Marpa_Earleme
+marpa_r_revise(Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  YSID ysid;
+  const YS current_ys = Latest_YS_of_R (r);
+  const YSID current_ys_id = Ord_of_YS(current_ys);
+
+  int count_of_expected_terminals;
+  @<Declare |marpa_r_revise| locals@>@;
+
+    @t}\comment{@>
+  /* Initialized to -2 just in case.
+    Should be set before returning;
+   */
+  const JEARLEME return_value = -2;
+
+  @<Fail if recognizer not accepting input@>@;
+
+  G_EVENTS_CLEAR(g);
+
+  @t}\comment{@>
+  /* Return success if recognizer is already consistent */
+  if (R_is_Consistent(r)) return 0;
+
+  earley_set_update_items(r, current_ys);
+
+  @t}\comment{@>
+  /* Check the fencepost issue here.  "Less than" current earley set?
+  Or "less than or equal" to current earley set? */
+  for (ysid = First_Inconsistent_YS_of_R(r); ysid <= current_ys_id; ysid++) {
+      @<Revise Earley set |ysid|@>@;
+  }
+
+  @t}\comment{@>
+  /* After all Earley sets are made consistent */
+    bv_clear (r->t_bv_nsyid_is_expected);
+    @<Revise expected terminals@>@;
+    count_of_expected_terminals = bv_count (r->t_bv_nsyid_is_expected);
+    if (count_of_expected_terminals <= 0
+        && Earleme_of_YS (current_ys) >= Furthest_Earleme_of_R (r))
+      {
+        @<Set |r| exhausted@>@;
+      }
+
+  First_Inconsistent_YS_of_R(r) = -1;
+  CLEANUP: ;
+    @<Destroy |marpa_r_revise| locals@>@;
+  return return_value;
+}
+
+@ @<Declare |marpa_r_revise| locals@> =
+{}
+@ @<Destroy |marpa_r_revise| locals@> =
+{}
+@ @<Revise Earley set |ysid|@> =
+{}
+@ @<Revise expected terminals@> =
+{}
 
 @** Progress report code.
 @<Private typedefs@> =
@@ -13336,6 +13410,7 @@ if (_MARPA_UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
     return failure_indicator;
 }
+
 if (_MARPA_UNLIKELY(!R_is_Consistent(r))) {
     MARPA_ERROR(MARPA_ERR_RECCE_IS_INCONSISTENT);
     return failure_indicator;
