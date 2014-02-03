@@ -8375,7 +8375,10 @@ marpa_r_revise(Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
-  YSID ysid;
+  YSID ysid_to_revise;
+
+    @t}\comment{@>
+    /* Fix naming here "current" vs. "latest" */
   const YS current_ys = Latest_YS_of_R (r);
   const YSID current_ys_id = Ord_of_YS(current_ys);
 
@@ -8396,13 +8399,17 @@ marpa_r_revise(Marpa_Recognizer r)
   /* Return success if recognizer is already consistent */
   if (R_is_Consistent(r)) return 0;
 
+    @t}\comment{@>
+    /* Note this makes revision $O(n \log n)$.  I could do better
+       for constant "look-behind", but it does not seem worth the
+       bother */
   earley_set_update_items(r, current_ys);
 
   @t}\comment{@>
-  /* Check the fencepost issue here.  "Less than" current earley set?
+  /* Re-check the fencepost issue here.  "Less than" current earley set?
   Or "less than or equal" to current earley set? */
-  for (ysid = First_Inconsistent_YS_of_R(r); ysid <= current_ys_id; ysid++) {
-      @<Revise Earley set |ysid|@>@;
+  for (ysid_to_revise = First_Inconsistent_YS_of_R(r); ysid_to_revise <= current_ys_id; ysid_to_revise++) {
+      @<Revise Earley set |ysid_to_revise|@>@;
   }
 
   @t}\comment{@>
@@ -8426,10 +8433,87 @@ marpa_r_revise(Marpa_Recognizer r)
 {}
 @ @<Destroy |marpa_r_revise| locals@> =
 {}
-@ @<Revise Earley set |ysid|@> =
-{}
-@ @<Revise expected terminals@> =
-{}
+@ @<Revise Earley set |ysid_to_revise|@> =
+{
+  const YS ys_to_revise = YS_of_R_by_Ord (r, ysid_to_revise);
+  const YIM *yims_to_revise = YIMs_of_YS (ys_to_revise);
+  @<Map prediction rules to YIM ordinals in array@>@;
+  @<First revision pass over |ys_to_revise|@>@;
+  @<Compute transitive closure of acceptances@>@;
+  @<Mark accepted YIM's@>@;
+  @<Mark accepted SRCL's@>@;
+  @<Mark rejected LIM's@>@;
+}
+
+@ @<Map prediction rules to YIM ordinals in array@> = {}
+
+@ @<First revision pass over |ys_to_revise|@> = {
+    const int earley_item_count = YIM_Count_of_YS (ys_to_revise);
+    int yim_ix;
+    for (yim_ix = 0; yim_ix < earley_item_count;
+         yim_ix++)
+      {
+        const YIM yim = yims_to_revise[yim_ix];
+
+        @t}\comment{@>
+        /* If YIM was initialization -- I need to add that boolean */
+        if (0) {
+            @<First revision pass for initial YIM@>@;
+        }
+        @t}\comment{@>
+        /* If YIM was scanned -- need to add that boolean */
+        if (0) {
+            @<First revision pass for scanned YIM@>@;
+        }
+        /* If YIM was compound -- need to add that boolean */
+        if (0) {
+            @<First revision pass for compound YIM@>@;
+        }
+        @t}\comment{@>
+        /* If YIM was predicted */
+        if (YIM_was_Predicted(yim) && !YIM_is_Rejected(yim)) {
+            @<First revision pass for predicted YIM@>@;
+        }
+      }
+}
+
+@ Mark active, un-rejected.  Initial YIM can {\bf never} be
+rejected.  Add any direct predictions of un-rejected YIM's.
+@<First revision pass for initial YIM@> = {}
+
+@ Mark not active if not rejected.
+Add any direct predictions of un-rejected YIM's.
+@<First revision pass for scanned YIM@> = {}
+
+@ Mark not active.
+If not rejected, scan SRCL's.
+For each SRCL, reject if predecessor or cause if rejected;
+otherwise, record as a dependency on cause.
+Add dependencies to transition matrix.
+If any dependency was recorded, also add any direct
+predictions of un-rejected YIM's.
+@<First revision pass for compound YIM@> = {}
+
+@ If not rejected, add any direct predictions of
+un-rejected YIM's.
+@<First revision pass for predicted YIM@> = {}
+
+@ @<Compute transitive closure of acceptances@> = {}
+@ For every scanned or initial YIM in transitive closure,
+mark the to-YIM's of the dependency active.
+Mark all others rejected.
+@<Mark accepted YIM's@> = {}
+
+@ We now have a full census of accepted and rejected YIM's.
+Use this to go back over SRCL's.
+These will all be resolveable one way or the other.
+@<Mark accepted SRCL's@> = {}
+
+@ Mark LIM's as accepted or rejected, based on
+their predecessors and trailhead YIM's.
+@<Mark rejected LIM's@> = {}
+
+@ @<Revise expected terminals@> = {}
 
 @** Progress report code.
 @<Private typedefs@> =
