@@ -4894,9 +4894,19 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
   IRL_of_AHM (current_item) = irl;
   Null_Count_of_AHM (current_item) = leading_nulls;
   Quasi_Position_of_AHM (current_item) = current_item - first_aim_of_irl;
-  AHM_was_Predicted (current_item) =
-    ((Quasi_Position_of_AHM (current_item) == 0)
-     && (ID_of_IRL(irl) != ID_of_IRL (g->t_start_irl)));
+  if (Quasi_Position_of_AHM (current_item) == 0) {
+     if (ID_of_IRL(irl) == ID_of_IRL (g->t_start_irl))
+     {
+      AHM_was_Predicted (current_item) = 0;
+      AHM_is_Initial (current_item) = 1;
+     } else {
+      AHM_was_Predicted (current_item) = 1;
+      AHM_is_Initial (current_item) = 0;
+     }
+  } else {
+    AHM_was_Predicted (current_item) = 0;
+    AHM_is_Initial (current_item) = 0;
+  }
   @<Initialize event data for |current_item|@>@;
 }
 
@@ -4932,16 +4942,23 @@ we are traversing backwards.
 
 @*0 AHM container.
 
-@*0 Is AHM predicted?.
-@ This boolean indicates source, not contents.
-If it is true the AHM is a prediction,
-but it is false for the start AHM at location 0,
-which is a prediction, but which is the result
-of initalization, and not of prediction.
+@*0 What is source of the AHM?.
+@ These macros and booleans indicates source,
+not contents.
+In particular ``was predicted'' means was the
+result of a prediction, and does not always
+indicate whether the AHM or YIM contains a
+prediction.
+This is relevant in the case of the the
+initial AHM, which contains a predicted,
+but for which ``was predicted'' is false.
 @d AHM_was_Predicted(aim) ((aim)->t_was_predicted)
 @d YIM_was_Predicted(yim) AHM_was_Predicted(AHM_of_YIM(yim))
+@d AHM_is_Initial(aim) ((aim)->t_is_initial)
+@d YIM_is_Initial(yim) AHM_is_Initial(AHM_of_YIM(yim))
 @<Bit aligned AHM elements@> =
 BITFIELD t_was_predicted:1;
+BITFIELD t_is_initial:1;
 
 @*0 Event data.
 A boolean tracks whether this is an
@@ -8489,11 +8506,10 @@ will never be referred to.
       {
         const YIM yim = yims_to_revise[yim_ix];
 
-        @t}\comment{@>
-        /* If YIM was initialization -- I need to add that boolean */
-        if (0) {
+        if (YIM_is_Initial(yim)) {
             @<First revision pass for initial YIM@>@;
         }
+
         @t}\comment{@>
         /* If YIM was scanned -- need to add that boolean */
         if (0) {
