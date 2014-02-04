@@ -5551,9 +5551,12 @@ r->t_current_earleme = -1;
 unsigned int marpa_r_current_earleme(Marpa_Recognizer r)
 { return (unsigned int)Current_Earleme_of_R(r); }
 
-@ @d Current_YS_of_R(r) current_ys_of_r(r)
+@ The ``Earley set at the current earleme'' is always
+the latest YS, if it is defined.
+There may not be a YS at the current earleme.
+@d YS_at_Current_Earleme_of_R(r) ys_at_current_earleme(r)
 @<Function definitions@> =
-PRIVATE YS current_ys_of_r(RECCE r)
+PRIVATE YS ys_at_current_earleme(RECCE r)
 {
     const YS latest = Latest_YS_of_R(r);
     if (Earleme_of_YS(latest) == Current_Earleme_of_R(r)) return latest;
@@ -6243,15 +6246,17 @@ when the Earley item is initialized.
 @ The ID of the Earley item is per-Earley-set, so that
 to uniquely specify the Earley item you must also specify
 the Earley set.
-@d YS_of_YIM(item) ((item)->t_key.t_set)
-@d YS_Ord_of_YIM(item) (Ord_of_YS(YS_of_YIM(item)))
-@d Ord_of_YIM(item) ((item)->t_ordinal)
-@d Earleme_of_YIM(item) Earleme_of_YS(YS_of_YIM(item))
-@d AHM_of_YIM(item) ((item)->t_key.t_aim)
-@d AHMID_of_YIM(item) ID_of_AHM(AHM_of_YIM(item))
-@d Origin_Earleme_of_YIM(item) (Earleme_of_YS(Origin_of_YIM(item)))
-@d Origin_Ord_of_YIM(item) (Ord_of_YS(Origin_of_YIM(item)))
-@d Origin_of_YIM(item) ((item)->t_key.t_origin)
+@d YS_of_YIM(yim) ((yim)->t_key.t_set)
+@d YS_Ord_of_YIM(yim) (Ord_of_YS(YS_of_YIM(yim)))
+@d Ord_of_YIM(yim) ((yim)->t_ordinal)
+@d Earleme_of_YIM(yim) Earleme_of_YS(YS_of_YIM(yim))
+@d AHM_of_YIM(yim) ((yim)->t_key.t_aim)
+@d AHMID_of_YIM(yim) ID_of_AHM(AHM_of_YIM(yim))
+@d IRL_of_YIM(yim) IRL_of_AHM(AHM_of_YIM(yim))
+@d IRLID_of_YIM(yim) ID_of_IRL(IRL_of_YIM(yim))
+@d Origin_Earleme_of_YIM(yim) (Earleme_of_YS(Origin_of_YIM(yim)))
+@d Origin_Ord_of_YIM(yim) (Ord_of_YS(Origin_of_YIM(yim)))
+@d Origin_of_YIM(yim) ((yim)->t_key.t_origin)
 @s YIM int
 @<Private incomplete structures@> =
 struct s_earley_item;
@@ -6287,6 +6292,11 @@ struct s_earley_item {
     BITFIELD t_is_active:1;
 };
 typedef struct s_earley_item YIM_Object;
+
+@ Signed as opposed to the the way it is kept (unsigned, for portability,
+because it is a bitfield.  I may have to change this.
+@<Private typedefs@> =
+typedef int YIMID;
 
 @*0 Constructor.
 Find an Earley item object, creating it if it does not exist.
@@ -7260,7 +7270,7 @@ are always unexpected.
       return MARPA_ERR_INACCESSIBLE_TOKEN;
     }
   tkn_nsyid = ID_of_NSY (tkn_nsy);
-  current_earley_set = Current_YS_of_R (r);
+  current_earley_set = YS_at_Current_Earleme_of_R (r);
   if (!current_earley_set)
     {
       MARPA_ERROR (MARPA_ERR_NO_TOKEN_EXPECTED_HERE);
@@ -8378,7 +8388,6 @@ marpa_r_revise(Marpa_Recognizer r)
   YSID ysid_to_revise;
 
     @t}\comment{@>
-    /* Fix naming here "current" vs. "latest" */
   const YS current_ys = Latest_YS_of_R (r);
   const YSID current_ys_id = Ord_of_YS(current_ys);
 
@@ -8405,15 +8414,12 @@ marpa_r_revise(Marpa_Recognizer r)
        bother */
   earley_set_update_items(r, current_ys);
 
-  @t}\comment{@>
-  /* Re-check the fencepost issue here.  "Less than" current earley set?
-  Or "less than or equal" to current earley set? */
   for (ysid_to_revise = First_Inconsistent_YS_of_R(r); ysid_to_revise <= current_ys_id; ysid_to_revise++) {
       @<Revise Earley set |ysid_to_revise|@>@;
   }
 
   @t}\comment{@>
-  /* After all Earley sets are made consistent */
+  /* All Earley sets are now consistent */
     bv_clear (r->t_bv_nsyid_is_expected);
     @<Revise expected terminals@>@;
     count_of_expected_terminals = bv_count (r->t_bv_nsyid_is_expected);
@@ -8430,13 +8436,24 @@ marpa_r_revise(Marpa_Recognizer r)
 }
 
 @ @<Declare |marpa_r_revise| locals@> =
-{}
+
+@t}\comment{@>
+/* An obstack whose lifetime is that of the external method */
+struct marpa_obstack* const method_obstack = marpa_obs_init;
+
+YIMID *prediction_by_irl =
+  marpa_obs_new (method_obstack, YIMID, IRL_Count_of_G (g));
+
 @ @<Destroy |marpa_r_revise| locals@> =
-{}
+{
+  marpa_obs_free(method_obstack);
+}
+
 @ @<Revise Earley set |ysid_to_revise|@> =
 {
   const YS ys_to_revise = YS_of_R_by_Ord (r, ysid_to_revise);
   const YIM *yims_to_revise = YIMs_of_YS (ys_to_revise);
+  const int yim_count_of_ys_to_revise = YIM_Count_of_YS (ys_to_revise);
   @<Map prediction rules to YIM ordinals in array@>@;
   @<First revision pass over |ys_to_revise|@>@;
   @<Compute transitive closure of acceptances@>@;
@@ -8445,12 +8462,29 @@ marpa_r_revise(Marpa_Recognizer r)
   @<Mark rejected LIM's@>@;
 }
 
-@ @<Map prediction rules to YIM ordinals in array@> = {}
+@ Rules not used in this YS
+do not need to be initialized because they
+will never be referred to.
+@<Map prediction rules to YIM ordinals in array@> =
+{
+    int yim_ix = yim_count_of_ys_to_revise - 1;
+    YIM yim = yims_to_revise[yim_ix];
+
+    @t}\comment{@>
+    /* Assumes that predictions are last in the YS.
+    There will always be a non-prediction to end the loop,
+    because there is always a scanned or an initial YIM.
+    */
+    while (YIM_was_Predicted(yim)) {
+      prediction_by_irl[IRLID_of_YIM(yim)] = yim_ix;
+      yim = yims_to_revise[--yim_ix];
+    }
+}
 
 @ @<First revision pass over |ys_to_revise|@> = {
-    const int earley_item_count = YIM_Count_of_YS (ys_to_revise);
     int yim_ix;
-    for (yim_ix = 0; yim_ix < earley_item_count;
+    for (yim_ix = 0;
+         yim_ix < yim_count_of_ys_to_revise;
          yim_ix++)
       {
         const YIM yim = yims_to_revise[yim_ix];
@@ -9047,7 +9081,7 @@ PRIVATE int psi_test_and_set(
     YIM earley_item
     )
 {
-  const Marpa_Earley_Set_ID set_ordinal = YS_Ord_of_YIM (earley_item);
+  const YSID set_ordinal = YS_Ord_of_YIM (earley_item);
   const int item_ordinal = Ord_of_YIM (earley_item);
   const OR previous_or_node =
     OR_by_PSI (per_ys_data, set_ordinal, item_ordinal);
@@ -10153,7 +10187,7 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
 {
   if (ordinal_arg == -1)
     {
-      end_of_parse_earley_set = Current_YS_of_R (r);
+      end_of_parse_earley_set = YS_at_Current_Earleme_of_R (r);
     }
   else
     {                           /* |ordinal_arg| != -1 */

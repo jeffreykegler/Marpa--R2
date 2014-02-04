@@ -2592,6 +2592,19 @@ Return value:  On success, the number of events generated.
 On failure, @minus{}2.
 @end deftypefun
 
+@node Methods for revising parses
+@section Methods for revising parses
+
+Marpa allows an application to ``change its mind'' about a parse,
+rejected rule previously recognized or predicted,
+and terminals previously scanned.
+The methods in this section provide that capability.
+
+@deftypefun Marpa_Earleme marpa_r_revise ( @
+    Marpa_Recognizer @var{r})
+
+@end deftypefun
+
 @node Location accessors, Other parse status methods, Recognizer life cycle mutators, Recognizer methods
 @section Location accessors
 
