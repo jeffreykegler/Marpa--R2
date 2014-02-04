@@ -734,11 +734,11 @@ sub init_registrations {
             $blessing_by_rule_id[$rule_id]  = $blessing;
             $closure_by_rule_id[$rule_id]   = $closure;
 
-            if (    $blessing ne '::undef'
-                and not $closure
-                and $semantics ne '::array'
-                and ( substr $semantics, 0, 1 ) ne '[' )
-            {
+            CHECK_BLESSING: {
+                last CHECK_BLESSING if $blessing eq '::undef';
+                last CHECK_BLESSING if $closure;
+                last CHECK_BLESSING if $semantics eq '::array';
+                last CHECK_BLESSING if ( substr $semantics, 0, 1 ) eq '[';
                 Marpa::R2::exception(
                     qq{Cannot bless rule when the semantics are "$semantics"},
                     q{  Rule is: },
@@ -747,7 +747,7 @@ sub init_registrations {
                     qq{  Blessing is "$blessing"\n},
                     qq{  Semantics are "$semantics"\n}
                 );
-            } ## end if ( $blessing ne '::undef' and not $closure and ...)
+            } ## end CHECK_BLESSING:
 
         } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
@@ -1502,7 +1502,7 @@ sub Marpa::R2::Recognizer::value {
             say {$trace_file_handle}
                 "Registering semantics for $type: ",
                 $grammar->symbol_name($id),
-                "\n", '  Semantics are ', show_semantics(@ops)
+                "\n", '  Semantics are ', show_semantics(@raw_ops)
                 or Marpa::R2::exception('Cannot say to trace file handle');
         } ## end if ( $trace_values > 2 )
         OP: for my $raw_op (@raw_ops) {
