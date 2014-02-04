@@ -736,7 +736,25 @@ sub init_registrations {
 
             CHECK_BLESSING: {
                 last CHECK_BLESSING if $blessing eq '::undef';
-                last CHECK_BLESSING if $closure;
+                if ($closure) {
+                    my $ref_type = Scalar::Util::reftype $closure;
+                    if ( $ref_type eq 'SCALAR' ) {
+
+                        # The constant's dump might be long so I repeat the error message
+                        Marpa::R2::exception(
+                            qq{Fatal error: Attempt to bless a rule that resolves to a scalar constant\n},
+                            qq{  Scalar constant is },
+                            Data::Dumper::Dumper($closure),
+                            qq{  Blessing is "$blessing"\n},
+                            q{  Rule is: },
+                            $grammar->brief_rule($rule_id),
+                            "\n",
+                            qq{  Cannot bless rule when it resolves to a scalar constant},
+                            "\n",
+                        );
+                    } ## end if ( $ref_type eq 'SCALAR' )
+                    last CHECK_BLESSING;
+                } ## end if ($closure)
                 last CHECK_BLESSING if $semantics eq '::array';
                 last CHECK_BLESSING if ( substr $semantics, 0, 1 ) eq '[';
                 Marpa::R2::exception(
