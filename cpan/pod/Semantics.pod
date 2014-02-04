@@ -332,21 +332,24 @@ L<in a separate document|Marpa::R2::Semantics::Null>.
 
 Part of a rule alternative's or lexeme's action may be a blessing.
 A blessing is the name of a Perl package.
-If the action is not a rule evaluation closure, the value
-of the action will be blessed into that package.
 In the case of a rule evaluation closure,
 the argument containing its child values will be blessed
 into that package.
 
-Only Perl objects pointed to by references can be blessed,
-and it is a fatal error to try to use a blessing with an inappropriate
+Not all actions are rule evaluation closures.
+An action may be, for example, an array descriptor action.
+In cases where the action is not a rule evaluation closure,
+the value
+of the action will be blessed into that package.
+
+Only Perl objects pointed to by references can be blessed.
+It is a fatal error to try to use a blessing with an inappropriate
 action.
-When an action or action name cannot be blessed, its description
-in this document
-indicates that.
 
 Implicitly, an action is not blessed.
-Also, it is a fatal error to bless the implicit action.
+The implicit action itself cannot be blessing --
+an attempt to do so is a fatal error.
+
 Explicit blessings are made using 
 the C<bless> adverb.
 The C<bless> adverb is allowed
