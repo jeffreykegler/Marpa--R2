@@ -6305,6 +6305,8 @@ should not be restrictive in practice.
 @d YIM_FATAL_THRESHOLD ((1<<(YIM_ORDINAL_WIDTH))-2)
 @d YIM_is_Rejected(yim) ((yim)->t_is_rejected)
 @d YIM_is_Active(yim) ((yim)->t_is_active)
+@d YIM_was_Scanned(yim) ((yim)->t_was_scanned)
+@d YIM_was_Fusion(yim) ((yim)->t_was_fusion)
 @<Earley item structure@> =
 struct s_earley_item_key {
      AHM t_aim;
@@ -6319,6 +6321,8 @@ struct s_earley_item {
     BITFIELD t_source_type:3;
     BITFIELD t_is_rejected:1;
     BITFIELD t_is_active:1;
+    BITFIELD t_was_scanned:1;
+    BITFIELD t_was_fusion:1;
 };
 typedef struct s_earley_item YIM_Object;
 
@@ -7544,6 +7548,7 @@ The return value means success, with no events.
 						      Origin_of_YIM
 						      (predecessor),
 						      scanned_aim);
+  YIM_was_Scanned(scanned_earley_item) = 1;
   tkn_link_add (r, scanned_earley_item, predecessor, alternative);
 }
 
@@ -7622,6 +7627,7 @@ add those Earley items it ``causes".
    const YS origin = Origin_of_YIM(predecessor);
    const YIM effect = earley_item_assign(r, current_earley_set,
         origin, effect_aim);
+   YIM_was_Fusion(effect) = 1;
    if (Earley_Item_has_No_Source(effect)) {
        @t}\comment{@>
        /* If it has no source, then it is new */
@@ -7646,6 +7652,7 @@ active.
       const AHM effect_aim = Top_AHM_of_LIM (leo_item);
       const YIM effect = earley_item_assign (r, current_earley_set,
                                    origin, effect_aim);
+      YIM_was_Fusion(effect) = 1;
       if (Earley_Item_has_No_Source (effect))
         {
           @t}\comment{@>
@@ -8523,22 +8530,31 @@ will never be referred to.
 
         if (YIM_is_Initial(yim)) {
             @<First revision pass for initial YIM@>@;
+            goto NEXT_YIM;
         }
 
-        @t}\comment{@>
-        /* If YIM was scanned -- need to add that boolean */
-        if (0) {
-            @<First revision pass for scanned YIM@>@;
-        }
-        /* If YIM was compound -- need to add that boolean */
-        if (0) {
-            @<First revision pass for compound YIM@>@;
-        }
         @t}\comment{@>
         /* If YIM was predicted */
         if (YIM_was_Predicted(yim) && !YIM_is_Rejected(yim)) {
             @<First revision pass for predicted YIM@>@;
+            goto NEXT_YIM;
         }
+
+        @t}\comment{@>
+        /* If YIM was scanned.
+        Note that a YIM can be both scanned and fused, so that order
+        matters here.
+        */
+        if (YIM_was_Scanned(yim)) {
+            @<First revision pass for scanned YIM@>@;
+            goto NEXT_YIM;
+        }
+
+        /* If YIM was fusion */
+        if (YIM_was_Fusion(yim)) {
+            @<First revision pass for compound YIM@>@;
+        }
+        NEXT_YIM: ;
       }
 }
 
