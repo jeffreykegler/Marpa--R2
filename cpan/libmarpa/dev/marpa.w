@@ -4597,47 +4597,59 @@ unit transitions are not in general reflexive.
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
-      XSYID nonnulling_id = -1;
-      int nonnulling_count = 0;
+      XSYID nonnullable_id = -1;
+      int nonnullable_count = 0;
       int rhs_ix, rule_length;
       rule_length = Length_of_XRL (rule);
+
+      @t}\comment{@>
+      /* Count the non-nullable rules */
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
-        {
-          XSYID xsy_id = RHS_ID_of_RULE (rule, rhs_ix);
-          if (bv_bit_test (nullable_v, xsy_id))
-            continue;
-          nonnulling_id = xsy_id;
-          nonnulling_count++;
-        }
-        if (nonnulling_count == 1)
-        {
-          @<For |nonnulling_id|, set to,from
-            rule bit in |unit_transition_matrix|@>@;
-        }
-      else if (nonnulling_count == 0)
-        {
-          for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
-            {
-              nonnulling_id = RHS_ID_of_RULE (rule, rhs_ix);
-              if (!bv_bit_test (nullable_v, nonnulling_id))
-                continue;
-              if (XSY_is_Nulling (XSY_by_ID (nonnulling_id)))
-                continue;
-              /* |nonnulling_id| is a proper nullable */
-              @<For |nonnulling_id|, set to,from rule bit
-                in |unit_transition_matrix|@>@;
-            }
-        }
+	{
+	  XSYID xsy_id = RHS_ID_of_RULE (rule, rhs_ix);
+	  if (bv_bit_test (nullable_v, xsy_id))
+	    continue;
+	  nonnullable_id = xsy_id;
+	  nonnullable_count++;
+	}
+
+      if (nonnullable_count == 1)
+	{
+          @t}\comment{@>
+          /* If exactly one RHS symbol is non-nullable, it is a unit transition,
+             and the only one for this rule */
+	  @<For |nonnullable_id|, set to-,
+          from-rule bit in |unit_transition_matrix|@>@;
+	}
+      else if (nonnullable_count == 0)
+	{
+	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+	    {
+              @t}\comment{@>
+              /* If exactly zero RHS symbols are non-nullable, all the proper nullables
+              (that is, nullables which are not nulling)
+              are are potential unit transitions */
+	      nonnullable_id = RHS_ID_of_RULE (rule, rhs_ix);
+
+	      if (XSY_is_Nulling (XSY_by_ID (nonnullable_id)))
+		continue;
+
+              @t}\comment{@>
+	      /* If here, |nonnullable_id| is a proper nullable */
+	      @<For |nonnullable_id|, set to-,
+              from-rule bit in |unit_transition_matrix|@>@;
+	    }
+	}
     }
 }
 
-@ We have a lone |nonnulling_id| in |rule_id|,
+@ We have a lone |nonnullable_id| in |rule_id|,
 so there is a unit transition from |rule_id| to every
-rule with |nonnulling_id| on the LHS.
-@<For |nonnulling_id|, set to,from rule bit in |unit_transition_matrix|@> =
+rule with |nonnullable_id| on the LHS.
+@<For |nonnullable_id|, set to-, from-rule bit in |unit_transition_matrix|@> =
 {
-  RULEID *p_xrl = xrl_list_x_lh_sym[nonnulling_id];
-  const RULEID *p_one_past_rules = xrl_list_x_lh_sym[nonnulling_id + 1];
+  RULEID *p_xrl = xrl_list_x_lh_sym[nonnullable_id];
+  const RULEID *p_one_past_rules = xrl_list_x_lh_sym[nonnullable_id + 1];
   for (; p_xrl < p_one_past_rules; p_xrl++)
     {
       /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
@@ -8398,7 +8410,7 @@ Or, in other words, attempting to reject a rule or terminal
 once an alternative has been read must be a fatal error.
 @<Function definitions@> =
 Marpa_Earleme
-marpa_r_revise(Marpa_Recognizer r)
+marpa_r_clean(Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
@@ -8409,7 +8421,7 @@ marpa_r_revise(Marpa_Recognizer r)
   const YSID current_ys_id = Ord_of_YS(current_ys);
 
   int count_of_expected_terminals;
-  @<Declare |marpa_r_revise| locals@>@;
+  @<Declare |marpa_r_clean| locals@>@;
 
     @t}\comment{@>
   /* Initialized to -2 just in case.
@@ -8437,6 +8449,9 @@ marpa_r_revise(Marpa_Recognizer r)
 
   @t}\comment{@>
   /* All Earley sets are now consistent */
+
+    @<Revise pending alternatives@>@;
+
     bv_clear (r->t_bv_nsyid_is_expected);
     @<Revise expected terminals@>@;
     count_of_expected_terminals = bv_count (r->t_bv_nsyid_is_expected);
@@ -8448,11 +8463,11 @@ marpa_r_revise(Marpa_Recognizer r)
 
   First_Inconsistent_YS_of_R(r) = -1;
   CLEANUP: ;
-    @<Destroy |marpa_r_revise| locals@>@;
+    @<Destroy |marpa_r_clean| locals@>@;
   return return_value;
 }
 
-@ @<Declare |marpa_r_revise| locals@> =
+@ @<Declare |marpa_r_clean| locals@> =
 
 @t}\comment{@>
 /* An obstack whose lifetime is that of the external method */
@@ -8461,7 +8476,7 @@ struct marpa_obstack* const method_obstack = marpa_obs_init;
 YIMID *prediction_by_irl =
   marpa_obs_new (method_obstack, YIMID, IRL_Count_of_G (g));
 
-@ @<Destroy |marpa_r_revise| locals@> =
+@ @<Destroy |marpa_r_clean| locals@> =
 {
   marpa_obs_free(method_obstack);
 }
@@ -8562,6 +8577,11 @@ These will all be resolveable one way or the other.
 @ Mark LIM's as accepted or rejected, based on
 their predecessors and trailhead YIM's.
 @<Mark rejected LIM's@> = {}
+
+@ For all pending alternatives, determine if
+they have unrejected predecessors.
+If not, remove them from the stack.
+@<Revise pending alternatives@> = {}
 
 @ @<Revise expected terminals@> = {}
 

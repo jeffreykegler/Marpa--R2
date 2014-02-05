@@ -2602,7 +2602,7 @@ rejected rule previously recognized or predicted,
 and terminals previously scanned.
 The methods in this section provide that capability.
 
-@deftypefun Marpa_Earleme marpa_r_revise ( @
+@deftypefun Marpa_Earleme marpa_r_clean ( @
     Marpa_Recognizer @var{r})
 
 @end deftypefun
