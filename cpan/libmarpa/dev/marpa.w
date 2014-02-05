@@ -8711,6 +8711,8 @@ int marpa_r_progress_report_start(
     for (earley_item_id = 0; earley_item_id < earley_item_count;
          earley_item_id++)
       {
+        const YIM earley_item = earley_items[earley_item_id];
+        if (!YIM_is_Active(earley_item)) continue;
         @<Do the progress report for |earley_item|@>@;
       }
     r->t_progress_report_traverser = _marpa_avl_t_init(report_tree);
@@ -8731,16 +8733,21 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
   return 1;
 }
 
-@ @<Do the progress report for |earley_item|@> =
+@ Caller ensures this YIM is active.
+@<Do the progress report for |earley_item|@> =
 {
   SRCL leo_source_link = NULL;
-  const YIM earley_item = earley_items[earley_item_id];
   progress_report_item_insert (report_tree, AHM_of_YIM (earley_item),
 			       Origin_Ord_of_YIM (earley_item));
   for (leo_source_link = First_Leo_SRCL_of_YIM (earley_item);
        leo_source_link; leo_source_link = Next_SRCL_of_SRCL (leo_source_link))
     {
       LIM leo_item;
+      if (!SRCL_is_Active (leo_source_link)) continue;
+
+      @t}\comment{@>
+      /* If the SRCL at the Leo summit is active, then the whole path
+      is active. */
       for (leo_item = LIM_of_SRCL (leo_source_link);
 	   leo_item; leo_item = Predecessor_LIM_of_LIM (leo_item))
 	{
