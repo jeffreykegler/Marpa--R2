@@ -1893,6 +1893,14 @@ int _marpa_g_nsy_is_nulling(Marpa_Grammar g, Marpa_NSY_ID nsy_id)
   return NSY_is_Nulling(NSY_by_ID(nsy_id));
 }
 
+@*0 LHS CIL.
+A CIL which records the IRL's of which this NSY
+is the LHS.
+@d LHS_CIL_of_NSY(nsy) ((nsy)->t_lhs_cil)
+@d LHS_CIL_of_NSYID(nsyid) LHS_CIL_of_NSY(NSY_by_ID(nsyid))
+@<Widely aligned NSY elements@> = CIL t_lhs_cil;
+@ @<Initialize NSY elements@> = LHS_CIL_of_NSY(nsy) = NULL;
+
 @*0 Semantic XSY.
 Set if the internal symbol is semantically visible
 externally.
@@ -3400,6 +3408,9 @@ Bit_Vector terminal_v = NULL;
 @ @<Declare census variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
+
+@ These might better be tracked as per-XSY CIL's.
+@<Declare census variables@> =
 RULEID** xrl_list_x_rh_sym = NULL;
 RULEID** xrl_list_x_lh_sym = NULL;
 
@@ -5125,6 +5136,8 @@ of minimum sizes.
 
 @ @<Calculate Rule by LHS lists@> =
 {
+    Bit_Matrix irl_by_lhs_matrix =
+        matrix_obs_create (obs_precompute, nsy_count, irl_count);
   IRLID irl_id;
   const MARPA_AVL_TREE lhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL);
@@ -5139,6 +5152,7 @@ of minimum sizes.
       p_sym_rule_pairs->t_symid = lhs_nsyid;
       p_sym_rule_pairs->t_ruleid = irl_id;
       _marpa_avl_insert (lhs_avl_tree, p_sym_rule_pairs);
+      matrix_bit_set (irl_by_lhs_matrix, lhs_nsyid, irl_id);
       p_sym_rule_pairs++;
     }
   {
@@ -5164,6 +5178,31 @@ of minimum sizes.
       irl_list_x_lh_nsy[seen_nsyid] = p_rule_data;
   }
   _marpa_avl_destroy (lhs_avl_tree);
+
+  {
+  NSYID lhsid;
+  @t}\comment{@>
+  /* for every LHS row of the IRL-by-LHS matrix, add
+  all its IRL's to the LHS CIL */
+  for (lhsid = 0; lhsid < nsy_count; lhsid++)
+    {
+      IRLID irlid;
+      int min, max, start;
+      cil_buffer_clear (&g->t_cilar);
+      for (start = 0;
+           bv_scan (matrix_row
+                    (irl_by_lhs_matrix, lhsid),
+                    start, &min, &max); start = max + 2)
+        {
+          for (irlid = min; irlid <= max; irlid++)
+          {
+            cil_buffer_push (&g->t_cilar, irlid);
+          }
+        }
+      LHS_CIL_of_NSYID(lhsid) = cil_buffer_add (&g->t_cilar);
+    }
+    }
+
 }
 
 @*0 Predictions.
