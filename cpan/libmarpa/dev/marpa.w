@@ -8564,43 +8564,90 @@ will never be referred to.
         }
 
         @t}\comment{@>
-        /* If YIM was scanned.
-        Note that a YIM can be both scanned and fused, so that order
-        matters here.
-        */
-        if (YIM_was_Scanned(yim)) {
-            @<First revision pass for scanned YIM@>@;
-            goto NEXT_YIM;
+        /* If YIM was scanned -- it may also be a fusion YIM  */
+        if (YIM_was_Scanned(yim) && !YIM_is_Rejected(yim)) {
+          @<First revision pass for scanned YIM@>@;
+          goto NEXT_YIM;
         }
 
-        /* If YIM was fusion */
-        if (YIM_was_Fusion(yim)) {
-            @<First revision pass for compound YIM@>@;
+        /* If YIM is only a fusion YIM */
+        if (YIM_was_Fusion(yim) && !YIM_is_Rejected(yim)) {
+          @<First revision pass for fusion YIM@>@;
         }
+
         NEXT_YIM: ;
       }
 }
 
 @ Mark active, un-rejected.  Initial YIM can {\bf never} be
 rejected.  Add any direct predictions of un-rejected YIM's.
-@<First revision pass for initial YIM@> = {}
+@<First revision pass for initial YIM@> = {
+    @t}\comment{@>
+    /* The initial YIM is never rejected and is always active. */
+    YIM_is_Active(yim) = 1;
+    YIM_is_Rejected(yim) = 0;
 
-@ Mark not active if not rejected.
-Add any direct predictions of un-rejected YIM's.
-@<First revision pass for scanned YIM@> = {}
+    @t}\comment{@>
+    /* TO do: Add any direct predictions of un-rejected YIM's. */
+}
 
-@ Mark not active.
-If not rejected, scan SRCL's.
+@ Mark YIM's not active if not scanned.
+If scanned, we can make a preliminary determination whether
+it is accepted based on
+the absence direct rejection and the presence of
+at least one unrejected token links.
+(A scanned YIM may have fusion links.)
+If this preliminary determination indicates that the
+scanned YIM is active, we mark it that way.
+@ We need the preliminary indication, because when we
+compute the accepted YIM's from
+the transition closure of acceptances, we need a set of YIM's
+as a starting point.
+In Earley set 0, the initial YIM is the starting point,
+but in all later sets, the scanned YIM's are the starting
+points.
+We know that
+every unrejected YIM will trace back, in its YS,
+to either the initial YIM or
+an unrejected token SRCL in an unrejected scanned YIM.
+@ A scanned YIM may have only rejected token SRCL's,
+but an accepted fusion SRCL.
+In effect, after the rejections, it is now a purely fusion
+YIM.
+We do not use
+such a now-purely-fusion, no-longer-scanned YIM as a
+starting point.
+We know this is safe, since
+in order to be accepted, every YIM must trace back to
+an unrejected YIM with unrejected token SRCL's,
+or to the initial YIM.
+@ If not rejected, scan SRCL's.
 For each SRCL, reject if predecessor or cause if rejected;
 otherwise, record as a dependency on cause.
-Add dependencies to transition matrix.
+Add dependencies to acceptance matrix.
 If any dependency was recorded, also add any direct
 predictions of un-rejected YIM's.
-@<First revision pass for compound YIM@> = {}
+@<First revision pass for scanned YIM@> = {
+    @t}\comment{@>
+    /* Temporarily mark this YIM inactive until proven active.
+    We will check the token SRCL's to see if we can declare it
+    active in this first pass. */
+    YIM_is_Active(yim) = 0;
+}
+
+@ @<First revision pass for fusion YIM@> = {
+    @t}\comment{@>
+    /* Temporarily mark this YIM inactive until proven active. */
+    YIM_is_Active(yim) = 0;
+}
 
 @ If not rejected, add any direct predictions of
 un-rejected YIM's.
-@<First revision pass for predicted YIM@> = {}
+@<First revision pass for predicted YIM@> = {
+    @t}\comment{@>
+    /* Temporarily mark this YIM as inactive until proven active. */
+    YIM_is_Active(yim) = 0;
+}
 
 @ @<Compute transitive closure of acceptances@> = {}
 @ For every scanned or initial YIM in transitive closure,
