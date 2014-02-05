@@ -8477,7 +8477,7 @@ marpa_r_clean(Marpa_Recognizer r)
   @t}\comment{@>
   /* All Earley sets are now consistent */
 
-    @<Revise pending alternatives@>@;
+    @<Clean pending alternatives@>@;
 
     bv_clear (r->t_bv_nsyid_is_expected);
     @<Revise expected terminals@>@;
@@ -8513,6 +8513,9 @@ YIMID *prediction_by_irl =
   const YS ys_to_revise = YS_of_R_by_Ord (r, ysid_to_revise);
   const YIM *yims_to_revise = YIMs_of_YS (ys_to_revise);
   const int yim_count_of_ys_to_revise = YIM_Count_of_YS (ys_to_revise);
+  Bit_Matrix acceptance_matrix = matrix_obs_create (method_obstack,
+    yim_count_of_ys_to_revise,
+    yim_count_of_ys_to_revise);
   @<Map prediction rules to YIM ordinals in array@>@;
   @<First revision pass over |ys_to_revise|@>@;
   @<Compute transitive closure of acceptances@>@;
@@ -8617,7 +8620,10 @@ their predecessors and trailhead YIM's.
 @ For all pending alternatives, determine if
 they have unrejected predecessors.
 If not, remove them from the stack.
-@<Revise pending alternatives@> = {}
+Readjust furthest earleme.
+Note that moving the furthest earleme may
+change the parse to exhausted state.
+@<Clean pending alternatives@> = {}
 
 @ @<Revise expected terminals@> = {}
 
@@ -8781,12 +8787,16 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
         NEXT_PHASE:;
         }
     INSERT_ITEMS_INTO_TREE:
-      @<Insert items into tree for |report_aim| and |report_origin|@>@;
+      progress_report_item_insert(report_tree, report_aim,  report_origin);
     }
 NEXT_EARLEY_ITEM:;
 }
 
-@ @<Insert items into tree for |report_aim| and |report_origin|@> =
+@ @<Function definitions@> =
+PRIVATE void
+progress_report_item_insert(MARPA_AVL_TREE report_tree,
+  AHM report_aim, 
+    YSID report_origin)
 {
   const IRL irl = IRL_of_AHM (report_aim);
   const XRL source_xrl = Source_XRL_of_IRL (irl);
@@ -8803,8 +8813,7 @@ NEXT_EARLEY_ITEM:;
 	{
 	  if (IRL_has_Virtual_LHS (irl))
 	    {
-	      if (irl_position <= 0)
-		goto NEXT_AHM;
+	      if (irl_position <= 0) return;
 	      xrl_position = -1;
 	    }
 	  else
@@ -8823,7 +8832,7 @@ NEXT_EARLEY_ITEM:;
 	_marpa_avl_insert (report_tree, new_report_item);
       }
     }
-NEXT_AHM:;
+   return;
 }
 
 @ @<Function definitions@> =
