@@ -3736,15 +3736,20 @@ Change so that this runs only if there are prediction events.
 {
   XSYID xsyid;
   XRLID xrlid;
-  int nullable_xsy_count = 0;   /* Use this to make sure we
-                                   have enough CILAR buffer space */
+    @t}\comment{@>
+  /* Use this to make sure we have enough CILAR buffer space */
+  int nullable_xsy_count = 0; 
+
+    @t}\comment{@>
+   /* This matrix is large and very temporary,
+   so it does not go on the obstack */
   void* matrix_buffer = my_malloc(matrix_sizeof(
      pre_census_xsy_count,
-                       pre_census_xsy_count)); /* This
-  matrix is large and very temporary, so it does not go on the obstack */
+                       pre_census_xsy_count));
   Bit_Matrix nullification_matrix =
     matrix_buffer_create (matrix_buffer, pre_census_xsy_count,
                        pre_census_xsy_count);
+
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
     {                           /* Every nullable symbol symbol nullifies itself */
       if (!XSYID_is_Nullable (xsyid))
@@ -5114,7 +5119,6 @@ one non-nulling symbol in each IRL. */
   const RULEID irl_count = IRL_Count_of_G(g);
   const NSYID nsy_count = NSY_Count_of_G(g);
   const XSYID xsy_count = XSY_Count_of_G(g);
-  IRLID** irl_list_x_lh_nsy = NULL;
   Bit_Matrix nsy_by_right_nsy_matrix;
    Bit_Matrix prediction_nsy_by_irl_matrix;
 
@@ -5136,51 +5140,24 @@ of minimum sizes.
 
 @ @<Calculate Rule by LHS lists@> =
 {
-    Bit_Matrix irl_by_lhs_matrix =
-        matrix_obs_create (obs_precompute, nsy_count, irl_count);
+  NSYID lhsid;
+
+    @t}\comment{@>
+   /* This matrix is large and very temporary,
+   so it does not go on the obstack */
+  void* matrix_buffer = my_malloc(matrix_sizeof(
+     nsy_count, irl_count));
+  Bit_Matrix irl_by_lhs_matrix =
+        matrix_buffer_create (matrix_buffer, nsy_count, irl_count);
+
   IRLID irl_id;
-  const MARPA_AVL_TREE lhs_avl_tree =
-    _marpa_avl_create (sym_rule_cmp, NULL);
-  struct sym_rule_pair *const p_sym_rule_pair_base =
-    marpa_obs_new (MARPA_AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
-                    irl_count);
-  struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
       const IRL irl = IRL_by_ID (irl_id);
       const NSYID lhs_nsyid = LHSID_of_IRL(irl);
-      p_sym_rule_pairs->t_symid = lhs_nsyid;
-      p_sym_rule_pairs->t_ruleid = irl_id;
-      _marpa_avl_insert (lhs_avl_tree, p_sym_rule_pairs);
       matrix_bit_set (irl_by_lhs_matrix, lhs_nsyid, irl_id);
-      p_sym_rule_pairs++;
     }
-  {
-    MARPA_AVL_TRAV traverser;
-    struct sym_rule_pair *pair;
-    NSYID seen_nsyid = -1;
-    IRLID *const rule_data_base =
-      marpa_obs_new (obs_precompute, IRLID, irl_count);
-    IRLID *p_rule_data = rule_data_base;
-    traverser = _marpa_avl_t_init (lhs_avl_tree);
-    /* One extra "symbol" as an end marker */
-    irl_list_x_lh_nsy =
-      marpa_obs_new (obs_precompute, IRLID *, nsy_count + 1);
-    for (pair = _marpa_avl_t_first (traverser); pair;
-         pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
-      {
-        const NSYID current_nsyid = pair->t_symid;
-        while (seen_nsyid < current_nsyid)
-          irl_list_x_lh_nsy[++seen_nsyid] = p_rule_data;
-        *p_rule_data++ = pair->t_ruleid;
-      }
-    while (++seen_nsyid <= nsy_count)
-      irl_list_x_lh_nsy[seen_nsyid] = p_rule_data;
-  }
-  _marpa_avl_destroy (lhs_avl_tree);
 
-  {
-  NSYID lhsid;
   @t}\comment{@>
   /* for every LHS row of the IRL-by-LHS matrix, add
   all its IRL's to the LHS CIL */
@@ -5201,7 +5178,8 @@ of minimum sizes.
         }
       LHS_CIL_of_NSYID(lhsid) = cil_buffer_add (&g->t_cilar);
     }
-    }
+
+  my_free(matrix_buffer);
 
 }
 
@@ -5270,7 +5248,8 @@ with |S2| on its LHS.
                        irl_count);
   for (from_nsyid = 0; from_nsyid < nsy_count; from_nsyid++)
     {
-      // for every row of the symbol-by-symbol matrix
+      @t}\comment{@>
+      /* for every row of the symbol-by-symbol matrix */
       int min, max, start;
       for (start = 0;
            bv_scan (matrix_row
@@ -5278,18 +5257,20 @@ with |S2| on its LHS.
                     start, &min, &max); start = max + 2)
         {
           NSYID to_nsyid;
+
+          @t}\comment{@>
+          /* for every predicted symbol */
           for (to_nsyid = min; to_nsyid <= max; to_nsyid++)
             {
-              // for every predicted symbol
-              RULEID *p_irl_x_lh_nsy = irl_list_x_lh_nsy[to_nsyid];
-              const RULEID *p_one_past_rules = irl_list_x_lh_nsy[to_nsyid + 1];
-              for (; p_irl_x_lh_nsy < p_one_past_rules; p_irl_x_lh_nsy++)
-                {
-                  // For every rule with that symbol on its LHS
-                  const IRLID irl_with_this_lhs = *p_irl_x_lh_nsy;
+              int cil_ix;
+              const CIL lhs_cil = LHS_CIL_of_NSYID(to_nsyid);
+              const int cil_count = Count_of_CIL (lhs_cil);
+              for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
+              {
+                  const IRLID irlid = Item_of_CIL (lhs_cil, cil_ix);
                   matrix_bit_set (prediction_nsy_by_irl_matrix,
-                                  from_nsyid, irl_with_this_lhs);
-                }
+                                  from_nsyid, irlid);
+              }
             }
         }
     }
