@@ -8733,63 +8733,23 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
 
 @ @<Do the progress report for |earley_item|@> =
 {
-  const int initial_phase = 1;
-  const int leo_source_link_phase = 2;
-  const int leo_path_item_phase = 3;
-  int next_phase = initial_phase;
   SRCL leo_source_link = NULL;
-  LIM next_leo_item = NULL;
   const YIM earley_item = earley_items[earley_item_id];
-  while (1)
+  progress_report_item_insert (report_tree, AHM_of_YIM (earley_item),
+			       Origin_Ord_of_YIM (earley_item));
+  for (leo_source_link = First_Leo_SRCL_of_YIM (earley_item);
+       leo_source_link; leo_source_link = Next_SRCL_of_SRCL (leo_source_link))
     {
-      YSID report_origin;
-      AHM report_aim;
-      while (1)
-        {                       // this loop finds the next AHM to report
-          const int phase = next_phase;
-          if (phase == initial_phase)
-            {
-              report_origin = Origin_Ord_of_YIM (earley_item);
-              report_aim = AHM_of_YIM (earley_item);
-              next_phase = leo_source_link_phase;
-              goto INSERT_ITEMS_INTO_TREE;
-            }
-          if (phase == leo_source_link_phase)
-            {
-              leo_source_link = leo_source_link ?
-                Next_SRCL_of_SRCL (leo_source_link) :
-                First_Leo_SRCL_of_YIM (earley_item);
-              if (leo_source_link)
-                {
-                  next_leo_item = LIM_of_SRCL (leo_source_link);
-                  next_phase = leo_path_item_phase;
-                  goto NEXT_PHASE;
-                }
-              goto NEXT_EARLEY_ITEM;
-              // If there are no more Leo source links,
-              // we are finished with this Earley item
-            }
-          if (phase == leo_path_item_phase)
-            {
-              const LIM leo_item = next_leo_item;
-              if (!leo_item)
-                {
-                  next_phase = leo_source_link_phase;
-                  goto NEXT_PHASE;
-                }
-              {
-                report_origin = Ord_of_YS (YS_of_LIM (leo_item));
-                report_aim = Base_to_AHM_of_LIM(leo_item);
-                next_leo_item = Predecessor_LIM_of_LIM (leo_item);
-                goto INSERT_ITEMS_INTO_TREE;
-              }
-            }
-        NEXT_PHASE:;
-        }
-    INSERT_ITEMS_INTO_TREE:
-      progress_report_item_insert(report_tree, report_aim,  report_origin);
+      LIM leo_item;
+      for (leo_item = LIM_of_SRCL (leo_source_link);
+	   leo_item; leo_item = Predecessor_LIM_of_LIM (leo_item))
+	{
+	  const YSID report_origin = Ord_of_YS (YS_of_LIM (leo_item));
+	  const AHM report_aim = Base_to_AHM_of_LIM (leo_item);
+	  progress_report_item_insert (report_tree, report_aim,
+				       report_origin);
+	}
     }
-NEXT_EARLEY_ITEM:;
 }
 
 @ @<Function definitions@> =
