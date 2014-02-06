@@ -6301,6 +6301,7 @@ the Earley set.
 @d Earleme_of_YIM(yim) Earleme_of_YS(YS_of_YIM(yim))
 @d AHM_of_YIM(yim) ((yim)->t_key.t_aim)
 @d AHMID_of_YIM(yim) ID_of_AHM(AHM_of_YIM(yim))
+@d Postdot_NSYID_of_YIM(yim) Postdot_NSYID_of_AHM(AHM_of_YIM(yim))
 @d IRL_of_YIM(yim) IRL_of_AHM(AHM_of_YIM(yim))
 @d IRLID_of_YIM(yim) ID_of_IRL(IRL_of_YIM(yim))
 @d Origin_Earleme_of_YIM(yim) (Earleme_of_YS(Origin_of_YIM(yim)))
@@ -7469,7 +7470,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
       YIM cause = *cause_p;
         @<Add new Earley items for |cause|@>@;
     }
-    @<Add predictions@>@;
+    @<Add prediction to |current_earley_set|@>@;
     postdot_items_create(r, bv_ok_for_chain, current_earley_set);
 
     @t}\comment{@>
@@ -7693,7 +7694,7 @@ active.
 
 @ Note that there may already be predictions on the stack from
 the Leo items.
-@<Add predictions@> =
+@<Add prediction to |current_earley_set|@> =
 {
   int ix;
   const int no_of_work_earley_items =
@@ -8449,7 +8450,7 @@ marpa_r_clean(Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
-  YSID ysid_to_revise;
+  YSID ysid_to_clean;
 
     @t}\comment{@>
   const YS current_ys = Latest_YS_of_R (r);
@@ -8478,8 +8479,8 @@ marpa_r_clean(Marpa_Recognizer r)
        bother */
   earley_set_update_items(r, current_ys);
 
-  for (ysid_to_revise = First_Inconsistent_YS_of_R(r); ysid_to_revise <= current_ys_id; ysid_to_revise++) {
-      @<Revise Earley set |ysid_to_revise|@>@;
+  for (ysid_to_clean = First_Inconsistent_YS_of_R(r); ysid_to_clean <= current_ys_id; ysid_to_clean++) {
+      @<Revise Earley set |ysid_to_clean|@>@;
   }
 
   @t}\comment{@>
@@ -8516,17 +8517,17 @@ YIMID *prediction_by_irl =
   marpa_obs_free(method_obstack);
 }
 
-@ @<Revise Earley set |ysid_to_revise|@> =
+@ @<Revise Earley set |ysid_to_clean|@> =
 {
-  const YS ys_to_revise = YS_of_R_by_Ord (r, ysid_to_revise);
-  const YIM *yims_to_revise = YIMs_of_YS (ys_to_revise);
-  const int yim_count_of_ys_to_revise = YIM_Count_of_YS (ys_to_revise);
+  const YS ys_to_clean = YS_of_R_by_Ord (r, ysid_to_clean);
+  const YIM *yims_to_clean = YIMs_of_YS (ys_to_clean);
+  const int yim_to_clean_count = YIM_Count_of_YS (ys_to_clean);
   Bit_Matrix acceptance_matrix = matrix_obs_create (method_obstack,
-    yim_count_of_ys_to_revise,
-    yim_count_of_ys_to_revise);
+    yim_to_clean_count,
+    yim_to_clean_count);
   @<Map prediction rules to YIM ordinals in array@>@;
-  @<First revision pass over |ys_to_revise|@>@;
-  @<Compute transitive closure of acceptances@>@;
+  @<First revision pass over |ys_to_clean|@>@;
+  @<Compute transitive closure of |acceptance_matrix|@>@;
   @<Mark accepted YIM's@>@;
   @<Mark accepted SRCL's@>@;
   @<Mark rejected LIM's@>@;
@@ -8537,8 +8538,8 @@ do not need to be initialized because they
 will never be referred to.
 @<Map prediction rules to YIM ordinals in array@> =
 {
-    int yim_ix = yim_count_of_ys_to_revise - 1;
-    YIM yim = yims_to_revise[yim_ix];
+    int yim_ix = yim_to_clean_count - 1;
+    YIM yim = yims_to_clean[yim_ix];
 
     @t}\comment{@>
     /* Assumes that predictions are last in the YS.
@@ -8547,37 +8548,38 @@ will never be referred to.
     */
     while (YIM_was_Predicted(yim)) {
       prediction_by_irl[IRLID_of_YIM(yim)] = yim_ix;
-      yim = yims_to_revise[--yim_ix];
+      yim = yims_to_clean[--yim_ix];
     }
 }
 
-@ @<First revision pass over |ys_to_revise|@> = {
-    int yim_ix;
-    for (yim_ix = 0;
-         yim_ix < yim_count_of_ys_to_revise;
-         yim_ix++)
+@ @<First revision pass over |ys_to_clean|@> = {
+    int yim_to_clean_ix;
+    for (yim_to_clean_ix = 0;
+         yim_to_clean_ix < yim_to_clean_count;
+         yim_to_clean_ix++)
       {
-        const YIM yim = yims_to_revise[yim_ix];
+        const YIM yim_to_clean = yims_to_clean[yim_to_clean_ix];
 
         @t}\comment{@>
         /* The initial YIM is always active and can {\bf never}
         be rejected. */
-        MARPA_ASSERT (!YIM_is_Initial(yim) || 
-            (YIM_is_Active(yim) && !YIM_is_Rejected(yim)));
+        MARPA_ASSERT (!YIM_is_Initial(yim_to_clean) || 
+            (YIM_is_Active(yim_to_clean) && !YIM_is_Rejected(yim_to_clean)));
 
         @t}\comment{@>
         /* Non-initial YIM's are inactive until proven active. */
-        if (!YIM_is_Initial(yim)) YIM_is_Active(yim) = 0;
+        if (!YIM_is_Initial(yim_to_clean)) YIM_is_Active(yim_to_clean) = 0;
 
         @t}\comment{@>
         /* If a YIM is rejected, which at this point means that it
         was directly rejected, that is the end of the story.
         We don't use it to update
         the acceptance matrix.  */
-        if (YIM_is_Rejected(yim)) continue;
+        if (YIM_is_Rejected(yim_to_clean)) continue;
 
         @t}\comment{@>
         /* Add un-rejected predictions to acceptance matrix. */
+        @<Add predictions from |yim_to_clean| to acceptance matrix@>@;
 
         @t}\comment{@>
         /* YIM's may have both scanned and fusion links.
@@ -8586,6 +8588,24 @@ will never be referred to.
 
         NEXT_YIM: ;
       }
+}
+
+@ @<Add predictions from |yim_to_clean| to acceptance matrix@> =
+{
+  const NSYID postdot_nsyid = Postdot_NSYID_of_YIM (yim_to_clean);
+  if (postdot_nsyid >= 0)
+    {
+      int cil_ix;
+      const CIL lhs_cil = LHS_CIL_of_NSYID (postdot_nsyid);
+      const int cil_count = Count_of_CIL (lhs_cil);
+      for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
+	{
+	  const IRLID irlid = Item_of_CIL (lhs_cil, cil_ix);
+	  const int predicted_yim_ix = prediction_by_irl[irlid];
+	  matrix_bit_set (acceptance_matrix, yim_to_clean_ix,
+			  predicted_yim_ix);
+	}
+    }
 }
 
 @ Mark YIM's not active if not scanned.
@@ -8625,7 +8645,7 @@ Add dependencies to acceptance matrix.
 If any dependency was recorded, also add any direct
 predictions of un-rejected YIM's.
 
-@ @<Compute transitive closure of acceptances@> = {}
+@ @<Compute transitive closure of |acceptance_matrix|@> = {}
 @ For every scanned or initial YIM in transitive closure,
 mark the to-YIM's of the dependency active.
 Mark all others rejected.
