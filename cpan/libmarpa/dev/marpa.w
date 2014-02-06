@@ -8529,6 +8529,7 @@ YIMID *prediction_by_irl =
   @<First revision pass over |ys_to_clean|@>@;
   transitive_closure(acceptance_matrix);
   @<Mark accepted YIM's@>@;
+  @<Mark un-accepted YIM's rejected@>@;
   @<Mark accepted SRCL's@>@;
   @<Mark rejected LIM's@>@;
 }
@@ -8602,6 +8603,8 @@ will never be referred to.
 	{
 	  const IRLID irlid = Item_of_CIL (lhs_cil, cil_ix);
 	  const int predicted_yim_ix = prediction_by_irl[irlid];
+          const YIM predicted_yim = yims_to_clean[predicted_yim_ix];
+          if (YIM_is_Rejected(predicted_yim)) continue;
 	  matrix_bit_set (acceptance_matrix, yim_to_clean_ix,
 			  predicted_yim_ix);
 	}
@@ -8648,8 +8651,59 @@ predictions of un-rejected YIM's.
 @ For every scanned or initial YIM in transitive closure,
 mark the to-YIM's of the dependency active.
 Mark all others rejected.
-@<Mark accepted YIM's@> = {}
+@<Mark accepted YIM's@> = {
+    int cause_yim_ix;
+    for (cause_yim_ix = 0; cause_yim_ix < yim_to_clean_count; cause_yim_ix++) {
+      const YIM cause_yim = yims_to_clean[cause_yim_ix];
 
+      @t}\comment{@>
+      /* We only need look at the indirect effects of
+      initial and scanned YIM's, because they are the indirect
+      cause of all other YIM's in the YS. */
+      if (!YIM_is_Initial(cause_yim) &&
+        !YIM_was_Scanned(cause_yim)) break;
+
+      @t}\comment{@>
+      /* an indirect cause YIM may have been directly
+      rejected, if which cause we do not use it, but keep
+      looking for other indirect causes. */
+      if (YIM_is_Rejected(cause_yim)) continue;
+
+      {
+        const Bit_Vector bv_yims_to_accept
+          = matrix_row (acceptance_matrix, cause_yim_ix);
+        int min, max, start;
+        int acceptance_array_ix = 0;
+        for (start = 0; bv_scan (bv_yims_to_accept, start, &min, &max);
+             start = max + 2)
+          {
+            int yim_to_accept_ix;
+            for (yim_to_accept_ix = min;
+                 yim_to_accept_ix <= max; yim_to_accept_ix++)
+              {
+                const YIM yim_to_accept = yims_to_clean[yim_to_accept_ix];
+                YIM_is_Active (yim_to_accept) = 1;
+              }
+          }
+      }
+    }
+}
+
+@ This pass is probably not necessary, because I should be checking
+the active boolean from here on.
+But it restores the "consistent" state where a YIM is either rejected
+or accepted.
+@<Mark un-accepted YIM's rejected@> = {
+    int yim_ix;
+    for (yim_ix = 0; yim_ix < yim_to_clean_count; yim_ix++) {
+      const YIM yim = yims_to_clean[yim_ix];
+      if (!YIM_is_Accepted(yim)) continue;
+      YIM_is_Rejected(yim) = 1;
+    }
+}
+
+@ {\bf To Do}: @^To Do@>
+Deferred while we are only dealing with YS 0.
 @ We now have a full census of accepted and rejected YIM's.
 Use this to go back over SRCL's.
 These will all be resolveable one way or the other.
