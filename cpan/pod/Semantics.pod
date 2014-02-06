@@ -346,8 +346,10 @@ Only Perl objects pointed to by references can be blessed.
 It is a fatal error to try to use a blessing with an inappropriate
 action.
 
-Implicitly, an action is not blessed.
-The implicit action itself cannot be blessing --
+Implicitly
+(that is, if no blessing was explicitly specified),
+an action is not blessed.
+The implicit action itself cannot be blessed --
 an attempt to do so is a fatal error.
 
 Explicit blessings are made using 
@@ -384,7 +386,13 @@ The reserved blessings are as follows:
 
 =item C<::undef>
 
-The RHS alternative or lexeme will not be blessed.
+The RHS alternatives or lexemes will not be
+blessed.
+When this document
+states that a RHS alternative or lexeme has a blessing
+of C<::undef>,
+it means exactly the same thing as when it states
+that a RHS alternative or lexeme will not be blessed.
 For both RHS alternatives and lexemes,
 the implicit blessing is C<::undef>.
 
