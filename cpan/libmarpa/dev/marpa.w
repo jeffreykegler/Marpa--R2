@@ -7615,8 +7615,27 @@ add those Earley items it ``causes".
        postdot_item; postdot_item = Next_PIM_of_PIM (postdot_item))
     {
       const YIM predecessor = YIM_of_PIM (postdot_item);
-      if (predecessor)
-        {
+      if (!predecessor) {
+           @t}\comment\hskip 1em{@>
+           /* A Leo item */
+           const LIM leo_item = LIM_of_PIM (postdot_item);
+
+           @t}\comment\hskip 1em{@>
+           /* A Leo item */
+           /* If the Leo item is not active, look at the other
+           item in the PIM, which might be active.  (There should be
+           exactly one other item, and it might be active if the LIM
+           was inactive because of its predecessor, but had
+           an active Leo trailhead */
+           if (!LIM_is_Active(leo_item)) goto NEXT_PIM;
+
+           @<Add effect of |leo_item|@>@;
+
+           @t}\comment\hskip 1em{@>
+           /* When I encounter an active Leo item,
+           I skip everything else for this postdot symbol */
+          goto LAST_PIM;
+      } else {
             @t}\comment\hskip 1em{@>
             /* Not a Leo item */
             if (!YIM_is_Active(predecessor)) continue;
@@ -7626,18 +7645,9 @@ add those Earley items it ``causes".
             @<Add |effect_aim|, plus any prediction,
               for non-Leo |predecessor|@>@;
         }
-      else
-        {                 
-           @t}\comment\hskip 1em{@>
-           /* A Leo item */
-           @<Add effect of Leo item@>@;
-           @t}\comment\hskip 1em{@>
-           /* When I encounter a Leo item,
-                                   I skip everything else for this postdot
-                                   symbol */
-          break;               
-        }
+        NEXT_PIM: ;
     }
+    LAST_PIM: ;
 }
 
 @ @<Add |effect_aim|, plus any prediction, for non-Leo |predecessor|@> =
@@ -7665,22 +7675,20 @@ active.
     *end_of_stack = effect;
 }
 
-@ @<Add effect of Leo item@> = {
-    const LIM leo_item = LIM_of_PIM (postdot_item);
-    if (LIM_is_Active(leo_item)) {
-      const YS origin = Origin_of_LIM (leo_item);
-      const AHM effect_aim = Top_AHM_of_LIM (leo_item);
-      const YIM effect = earley_item_assign (r, current_earley_set,
-                                   origin, effect_aim);
-      YIM_was_Fusion(effect) = 1;
-      if (Earley_Item_has_No_Source (effect))
-        {
-          @t}\comment{@>
-          /* If it has no source, then it is new */
-          @<Push |effect| onto completion stack@>@;
-        }
-      leo_link_add (r, effect, leo_item, cause);
-    }
+@ If we are here, |leo_item| is active.
+@<Add effect of |leo_item|@> = {
+    const YS origin = Origin_of_LIM (leo_item);
+    const AHM effect_aim = Top_AHM_of_LIM (leo_item);
+    const YIM effect = earley_item_assign (r, current_earley_set,
+                                 origin, effect_aim);
+    YIM_was_Fusion(effect) = 1;
+    if (Earley_Item_has_No_Source (effect))
+      {
+        @t}\comment{@>
+        /* If it has no source, then it is new */
+        @<Push |effect| onto completion stack@>@;
+      }
+    leo_link_add (r, effect, leo_item, cause);
 }
 
 @ Note that there may already be predictions on the stack from
@@ -8551,44 +8559,33 @@ will never be referred to.
       {
         const YIM yim = yims_to_revise[yim_ix];
 
-        if (YIM_is_Initial(yim)) {
-            @<First revision pass for initial YIM@>@;
-            goto NEXT_YIM;
-        }
+        @t}\comment{@>
+        /* The initial YIM is always active and can {\bf never}
+        be rejected. */
+        MARPA_ASSERT (!YIM_is_Initial(yim) || 
+            (YIM_is_Active(yim) && !YIM_is_Rejected(yim)));
 
         @t}\comment{@>
-        /* If YIM was predicted */
-        if (YIM_was_Predicted(yim) && !YIM_is_Rejected(yim)) {
-            @<First revision pass for predicted YIM@>@;
-            goto NEXT_YIM;
-        }
+        /* Non-initial YIM's are inactive until proven active. */
+        if (!YIM_is_Initial(yim)) YIM_is_Active(yim) = 0;
 
         @t}\comment{@>
-        /* If YIM was scanned -- it may also be a fusion YIM  */
-        if (YIM_was_Scanned(yim) && !YIM_is_Rejected(yim)) {
-          @<First revision pass for scanned YIM@>@;
-          goto NEXT_YIM;
-        }
+        /* If a YIM is rejected, which at this point means that it
+        was directly rejected, that is the end of the story.
+        We don't use it to update
+        the acceptance matrix.  */
+        if (YIM_is_Rejected(yim)) continue;
 
-        /* If YIM is only a fusion YIM */
-        if (YIM_was_Fusion(yim) && !YIM_is_Rejected(yim)) {
-          @<First revision pass for fusion YIM@>@;
-        }
+        @t}\comment{@>
+        /* Add un-rejected predictions to acceptance matrix. */
+
+        @t}\comment{@>
+        /* YIM's may have both scanned and fusion links.
+        Change the following so it looks at both kinds of link
+        for all YIM's. */
 
         NEXT_YIM: ;
       }
-}
-
-@ Mark active, un-rejected.  Initial YIM can {\bf never} be
-rejected.  Add any direct predictions of un-rejected YIM's.
-@<First revision pass for initial YIM@> = {
-    @t}\comment{@>
-    /* The initial YIM is never rejected and is always active. */
-    YIM_is_Active(yim) = 1;
-    YIM_is_Rejected(yim) = 0;
-
-    @t}\comment{@>
-    /* TO do: Add any direct predictions of un-rejected YIM's. */
 }
 
 @ Mark YIM's not active if not scanned.
@@ -8627,27 +8624,6 @@ otherwise, record as a dependency on cause.
 Add dependencies to acceptance matrix.
 If any dependency was recorded, also add any direct
 predictions of un-rejected YIM's.
-@<First revision pass for scanned YIM@> = {
-    @t}\comment{@>
-    /* Temporarily mark this YIM inactive until proven active.
-    We will check the token SRCL's to see if we can declare it
-    active in this first pass. */
-    YIM_is_Active(yim) = 0;
-}
-
-@ @<First revision pass for fusion YIM@> = {
-    @t}\comment{@>
-    /* Temporarily mark this YIM inactive until proven active. */
-    YIM_is_Active(yim) = 0;
-}
-
-@ If not rejected, add any direct predictions of
-un-rejected YIM's.
-@<First revision pass for predicted YIM@> = {
-    @t}\comment{@>
-    /* Temporarily mark this YIM as inactive until proven active. */
-    YIM_is_Active(yim) = 0;
-}
 
 @ @<Compute transitive closure of acceptances@> = {}
 @ For every scanned or initial YIM in transitive closure,
