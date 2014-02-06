@@ -6507,9 +6507,9 @@ with a |NULL| Earley item pointer.
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_YIX(YIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
 @d Top_AHM_of_LIM(leo) ((leo)->t_top_aim)
-@d Base_to_AHM_of_LIM(leo) ((leo)->t_base_to_aim)
+@d Trailhead_AHM_of_LIM(leo) ((leo)->t_trailhead_aim)
 @d Predecessor_LIM_of_LIM(leo) ((leo)->t_predecessor)
-@d Base_YIM_of_LIM(leo) ((leo)->t_base)
+@d Trailhead_YIM_of_LIM(leo) ((leo)->t_base)
 @d YS_of_LIM(leo) ((leo)->t_set)
 @d Earleme_of_LIM(lim) Earleme_of_YS(YS_of_LIM(lim))
 @d LIM_is_Rejected(lim) ((lim)->t_is_rejected)
@@ -6523,7 +6523,7 @@ struct s_leo_item {
     @<Widely aligned LIM elements@>@;
      YS t_origin;
      AHM t_top_aim;
-     AHM t_base_to_aim;
+     AHM t_trailhead_aim;
      LIM t_predecessor;
      YIM t_base;
      YS t_set;
@@ -8078,9 +8078,9 @@ Leo item have not been fully populated.
 		potential_leo_penult_aim = leo_base_aim;
             MARPA_ASSERT(potential_leo_penult_aim);
 	    {
-	      const AHM base_to_aim =
+	      const AHM trailhead_aim =
 		Next_AHM_of_AHM (potential_leo_penult_aim);
-	      if (AHM_is_Leo_Completion (base_to_aim))
+	      if (AHM_is_Leo_Completion (trailhead_aim))
 		{
 		  @<Create a new, unpopulated, LIM@>@;
 		}
@@ -8107,9 +8107,9 @@ once it is populated.
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
     CIL_of_LIM(new_lim) = NULL;
-    Top_AHM_of_LIM(new_lim) = base_to_aim;
-    Base_to_AHM_of_LIM(new_lim) = base_to_aim;
-    Base_YIM_of_LIM(new_lim) = leo_base;
+    Top_AHM_of_LIM(new_lim) = trailhead_aim;
+    Trailhead_AHM_of_LIM(new_lim) = trailhead_aim;
+    Trailhead_YIM_of_LIM(new_lim) = leo_base;
     YS_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
     r->t_pim_workarea[nsyid] = new_lim;
@@ -8243,11 +8243,11 @@ The code is used for unpopulated LIMs.
 In a populated LIM, this will not necessarily be the case.
 @<Find predecessor LIM of unpopulated LIM@> =
 {
-  const YIM base_yim = Base_YIM_of_LIM (lim_to_process);
+  const YIM base_yim = Trailhead_YIM_of_LIM (lim_to_process);
   const YS predecessor_set = Origin_of_YIM (base_yim);
-  const AHM base_to_aim = Base_to_AHM_of_LIM (lim_to_process);
+  const AHM trailhead_aim = Trailhead_AHM_of_LIM (lim_to_process);
   const NSYID predecessor_transition_nsyid =
-    LHSID_of_AHM (base_to_aim);
+    LHSID_of_AHM (trailhead_aim);
   PIM predecessor_pim;
   if (Ord_of_YS (predecessor_set) < Ord_of_YS (current_earley_set))
     {
@@ -8372,14 +8372,14 @@ Secondary optimzations ensure this is fairly cheap as well.
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
   if (Event_Group_Size_of_AHM (new_top_aim) > Count_of_CIL (predecessor_cil))
     {                           /* Might we need to add another AHM ID? */
-      const AHM base_to_aim = Base_to_AHM_of_LIM(lim_to_process);
-      const CIL base_to_aim_event_aimids =
-        Event_AHMIDs_of_AHM (base_to_aim);
-      if (Count_of_CIL (base_to_aim_event_aimids))
+      const AHM trailhead_aim = Trailhead_AHM_of_LIM(lim_to_process);
+      const CIL trailhead_aim_event_aimids =
+        Event_AHMIDs_of_AHM (trailhead_aim);
+      if (Count_of_CIL (trailhead_aim_event_aimids))
         {
           CIL new_cil = cil_merge_one (&g->t_cilar, predecessor_cil,
                                        Item_of_CIL
-                                       (base_to_aim_event_aimids, 0));
+                                       (trailhead_aim_event_aimids, 0));
           if (new_cil)
             {
               CIL_of_LIM (lim_to_process) = new_cil;
@@ -8402,10 +8402,10 @@ and do not need to be changed.
 The predecessor LIM was initialized to |NULL|.
 of the base YIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
-  const AHM base_to_aim = Base_to_AHM_of_LIM(lim_to_process);
-  const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
+  const AHM trailhead_aim = Trailhead_AHM_of_LIM(lim_to_process);
+  const YIM base_yim = Trailhead_YIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_YIM (base_yim);
-  CIL_of_LIM(lim_to_process) = Event_AHMIDs_of_AHM(base_to_aim);
+  CIL_of_LIM(lim_to_process) = Event_AHMIDs_of_AHM(trailhead_aim);
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
@@ -8480,7 +8480,7 @@ marpa_r_clean(Marpa_Recognizer r)
   earley_set_update_items(r, current_ys);
 
   for (ysid_to_clean = First_Inconsistent_YS_of_R(r); ysid_to_clean <= current_ys_id; ysid_to_clean++) {
-      @<Revise Earley set |ysid_to_clean|@>@;
+      @<Clean Earley set |ysid_to_clean|@>@;
   }
 
   @t}\comment{@>
@@ -8489,7 +8489,7 @@ marpa_r_clean(Marpa_Recognizer r)
     @<Clean pending alternatives@>@;
 
     bv_clear (r->t_bv_nsyid_is_expected);
-    @<Revise expected terminals@>@;
+    @<Clean expected terminals@>@;
     count_of_expected_terminals = bv_count (r->t_bv_nsyid_is_expected);
     if (count_of_expected_terminals <= 0
         && Earleme_of_YS (current_ys) >= Furthest_Earleme_of_R (r))
@@ -8517,7 +8517,7 @@ YIMID *prediction_by_irl =
   marpa_obs_free(method_obstack);
 }
 
-@ @<Revise Earley set |ysid_to_clean|@> =
+@ @<Clean Earley set |ysid_to_clean|@> =
 {
   const YS ys_to_clean = YS_of_R_by_Ord (r, ysid_to_clean);
   const YIM *yims_to_clean = YIMs_of_YS (ys_to_clean);
@@ -8673,7 +8673,6 @@ Mark all others rejected.
         const Bit_Vector bv_yims_to_accept
           = matrix_row (acceptance_matrix, cause_yim_ix);
         int min, max, start;
-        int acceptance_array_ix = 0;
         for (start = 0; bv_scan (bv_yims_to_accept, start, &min, &max);
              start = max + 2)
           {
@@ -8697,7 +8696,7 @@ or accepted.
     int yim_ix;
     for (yim_ix = 0; yim_ix < yim_to_clean_count; yim_ix++) {
       const YIM yim = yims_to_clean[yim_ix];
-      if (!YIM_is_Accepted(yim)) continue;
+      if (!YIM_is_Active(yim)) continue;
       YIM_is_Rejected(yim) = 1;
     }
 }
@@ -8711,7 +8710,44 @@ These will all be resolveable one way or the other.
 
 @ Mark LIM's as accepted or rejected, based on
 their predecessors and trailhead YIM's.
-@<Mark rejected LIM's@> = {}
+@<Mark rejected LIM's@> =
+{
+  int postdot_sym_ix;
+  const int postdot_sym_count = Postdot_SYM_Count_of_YS(ys_to_clean);
+  const PIM* postdot_array = ys_to_clean->t_postdot_ary;
+
+  @t}\comment{@>
+  /* For every postdot symbol */
+  for (postdot_sym_ix = 0; postdot_sym_ix < postdot_sym_count; postdot_sym_ix++) {
+      @t}\comment{@>
+      /* If there is a LIM, there will be only one,
+      and it will be the first PIM. */
+     const PIM first_pim = postdot_array[postdot_sym_ix];
+     if (PIM_is_LIM(first_pim)) {
+         const LIM lim = LIM_of_PIM(first_pim);
+
+         @t}\comment{@>
+         /* Reject LIM by default */
+         LIM_is_Rejected(lim) = 1;
+         LIM_is_Active(lim) = 0;
+
+         @t}\comment{@>
+         /* Reject, because the base-to YIM is not active */
+         if (!YIM_is_Active(Trailhead_YIM_of_LIM(lim))) continue;
+         {
+           const LIM predecessor_lim = Predecessor_LIM_of_LIM(lim);
+           @t}\comment{@>
+           /* Reject, because the predecessor LIM exists and is not active */
+           if (predecessor_lim && !LIM_is_Active(predecessor_lim)) continue;
+         }
+
+         @t}\comment{@>
+         /* No reason found to reject, so accept this LIM */
+         LIM_is_Rejected(lim) = 0;
+         LIM_is_Active(lim) = 1;
+     }
+  }
+}
 
 @ For all pending alternatives, determine if
 they have unrejected predecessors.
@@ -8721,7 +8757,7 @@ Note that moving the furthest earleme may
 change the parse to exhausted state.
 @<Clean pending alternatives@> = {}
 
-@ @<Revise expected terminals@> = {}
+@ @<Clean expected terminals@> = {}
 
 @** Progress report code.
 @<Private typedefs@> =
@@ -8848,7 +8884,7 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
 	   leo_item; leo_item = Predecessor_LIM_of_LIM (leo_item))
 	{
 	  const YSID report_origin = Ord_of_YS (YS_of_LIM (leo_item));
-	  const AHM report_aim = Base_to_AHM_of_LIM (leo_item);
+	  const AHM report_aim = Trailhead_AHM_of_LIM (leo_item);
 	  progress_report_item_insert (report_tree, report_aim,
 				       report_origin);
 	}
@@ -9314,7 +9350,7 @@ Set_boolean_in_PSI_for_initial_nulls (struct s_bocage_setup_per_ys *per_ys_data,
     @t}\comment{@>/* Follow the predecessors chain back */
 	   leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor))
 	{
-	  const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
+	  const YIM leo_base_yim = Trailhead_YIM_of_LIM (leo_predecessor);
 	  if (YIM_was_Predicted (leo_base_yim))
 	    {
 	      Set_boolean_in_PSI_for_initial_nulls (per_ys_data,
@@ -9649,7 +9685,7 @@ expanded.
   while ((this_leo_item = Predecessor_LIM_of_LIM (this_leo_item)))
     {
       const int ordinal_of_set_of_this_leo_item = Ord_of_YS(YS_of_LIM(this_leo_item));
-      const AHM path_aim = Base_to_AHM_of_LIM(previous_leo_item);
+      const AHM path_aim = Trailhead_AHM_of_LIM(previous_leo_item);
       const IRL path_irl = IRL_of_AHM(path_aim);
       const int symbol_instance_of_path_aim = SYMI_of_AHM(path_aim);
       {
@@ -9889,7 +9925,7 @@ bit set.  At that point I can stop the ascent.
     LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
     OR dand_predecessor;
     OR path_or_node;
-    YIM base_earley_item = Base_YIM_of_LIM(path_leo_item);
+    YIM base_earley_item = Trailhead_YIM_of_LIM(path_leo_item);
     dand_predecessor = set_or_from_yim(per_ys_data, base_earley_item);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
@@ -9897,7 +9933,7 @@ bit set.  At that point I can stop the ascent.
     while (higher_path_leo_item) {
         path_leo_item = higher_path_leo_item;
         higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
-        base_earley_item = Base_YIM_of_LIM(path_leo_item);
+        base_earley_item = Trailhead_YIM_of_LIM(path_leo_item);
         dand_predecessor
           = set_or_from_yim(per_ys_data, base_earley_item);
         @<Set |path_or_node|@>@;
@@ -14058,7 +14094,7 @@ Marpa_Earley_Set_ID _marpa_r_leo_base_origin(Marpa_Recognizer r)
       return failure_indicator;
   }
   if (YIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
-  base_earley_item = Base_YIM_of_LIM(LIM_of_PIM(postdot_item));
+  base_earley_item = Trailhead_YIM_of_LIM(LIM_of_PIM(postdot_item));
   return Origin_Ord_of_YIM(base_earley_item);
 }
 
@@ -14077,7 +14113,7 @@ Marpa_AHM_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
       return failure_indicator;
   }
   if (YIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
-  base_earley_item = Base_YIM_of_LIM(LIM_of_PIM(postdot_item));
+  base_earley_item = Trailhead_YIM_of_LIM(LIM_of_PIM(postdot_item));
   return AHMID_of_YIM(base_earley_item);
 }
 
@@ -14599,7 +14635,7 @@ Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
       {
         LIM predecessor = LIM_of_SRCL (source_link);
         if (predecessor)
-          predecessor_yim = Base_YIM_of_LIM (predecessor);
+          predecessor_yim = Trailhead_YIM_of_LIM (predecessor);
         break;
       }
     case SOURCE_IS_TOKEN:
