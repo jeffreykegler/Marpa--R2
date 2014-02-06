@@ -8527,7 +8527,7 @@ YIMID *prediction_by_irl =
     yim_to_clean_count);
   @<Map prediction rules to YIM ordinals in array@>@;
   @<First revision pass over |ys_to_clean|@>@;
-  @<Compute transitive closure of |acceptance_matrix|@>@;
+  transitive_closure(acceptance_matrix);
   @<Mark accepted YIM's@>@;
   @<Mark accepted SRCL's@>@;
   @<Mark rejected LIM's@>@;
@@ -8612,7 +8612,7 @@ will never be referred to.
 If scanned, we can make a preliminary determination whether
 it is accepted based on
 the absence direct rejection and the presence of
-at least one unrejected token links.
+at least one unrejected token link.
 (A scanned YIM may have fusion links.)
 If this preliminary determination indicates that the
 scanned YIM is active, we mark it that way.
@@ -8645,7 +8645,6 @@ Add dependencies to acceptance matrix.
 If any dependency was recorded, also add any direct
 predictions of un-rejected YIM's.
 
-@ @<Compute transitive closure of |acceptance_matrix|@> = {}
 @ For every scanned or initial YIM in transitive closure,
 mark the to-YIM's of the dependency active.
 Mark all others rejected.
