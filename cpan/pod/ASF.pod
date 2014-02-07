@@ -63,26 +63,26 @@ remove-blank-last-line: 1
   S   ::= NP  VP  period  bless => S
 
   NP  ::= NN              bless => NP
-      |   NNS          bless => NP
+      |   NNS             bless => NP
       |   DT  NN          bless => NP
       |   NN  NNS         bless => NP
-      |   NNS CC NNS  bless => NP
+      |   NNS CC NNS      bless => NP
 
   VP  ::= VBZ NP          bless => VP
       | VP VBZ NNS        bless => VP
-      | VP CC VP bless => VP
-      | VP VP CC VP bless => VP
-      | VBZ bless => VP
+      | VP CC VP          bless => VP
+      | VP VP CC VP       bless => VP
+      | VBZ               bless => VP
 
   period ~ '.'
 
   :discard ~ whitespace
   whitespace ~ [\s]+
 
-  CC ~ 'and'
+  CC  ~ 'and'
   DT  ~ 'a' | 'an'
   NN  ~ 'panda'
-  NNS  ~ 'shoots' | 'leaves'
+  NNS ~ 'shoots' | 'leaves'
   VBZ ~ 'eats' | 'shoots' | 'leaves'
 
 =for Marpa::R2::Display::End

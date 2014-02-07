@@ -351,7 +351,7 @@ even if that relationship is completely artificial.
 One way to do this is to put an artificial preamble in front of
 the input stream.
 For example, the first 7 characters of the input stream could be
-an preamble containing the characters "C<NO TEXT>".
+a preamble containing the characters "C<NO TEXT>".
 This preamble could be immediately followed by what is seen as the text
 from a more natural point of view.
 In this case, the initial call to the L<C<read()>|/"read()"> method
@@ -1231,7 +1231,7 @@ and all the causal lexemes will have
 the same lexeme priority.
 When more than one lexeme causes a pause,
 the choice of pause
-lexeme is arbitary.
+lexeme is arbitrary.
 Applications may not rely on a particular choice,
 or on that choice being repeated,
 even when the choice is made

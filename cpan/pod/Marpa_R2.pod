@@ -277,12 +277,12 @@ should be interpreted exactly as written, character
 by character.
 
 The C<whitespace> rule is a special kind of rule in two respects.
-First, its RHS is following by a quanitifer ("C<+>"), which makes it
+First, its RHS is followed by a quantifier ("C<+>"), which makes it
 a sequence rule.
 Aside from the quantifier,
 sequence rules may only have a single symbol or character class on their RHS.
-The plus quanitifer ("C<+>") means a sequence of one or more items.
-The star quanitifer ("C<*>") is also allowed, and it indicates a sequence of
+The plus quantifier ("C<+>") means a sequence of one or more items.
+The star quantifier ("C<*>") is also allowed, and it indicates a sequence of
 zero or more items.
 
 The whitespace items are defined by a character class: C<[\s]>.

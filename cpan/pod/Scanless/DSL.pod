@@ -171,17 +171,16 @@ will all be regarded as the same symbol name.
 The explicit form of that symbol name
 is C<< <op comma> >>, except that, again, the
 angle brackets are for clarity,
-and are not part of the explicity name.
+and are not part of the explicit name.
 
 Explicit, reserved and internal symbol names are often
 displayed between angle brackets,
 regardless of whether the symbol was originally
 specified in bracketed form.
 
-There are cases in which a SLIF symbol needs to be 
-referred to by name in Perl code.
-In this cases, it is the symbols explicit name
-that is used.
+When a SLIF symbol needs to be 
+referred to by name in Perl code,
+it is the symbol's explicit name that is used.
 
 =head1 Single-quoted strings
 
@@ -363,19 +362,20 @@ A RHS alternative is a series of RHS primaries,
 where a RHS primary may be a symbol name,
 a character class,
 or a single quoted string.
-Associated with each RHS is often
-list of zero or more adverbs.
+A list of one or more adverbs is often
+associated with the
+RHS alternatives.
 Each adverb consists of a keyword,
 the adverb operator ("C<< => >>"),
 and the adverb's value.
 
-Within an alternative, symbols may be enclosed in parentheses.
-A symbol enclosed in parentheses is hidden from
+Within an alternative, primaries may be enclosed in parentheses.
+A primary enclosed in parentheses is hidden from
 L<Marpa's semantics|Marpa::R2::Semantics>.
-A set of parentheses may contain more than one symbol,
-in which case the entire sequence of symbols is hidden,
+A set of parentheses may contain more than one primary,
+in which case the entire sequence of primaries is hidden,
 as if they had been enclosed in parentheses individually.
-"Hiding" symbols in this way can be convenient for symbols whose values
+"Hiding" primaries in this way can be convenient for primaries whose values
 the semantics will ignore, perhaps because the value is constant.
 
 For example,
@@ -608,7 +608,7 @@ normalize-whitespace: 1
 The purpose of
 the C<:lexeme> pseudo-rule is to allow adverbs to
 change the treatment of a lexeme.
-This pseudo-rule always had exactly one RHS alternative,
+This pseudo-rule always has exactly one RHS alternative,
 and that RHS alternative must contain exactly one symbol.
 This RHS symbol identifies the lexeme which the adverbs will affect.
 The only adverbs allowed in a C<:lexeme> rule
@@ -619,12 +619,12 @@ and
 L<C<priority>|/"priority">.
 
 As a side effect, a C<:lexeme> pseudo-rule
-declares that its RHS symbol is a lexeme.
+declares that its RHS symbol is expected to be a lexeme.
 This declaration does not "force" lexeme status --
 if the symbol does not meet the criteria for a lexeme
 based on its use in L0 and G1 rules,
 the result will be a fatal error.
-Applications may find the ability to "declare"
+Applications may find this ability to "declare"
 lexemes useful for debugging,
 and for documenting grammars.
 
@@ -985,7 +985,7 @@ that lexeme.
 No lexemes will be read at that position.
 
 If the value of pause is C<after>,
-all appicable lexemes at that position will
+all applicable lexemes at that position will
 be read by G1,
 and internal scanning will pause immediately
 afterwards.
@@ -1267,7 +1267,7 @@ right hand side alternatives in
 which all the symbols are operands.
 These can be useful.
 For example, an implicit operation can be defined using
-an binary alternative with no non-operands,
+a binary alternative with no non-operands,
 and this could implement, for example,
 the standard notation for concatenation or multiplication.
 But to do this efficiently
