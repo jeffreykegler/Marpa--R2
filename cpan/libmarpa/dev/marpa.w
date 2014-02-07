@@ -8782,37 +8782,10 @@ change the parse to exhausted state.
          old_alt_ix < no_of_alternatives;
          old_alt_ix++)
    {
-        PIM pim;
         const ALT alternative = MARPA_DSTACK_INDEX(
           r->t_alternatives, ALT_Object, old_alt_ix);
-        const NSYID token_symbol_id = NSYID_of_ALT(alternative);
-        const YS start_ys = Start_YS_of_ALT(alternative);
-        for (pim = First_PIM_of_YS_by_NSYID(start_ys, token_symbol_id);
-            pim;
-            pim = Next_PIM_of_PIM(pim))
-        {
-            YIM predecessor_yim = YIM_of_PIM(pim);
-
-            @t}\comment{@>
-            /* If the trailhead PIM is non-active, the LIM will not
-            be active, so we don't bother looking at the LIM.
-            Instead we will wait for the source, which will be next 
-            in the list of PIM's */
-            if (!predecessor_yim) continue;
-
-            /* We have an active predecessor, so this alternative is
-            OK.  Move on to look at the next alterntive */
-            if (YIM_is_Active(predecessor_yim)) goto NEXT_ALT;
-        }
-
-        @t}\comment{@>
-        /* If we are here, we did not find an active predecessor for this
-        ALT, so it is not acceptable.  We break out of the loop. */
-        goto LAST_ALT;
-
-        NEXT_ALT: ;
+        if (!alternative_is_acceptable(alternative)) break;
     }
-    LAST_ALT: ;
 
     @t}\comment{@>
     /* If we found an un-acceptable alternative, we need to adjust the alterntives
@@ -8820,11 +8793,39 @@ change the parse to exhausted state.
     to newly emptied slots in the stack until there are no gaps left. */
     if (old_alt_ix < no_of_alternatives) {
         @t}\comment{@>
-        /* |new_alt_ix| is the empty slot, into which the next acceptable alternative
+        /* |empty_alt_ix| is the empty slot, into which the next acceptable alternative
         should be copied. */
-        int new_alt_ix = old_alt_ix;
+        int empty_alt_ix = old_alt_ix;
     }
 
+}
+
+@ @Function definitions@> =
+PRIVATE
+int
+alternative_is_acceptable(ALT alternative)
+{
+  PIM pim;
+  const NSYID token_symbol_id = NSYID_of_ALT(alternative);
+  const YS start_ys = Start_YS_of_ALT(alternative);
+  for (pim= First_PIM_of_YS_by_NSYID(start_ys, token_symbol_id);
+      pim;
+      pim = Next_PIM_of_PIM(pim))
+  {
+      YIM predecessor_yim = YIM_of_PIM(pim);
+
+      @t}\comment{@>
+      /* If the trailhead PIM is non-active, the LIM will not
+      be active, so we don't bother looking at the LIM.
+      Instead we will wait for the source, which will be next 
+      in the list of PIM's */
+      if (!predecessor_yim) continue;
+
+      /* We have an active predecessor, so this alternative is
+      OK. Move on to look at the next alterntive */
+      if (YIM_is_Active(predecessor_yim)) return 1;
+  }
+  return 0;
 }
 
 @** Progress report code.
