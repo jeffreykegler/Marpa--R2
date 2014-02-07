@@ -8813,10 +8813,8 @@ change the parse to exhausted state.
 
 }
 
-@ @Function definitions@> =
-PRIVATE
-int
-alternative_is_acceptable(ALT alternative)
+@ @<Function definitions@> =
+PRIVATE int alternative_is_acceptable(ALT alternative)
 {
   PIM pim;
   const NSYID token_symbol_id = NSYID_of_ALT(alternative);
