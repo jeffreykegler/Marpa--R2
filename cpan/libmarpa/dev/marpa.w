@@ -6922,8 +6922,6 @@ struct s_alternative {
     NSYID t_nsyid;
     int t_value;
     BITFIELD t_is_valued:1;
-    BITFIELD t_is_active:1;
-    BITFIELD t_is_rejected:1;
 };
 typedef struct s_alternative ALT_Object;
 
