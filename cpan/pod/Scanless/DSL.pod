@@ -619,12 +619,12 @@ and
 L<C<priority>|/"priority">.
 
 As a side effect, a C<:lexeme> pseudo-rule
-declares that its RHS symbol is a lexeme.
+declares that its RHS symbol is expected to be a lexeme.
 This declaration does not "force" lexeme status --
 if the symbol does not meet the criteria for a lexeme
 based on its use in L0 and G1 rules,
 the result will be a fatal error.
-Applications may find the ability to "declare"
+Applications may find this ability to "declare"
 lexemes useful for debugging,
 and for documenting grammars.
 
