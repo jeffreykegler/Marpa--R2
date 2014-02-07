@@ -762,7 +762,10 @@ its LHS and RHS symbols using
 L<the SLIF grammar's C<rule_expand()> method|Marpa::R2::Scanless::G/"rule_expand()">.
 
 =item * C<Marpa::R2::Context::location()> returns the start
-and end locations of the current rule instance.
+and end G1 locations of the current rule instance.
+Note that these are
+L<G1 locations|Marpa::R2::Scanless::R/"G1 locations">,
+not input stream locations.
 
 =back
 
