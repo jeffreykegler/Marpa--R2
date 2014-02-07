@@ -7367,7 +7367,7 @@ altered by the attempt.
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
   alternative->t_start_earley_set = current_earley_set;
-  alternative->t_end_earleme = target_earleme;
+  End_Earleme_of_ALT(alternative) = target_earleme;
   if (alternative_insert (r, alternative) < 0)
     {
       MARPA_ERROR (MARPA_ERR_DUPLICATE_TOKEN);
@@ -7479,7 +7479,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
            The parse is ``exhausted". */
     count_of_expected_terminals = bv_count (r->t_bv_nsyid_is_expected);
     if (count_of_expected_terminals <= 0
-        && Earleme_of_YS (current_earley_set) >= Furthest_Earleme_of_R (r))
+       && MARPA_DSTACK_LENGTH (r->t_alternatives ) <= 0)
       {
         @<Set |r| exhausted@>@;
       }
@@ -8504,7 +8504,7 @@ marpa_r_clean(Marpa_Recognizer r)
     @<Clean expected terminals@>@;
     count_of_expected_terminals = bv_count (r->t_bv_nsyid_is_expected);
     if (count_of_expected_terminals <= 0
-        && Earleme_of_YS (current_ys) >= Furthest_Earleme_of_R (r))
+       && MARPA_DSTACK_LENGTH (r->t_alternatives ) <= 0)
       {
         @<Set |r| exhausted@>@;
       }
