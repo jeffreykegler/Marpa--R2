@@ -7120,7 +7120,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
     trigger_events(r);
-    /* CLEANUP: ; -- not used at the moment */
+    CLEANUP: ;
     @<Destroy |marpa_r_start_input| locals@>@;
   }
   return return_value;
@@ -8495,7 +8495,7 @@ marpa_r_clean(Marpa_Recognizer r)
       }
 
   First_Inconsistent_YS_of_R(r) = -1;
-  CLEANUP: ;
+  /* CLEANUP: ; -- not used at the moment */
     @<Destroy |marpa_r_clean| locals@>@;
   return return_value;
 }
@@ -8584,7 +8584,6 @@ will never be referred to.
         Change the following so it looks at both kinds of link
         for all YIM's. */
 
-        NEXT_YIM: ;
       }
 }
 
@@ -8796,7 +8795,7 @@ change the parse to exhausted state.
       if (empty_alt_ix) {
         Furthest_Earleme_of_R(r) = Earleme_of_YS(current_ys);
       } else {
-        const ALT furthest_alternative = *MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, 0);
+        const ALT furthest_alternative = MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, 0);
         Furthest_Earleme_of_R(r) = End_Earleme_of_ALT(furthest_alternative);
       }
 
