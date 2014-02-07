@@ -6915,11 +6915,6 @@ typedef const struct s_alternative* ALT_Const;
 @d Start_YS_of_ALT(alt) ((alt)->t_start_earley_set)
 @d Start_Earleme_of_ALT(alt) Earleme_of_YS(Start_YS_of_ALT(alt))
 @d End_Earleme_of_ALT(alt) ((alt)->t_end_earleme)
-@ At present there is no method for marking pending alternatives
-as rejected, and no demand for one.
-But these bits will allow it to happen.
-@d ALT_is_Active(alt) ((alt)->t_is_active)
-@d ALT_is_Rejected(alt) ((alt)->t_is_rejected)
 @<Private structures@> =
 struct s_alternative {
     YS t_start_earley_set;
@@ -7009,26 +7004,18 @@ PRIVATE ALT alternative_pop(RECCE r, JEARLEME earleme)
 {
   MARPA_DSTACK alternatives = &r->t_alternatives;
   ALT end_of_stack = MARPA_DSTACK_TOP (*alternatives, ALT_Object);
-  while (end_of_stack)
-    {
-      ALT popped_alternative;
-      @t}\comment{@>/* Stop looking if the next alternative is at
-         a later earleme.  We do {\bf not} test for earlier earlemes,
-         because we call |alternative_pop()| for each successive |earleme|
-         in integer order.
-         */
-      if (earleme < End_Earleme_of_ALT (end_of_stack))
-	return NULL;
-      @t}\comment{@>/* Otherwise pop it */
-      popped_alternative = MARPA_DSTACK_POP (*alternatives, ALT_Object);
 
-      @t}\comment{@>/* If it is active, we will use it. */
-      if (ALT_is_Active (popped_alternative)) return popped_alternative;
+  if (!end_of_stack) return NULL;
 
-      @t}\comment{@>/* If we are here, we will continue, looking at
-      the next alternative on the stack. */
-    }
-  return NULL;
+  @t}\comment{@>/* Stop looking if the next alternative is at
+  a later earleme.  We do {\bf not} test for earlier earlemes,
+  because we call |alternative_pop()| for each successive |earleme|
+  in integer order.
+  */
+  if (earleme < End_Earleme_of_ALT (end_of_stack))
+    return NULL;
+
+  return MARPA_DSTACK_POP (*alternatives, ALT_Object);
 }
 
 @ This function inserts an alternative into the stack, 
@@ -7362,8 +7349,6 @@ altered by the attempt.
   NSYID_of_ALT (alternative) = tkn_nsyid;
   Value_of_ALT (alternative) = value;
   ALT_is_Valued(alternative) = value ? 1 : 0;
-  ALT_is_Rejected(alternative) = 0;
-  ALT_is_Active(alternative) = 1;
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
   alternative->t_start_earley_set = current_earley_set;
