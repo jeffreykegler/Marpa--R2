@@ -369,13 +369,13 @@ Each adverb consists of a keyword,
 the adverb operator ("C<< => >>"),
 and the adverb's value.
 
-Within an alternative, symbols may be enclosed in parentheses.
-A symbol enclosed in parentheses is hidden from
+Within an alternative, primaries may be enclosed in parentheses.
+A primary enclosed in parentheses is hidden from
 L<Marpa's semantics|Marpa::R2::Semantics>.
-A set of parentheses may contain more than one symbol,
-in which case the entire sequence of symbols is hidden,
+A set of parentheses may contain more than one primary,
+in which case the entire sequence of primaries is hidden,
 as if they had been enclosed in parentheses individually.
-"Hiding" symbols in this way can be convenient for symbols whose values
+"Hiding" primaries in this way can be convenient for primaries whose values
 the semantics will ignore, perhaps because the value is constant.
 
 For example,
