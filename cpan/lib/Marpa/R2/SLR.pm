@@ -1523,6 +1523,12 @@ sub Marpa::R2::Scanless::R::terminals_expected {
         ->terminals_expected();
 }
 
+sub Marpa::R2::Scanless::R::exhausted {
+    my ($self) = @_;
+    return $self->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE]
+        ->exhausted();
+}
+
 # Latest and current G1 location are the same
 sub Marpa::R2::Scanless::R::latest_g1_location {
     my ($slg) = @_;
