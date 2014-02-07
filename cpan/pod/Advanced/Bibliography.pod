@@ -210,7 +210,7 @@ basics of grammars and parsing.
 As Wikipedia points out,
 BNF might better be called Panini-Backus Form.
 The grammarian Panini
-gave a precise description of Sanskirt
+gave a precise description of Sanskrit
 more than 23 centuries earlier in India
 using a similar notation.
 

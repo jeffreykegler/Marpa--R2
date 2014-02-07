@@ -135,7 +135,7 @@ will find Marpa's approach familiar.
 
 =head1 Instances
 
-At the start of evalution, semantics is associated with instances
+At the start of evaluation, semantics is associated with instances
 of rule alternatives or of lexemes.
 An B<instance> is an occurrence in terms of G1 locations.
 Every instance has two locations: a start location and
@@ -437,7 +437,7 @@ a fatal error.
 
 =head1 Explicit actions
 
-There are four kinds of explicit action name:
+There are four kinds of explicit action names:
 
 =over 4
 
