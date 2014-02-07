@@ -1484,7 +1484,7 @@ sub Marpa::R2::Recognizer::value {
         } ## end if ( not $eval_ok or @warnings )
     } ## end if ( my $per_parse_constructor = $recce->[...])
 
-    $semantics_arg0 //= {};
+    $semantics_arg0 //= $per_parse_arg // {};
 
     my $value = Marpa::R2::Thin::V->new($tree);
     $value->valued_force();
