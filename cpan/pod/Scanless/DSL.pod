@@ -608,7 +608,7 @@ normalize-whitespace: 1
 The purpose of
 the C<:lexeme> pseudo-rule is to allow adverbs to
 change the treatment of a lexeme.
-This pseudo-rule always had exactly one RHS alternative,
+This pseudo-rule always has exactly one RHS alternative,
 and that RHS alternative must contain exactly one symbol.
 This RHS symbol identifies the lexeme which the adverbs will affect.
 The only adverbs allowed in a C<:lexeme> rule
