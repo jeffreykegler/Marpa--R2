@@ -8476,7 +8476,9 @@ marpa_r_clean(Marpa_Recognizer r)
        bother */
   earley_set_update_items(r, current_ys);
 
-  for (ysid_to_clean = First_Inconsistent_YS_of_R(r); ysid_to_clean <= current_ys_id; ysid_to_clean++) {
+  for (ysid_to_clean = First_Inconsistent_YS_of_R(r);
+        ysid_to_clean <= current_ys_id;
+        ysid_to_clean++) {
       @<Clean Earley set |ysid_to_clean|@>@;
   }
 
@@ -8783,7 +8785,8 @@ change the parse to exhausted state.
             const ALT alternative = MARPA_DSTACK_INDEX(
               r->t_alternatives, ALT_Object, old_alt_ix);
             if (!alternative_is_acceptable(alternative)) continue;
-            *MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, empty_alt_ix) = *alternative;
+            *MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, empty_alt_ix)
+              = *alternative;
             empty_alt_ix++;
           }
 
@@ -8795,7 +8798,8 @@ change the parse to exhausted state.
       if (empty_alt_ix) {
         Furthest_Earleme_of_R(r) = Earleme_of_YS(current_ys);
       } else {
-        const ALT furthest_alternative = MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, 0);
+        const ALT furthest_alternative
+          = MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, 0);
         Furthest_Earleme_of_R(r) = End_Earleme_of_ALT(furthest_alternative);
       }
 
@@ -9591,7 +9595,8 @@ Top_ORID_of_B(b) = -1;
     const int item_count = YIM_Count_of_YS (earley_set);
       PSL this_earley_set_psl;
       psar_dealloc(or_psar);
-      this_earley_set_psl = psl_claim_by_es(or_psar, per_ys_data, work_earley_set_ordinal);
+      this_earley_set_psl
+        = psl_claim_by_es(or_psar, per_ys_data, work_earley_set_ordinal);
     @<Create the or-nodes for |work_earley_set_ordinal|@>@;
     @<Create draft and-nodes for |work_earley_set_ordinal|@>@;
   }
@@ -9776,7 +9781,8 @@ corresponds to the Leo predecessor.
 {
     {
       OR or_node;
-      PSL leo_psl = psl_claim_by_es(or_psar, per_ys_data, ordinal_of_set_of_this_leo_item);
+      PSL leo_psl
+        = psl_claim_by_es(or_psar, per_ys_data, ordinal_of_set_of_this_leo_item);
       or_node = PSL_Datum (leo_psl, symbol_instance_of_path_aim);
       if (!or_node || YS_Ord_of_OR(or_node) != work_earley_set_ordinal)
         {
@@ -10127,9 +10133,12 @@ int dand_is_duplicate(OR parent, OR predecessor, OR cause)
       if (dands_are_equal(predecessor, cause,
         Predecessor_OR_of_DAND(dand), Cause_OR_of_DAND(dand)))
       {
-          MARPA_DEBUG2("Would-be Duplicate DAND for or %s", or_tag(parent));
-          MARPA_DEBUG2("Would-be Duplicate DAND predcessor is or %s", or_tag(predecessor));
-          MARPA_DEBUG2("Would-be Duplicate DAND cause is or %s", or_tag(cause));
+          MARPA_DEBUG2("Would-be Duplicate DAND for or %s",
+            or_tag(parent));
+          MARPA_DEBUG2("Would-be Duplicate DAND predcessor is or %s",
+            or_tag(predecessor));
+          MARPA_DEBUG2("Would-be Duplicate DAND cause is or %s",
+            or_tag(cause));
           return 1;
       }
   }
