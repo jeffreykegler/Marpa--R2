@@ -940,11 +940,6 @@ no matter which of the input models is in use.
 @item 
 The furthest earleme is less than
 or equal to the current earleme.
-@item If 
-the furthest earleme is equal to the current earleme,
-the parse was successful at the current earleme.
-@item If the furthest earleme is less than the current earleme,
-the parse failed at the current earleme.
 @end itemize
 
 @node Terminals,  , Earlemes, Input

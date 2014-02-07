@@ -7120,7 +7120,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
     trigger_events(r);
-    CLEANUP: ;
+    /* CLEANUP: ; -- not used at the moment */
     @<Destroy |marpa_r_start_input| locals@>@;
   }
   return return_value;
@@ -8752,9 +8752,7 @@ If not, remove them from the stack.
 Readjust furthest earleme.
 Note that moving the furthest earleme may
 change the parse to exhausted state.
-@<Clean pending alternatives@> = {}
-
-@ @<Clean expected terminals@> = {
+@<Clean pending alternatives@> = {
     int old_alt_ix;
     int no_of_alternatives = MARPA_DSTACK_LENGTH (r->t_alternatives );
 
@@ -8794,6 +8792,14 @@ change the parse to exhausted state.
       /* |empty_alt_ix| points to the first available slot, so it is now the same
       as the new stack length */
       MARPA_DSTACK_COUNT_SET(r->t_alternatives, empty_alt_ix);
+      
+      if (empty_alt_ix) {
+        Furthest_Earleme_of_R(r) = Earleme_of_YS(current_ys);
+      } else {
+        const ALT furthest_alternative = *MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, 0);
+        Furthest_Earleme_of_R(r) = End_Earleme_of_ALT(furthest_alternative);
+      }
+
     }
 
 }
@@ -8823,6 +8829,8 @@ PRIVATE int alternative_is_acceptable(ALT alternative)
   }
   return 0;
 }
+
+@ @<Clean expected terminals@> = {}
 
 @** Progress report code.
 @<Private typedefs@> =
