@@ -362,8 +362,9 @@ A RHS alternative is a series of RHS primaries,
 where a RHS primary may be a symbol name,
 a character class,
 or a single quoted string.
-Associated with each RHS is often
-list of zero or more adverbs.
+A list of one or more adverbs is often
+associated with the
+RHS alternatives.
 Each adverb consists of a keyword,
 the adverb operator ("C<< => >>"),
 and the adverb's value.
