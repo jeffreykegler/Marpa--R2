@@ -985,7 +985,7 @@ that lexeme.
 No lexemes will be read at that position.
 
 If the value of pause is C<after>,
-all appicable lexemes at that position will
+all applicable lexemes at that position will
 be read by G1,
 and internal scanning will pause immediately
 afterwards.
@@ -1267,7 +1267,7 @@ right hand side alternatives in
 which all the symbols are operands.
 These can be useful.
 For example, an implicit operation can be defined using
-an binary alternative with no non-operands,
+a binary alternative with no non-operands,
 and this could implement, for example,
 the standard notation for concatenation or multiplication.
 But to do this efficiently
