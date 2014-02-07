@@ -7539,22 +7539,34 @@ The return value means success, with no events.
 @ @<Scan from the alternative stack@> =
 {
   ALT alternative;
-    @t}\comment{@>/* |alternative_pop()| does not return inactive alternatives */
+    @t}\comment{@>
+    /* |alternative_pop()| does not return inactive alternatives */
   while ((alternative = alternative_pop (r, current_earleme)))
     @<Scan an Earley item from alternative@>@;
 }
 
-@ @<Scan an Earley item from alternative@> =
+@ The consequences of ignoring Leo items here is that a right
+recursion is always fully expanded when the cause of the Leo
+trailhead is a terminal.
+That's usually desireable, because a terminal at the bottom of the
+Leo trail is usually a sign that this is the trail that will be
+used in the parse.
+@ But there are exceptions.  These can occur in input models with
+ambiguous terminals, and when LHS terminals are used.
+These cases are not considered in the complexity claims,
+and as of this writing are not important in practical terms.
+@<Scan an Earley item from alternative@> =
 {
   YS start_earley_set = Start_YS_of_ALT (alternative);
   PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set,
     NSYID_of_ALT(alternative));
   for (; pim; pim = Next_PIM_of_PIM (pim))
     {
+      @t}\comment{@>
+      /* Ignore Leo items when scanning */
       const YIM predecessor = YIM_of_PIM (pim);
       if (predecessor && YIM_is_Active(predecessor))
 	{
-          // Ignore Leo items when scanning
 	  const AHM predecessor_aim = AHM_of_YIM (predecessor);
 	  const AHM scanned_aim = Next_AHM_of_AHM (predecessor_aim);
 	  @<Create the earley items for |scanned_aim|@>@;
@@ -8757,7 +8769,63 @@ Note that moving the furthest earleme may
 change the parse to exhausted state.
 @<Clean pending alternatives@> = {}
 
-@ @<Clean expected terminals@> = {}
+@ @<Clean expected terminals@> = {
+    int old_alt_ix;
+    int no_of_alternatives = MARPA_DSTACK_LENGTH (r->t_alternatives );
+
+   @t}\comment{@>
+   /* Increment |old_alt_ix| until it is one past the initial run
+   of accept-able alternatives.  If there were none, this leaves
+   |old_alt_ix| at 0.  If all alternatives were acceptable, this
+   leaves |old_alt_ix| at |no_of_alternatives|. */
+    for (old_alt_ix = 0;
+         old_alt_ix < no_of_alternatives;
+         old_alt_ix++)
+   {
+        PIM pim;
+        const ALT alternative = MARPA_DSTACK_INDEX(
+          r->t_alternatives, ALT_Object, old_alt_ix);
+        const NSYID token_symbol_id = NSYID_of_ALT(alternative);
+        const YS start_ys = Start_YS_of_ALT(alternative);
+        for (pim = First_PIM_of_YS_by_NSYID(start_ys, token_symbol_id);
+            pim;
+            pim = Next_PIM_of_PIM(pim))
+        {
+            YIM predecessor_yim = YIM_of_PIM(pim);
+
+            @t}\comment{@>
+            /* If the trailhead PIM is non-active, the LIM will not
+            be active, so we don't bother looking at the LIM.
+            Instead we will wait for the source, which will be next 
+            in the list of PIM's */
+            if (!predecessor_yim) continue;
+
+            /* We have an active predecessor, so this alternative is
+            OK.  Move on to look at the next alterntive */
+            if (YIM_is_Active(predecessor_yim)) goto NEXT_ALT;
+        }
+
+        @t}\comment{@>
+        /* If we are here, we did not find an active predecessor for this
+        ALT, so it is not acceptable.  We break out of the loop. */
+        goto LAST_ALT;
+
+        NEXT_ALT: ;
+    }
+    LAST_ALT: ;
+
+    @t}\comment{@>
+    /* If we found an un-acceptable alternative, we need to adjust the alterntives
+    stack.  First we shorten the alternatives stack, copying acceptable alternatives
+    to newly emptied slots in the stack until there are no gaps left. */
+    if (old_alt_ix < no_of_alternatives) {
+        @t}\comment{@>
+        /* |new_alt_ix| is the empty slot, into which the next acceptable alternative
+        should be copied. */
+        int new_alt_ix = old_alt_ix;
+    }
+
+}
 
 @** Progress report code.
 @<Private typedefs@> =
