@@ -8796,6 +8796,19 @@ change the parse to exhausted state.
         /* |empty_alt_ix| is the empty slot, into which the next acceptable alternative
         should be copied. */
         int empty_alt_ix = old_alt_ix;
+        for (old_alt_ix++; old_alt_ix < no_of_alternatives; old_alt_ix++) 
+          {
+            const ALT alternative = MARPA_DSTACK_INDEX(
+              r->t_alternatives, ALT_Object, old_alt_ix);
+            if (!alternative_is_acceptable(alternative)) continue;
+            *MARPA_DSTACK_INDEX(r->t_alternatives, ALT_Object, empty_alt_ix) = *alternative;
+            empty_alt_ix++;
+          }
+
+      @t}\comment{@>
+      /* |empty_alt_ix| points to the first available slot, so it is now the same
+      as the new stack length */
+      MARPA_DSTACK_COUNT_SET(r->t_alternatives, empty_alt_ix);
     }
 
 }

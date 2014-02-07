@@ -275,6 +275,12 @@ to free memory should be made.
 @d MARPA_DSTACK_SAFE(this)
   (((this).t_count = (this).t_capacity = 0), ((this).t_base = NULL))
 
+@ It is up to the caller to ensure that there is sufficient
+capacity for the new count.  Usually this call will be used
+to shorten the stack, in which case capacity is not
+an issue.
+@d MARPA_DSTACK_COUNT_SET(this, n) ((this).t_count = (n))
+
 @ A stack reinitialized by
 |MARPA_DSTACK_CLEAR| contains 0 elements,
 but has the same capacity as it had before the reinitialization.
@@ -282,7 +288,7 @@ This saves the cost of reallocating the dstack's buffer,
 and leaves its capacity at what is hopefully
 a stable, high-water mark, which will make future
 resizings unnecessary.
-@d MARPA_DSTACK_CLEAR(this) ((this).t_count = 0)
+@d MARPA_DSTACK_CLEAR(this) MARPA_DSTACK_COUNT_SET((this), 0)
 @d MARPA_DSTACK_PUSH(this, type) (
       (_MARPA_UNLIKELY((this).t_count >= (this).t_capacity)
       ? marpa_dstack_resize2(&(this), sizeof(type))
