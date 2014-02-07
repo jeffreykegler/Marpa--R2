@@ -145,8 +145,8 @@ libmarpa/dev/Makefile
 libmarpa/dev/README
 libmarpa/dev/api.texi
 libmarpa/dev/internal.texi
-libmarpa/dev/marpa.w
 libmarpa/dev/legacy.w
+libmarpa/dev/marpa.w
 libmarpa/dev/w2private_h.pl
 libmarpa/obs/marpa_obs.c
 libmarpa/obs/marpa_obs.h
@@ -352,6 +352,7 @@ t/sl_gia.t
 t/sl_gia_err.t
 t/sl_gie.t
 t/sl_gif1.t
+t/sl_gires.t
 t/sl_gsyn.t
 t/sl_json.t
 t/sl_json_ast.t
