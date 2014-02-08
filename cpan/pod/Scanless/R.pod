@@ -1036,6 +1036,26 @@ Events may be activated or deactivated
 with the SLIF recognizer's
 L<activate() method|/"activate()">.
 
+=head2 exhausted()
+
+=for Marpa::R2::Display
+name: $slr->exhausted example
+
+    my $exhausted_status = $slr->exhausted();
+
+=for Marpa::R2::Display::End
+
+The exhausted method returns a Perl true if parsing in a SLIF
+recognizer is
+exhausted, and a Perl false otherwise. Parsing is exhausted when the
+recognizer will not accept any further input.
+
+An attempt to read input into an
+exhausted parser causes an exception to be thrown.
+The exception is all that most applications require,
+but this method
+allows the recognizer's exhaustion status to be discovered directly.
+
 =head2 g1_location_to_span()
 
 =for Marpa::R2::Display

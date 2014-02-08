@@ -53,10 +53,10 @@ sub do_list {
 
 sub show_last_expression {
     my ($self) = @_;
-    my $recce = $self->{recce};
-    my ( $start, $end ) = $recce->last_completed_range('Number');
+    my $slr = $self->{slr};
+    my ( $start, $end ) = $slr->last_completed_range('Number');
     return '[none]' if not defined $start;
-    my $last_expression = $recce->range_to_string( $start, $end );
+    my $last_expression = $slr->range_to_string( $start, $end );
     return $last_expression;
 } ## end sub show_last_expression
 
@@ -67,27 +67,38 @@ sub my_parser {
 
     my $self = bless { grammar => $grammar }, 'My_Actions';
 
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{recce} = $recce;
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $self->{slr} = $slr;
     my ( $parse_value, $parse_status, $last_expression );
 
-    if ( not defined eval { $recce->read( \$string ); 1 } ) {
-        my $abbreviated_error = $EVAL_ERROR;
-        chomp $abbreviated_error;
-        $abbreviated_error =~ s/\n.*//xms;
-        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
-        return 'No parse', $abbreviated_error, $self->show_last_expression(),
-            $recce->exhausted();
-    } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
-    my $value_ref = $recce->value($self);
+    my $eval_ok = eval { $slr->read( \$string ); 1; };
+    my $eval_error = $EVAL_ERROR;
+
+# Marpa::R2::Display
+# name: $slr->exhausted example
+
+    my $exhausted_status = $slr->exhausted();
+
+# Marpa::R2::Display::End
+
+    if ( not $eval_ok ) {
+        chomp $eval_error;
+        $eval_error =~ s/\n.*//xms;
+        $eval_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
+        return 'No parse', $eval_error, $self->show_last_expression(),
+            $exhausted_status;
+    } ## end if ( not $eval_ok )
+
+    my $value_ref = $slr->value($self);
+
     if ( not defined $value_ref ) {
         return 'No parse', 'Input read to end but no parse',
             $self->show_last_expression(),
-            $recce->exhausted()
+            $exhausted_status;
     }
     my $value = ${$value_ref} // '';
-    return $value, 'Parse OK', 'entire input',
-            $recce->exhausted() ;
+    return $value, 'Parse OK', 'entire input', $exhausted_status;
+
 } ## end sub my_parser
 
 my %grammar_by_type = (
