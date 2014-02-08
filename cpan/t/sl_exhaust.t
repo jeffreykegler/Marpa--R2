@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 54;
+use Test::More tests => 72;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -55,7 +55,7 @@ sub show_last_expression {
     my ($self) = @_;
     my $recce = $self->{recce};
     my ( $start, $end ) = $recce->last_completed_range('Number');
-    return if not defined $start;
+    return '[none]' if not defined $start;
     my $last_expression = $recce->range_to_string( $start, $end );
     return $last_expression;
 } ## end sub show_last_expression
@@ -76,15 +76,18 @@ sub my_parser {
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
-        return 'No parse', $abbreviated_error, $self->show_last_expression();
+        return 'No parse', $abbreviated_error, $self->show_last_expression(),
+            $recce->exhausted();
     } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
     my $value_ref = $recce->value($self);
     if ( not defined $value_ref ) {
         return 'No parse', 'Input read to end but no parse',
-            $self->show_last_expression();
+            $self->show_last_expression(),
+            $recce->exhausted()
     }
     my $value = ${$value_ref} // '';
-    return [ return $value, 'Parse OK', 'entire input' ];
+    return $value, 'Parse OK', 'entire input',
+            $recce->exhausted() ;
 } ## end sub my_parser
 
 my %grammar_by_type = (
@@ -94,12 +97,13 @@ my %grammar_by_type = (
 );
 
 my @tests_data = (
-    [ 'Bare', '', 'No parse', 'Input read to end but no parse', 'none' ],
-    [ 'Bare', '1', '1', 'Parse OK', 'entire input' ],
+    [ 'Bare', '', 'No parse', 'Input read to end but no parse', '[none]' ],
+    [ 'Bare', '1', '1', 'Parse OK', 'entire input', 1 ],
     [   'Bare', '1 2', 'No parse',
-        'Error in SLIF parse: Parse exhausted, but lexemes remain, at line 1, column 3', '1'
+        'Error in SLIF parse: Parse exhausted, but lexemes remain, at line 1, column 3',
+        '1', 1
     ],
-    [ 'Plus', '', 'No parse', 'Input read to end but no parse', 'none' ],
+    [ 'Plus', '', 'No parse', 'Input read to end but no parse', '[none]' ],
     [ 'Plus', '1',   '1',        'Parse OK', 'entire input' ],
     [ 'Plus', '1 2', '1 2', 'Parse OK', 'entire input' ],
     [ 'Star', '', '', 'Parse OK', 'entire input' ],
@@ -110,18 +114,30 @@ my @tests_data = (
 for my $trailer ( q{}, q{  } ) {
     for my $test_data (@tests_data) {
         my ( $type, $test_string, $expected_value, $expected_result,
-            $expected_last_expression )
+            $expected_last_expression, $expected_exhaustion_status )
             = @{$test_data};
         $test_string .= $trailer;
-        my ( $actual_value, $actual_result, $actual_last_expression ) =
+        my ( $actual_value, $actual_result, $actual_last_expression, $actual_exhaustion_status ) =
             my_parser( $grammar_by_type{$type}, $test_string );
-        $actual_last_expression //= 'none';
         Test::More::is( $actual_value, $expected_value,
             qq{$type: Value of "$test_string"} );
         Test::More::is( $actual_result, $expected_result,
             qq{$type: Result of "$test_string"} );
         Test::More::is( $actual_last_expression, $expected_last_expression,
             qq{$type: Last expression found in "$test_string"} );
+        if ($actual_exhaustion_status) {
+            if (not $expected_exhaustion_status) {
+                Test::More::fail(qq{$type: exhausted for "$test_string", but should not be});
+            } else {
+                Test::More::pass(qq{$type: exhausted for "$test_string"});
+            }
+        } else {
+            if ($expected_exhaustion_status) {
+                Test::More::fail(qq{$type: not exhausted for "$test_string", but should be});
+            } else {
+                Test::More::pass(qq{$type: not exhausted for "$test_string"});
+            }
+        }
     } ## end for my $test_data (@tests_data)
 } ## end for my $trailer ( q{}, q{  } )
 
