@@ -3017,7 +3017,6 @@ int t_symbol_instance_count;
 @d Last_Proper_SYMI_of_IRL(irl) ((irl)->t_last_proper_symi)
 @d SYMI_of_Completed_IRL(irl)
     (SYMI_of_IRL(irl) + Length_of_IRL(irl)-1)
-@d SYMI_of_AHM(aim) (symbol_instance_of_aim_get(aim))
 @<Int aligned IRL elements@> =
 int t_symbol_instance_base;
 int t_last_proper_symi;
@@ -3035,16 +3034,6 @@ AHM for the same rule.
 In that case the symbol instance is the
 base symbol instance for
 the rule, offset by the position of that preceding AHM.
-@<Function definitions@> =
-PRIVATE int
-symbol_instance_of_aim_get (AHM aim)
-{
-  if (!AHM_is_Prediction(aim)) {
-      const IRL irl = IRL_of_AHM (aim);
-      return SYMI_of_IRL(irl) + Position_of_AHM(aim-1);
-  }
-  return -1;
-}
 
 @** Precomputing the grammar.
 Marpa's logic divides roughly into three pieces -- grammar precomputation,
@@ -4794,6 +4783,11 @@ Quasi-positions are those modulo nulling symbols.
 @<Int aligned AHM elements@> =
   int t_quasi_position;
 
+@*0 Symbol Instance.
+@d SYMI_of_AHM(ahm) ((ahm)->t_symbol_instance)
+@<Int aligned AHM elements@> =
+  int t_symbol_instance;
+
 @*0 Predicted IRL's.
 A CIL representing the predicted IRL's.
 The empty CIL if there are none.
@@ -4853,9 +4847,9 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
     current_item = base_item = marpa_new(struct s_aim, aim_count);
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
+      SYMI_of_IRL(irl) = symbol_instance_of_next_rule;
       @<Create the AHMs for |irl|@>@;
       {
-        SYMI_of_IRL(irl) = symbol_instance_of_next_rule;
         symbol_instance_of_next_rule += Length_of_IRL(irl);
       }
     }
@@ -4908,6 +4902,10 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
   @<Initializations common to all AHMs@>@;
   Postdot_NSYID_of_AHM (current_item) = rh_nsyid;
   Position_of_AHM (current_item) = rhs_ix;
+  SYMI_of_AHM (current_item)
+    = AHM_is_Prediction (current_item)
+      ? -1
+      : SYMI_of_IRL (irl) + Position_of_AHM (current_item - 1);
   @<Memoize XRL data for AHM@>@;
 }
 
@@ -4916,6 +4914,7 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
   @<Initializations common to all AHMs@>@;
   Postdot_NSYID_of_AHM (current_item) = -1;
   Position_of_AHM (current_item) = -1;
+  SYMI_of_AHM(current_item) = SYMI_of_IRL(irl) + Position_of_AHM(current_item-1);
   @<Memoize XRL data for AHM@>@;
 }
 
