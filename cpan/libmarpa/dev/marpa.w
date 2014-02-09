@@ -4908,6 +4908,7 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
   @<Initializations common to all AHMs@>@;
   Postdot_NSYID_of_AHM (current_item) = rh_nsyid;
   Position_of_AHM (current_item) = rhs_ix;
+  @<Memoize XRL data for AHM@>@;
 }
 
 @ @<Create an AHM for a completion@> =
@@ -4915,6 +4916,7 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
   @<Initializations common to all AHMs@>@;
   Postdot_NSYID_of_AHM (current_item) = -1;
   Position_of_AHM (current_item) = -1;
+  @<Memoize XRL data for AHM@>@;
 }
 
 @ @<Initializations common to all AHMs@> =
@@ -4936,6 +4938,34 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
     AHM_is_Initial (current_item) = 0;
   }
   @<Initialize event data for |current_item|@>@;
+}
+
+@ @<Memoize XRL data for AHM@> =
+{
+  XRL source_xrl = Source_XRL_of_IRL(irl);
+  XRL_of_AHM(current_item) = source_xrl;
+  if (!source_xrl) {
+    @t}\comment{@>
+    /* |source_xrl = NULL|, which is the case only for the start rule */
+    XRL_Position_of_AHM(current_item) = -2;
+  } else {
+    const int virtual_start = Virtual_Start_of_IRL (irl);
+    const int irl_position = Position_of_AHM (current_item);
+    int xrl_position = irl_position;
+    if (virtual_start >= 0)
+      {
+        xrl_position += virtual_start;
+      }
+    if (XRL_is_Sequence (source_xrl))
+      {
+        @t}\comment{@>
+        /* Note that a sequence XRL,
+          because of the way it is rewritten, may have several
+         IRL's, and therefore several AHM's at position 0. */
+        xrl_position = irl_position > 0 ? -1 : 0;
+      }
+    XRL_Position_of_AHM(current_item) = xrl_position;
+  }
 }
 
 @ This is done after creating the AHMs, because in
@@ -4987,6 +5017,17 @@ but for which ``was predicted'' is false.
 @<Bit aligned AHM elements@> =
 BITFIELD t_was_predicted:1;
 BITFIELD t_is_initial:1;
+
+@ We memoize the XRL data for the AHM,
+XRL position is complicated to compute,
+and it depends on XRL -- in particular if
+the XRL is |NULL|, XRL position is not defined.
+@d XRL_of_AHM(ahm) ((ahm)->t_xrl)
+@<Widely aligned AHM elements@> =
+   XRL t_xrl;
+@ @d XRL_Position_of_AHM(ahm) ((ahm)->t_xrl_position)
+@<Int aligned AHM elements@> =
+   int t_xrl_position;
 
 @*0 Event data.
 A boolean tracks whether this is an
@@ -8968,44 +9009,31 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
 @ @<Function definitions@> =
 PRIVATE void
 progress_report_item_insert(MARPA_AVL_TREE report_tree,
-  AHM report_aim, 
+  AHM report_ahm, 
     YSID report_origin)
 {
-  const IRL irl = IRL_of_AHM (report_aim);
-  const XRL source_xrl = Source_XRL_of_IRL (irl);
-  if (source_xrl)
-    {
-      const int irl_position = Position_of_AHM (report_aim);
-      int xrl_position = irl_position;
-      const int virtual_start = Virtual_Start_of_IRL (irl);
-      if (virtual_start >= 0)
-	{
-	  xrl_position += virtual_start;
-	}
-      if (XRL_is_Sequence (source_xrl))
-	{
-	  if (IRL_has_Virtual_LHS (irl))
-	    {
-	      if (irl_position <= 0) return;
-	      xrl_position = -1;
-	    }
-	  else
-	    {
-	      xrl_position = irl_position > 0 ? -1 : 0;
-	    }
-	}
-      {
-	const PROGRESS new_report_item =
-	  marpa_obs_new (MARPA_AVL_OBSTACK (report_tree),
-			 struct marpa_progress_item,
-			 1);
-	Position_of_PROGRESS (new_report_item) = xrl_position;
-	Origin_of_PROGRESS (new_report_item) = report_origin;
-	RULEID_of_PROGRESS (new_report_item) = ID_of_XRL (source_xrl);
-	_marpa_avl_insert (report_tree, new_report_item);
-      }
-    }
-   return;
+  PROGRESS new_report_item;
+  const XRL source_xrl = XRL_of_AHM (report_ahm);
+  const int xrl_position = XRL_Position_of_AHM (report_ahm);
+  if (!source_xrl)
+    return;
+
+  @t}\comment{@>
+  /* As a special case, for the starting rules of a sequence rewrite, we
+  skip all but the top one, which is the one with a semantic LHS */
+  if (XRL_is_Sequence (source_xrl)
+      && Position_of_AHM(report_ahm) <= 0
+      && IRL_has_Virtual_LHS (IRL_of_AHM (report_ahm)))
+    return;
+
+  new_report_item =
+    marpa_obs_new (MARPA_AVL_OBSTACK (report_tree),
+		   struct marpa_progress_item, 1);
+  Position_of_PROGRESS (new_report_item) = xrl_position;
+  Origin_of_PROGRESS (new_report_item) = report_origin;
+  RULEID_of_PROGRESS (new_report_item) = ID_of_XRL (source_xrl);
+  _marpa_avl_insert (report_tree, new_report_item);
+  return;
 }
 
 @ @<Function definitions@> =
