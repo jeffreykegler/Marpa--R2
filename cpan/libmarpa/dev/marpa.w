@@ -3005,36 +3005,6 @@ be using it.
 @ @<Initialize IRL elements@> =
     First_AHM_of_IRL(irl) = NULL;
 
-@** Symbol instance (SYMI) code.
-The symbol instance identifies the instance of a symbol in the internal grammar,
-That is, it identifies not just the symbol, but the specific use of a symbol in
-a rule.
-@<Private typedefs@> = typedef int SYMI;
-@ @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
-@<Int aligned grammar elements@> =
-int t_symbol_instance_count;
-@ @d SYMI_of_IRL(irl) ((irl)->t_symbol_instance_base)
-@d Last_Proper_SYMI_of_IRL(irl) ((irl)->t_last_proper_symi)
-@d SYMI_of_Completed_IRL(irl)
-    (SYMI_of_IRL(irl) + Length_of_IRL(irl)-1)
-@<Int aligned IRL elements@> =
-int t_symbol_instance_base;
-int t_last_proper_symi;
-@ @<Initialize IRL elements@> =
-Last_Proper_SYMI_of_IRL(irl) = -1;
-@ Symbol instances are for the {\bf predot} symbol.
-In parsing the emphasis is on what is to come ---
-on what follows the dot.
-Symbol instances are used in evaluation.
-In evaluation we are looking at what we have,
-so the emphasis is on what precedes the dot position.
-@ The symbol instance of a prediction is $-1$.
-If the AHM is not a prediction, then it has a preceding
-AHM for the same rule.
-In that case the symbol instance is the
-base symbol instance for
-the rule, offset by the position of that preceding AHM.
-
 @** Precomputing the grammar.
 Marpa's logic divides roughly into three pieces -- grammar precomputation,
 the actual parsing of input tokens,
@@ -4784,9 +4754,37 @@ Quasi-positions are those modulo nulling symbols.
   int t_quasi_position;
 
 @*0 Symbol Instance.
+The symbol instance identifies the instance of a symbol in the internal grammar,
+That is, it identifies not just the symbol, but the specific use of a symbol in
+a rule.
+The SYMI count differs from the AHM count, in that predictions are not included,
+but nulling symbols are.
+Predictions are not included, because the count is of predot symbols.
+The symbol instance of a prediction is set to $-1$.
+
+@ Symbol instances are for the {\bf predot} symbol
+because symbol instances are used in evaluation.
+In parsing the emphasis is on what is to come ---
+on what follows the dot.
+In evaluation we are looking at what we have,
+so the emphasis is on what precedes the dot position.
+
 @d SYMI_of_AHM(ahm) ((ahm)->t_symbol_instance)
 @<Int aligned AHM elements@> =
   int t_symbol_instance;
+@ @<Private typedefs@> = typedef int SYMI;
+@ @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
+@<Int aligned grammar elements@> =
+int t_symbol_instance_count;
+@ @d SYMI_of_IRL(irl) ((irl)->t_symbol_instance_base)
+@d Last_Proper_SYMI_of_IRL(irl) ((irl)->t_last_proper_symi)
+@d SYMI_of_Completed_IRL(irl)
+    (SYMI_of_IRL(irl) + Length_of_IRL(irl)-1)
+@<Int aligned IRL elements@> =
+int t_symbol_instance_base;
+int t_last_proper_symi;
+@ @<Initialize IRL elements@> =
+Last_Proper_SYMI_of_IRL(irl) = -1;
 
 @*0 Predicted IRL's.
 A CIL representing the predicted IRL's.
