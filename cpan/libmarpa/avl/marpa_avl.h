@@ -85,6 +85,7 @@ void **_marpa_avl_probe (MARPA_AVL_TREE , void *);
 void *_marpa_avl_insert (MARPA_AVL_TREE , void *);
 void *_marpa_avl_replace (MARPA_AVL_TREE , void *);
 void *_marpa_avl_find (const MARPA_AVL_TREE , const void *);
+void *_marpa_avl_at_or_after (const MARPA_AVL_TREE , const void *);
 
 #define marpa_avl_count(table) ((size_t) (table)->avl_count)
 
