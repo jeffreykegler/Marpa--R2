@@ -5509,6 +5509,66 @@ with |S2| on its LHS.
     }
 }
 
+@** Zero-width assertion (ZWA) code.
+@<Private incomplete structures@> =
+struct s_g_zwa;
+struct s_r_zwa;
+@
+@s GZWA int
+@s ZWA int
+@s ZWAID int
+@<Private typedefs@> =
+typedef Marpa_Assertion_ID ZWAID;
+typedef struct s_g_zwa* GZWA;
+typedef struct s_r_zwa* ZWA;
+
+@ @d ZWA_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_gzwa_stack))
+@d GZWA_by_ID(id) (*MARPA_DSTACK_INDEX((g)->t_gzwa_stack, GZWA, (id)))
+@<Widely aligned grammar elements@> =
+    MARPA_DSTACK_DECLARE(t_gzwa_stack);
+@ @<Initialize grammar elements@> =
+    MARPA_DSTACK_INIT2(g->t_gzwa_stack, GZWA);
+@ @<Destroy grammar elements@> =
+    MARPA_DSTACK_DESTROY(g->t_gzwa_stack);
+
+@ @s Marpa_Assertion_ID int
+@<Public typedefs@> =
+typedef int Marpa_Assertion_ID;
+
+@ @<Private structures@> =
+struct s_g_zwa {
+    ZWAID t_id;
+    BITFIELD t_default_value:1;
+};
+typedef struct s_g_zwa GZWA_Object;
+struct s_r_zwa {
+    ZWAID t_id;
+    BITFIELD t_default_value:1;
+};
+typedef struct s_r_zwa RZWA_Object;
+
+@ @<Function definitions@> =
+Marpa_Assertion_ID
+marpa_g_zwa_new (Marpa_Grammar g, int default_value)
+{
+  @<Return |-2| on failure@>@;
+  ZWAID zwa_id;
+  GZWA gzwa;
+  @<Fail if fatal error@>@;
+  @<Fail if precomputed@>@;
+    if (_MARPA_UNLIKELY (default_value < 0 || default_value > 1))
+      {
+        MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+        return failure_indicator;
+      }
+  gzwa = marpa_obs_new(g->t_obs, GZWA_Object, 1);
+  zwa_id = MARPA_DSTACK_LENGTH ((g)->t_gzwa_stack);
+  *MARPA_DSTACK_PUSH ((g)->t_gzwa_stack, GZWA) = gzwa;
+  gzwa->t_id = zwa_id;
+  gzwa->t_default_value = default_value ? 1 : 0;
+  return zwa_id;
+}
+
 @** Recognizer (R, RECCE) code.
 @<Public incomplete structures@> =
 struct marpa_r;
