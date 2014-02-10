@@ -5399,6 +5399,13 @@ The error code can be determined by using the
     int @var{default_value})
 @end deftypefun
 
+@deftypefun int marpa_g_zwa_place( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Assertion_ID @var{zwaid}, @
+    Marpa_Rule_ID @var{xrl_id}, @
+    int @var{rhs_ix})
+@end deftypefun
+
 @node GNU Free Documentation License,  , Work in Progress, Top
 @appendix GNU Free Documentation License
 

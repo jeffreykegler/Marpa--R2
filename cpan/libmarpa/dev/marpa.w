@@ -5547,6 +5547,47 @@ struct s_r_zwa {
 };
 typedef struct s_r_zwa RZWA_Object;
 
+@ @<Private incomplete structures@> =
+struct s_zwp;
+@ @s ZWP int
+@<Private typedefs@> =
+typedef struct s_zwp* ZWP;
+typedef const struct s_zwp* ZWP_Const;
+@ @<Private structures@> =
+struct s_zwp {
+    XRLID t_xrl_id;
+    int t_rhs_ix;
+    ZWAID t_zwaid;
+};
+typedef struct s_zwp ZWP_Object;
+
+@ @<Widely aligned grammar elements@> =
+MARPA_AVL_TREE t_zwp_tree;
+@ @<Initialize grammar elements@> =
+  (g)->t_zwp_tree = _marpa_avl_create (zwp_cmp, NULL);
+@ @<Clear rule duplication tree@> =
+{
+    _marpa_avl_destroy ((g)->t_zwp_tree);
+    (g)->t_zwp_tree = NULL;
+}
+@ @<Destroy grammar elements@> =
+  @<Clear rule duplication tree@>@;
+
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE int zwp_cmp (
+    const void* ap,
+    const void* bp,
+    void *param @,@, UNUSED)
+{
+   const ZWP_Const zwp_a = ap;
+   const ZWP_Const zwp_b = bp;
+   int subkey = zwp_a->t_xrl_id - zwp_b->t_xrl_id;
+   if (subkey) return subkey;
+   subkey = zwp_a->t_rhs_ix - zwp_b->t_rhs_ix;
+   if (subkey) return subkey;
+   return zwp_a->t_zwaid - zwp_b->t_zwaid;
+}
+
 @ @<Function definitions@> =
 Marpa_Assertion_ID
 marpa_g_zwa_new (Marpa_Grammar g, int default_value)
@@ -5567,6 +5608,45 @@ marpa_g_zwa_new (Marpa_Grammar g, int default_value)
   gzwa->t_id = zwa_id;
   gzwa->t_default_value = default_value ? 1 : 0;
   return zwa_id;
+}
+
+@ An attempt to insert a duplicate is treated as a soft failure,
+and -1 is returned.
+On success, returns a non-negative number.
+@<Function definitions@> =
+int
+marpa_g_zwa_place(Marpa_Grammar g,
+    Marpa_Assertion_ID zwaid,
+    Marpa_Rule_ID xrl_id, int rhs_ix)
+{
+  @<Return |-2| on failure@>@;
+  void* avl_insert_result;
+  ZWP zwp;
+  XRL xrl;
+  int xrl_length;
+  @<Fail if fatal error@>@;
+  @<Fail if precomputed@>@;
+  @<Fail if |xrl_id| is malformed@>@;
+  @<Soft fail if |xrl_id| does not exist@>@;
+  xrl = XRL_by_ID(xrl_id);
+  if (rhs_ix < -1) {
+    MARPA_ERROR(MARPA_ERR_RHS_IX_NEGATIVE);
+    return failure_indicator;
+  }
+  xrl_length = Length_of_XRL(xrl);
+  if (xrl_length <= rhs_ix) {
+    MARPA_ERROR(MARPA_ERR_RHS_IX_OOB);
+    return failure_indicator;
+  }
+  if (rhs_ix == -1) {
+     rhs_ix = XRL_is_Sequence(xrl) ? 1 : xrl_length;
+  }
+  zwp = marpa_obs_new(g->t_obs, ZWP_Object, 1);
+  zwp->t_xrl_id = xrl_id;
+  zwp->t_rhs_ix = rhs_ix;
+  zwp->t_zwaid = zwaid;
+  avl_insert_result = _marpa_avl_insert (g->t_zwp_tree, zwp);
+  return avl_insert_result ? -1 : 0;
 }
 
 @** Recognizer (R, RECCE) code.
