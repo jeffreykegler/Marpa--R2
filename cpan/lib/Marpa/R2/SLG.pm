@@ -476,6 +476,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 $assertion_id = $lex_thin->zwa_new($is_forgiving);
                 $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'} = $assertion_id;
             }
+            $lex_thin->zwa_place($assertion_id, $rule_id, 0);
         }
 
         Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
