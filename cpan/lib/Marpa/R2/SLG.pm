@@ -315,13 +315,35 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             $precompute_error );
     } ## end if ( defined( my $precompute_error = ...))
 
-    # Find out the list lexemes according to G1
+    # Current lexeme data is spread out in many places.
+    # Change so that it all resides in this hash, indexed by
+    # name
+    my %lexeme_data = ();
+
+    # Find out the list of lexemes according to G1
     # g1_lexeme[] is defined for G1 lexemes -- set to 0
     # g1_lexeme is incremented for each lexer which uses it
     my @g1_lexemes = ();
-    for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
-        $g1_lexemes[$symbol_id] = 0
-            if $g1_thin->symbol_is_terminal($symbol_id);
+    SYMBOL: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
+
+        # Not a lexeme, according to G1
+        next SYMBOL if not $g1_thin->symbol_is_terminal($symbol_id);
+
+        my $symbol_name = $g1_tracer->symbol_name($symbol_id);
+        $g1_lexemes[$symbol_id] = 0;
+        $lexeme_data{$symbol_name}{'G1'}{'id'} = $symbol_id;
+    } ## end SYMBOL: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
+
+    # A first phase of applying defaults
+    my $lexeme_declarations = $hashed_source->{lexeme_declarations};
+    my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
+    my $forgiving_default_value = $lexeme_default_adverbs->{forgiving} // 0;
+
+    # Determine "forgiving" status
+    LEXEME: for my $lexeme_name ( keys %lexeme_data ) {
+        my $declarations = $lexeme_declarations->{$lexeme_name};
+        my $forgiving_value = $declarations->{forgiving} // $forgiving_default_value;
+        $lexeme_data{$lexeme_name}{forgiving} = $forgiving_value;
     }
 
     # Lexers
@@ -416,34 +438,13 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
         $thick_grammar_by_lexer_name{$lexer_name} = $lex_grammar;
-        Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
         my $lex_tracer = $lex_grammar->tracer();
         my $lex_thin    = $lex_tracer->grammar();
-        my $character_class_hash = $hashed_source->{character_classes};
-        my @class_table = ();
-
-        CLASS_SYMBOL: for my $class_symbol ( sort keys %{$character_class_hash} ) {
-            my $symbol_id = $lex_tracer->symbol_by_name($class_symbol);
-            next CLASS_SYMBOL if not defined $symbol_id;
-            my $cc_components = $character_class_hash->{$class_symbol};
-            my ( $compiled_re, $error ) =
-                Marpa::R2::Internal::MetaAST::char_class_to_re(
-                $cc_components);
-            if ( not $compiled_re ) {
-                $error =~ s/^/  /gxms;    #indent all lines
-                Marpa::R2::exception(
-                    "Failed belatedly to evaluate character class\n",
-                    $error );
-            } ## end if ( not $compiled_re )
-            push @class_table, [ $symbol_id, $compiled_re ];
-        } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
-        $character_class_table_by_lexer_name{$lexer_name} = \@class_table;
-
+        my $lex_discard_symbol_id =
+            $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
         my @lex_lexeme_to_g1_symbol;
         $lex_lexeme_to_g1_symbol[$_] = -1
             for 0 .. $g1_thin->highest_symbol_id();
-        my $lex_discard_symbol_id =
-            $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
 
         LEXEME_NAME: for my $lexeme_name (@lex_lexeme_names) {
             next LEXEME_NAME if $lexeme_name eq $discard_symbol_name;
@@ -478,6 +479,27 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 : ( $lex_lexeme_to_g1_symbol[$lhs_id] // -1 );
             $lex_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
         }
+
+        Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
+        my $character_class_hash = $hashed_source->{character_classes};
+        my @class_table = ();
+
+        CLASS_SYMBOL: for my $class_symbol ( sort keys %{$character_class_hash} ) {
+            my $symbol_id = $lex_tracer->symbol_by_name($class_symbol);
+            next CLASS_SYMBOL if not defined $symbol_id;
+            my $cc_components = $character_class_hash->{$class_symbol};
+            my ( $compiled_re, $error ) =
+                Marpa::R2::Internal::MetaAST::char_class_to_re(
+                $cc_components);
+            if ( not $compiled_re ) {
+                $error =~ s/^/  /gxms;    #indent all lines
+                Marpa::R2::exception(
+                    "Failed belatedly to evaluate character class\n",
+                    $error );
+            } ## end if ( not $compiled_re )
+            push @class_table, [ $symbol_id, $compiled_re ];
+        } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
+        $character_class_table_by_lexer_name{$lexer_name} = \@class_table;
 
         $lexer_and_rule_to_g1_lexeme{$lexer_name} = \@lex_rule_to_g1_lexeme;
     } ## end for my $lexer_name (@lexer_names)
@@ -518,7 +540,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     # At this point we know which symbols are lexemes.
 
     # More processing of G1 lexemes
-    my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     for my $lexeme_name ( keys %{$lexeme_declarations} ) {
 
         my $declarations = $lexeme_declarations->{$lexeme_name};
@@ -562,16 +583,13 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         ) if $g1_lexemes[$g1_lexeme_id];
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
-    # A first phase of applying defaults
-    my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
-    my $forgiving_default_value = $lexeme_default_adverbs->{forgiving} // 0;
-
-    # Deal with "forgiving" status
-    LEXEME: for my $g1_lexeme_id ( grep { defined $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
-        my $lexeme_name = $g1_tracer->symbol_name($g1_lexeme_id);
-        my $declarations = $lexeme_declarations->{$lexeme_name};
-        my $forgiving_value = $declarations->{forgiving} // $forgiving_default_value;
-        $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id, $forgiving_value );
+    # Now that we have created the SLG, we can set the forgiving value,
+    # already determined above.
+    LEXEME: for my $lexeme_name (keys %lexeme_data) {
+       my $g1_lexeme_id = $lexeme_data{$lexeme_name}{'G1'}{'id'};
+       next LEXEME if not defined $g1_lexeme_id;
+       my $forgiving_value = $lexeme_data{$lexeme_name}{forgiving} // 0;
+       $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id, $forgiving_value );
     }
 
     # Second phase of lexer processing

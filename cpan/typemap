@@ -22,18 +22,19 @@ V_Wrapper * T_MARPA_V_W
 Scanless_G * T_SCANLESS_G
 Scanless_R * T_SCANLESS_R
 
-Marpa_Rank T_IV
-Marpa_Symbol_ID T_IV
-Marpa_Rule_ID T_IV
-Marpa_IRL_ID T_IV
-Marpa_NSY_ID T_IV
 Marpa_AHM_ID T_IV
-Marpa_Earley_Set_ID T_IV
-Marpa_Earley_Item_ID T_IV
-Marpa_Earleme T_IV
-Marpa_Or_Node_ID T_IV
 Marpa_And_Node_ID T_IV
+Marpa_Assertion_ID T_IV
+Marpa_Earleme T_IV
+Marpa_Earley_Item_ID T_IV
+Marpa_Earley_Set_ID T_IV
+Marpa_IRL_ID T_IV
 Marpa_Nook_ID T_IV
+Marpa_NSY_ID T_IV
+Marpa_Or_Node_ID T_IV
+Marpa_Rank T_IV
+Marpa_Rule_ID T_IV
+Marpa_Symbol_ID T_IV
 
 INPUT
 
