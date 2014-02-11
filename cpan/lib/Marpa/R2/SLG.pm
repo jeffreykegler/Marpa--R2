@@ -653,9 +653,10 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         last APPLY_DEFAULT_LEXEME_ADVERBS if $blessing eq '::undef';
 
         LEXEME:
-        for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
-            my $g1_symbol   = $g1_symbols->[$lexeme_id];
-            my $lexeme_name = $g1_tracer->symbol_name($lexeme_id);
+        for my $lexeme_name ( keys %lexeme_data ) {
+               my $g1_lexeme_id = $lexeme_data{$lexeme_name}{'G1'}{'id'};
+               next LEXEME if not defined $g1_lexeme_id;
+            my $g1_symbol   = $g1_symbols->[$g1_lexeme_id];
             next LEXEME if $lexeme_name =~ m/ \] \z/xms;
             if ( $blessing eq '::name' ) {
                 if ( $lexeme_name =~ / [^ [:alnum:]] /xms ) {
@@ -677,7 +678,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 );
             } ## end if ( $blessing =~ / [\W] /xms )
             $g1_symbol->[Marpa::R2::Internal::Symbol::BLESSING] //= $blessing;
-        } ## end for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. ...)
+        }
 
     } ## end APPLY_DEFAULT_LEXEME_ADVERBS:
 
