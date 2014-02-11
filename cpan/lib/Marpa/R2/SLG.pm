@@ -323,14 +323,12 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     # Find out the list of lexemes according to G1
     # g1_lexeme[] is defined for G1 lexemes -- set to 0
     # g1_lexeme is incremented for each lexer which uses it
-    my @g1_lexemes = ();
     SYMBOL: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
 
         # Not a lexeme, according to G1
         next SYMBOL if not $g1_thin->symbol_is_terminal($symbol_id);
 
         my $symbol_name = $g1_tracer->symbol_name($symbol_id);
-        $g1_lexemes[$symbol_id] = 0;
         $lexeme_data{$symbol_name}{'G1'}{'id'} = $symbol_id;
     } ## end SYMBOL: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
@@ -466,7 +464,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                     "A lexeme in lexer $lexer_name is not a lexeme in G1: $lexeme_name"
                 );
             }
-            $g1_lexemes[$g1_symbol_id]++;
             my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
             $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'id'} = $lex_symbol_id;
             $lex_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
@@ -523,21 +520,11 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         $lexer_id_by_name{$lexer_name} = $thin_slg->lexer_add($thin_g);
     }
 
-    LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes ) {
-
-        my $lexer_count = $g1_lexemes[$g1_lexeme];
-
-        # OK if it never was a lexeme in G1
-        # OK if used in at least one lexer
-        if ( defined $lexer_count and $lexer_count < 0 ) {
-            my $lexeme_name = $g1_tracer->symbol_name($g1_lexeme);
-            Marpa::R2::exception(
-                "A lexeme in G1 is not a lexeme in any of the lexers: $lexeme_name"
-            );
-        } ## end if ( defined $lexer_count and $lexer_count < 0 )
-
-
-    } ## end LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes )
+    LEXEME: for my $lexeme_name ( keys %lexeme_data ) {
+        Marpa::R2::exception(
+            "A lexeme in G1 is not a lexeme in any of the lexers: $lexeme_name"
+        ) if not defined $lexeme_data{$lexeme_name}{'lexers'};
+    }
 
     # At this point we know which symbols are lexemes.
 
