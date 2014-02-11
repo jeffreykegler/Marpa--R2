@@ -547,7 +547,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         Marpa::R2::exception(
             "Symbol <$lexeme_name> is declared as a lexeme, but it is not used as one.\n"
-        ) if not defined $g1_lexeme_id or not $g1_lexemes[$g1_lexeme_id];
+        ) if not defined $lexeme_data{$lexeme_name}{'G1'};
 
         if ( defined( my $value = $declarations->{priority} ) ) {
             $thin_slg->g1_lexeme_priority_set( $g1_lexeme_id, $value );
@@ -569,18 +569,16 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     # Now that we know the lexemes, check attempts to defined a
     # completion or a nulled event for one
     for my $symbol_name ( keys %{$completion_events_by_name} ) {
-        my $g1_lexeme_id = $g1_tracer->symbol_by_name($symbol_name);
         Marpa::R2::exception(
             "A completion event is declared for <$symbol_name>, but it is a lexeme.\n",
             "  Completion events are only valid for symbols on the LHS of G1 rules.\n"
-        ) if $g1_lexemes[$g1_lexeme_id];
+        ) if defined $lexeme_data{$symbol_name}{'G1'}
     } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
     for my $symbol_name ( keys %{$nulled_events_by_name} ) {
-        my $g1_lexeme_id = $g1_tracer->symbol_by_name($symbol_name);
         Marpa::R2::exception(
             "A nulled event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
             "  nulled events are only valid for symbols on the LHS of G1 rules.\n"
-        ) if $g1_lexemes[$g1_lexeme_id];
+        ) if defined $lexeme_data{$symbol_name}{'G1'}
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
     # Now that we have created the SLG, we can set the forgiving value,
@@ -640,13 +638,14 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         my $g1_symbols =
             $thick_g1_grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
         LEXEME:
-        for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
-            my $g1_symbol   = $g1_symbols->[$lexeme_id];
-            my $lexeme_name = $g1_tracer->symbol_name($lexeme_id);
+        for my $lexeme_name ( keys %lexeme_data ) {
+            my $g1_lexeme_id = $lexeme_data{$lexeme_name}{'G1'}{'id'};
+            next LEXEME if not defined $g1_lexeme_id;
+            my $g1_symbol   = $g1_symbols->[$g1_lexeme_id];
             next LEXEME if $lexeme_name =~ m/ \] \z/xms;
             $g1_symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS] //=
                 $action;
-        } ## end for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. ...)
+        }
 
         my $blessing = $lexeme_default_adverbs->{bless};
         last APPLY_DEFAULT_LEXEME_ADVERBS if not $blessing;
