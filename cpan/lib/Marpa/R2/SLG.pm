@@ -460,13 +460,15 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                     "A lexeme in lexer $lexer_name is not accessible from the G1 start symbol: $lexeme_name"
                 );
             }
-            if ( not defined $g1_lexemes[$g1_symbol_id] ) {
+            if (not defined $lexeme_data{$lexeme_name}{'G1'})
+            {
                 Marpa::R2::exception(
                     "A lexeme in lexer $lexer_name is not a lexeme in G1: $lexeme_name"
                 );
             }
             $g1_lexemes[$g1_symbol_id]++;
             my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
+            $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'id'} = $lex_symbol_id;
             $lex_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
         }
 
