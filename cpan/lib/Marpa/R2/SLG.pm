@@ -517,18 +517,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     # At this point we know which symbols are lexemes.
 
-    # First phase of applying defaults
-    my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
-    APPLY_DEFAULT_LEXEME_ADVERBS: {
-        last APPLY_DEFAULT_LEXEME_ADVERBS if not $lexeme_default_adverbs;
-        my $forgiving_default_value = $lexeme_default_adverbs->{forgiving};
-        last APPLY_DEFAULT_LEXEME_ADVERBS if not $forgiving_default_value;
-        LEXEME: for my $g1_lexeme_id ( grep { defined } 0 .. $#g1_lexemes ) {
-            $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id,
-                $forgiving_default_value );
-        }
-    } ## end APPLY_DEFAULT_LEXEME_ADVERBS:
-
     # More processing of G1 lexemes
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     for my $lexeme_name ( keys %{$lexeme_declarations} ) {
@@ -542,10 +530,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         if ( defined( my $value = $declarations->{priority} ) ) {
             $thin_slg->g1_lexeme_priority_set( $g1_lexeme_id, $value );
-        }
-
-        if ( defined( my $value = $declarations->{forgiving} ) ) {
-            $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id, $value );
         }
 
         my $pause_value = $declarations->{pause};
@@ -577,6 +561,18 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             "  nulled events are only valid for symbols on the LHS of G1 rules.\n"
         ) if $g1_lexemes[$g1_lexeme_id];
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
+
+    # A first phase of applying defaults
+    my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
+    my $forgiving_default_value = $lexeme_default_adverbs->{forgiving} // 0;
+
+    # Deal with "forgiving" status
+    LEXEME: for my $g1_lexeme_id ( grep { defined $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
+        my $lexeme_name = $g1_tracer->symbol_name($g1_lexeme_id);
+        my $declarations = $lexeme_declarations->{$lexeme_name};
+        my $forgiving_value = $declarations->{forgiving} // $forgiving_default_value;
+        $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id, $forgiving_value );
+    }
 
     # Second phase of lexer processing
     for my $lexer_name (@lexer_names) {
