@@ -3001,6 +3001,7 @@ and there may be an optimization here.
 Perhaps later Marpa objects {\bf should}
 be using it.
 @d First_AHM_of_IRL(irl) ((irl)->t_first_ahm)
+@d First_AHM_of_IRLID(irlid) (IRL_by_ID(irlid)->t_first_ahm)
 @<Widely aligned IRL elements@> = AHM t_first_ahm;
 @ @<Initialize IRL elements@> =
     First_AHM_of_IRL(irl) = NULL;
@@ -3071,7 +3072,8 @@ int marpa_g_precompute(Marpa_Grammar g)
           and nulled symbol CILs@>@;
         @<Mark the event AHMs@>@;
         @<Calculate AHM Event Group Sizes@>@;
-        @<Populate the zero-width assertion data in the AHM's@>@;
+        @<Find the direct ZWA's for each AHM's@>@;
+        @<Find the indirect ZWA's for each AHM's@>@;
     }
     g->t_is_precomputed = 1;
     if (g->t_has_cycle)
@@ -4920,6 +4922,7 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
 @ @<Create an AHM for a precompletion@> =
 {
   @<Initializations common to all AHMs@>@;
+  AHM_predicts_ZWA(current_item) = 0; // Initially unset, this bit will be populated later.
   Postdot_NSYID_of_AHM (current_item) = rh_nsyid;
   Position_of_AHM (current_item) = rhs_ix;
   SYMI_of_AHM (current_item)
@@ -5676,7 +5679,10 @@ marpa_g_zwa_place(Marpa_Grammar g,
   return avl_insert_result ? -1 : 0;
 }
 
-@ @<Populate the zero-width assertion data in the AHM's@> =
+@ The direct ZWA's are the zero-width assertions triggered
+directly by the AHM.  ZWA's triggered via predictions are called
+``indirect''.
+@<Find the direct ZWA's for each AHM's@> =
 {
   AHMID ahm_id;
   const int ahm_count_of_g = AHM_Count_of_G (g);
@@ -5714,6 +5720,38 @@ marpa_g_zwa_place(Marpa_Grammar g,
           }
 	}
         ZWA_CIL_of_AHM(ahm) = cil_buffer_add (&g->t_cilar);
+    }
+}
+
+@ The indirect ZWA's are the zero-width assertions triggered
+via predictions.
+They do {\bf not} include the ZWA's triggered directly by
+the AHM itself.
+@<Find the indirect ZWA's for each AHM's@> =
+{
+  AHMID ahm_id;
+  const int ahm_count_of_g = AHM_Count_of_G (g);
+  for (ahm_id = 0; ahm_id < ahm_count_of_g; ahm_id++)
+    {
+      const AHM ahm_to_populate = AHM_by_ID (ahm_id);
+
+      @t}\comment{@>
+      /* The ``predicts ZWA'' bit was
+      initialized to assume no prediction */
+      const CIL prediction_cil = Predicted_IRL_CIL_of_AHM (ahm_to_populate);
+      const int prediction_count = Count_of_CIL (prediction_cil);
+
+      int cil_ix;
+      for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
+        {
+          const IRLID prediction_irlid = Item_of_CIL (prediction_cil, cil_ix);
+          const AHM prediction_ahm_of_irl = First_AHM_of_IRLID(prediction_irlid);
+          const CIL zwaids_of_prediction = ZWA_CIL_of_AHM(prediction_ahm_of_irl);
+          if (Count_of_CIL (zwaids_of_prediction) > 0) {
+            AHM_predicts_ZWA(ahm_to_populate) = 1;
+            break;
+          }
+        }
     }
 }
 
