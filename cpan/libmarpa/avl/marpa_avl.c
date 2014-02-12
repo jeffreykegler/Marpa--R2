@@ -381,6 +381,29 @@ _marpa_avl_t_find (MARPA_AVL_TRAV trav, void *item)
   return NULL;
 }
 
+/* Searches for |item| in |tree| of |trav|.
+   Sets |trav| to the item, if found,
+   otherwise to the first one after |item|,
+   and returns the item as well.
+   If there is no item after |item|, initializes |trav| to the null item
+   and returns |NULL|.
+
+   The implementation just calls |_marpa_at_or_after| and
+   |_marpa_avl_t_find|.  This means the tree is searched twice,
+   but a custom routine would have to build a stack
+   and then possibly back it out, so a double traversal seems
+   inescapable.
+   A custom routine would be faster, but not by much.
+   */
+void *
+_marpa_avl_t_at_or_after (MARPA_AVL_TRAV trav, void* sought_item)
+{
+  const MARPA_AVL_TREE tree = MARPA_TREE_OF_AVL_TRAV(trav);
+  void* found_item = _marpa_avl_at_or_after (tree, sought_item);
+  if (!found_item) return NULL;
+  return _marpa_avl_t_find(trav, found_item);
+}
+
 /* Attempts to insert |item| into tree of |trav|.
    If |item| is inserted successfully, it is returned and |trav| is
    initialized to its location.
