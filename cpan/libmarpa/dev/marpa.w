@@ -4733,9 +4733,13 @@ this AHM's dot position.
 int t_leading_nulls;
 
 @*0 RHS Position.
-RHS position include nulling symbols.
+RHS position, including nulling symbols.
 Position in the RHS, -1 for a completion.
+Raw position is the same as position except
+for completions, in which case it is the length of the IRL.
 @d Position_of_AHM(ahm) ((ahm)->t_position)
+@d Raw_Position_of_AHM(ahm)
+  (Position_of_AHM(ahm) < 0 ? Length_of_IRL(IRL_of_AHM(ahm)))
 @<Int aligned AHM elements@> =
 int t_position;
 
@@ -4749,7 +4753,8 @@ In the case of the start AHM, it is result of Initialization.
 @d AHM_is_Prediction(ahm) (Quasi_Position_of_AHM(ahm) == 0)
 
 @*0 Quasi-position.
-Quasi-positions are those modulo nulling symbols.
+Quasi-positions are positions
+calculated without counting nulling symbols.
 @d Quasi_Position_of_AHM(ahm) ((ahm)->t_quasi_position)
 @<Int aligned AHM elements@> =
   int t_quasi_position;
@@ -4793,6 +4798,22 @@ The empty CIL if there are none.
 @d Predicted_IRL_CIL_of_AHM(ahm) ((ahm)->t_predicted_irl_cil)
 @<Widely aligned AHM elements@> =
     CIL t_predicted_irl_cil;
+
+@*0 Zero-width assertions at this AHM.
+A CIL representing the zero-width assertions at this AHM.
+The empty CIL if there are none.
+@d ZWA_CIL_of_AHM(ahm) ((ahm)->t_zwa_cil)
+@<Widely aligned AHM elements@> =
+    CIL t_zwa_cil;
+
+@*0 Does this AHM predict any zero-width assertions?.
+A flag indicating that some of the predictions
+from this AHM may have zero-width assertions.
+Note this boolean is independent of whether the
+AHM itself has zero-width assertions.
+@d AHM_predicts_ZWA(ahm) ((ahm)->t_predicts_zwa)
+@<Bit aligned AHM elements@> =
+    BITFIELD t_predicts_zwa:1;
 
 @*0 AHM external accessors.
 @<Function definitions@> =
@@ -5554,7 +5575,11 @@ struct s_zwp;
 @<Private typedefs@> =
 typedef struct s_zwp* ZWP;
 typedef const struct s_zwp* ZWP_Const;
-@ @<Private structures@> =
+@
+@d XRLID_of_ZWP(zwp) ((zwp)->t_xrl_id)
+@d Dot_of_ZWP(zwp) ((zwp)->t_dot)
+@d ZWAID_of_ZWP(zwp) ((zwp)->t_zwaid)
+@<Private structures@> =
 struct s_zwp {
     XRLID t_xrl_id;
     int t_dot;
@@ -5583,11 +5608,11 @@ PRIVATE_NOT_INLINE int zwp_cmp (
 {
    const ZWP_Const zwp_a = ap;
    const ZWP_Const zwp_b = bp;
-   int subkey = zwp_a->t_xrl_id - zwp_b->t_xrl_id;
+   int subkey = XRLID_of_ZWP(zwp_a) - XRLID_of_ZWP(zwp_b);
    if (subkey) return subkey;
-   subkey = zwp_a->t_dot - zwp_b->t_dot;
+   subkey = Dot_of_ZWP(zwp_a) - Dot_of_ZWP(zwp_b);
    if (subkey) return subkey;
-   return zwp_a->t_zwaid - zwp_b->t_zwaid;
+   return ZWAID_of_ZWP(zwp_a) - ZWAID_of_ZWP(zwp_b);
 }
 
 @ @<Function definitions@> =
@@ -5644,9 +5669,9 @@ marpa_g_zwa_place(Marpa_Grammar g,
      rhs_ix = XRL_is_Sequence(xrl) ? 1 : xrl_length;
   }
   zwp = marpa_obs_new(g->t_obs, ZWP_Object, 1);
-  zwp->t_xrl_id = xrl_id;
-  zwp->t_dot = rhs_ix;
-  zwp->t_zwaid = zwaid;
+  XRLID_of_ZWP(zwp) = xrl_id;
+  Dot_of_ZWP(zwp) = rhs_ix;
+  ZWAID_of_ZWP(zwp) = zwaid;
   avl_insert_result = _marpa_avl_insert (g->t_zwp_tree, zwp);
   return avl_insert_result ? -1 : 0;
 }
@@ -5656,18 +5681,40 @@ marpa_g_zwa_place(Marpa_Grammar g,
   AHMID ahm_id;
   const int ahm_count_of_g = AHM_Count_of_G (g);
   for (ahm_id = 0; ahm_id < ahm_count_of_g; ahm_id++)
-  {
-     MARPA_AVL_TRAV traverser;
+    {
+      ZWP_Object sought_zwp_object;
+      ZWP sought_zwp = &sought_zwp_object;
+      ZWP found_zwp;
+      MARPA_AVL_TRAV traverser;
       const AHM ahm = AHM_by_ID (ahm_id);
-      const XRL ahm_xrl = XRL_of_AHM(ahm);
-      if (!ahm_xrl) continue;
-      ZWP_Object sought_zwp;
-      sought_zwp.t_xrl_id = ID_of_XRL(ahm_xrl);
-      sought_zwp.t_dot = 0;
-      sought_zwp.t_zwaid = 0;
-      traverser = _marpa_avl_t_init((g)->t_zwp_tree);
-      _marpa_avl_t_at_or_after(traverser, &sought_zwp);
-  }
+      const XRL ahm_xrl = XRL_of_AHM (ahm);
+      cil_buffer_clear (&g->t_cilar);
+      if (ahm_xrl)
+	{
+	  const int xrl_dot_end = XRL_Position_of_AHM (ahm);
+	  const int xrl_dot_start = xrl_dot_end - Null_Count_of_AHM (ahm);
+          /* We assume the null count is zero for a sequence rule */
+
+          const XRLID sought_xrlid = ID_of_XRL (ahm_xrl);
+	  XRLID_of_ZWP (sought_zwp) = sought_xrlid;
+	  Dot_of_ZWP (sought_zwp) = xrl_dot_start;
+	  ZWAID_of_ZWP (sought_zwp) = 0;
+	  traverser = _marpa_avl_t_init ((g)->t_zwp_tree);
+	  found_zwp = _marpa_avl_t_at_or_after (traverser, sought_zwp);
+
+          @t}\comment{@>
+          /* While we are in the dot range of the sought XRL */
+          while (
+              found_zwp
+              && XRLID_of_ZWP(found_zwp) == sought_xrlid
+              && Dot_of_ZWP(found_zwp) <= xrl_dot_end)
+          {
+              cil_buffer_push (&g->t_cilar, ZWAID_of_ZWP(found_zwp));
+              found_zwp = _marpa_avl_t_next (traverser);
+          }
+	}
+        ZWA_CIL_of_AHM(ahm) = cil_buffer_add (&g->t_cilar);
+    }
 }
 
 @** Recognizer (R, RECCE) code.
