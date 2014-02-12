@@ -5570,7 +5570,7 @@ struct s_r_zwa {
     ZWAID t_id;
     BITFIELD t_default_value:1;
 };
-typedef struct s_r_zwa RZWA_Object;
+typedef struct s_r_zwa ZWA_Object;
 
 @ @<Private incomplete structures@> =
 struct s_zwp;
@@ -6341,6 +6341,15 @@ resized and which will have the same lifetime as the recognizer.
 @<Widely aligned recognizer elements@> = struct marpa_obstack *t_obs;
 @ @<Initialize recognizer obstack@> = r->t_obs = marpa_obs_init;
 @ @<Destroy recognizer obstack@> = marpa_obs_free(r->t_obs);
+
+@*1 The ZWA Array.
+@ The grammar and recce ZWA counts are always the same.
+@d ZWA_Count_of_R(r) (ZWA_Count_of_G(G_of_R(r)))
+@d RZWA_by_ID(id) ((r)->t_zwas[(zwaid)])
+@<Widely aligned recognizer elements@> =
+    ZWA t_zwas;
+@ @<Initialize recognizer elements@> =
+    (r)->t_zwas = marpa_obs_new(r->t_obs, ZWA_Object, ZWA_Count_of_R(r));
 
 @** Earlemes.
 In most parsers, the input is modeled as a token stream ---
