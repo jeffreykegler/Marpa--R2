@@ -646,7 +646,12 @@ u_read (Scanless_R * slr)
           {
               const Marpa_Symbol_ID terminal = terminals_buffer[i];
               const Marpa_Assertion_ID assertion = lexer->g1_lexeme_to_assertion[terminal];
-              marpa_r_zwa_default_set(r, assertion, 1);
+              if (assertion >= 0 && marpa_r_zwa_default_set(r, assertion, 1) < 0) {
+                croak ("Problem in u_read() with assertion ID %ld and lexeme ID %ld: %s",
+                       (long)assertion,
+                       (long)terminal,
+                       xs_g_error (slr->current_lexer->g_wrapper));
+              }
 if (trace_lexers >= 1)
   {
     union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);

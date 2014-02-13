@@ -4525,7 +4525,7 @@ This is a assertion ID which not only does
 not exist, but cannot exist.
 Currently that means its value is less than zero.
 Numeric value: 96.
-Suggested message: "Rule ID is malformed".
+Suggested message: "Assertion ID is malformed".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_RULE_ID
