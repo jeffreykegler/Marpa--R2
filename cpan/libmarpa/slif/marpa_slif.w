@@ -397,6 +397,7 @@ union marpa_slr_event_s;
 @d MARPA_SLRTR_LEXEME_ACCEPTABLE 23
 @d MARPA_SLRTR_LEXEME_OUTPRIORITIZED 24
 @d MARPA_SLRTR_LEXEME_FORGIVEN 25
+@d MARPA_SLRTR_LEXEME_EXPECTED 26
 
 @d MARPA_SLREV_TYPE(event) ((event)->t_header.t_event_type)
 
@@ -601,6 +602,14 @@ union marpa_slr_event_s
     int t_perl_pos;
     int t_current_lexer_ix;
   } t_lexer_restarted_recce;
+  struct
+  {
+    int event_type;
+    int t_perl_pos;
+    int t_current_lexer_ix;
+    Marpa_Symbol_ID t_lexeme;
+    Marpa_Assertion_ID t_assertion;
+  } t_trace_lexeme_expected;
 
 };
 

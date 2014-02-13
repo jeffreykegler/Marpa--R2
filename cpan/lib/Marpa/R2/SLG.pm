@@ -476,7 +476,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'};
             if ( not defined $assertion_id ) {
                 my $default_assertion_value =
-                    not $lexeme_data{$lexeme_name}{forgiving};
+                    $lexeme_data{$lexeme_name}{forgiving} ? 0 : 1;
                 $assertion_id = $lex_thin->zwa_new($default_assertion_value);
 
                 if ( $trace_terminals >= 2 ) {

@@ -647,6 +647,17 @@ u_read (Scanless_R * slr)
               const Marpa_Symbol_ID terminal = terminals_buffer[i];
               const Marpa_Assertion_ID assertion = lexer->g1_lexeme_to_assertion[terminal];
               marpa_r_zwa_default_set(r, assertion, 1);
+if (trace_lexers >= 1)
+  {
+    union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
+    MARPA_SLREV_TYPE(event) = MARPA_SLRTR_LEXEME_EXPECTED;
+    event->t_trace_lexeme_expected.t_perl_pos = slr->perl_pos;
+    event->t_trace_lexeme_expected.t_current_lexer_ix =
+      slr->current_lexer->index;
+    event->t_trace_lexeme_expected.t_lexeme = terminal;
+    event->t_trace_lexeme_expected.t_assertion = assertion;
+  }
+
           }
       }
     }
@@ -5717,6 +5728,19 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_end_of_lexeme));      /* end */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_lexeme));     /* lexeme */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_current_lexer_ix));
+            XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
+            break;
+          }
+
+        case MARPA_SLRTR_LEXEME_EXPECTED:
+          {
+            AV *event_av = newAV ();
+            av_push (event_av, newSVpvs ("'trace"));
+            av_push (event_av, newSVpvs ("expected lexeme"));
+            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_perl_pos));
+            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_lexeme));
+            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_assertion));
+            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
