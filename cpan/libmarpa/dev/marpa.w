@@ -6282,14 +6282,19 @@ Marpa_Recognizer r, int value)
     return r->t_use_leo_flag = value ? 1 : 0;
 }
 
-@*0 Predicted IRL boolean vector.
+@*0 Predicted IRL boolean vector and stack.
 A boolean vector by IRL ID,
 used while building the Earley sets.
 It is set if an IRL has already been predicted,
 unset otherwise.
-@<Widely aligned recognizer elements@> = Bit_Vector t_bv_irl_is_predicted;
+@<Widely aligned recognizer elements@> =
+  Bit_Vector t_bv_irl_seen;
+  MARPA_DSTACK_DECLARE(t_irl_cil_stack);
 @ @<Initialize recognizer elements@> = 
-    r->t_bv_irl_is_predicted = bv_obs_create( r->t_obs, irl_count );
+  r->t_bv_irl_seen = bv_obs_create( r->t_obs, irl_count );
+  MARPA_DSTACK_INIT2(r->t_irl_cil_stack, CIL);
+@ @<Destroy recognizer elements@> =
+  MARPA_DSTACK_DESTROY(r->t_irl_cil_stack);
 
 @*1 Is the parser exhausted?.
 A parser is ``exhausted" if it cannot accept any more input.
@@ -7411,24 +7416,34 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     key.t_ahm = start_ahm;
     key.t_set = set0;
     earley_item_create(r, key);
-    bv_clear (r->t_bv_irl_is_predicted);
-    bv_bit_set (r->t_bv_irl_is_predicted, ID_of_IRL(start_irl));
 
-    {
-      int cil_ix;
-      const CIL prediction_cil = Predicted_IRL_CIL_of_AHM(start_ahm);
-      const int prediction_count = Count_of_CIL (prediction_cil);
-      for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
+    bv_clear (r->t_bv_irl_seen);
+    bv_bit_set (r->t_bv_irl_seen, ID_of_IRL(start_irl));
+    MARPA_DSTACK_CLEAR(r->t_irl_cil_stack);
+    *MARPA_DSTACK_PUSH(r->t_irl_cil_stack, CIL) = Predicted_IRL_CIL_of_AHM(start_ahm);
+
+    while (1) 
+      {
+        const CIL* const p_cil = MARPA_DSTACK_POP (r->t_irl_cil_stack, CIL);
+        if (!p_cil)
+          break;
         {
-          const IRLID prediction_irlid = Item_of_CIL (prediction_cil, cil_ix);
-          if (!bv_bit_test_then_set(r->t_bv_irl_is_predicted, prediction_irlid)) {
-          const IRL prediction_irl = IRL_by_ID(prediction_irlid);
-            const AHM prediction_ahm = First_AHM_of_IRL(prediction_irl);
-            key.t_ahm = prediction_ahm;
-            earley_item_create(r, key);
-          }
+          int cil_ix;
+          const CIL this_cil = *p_cil;
+          const int prediction_count = Count_of_CIL (this_cil);
+          for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
+            {
+              const IRLID prediction_irlid = Item_of_CIL (this_cil, cil_ix);
+              if (!bv_bit_test_then_set (r->t_bv_irl_seen, prediction_irlid))
+                {
+                  const IRL prediction_irl = IRL_by_ID (prediction_irlid);
+                  const AHM prediction_ahm = First_AHM_of_IRL (prediction_irl);
+                  key.t_ahm = prediction_ahm;
+                  earley_item_create (r, key);
+                }
+            }
         }
-    }
+      }
 
     postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
@@ -7759,7 +7774,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
     G_EVENTS_CLEAR(g);
     psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_nsyid_is_expected);
-    bv_clear (r->t_bv_irl_is_predicted);
+    bv_clear (r->t_bv_irl_seen);
     @<Initialize |current_earleme|@>@;
     @<Return 0 if no alternatives@>@;
     @<Initialize |current_earley_set|@>@;
@@ -7769,7 +7784,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
       YIM cause = *cause_p;
         @<Add new Earley items for |cause|@>@;
     }
-    @<Add prediction to |current_earley_set|@>@;
+    @<Add predictions to |current_earley_set|@>@;
     postdot_items_create(r, bv_ok_for_chain, current_earley_set);
 
     @t}\comment{@>
@@ -7954,15 +7969,14 @@ add those Earley items it ``causes".
 
             @t}\comment\hskip 1em{@>
             /* If we are here, both cause and predecessor are active */
-            @<Add |effect_ahm|, plus any prediction,
-              for non-Leo |predecessor|@>@;
+            @<Add |effect_ahm| for non-Leo |predecessor|@>@;
         }
         NEXT_PIM: ;
     }
     LAST_PIM: ;
 }
 
-@ @<Add |effect_ahm|, plus any prediction, for non-Leo |predecessor|@> =
+@ @<Add |effect_ahm| for non-Leo |predecessor|@> =
 {
    const AHM predecessor_ahm = AHM_of_YIM(predecessor);
    const AHM effect_ahm = Next_AHM_of_AHM(predecessor_ahm);
@@ -8003,9 +8017,7 @@ active.
     leo_link_add (r, effect, leo_item, cause);
 }
 
-@ Note that there may already be predictions on the stack from
-the Leo items.
-@<Add prediction to |current_earley_set|@> =
+@ @<Add predictions to |current_earley_set|@> =
 {
   int ix;
   const int no_of_work_earley_items =
