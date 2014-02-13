@@ -94,9 +94,9 @@ sub Marpa::R2::Internal::Scanless::G::set {
         { map { ( $_, 1 ); }
             qw(trace_file_handle action_object default_action bless_package) };
     state $set_method_args =
-        { map { ( $_, 1 ); } qw(trace_file_handle) };
+        { map { ( $_, 1 ); } qw(trace_file_handle trace_terminals) };
     state $new_method_args = {
-        map { ( $_, 1 ); } qw(source), keys %{$copy_to_g1_args}
+        map { ( $_, 1 ); } qw(source trace_terminals), keys %{$copy_to_g1_args}
     };
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
@@ -161,7 +161,8 @@ sub Marpa::R2::Internal::Scanless::G::set {
     # the Scanless::G class, so this maps named args to the index of the array
     # that holds the members.
     state $copy_arg_to_index = {
-        trace_file_handle => Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE
+        trace_file_handle => Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE,
+        trace_terminals => Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS
     };
 
     ARG: for my $arg_name ( keys %flat_args ) {
@@ -206,6 +207,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
 sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     my ( $slg, $hashed_source, $g1_args ) = @_;
 
+    my $trace_terminals = $slg->[Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS] // 0;
     # Pre-lexer G1 processing
 
     my $start_lhs = $hashed_source->{'start_lhs'} // $hashed_source->{'first_lhs'};
@@ -470,14 +472,32 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             $lex_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
             next RULE_ID if $lexeme_id < 0;
             my $lexeme_name = $g1_tracer->symbol_name($lexeme_id);
-            my $assertion_id = $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'};
-            if (not defined $assertion_id) {
-                my $is_forgiving = $lexeme_data{$lexeme_name}{forgiving};
-                $assertion_id = $lex_thin->zwa_new($is_forgiving);
-                $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'} = $assertion_id;
-            }
-            $lex_thin->zwa_place($assertion_id, $rule_id, 0);
-        }
+            my $assertion_id =
+                $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'};
+            if ( not defined $assertion_id ) {
+                my $default_assertion_value =
+                    not $lexeme_data{$lexeme_name}{forgiving};
+                $assertion_id = $lex_thin->zwa_new($default_assertion_value);
+
+                if ( $trace_terminals >= 2 ) {
+                    say {
+                        $slg->[
+                            Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE
+                        ]
+                    } "Assertion $assertion_id defaults to $default_assertion_value";
+                } ## end if ( $trace_terminals >= 2 )
+
+                $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'}
+                    = $assertion_id;
+            } ## end if ( not defined $assertion_id )
+            $lex_thin->zwa_place( $assertion_id, $rule_id, 0 );
+            if ( $trace_terminals >= 2 ) {
+                say { $slg->[
+                        Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] }
+                    "Assertion $assertion_id applied to $lexer_name rule ",
+                    slg_rule_show( $slg, $rule_id, $lex_grammar );
+            } ## end if ( $trace_terminals >= 2 )
+        } ## end RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() )
 
         Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
         my $character_class_hash = $hashed_source->{character_classes};

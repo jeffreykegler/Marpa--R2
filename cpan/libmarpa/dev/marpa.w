@@ -6394,7 +6394,7 @@ typedef struct s_r_zwa ZWA_Object;
         const GZWA gzwa = GZWA_by_ID(zwaid);
         const ZWA zwa = RZWA_by_ID(zwaid);
         ID_of_ZWA(zwa) = ID_of_GZWA(gzwa);
-        Default_Value_of_ZWA(zwa) = 1;
+        Default_Value_of_ZWA(zwa) = Default_Value_of_GZWA(gzwa);
         Memo_Value_of_ZWA(zwa) = Default_Value_of_GZWA(gzwa);
         Memo_YSID_of_ZWA(zwa) = -1;
     }
