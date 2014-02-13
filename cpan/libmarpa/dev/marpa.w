@@ -6381,7 +6381,7 @@ typedef struct s_r_zwa ZWA_Object;
         const GZWA gzwa = GZWA_by_ID(zwaid);
         const ZWA zwa = RZWA_by_ID(zwaid);
         ID_of_ZWA(zwa) = ID_of_GZWA(gzwa);
-        Default_Value_of_ZWA(zwa) = Default_Value_of_GZWA(gzwa);
+        Default_Value_of_ZWA(zwa) = 1;
         Memo_Value_of_ZWA(zwa) = Default_Value_of_GZWA(gzwa);
         Memo_YSID_of_ZWA(zwa) = -1;
     }
@@ -7449,6 +7449,10 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
                 {
                   const IRL prediction_irl = IRL_by_ID (prediction_irlid);
                   const AHM prediction_ahm = First_AHM_of_IRL (prediction_irl);
+                  @t}\comment{@>
+                  /* If any of the assertions fail, do not add this AHM to
+                  the YS, or look at anything predicted by it. */
+                  if (!evaluate_zwas(r, 0, prediction_ahm)) continue;
                   key.t_ahm = prediction_ahm;
                   earley_item_create (r, key);
                   *MARPA_DSTACK_PUSH(r->t_irl_cil_stack, CIL)
@@ -7467,6 +7471,41 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
   }
   return return_value;
 }
+
+@ @<Function definitions@> =
+PRIVATE
+int evaluate_zwas(RECCE r, YSID ysid, AHM ahm)
+{
+  int cil_ix;
+  const CIL zwa_cil = ZWA_CIL_of_AHM(ahm);
+  const int cil_count = Count_of_CIL (zwa_cil);
+  for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
+  {
+     int value;
+     const ZWAID zwaid = Item_of_CIL (zwa_cil, cil_ix);
+     const ZWA zwa = RZWA_by_ID(zwaid);
+      @t}\comment{@>
+      /* Use the memoized value, if it is for this YS */
+     if (Memo_YSID_of_ZWA(zwa) == ysid) {
+         if (Memo_Value_of_ZWA(zwa)) continue;
+         return 0;
+     }
+
+      @t}\comment{@>
+      /* Calculate the value (currently always the default)
+      and memoize it */
+     value = Memo_Value_of_ZWA(zwa) = Default_Value_of_ZWA(zwa);
+     Memo_YSID_of_ZWA(zwa) = ysid;
+
+      @t}\comment{@>
+      /* If the assertion fails we are done
+      Otherwise, continue to check assertions.
+      */
+     if (!value) return 0;
+  }
+  return 1;
+}
+
 
 @ @<Declare |marpa_r_start_input| locals@> =
     const NSYID nsy_count = NSY_Count_of_G(g);
