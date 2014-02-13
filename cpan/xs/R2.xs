@@ -638,6 +638,17 @@ u_read (Scanless_R * slr)
           marpa_r_earley_item_warning_threshold_set (r,
                                                      too_many_earley_items);
         }
+      {
+        int i;
+        Marpa_Symbol_ID* terminals_buffer = slr->r1_wrapper->terminals_buffer;
+        const int count = marpa_r_terminals_expected (r, terminals_buffer);
+        for (i = 0; i < count; i++)
+          {
+              const Marpa_Symbol_ID terminal = terminals_buffer[i];
+              const Marpa_Assertion_ID assertion = lexer->g1_lexeme_to_assertion[terminal];
+              marpa_r_zwa_default_set(r, assertion, 1);
+          }
+      }
     }
   input_is_utf8 = SvUTF8 (slr->input);
   input = (U8 *) SvPV (slr->input, len);
