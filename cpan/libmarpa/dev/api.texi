@@ -4519,6 +4519,15 @@ Numeric value: 27.
 Suggested message: "Specified start symbol is not valid".
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_INVALID_ASSERTION_ID
+A method was called with an invalid assertion ID.
+This is a assertion ID which not only does
+not exist, but cannot exist.
+Currently that means its value is less than zero.
+Numeric value: 96.
+Suggested message: "Rule ID is malformed".
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_RULE_ID
 A method was called with an invalid rule ID.
 This is a rule ID which not only does
@@ -4609,6 +4618,13 @@ Usually the problem is that the user is
 trying to precompute the grammar.
 Numeric value: 43.
 Suggested message: "This grammar has no start symbol".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_SUCH_ASSERTION_ID
+A method was called with an assertion ID which is well-formed,
+but the assertion does not exist.
+Numeric value: 97.
+Suggested message: "No assertion with this ID exists".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_SUCH_RULE_ID
@@ -5404,6 +5420,14 @@ The error code can be determined by using the
     Marpa_Assertion_ID @var{zwaid}, @
     Marpa_Rule_ID @var{xrl_id}, @
     int @var{rhs_ix})
+@end deftypefun
+
+@deftypefun int marpa_r_zwa_default_set( @
+    Marpa_Recognizer @var{r}, @
+    Marpa_Assertion_ID @var{zwaid}, @
+    int @var{default_value})
+
+On success, returns previous default value of the assertion.
 @end deftypefun
 
 @node GNU Free Documentation License,  , Work in Progress, Top

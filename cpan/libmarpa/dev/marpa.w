@@ -5550,6 +5550,8 @@ struct s_r_zwa;
 @s GZWA int
 @s ZWA int
 @s ZWAID int
+@d ZWAID_is_Malformed(zwaid) ((zwaid) < 0)
+@d ZWAID_of_G_Exists(zwaid) ((zwaid) < ZWA_Count_of_G(g))
 @<Private typedefs@> =
 typedef Marpa_Assertion_ID ZWAID;
 typedef struct s_g_zwa* GZWA;
@@ -5664,6 +5666,8 @@ marpa_g_zwa_place(Marpa_Grammar g,
   @<Fail if precomputed@>@;
   @<Fail if |xrl_id| is malformed@>@;
   @<Soft fail if |xrl_id| does not exist@>@;
+  @<Fail if |zwaid| is malformed@>@;
+  @<Fail if |zwaid| does not exist@>@;
   xrl = XRL_by_ID(xrl_id);
   if (rhs_ix < -1) {
     MARPA_ERROR(MARPA_ERR_RHS_IX_NEGATIVE);
@@ -9212,6 +9216,31 @@ PRIVATE int alternative_is_acceptable(ALT alternative)
 }
 
 @ @<Clean expected terminals@> = {}
+
+@** Recognizer zero-width assertion code.
+@<Function definitions@> =
+int
+marpa_r_zwa_default_set(Marpa_Recognizer r,
+    Marpa_Assertion_ID zwaid,
+    int default_value)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  ZWA zwa;
+  int old_default_value;
+  @<Fail if fatal error@>@;
+  @<Fail if |zwaid| is malformed@>@;
+  @<Fail if |zwaid| does not exist@>@;
+    if (_MARPA_UNLIKELY (default_value < 0 || default_value > 1))
+      {
+        MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+        return failure_indicator;
+      }
+    zwa = RZWA_by_ID(zwaid);
+    old_default_value = Default_Value_of_ZWA(zwa);
+    Default_Value_of_ZWA(zwa) = default_value ? 1 : 0;
+    return old_default_value;
+}
 
 @** Progress report code.
 @<Private typedefs@> =
@@ -14113,6 +14142,7 @@ if (_MARPA_UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_RULE_ID);
     return -1;
     }
+
 @ @<Fail if |xrl_id| does not exist@> =
 if (_MARPA_UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_RULE_ID);
@@ -14122,6 +14152,18 @@ if (_MARPA_UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
 @<Fail if |xrl_id| is malformed@> =
 if (_MARPA_UNLIKELY(XRLID_is_Malformed(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_RULE_ID);
+    return failure_indicator;
+}
+
+@ @<Fail if |zwaid| does not exist@> =
+if (_MARPA_UNLIKELY(!ZWAID_of_G_Exists(zwaid))) {
+    MARPA_ERROR (MARPA_ERR_NO_SUCH_ASSERTION_ID);
+    return failure_indicator;
+}
+@
+@<Fail if |zwaid| is malformed@> =
+if (_MARPA_UNLIKELY(ZWAID_is_Malformed(zwaid))) {
+    MARPA_ERROR (MARPA_ERR_INVALID_ASSERTION_ID);
     return failure_indicator;
 }
 
