@@ -7440,6 +7440,8 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
                   const AHM prediction_ahm = First_AHM_of_IRL (prediction_irl);
                   key.t_ahm = prediction_ahm;
                   earley_item_create (r, key);
+                  *MARPA_DSTACK_PUSH(r->t_irl_cil_stack, CIL)
+                    = Predicted_IRL_CIL_of_AHM(prediction_ahm);
                 }
             }
         }
