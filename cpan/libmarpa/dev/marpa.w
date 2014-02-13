@@ -4795,11 +4795,17 @@ int t_last_proper_symi;
 Last_Proper_SYMI_of_IRL(irl) = -1;
 
 @*0 Predicted IRL's.
-A CIL representing the predicted IRL's.
-The empty CIL if there are none.
+One CIL representing the predicted IRL's,
+and another representing the directly predicted IRL's.
+Both are empty CIL if there are no predictions.
+@ {\bf To Do}: @^To Do@>
+It is not clear whether both of these will be needed,
+or if not, which one will be needed.
 @d Predicted_IRL_CIL_of_AHM(ahm) ((ahm)->t_predicted_irl_cil)
+@d LHS_CIL_of_AHM(ahm) ((ahm)->t_lhs_cil)
 @<Widely aligned AHM elements@> =
     CIL t_predicted_irl_cil;
+    CIL t_lhs_cil;
 
 @*0 Zero-width assertions at this AHM.
 A CIL representing the zero-width assertions at this AHM.
@@ -5351,12 +5357,14 @@ with |S2| on its LHS.
       if (postdot_nsyid < 0)
 	{
 	  Predicted_IRL_CIL_of_AHM (ahm) = cil_empty (&g->t_cilar);
+	  LHS_CIL_of_AHM (ahm) = cil_empty (&g->t_cilar);
 	}
       else
 	{
 	  Predicted_IRL_CIL_of_AHM (ahm) =
 	    cil_bv_add (&g->t_cilar,
 			matrix_row (prediction_nsy_by_irl_matrix, postdot_nsyid));
+	  LHS_CIL_of_AHM (ahm) = LHS_CIL_of_NSYID(postdot_nsyid);
 	}
     }
 }
@@ -7412,15 +7420,18 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     start_irl = g->t_start_irl;
     start_ahm = First_AHM_of_IRL(start_irl);
 
+    @t}\comment{@>
+    /* These will stay constant in every YIM added in this method */
     key.t_origin = set0;
-    key.t_ahm = start_ahm;
     key.t_set = set0;
+
+    key.t_ahm = start_ahm;
     earley_item_create(r, key);
 
     bv_clear (r->t_bv_irl_seen);
     bv_bit_set (r->t_bv_irl_seen, ID_of_IRL(start_irl));
     MARPA_DSTACK_CLEAR(r->t_irl_cil_stack);
-    *MARPA_DSTACK_PUSH(r->t_irl_cil_stack, CIL) = Predicted_IRL_CIL_of_AHM(start_ahm);
+    *MARPA_DSTACK_PUSH(r->t_irl_cil_stack, CIL) = LHS_CIL_of_AHM(start_ahm);
 
     while (1) 
       {
@@ -7441,7 +7452,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
                   key.t_ahm = prediction_ahm;
                   earley_item_create (r, key);
                   *MARPA_DSTACK_PUSH(r->t_irl_cil_stack, CIL)
-                    = Predicted_IRL_CIL_of_AHM(prediction_ahm);
+                    = LHS_CIL_of_AHM(prediction_ahm);
                 }
             }
         }

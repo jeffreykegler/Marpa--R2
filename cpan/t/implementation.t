@@ -149,10 +149,10 @@ ahm0: R0:0@0-0
   R0:0: Expression ::= . Term
 ahm2: R1:0@0-0
   R1:0: Term ::= . Factor
-ahm4: R2:0@0-0
-  R2:0: Factor ::= . Number
 ahm6: R3:0@0-0
   R3:0: Term ::= . Term Add Term
+ahm4: R2:0@0-0
+  R2:0: Factor ::= . Number
 ahm10: R4:0@0-0
   R4:0: Factor ::= . Factor Multiply Factor
 Earley Set 1
