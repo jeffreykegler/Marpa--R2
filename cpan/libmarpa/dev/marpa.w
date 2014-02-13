@@ -5560,17 +5560,15 @@ typedef struct s_r_zwa* ZWA;
 @<Public typedefs@> =
 typedef int Marpa_Assertion_ID;
 
-@ @<Private structures@> =
+@
+@d ID_of_GZWA(zwa) ((zwa)->t_id)
+@d Default_Value_of_GZWA(zwa) ((zwa)->t_default_value)
+@<Private structures@> =
 struct s_g_zwa {
     ZWAID t_id;
     BITFIELD t_default_value:1;
 };
 typedef struct s_g_zwa GZWA_Object;
-struct s_r_zwa {
-    ZWAID t_id;
-    BITFIELD t_default_value:1;
-};
-typedef struct s_r_zwa ZWA_Object;
 
 @ @<Private incomplete structures@> =
 struct s_zwp;
@@ -6343,13 +6341,38 @@ resized and which will have the same lifetime as the recognizer.
 @ @<Destroy recognizer obstack@> = marpa_obs_free(r->t_obs);
 
 @*1 The ZWA Array.
+@d ID_of_ZWA(zwa) ((zwa)->t_id)
+@d Memo_YSID_of_ZWA(zwa) ((zwa)->t_memoized_ysid)
+@d Memo_Value_of_ZWA(zwa) ((zwa)->t_memoized_value)
+@d Default_Value_of_ZWA(zwa) ((zwa)->t_default_value)
+@<Private structures@> =
+struct s_r_zwa {
+    ZWAID t_id;
+    YSID t_memoized_ysid;
+    BITFIELD t_default_value:1;
+    BITFIELD t_memoized_value:1;
+};
+typedef struct s_r_zwa ZWA_Object;
+
 @ The grammar and recce ZWA counts are always the same.
 @d ZWA_Count_of_R(r) (ZWA_Count_of_G(G_of_R(r)))
-@d RZWA_by_ID(id) ((r)->t_zwas[(zwaid)])
+@d RZWA_by_ID(id) (&(r)->t_zwas[(zwaid)])
 @<Widely aligned recognizer elements@> =
     ZWA t_zwas;
 @ @<Initialize recognizer elements@> =
+{
+    ZWAID zwaid;
+    const int zwa_count = ZWA_Count_of_R(r);
     (r)->t_zwas = marpa_obs_new(r->t_obs, ZWA_Object, ZWA_Count_of_R(r));
+    for (zwaid = 0; zwaid < zwa_count; zwaid++) {
+        const GZWA gzwa = GZWA_by_ID(zwaid);
+        const ZWA zwa = RZWA_by_ID(zwaid);
+        ID_of_ZWA(zwa) = ID_of_GZWA(gzwa);
+        Default_Value_of_ZWA(zwa) = Default_Value_of_GZWA(gzwa);
+        Memo_Value_of_ZWA(zwa) = Default_Value_of_GZWA(gzwa);
+        Memo_YSID_of_ZWA(zwa) = -1;
+    }
+}
 
 @** Earlemes.
 In most parsers, the input is modeled as a token stream ---
