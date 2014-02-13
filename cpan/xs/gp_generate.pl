@@ -219,6 +219,7 @@ say {$out} gp_generate(qw(prediction_symbol_activate Marpa_Symbol_ID sym_id int 
 say {$out} gp_generate(qw(progress_report_finish));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(terminal_is_expected Marpa_Symbol_ID xsyid));
+say {$out} gp_generate(qw(zwa_default_set Marpa_Assertion_ID zwaid int default_value));
 
 $main::CLASS_LETTER   = 'b';
 $main::LIBMARPA_CLASS = 'Marpa_Bocage';

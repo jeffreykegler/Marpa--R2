@@ -5648,6 +5648,15 @@ marpa_g_zwa_new (Marpa_Grammar g, int default_value)
   return zwa_id;
 }
 
+@ @<Function definitions@> =
+Marpa_Assertion_ID
+marpa_g_highest_zwa_id (Marpa_Grammar g)
+{
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  return ZWA_Count_of_G(g);
+}
+
 @ An attempt to insert a duplicate is treated as a soft failure,
 and -1 is returned.
 On success, returns a non-negative number.

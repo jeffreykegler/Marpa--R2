@@ -108,6 +108,7 @@ typedef struct
 {
   SV *g_sv;
   Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
+  Marpa_Assertion_ID *g1_lexeme_to_assertion;
   HV *per_codepoint_hash;
   IV *per_codepoint_array[128];
  G_Wrapper* g_wrapper;
@@ -447,9 +448,10 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
   Newx (lexer, 1, Lexer);
   lexer->g_sv = g_sv;
   lexer->per_codepoint_hash = newHV ();
-  for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
-    lexer->per_codepoint_array[i] = NULL;
-  }
+  for (i = 0; i < Dim (lexer->per_codepoint_array); i++)
+    {
+      lexer->per_codepoint_array[i] = NULL;
+    }
   SET_G_WRAPPER_FROM_G_SV (g_wrapper, g_sv);
   lexer->g_wrapper = g_wrapper;
   lexer_rule_count = marpa_g_highest_rule_id (g_wrapper->g) + 1;
@@ -458,10 +460,23 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
     {
       lexer->lexer_rule_to_g1_lexeme[rule_ix] = -1;
     }
+  {
+    int symbol_ix;
+    int g1_symbol_count =
+      marpa_g_highest_symbol_id ( slg->g1 ) + 1;
+    Newx (lexer->g1_lexeme_to_assertion, g1_symbol_count,
+	  Marpa_Assertion_ID);
+    for (symbol_ix = 0; symbol_ix < g1_symbol_count;
+	 symbol_ix++)
+      {
+	lexer->g1_lexeme_to_assertion[symbol_ix] = -1;
+      }
+  }
   SvREFCNT_inc (g_sv);
-  if (lexer_count >= lexer_buffer_size) {
+  if (lexer_count >= lexer_buffer_size)
+    {
       lexer_buffer_size = slg->lexer_buffer_size *= 2;
-      Renew(slg->lexers, lexer_buffer_size, Lexer*);
+      Renew (slg->lexers, lexer_buffer_size, Lexer *);
     }
   lexer->index = slg->lexer_count++;
   slg->lexers[lexer->index] = lexer;
@@ -473,6 +488,7 @@ static void lexer_destroy(Lexer *lexer)
   dTHX;
   unsigned i;
   Safefree (lexer->lexer_rule_to_g1_lexeme);
+  Safefree (lexer->g1_lexeme_to_assertion);
   SvREFCNT_dec (lexer->per_codepoint_hash);
   for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
     Safefree(lexer->per_codepoint_array[i]);
@@ -4720,22 +4736,21 @@ PPCODE:
     }
   Newx (slg, 1, Scanless_G);
 
-  # Copy and take references to the parent objects
-  Newx(slg->lexers, 1, Lexer*);
-  # After testing, start with a larger buffer size, perhaps 8
-  slg->lexer_buffer_size = 1;
-  slg->lexer_count = 0;
-  lexer_add(slg, l0_sv);
-
   slg->g1_sv = g1_sv;
   SvREFCNT_inc (g1_sv);
-
 
   # These do not need references, because parent objects
   # hold references to them
   SET_G_WRAPPER_FROM_G_SV(slg->g1_wrapper, g1_sv)
   slg->g1 = slg->g1_wrapper->g;
   slg->precomputed = 0;
+
+  # Copy and take references to the parent objects
+  Newx(slg->lexers, 1, Lexer*);
+  # After testing, start with a larger buffer size, perhaps 8
+  slg->lexer_buffer_size = 1;
+  slg->lexer_count = 0;
+  lexer_add(slg, l0_sv);
 
   {
     Marpa_Symbol_ID symbol_id;
@@ -4805,15 +4820,17 @@ PPCODE:
 }
 
 void
-lexer_rule_to_g1_lexeme_set( slg, lexer_ix, lexer_rule, g1_lexeme )
+lexer_rule_to_g1_lexeme_set( slg, lexer_ix, lexer_rule, g1_lexeme, assertion_id )
     Scanless_G *slg;
     int lexer_ix;
     Marpa_Rule_ID lexer_rule;
     Marpa_Symbol_ID g1_lexeme;
+    Marpa_Assertion_ID assertion_id;
 PPCODE:
 {
   Marpa_Rule_ID highest_lexer_rule_id;
   Marpa_Symbol_ID highest_g1_symbol_id;
+  Marpa_Assertion_ID highest_assertion_id;
   Lexer *lexer;
 
   if (lexer_ix < 0 || lexer_ix >= slg->lexer_count)
@@ -4825,6 +4842,7 @@ PPCODE:
   lexer = slg->lexers[lexer_ix];
   highest_lexer_rule_id = marpa_g_highest_rule_id (lexer->g_wrapper->g);
   highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+  highest_assertion_id = marpa_g_highest_zwa_id (lexer->g_wrapper->g);
   if (slg->precomputed)
     {
       croak
@@ -4845,6 +4863,16 @@ PPCODE:
          (long) lexer_rule, (long) lexer_ix,
          (long) g1_lexeme, (long) lexer_rule, (long) highest_g1_symbol_id);
     }
+  if (assertion_id > highest_assertion_id)
+    {
+      croak
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld, %ld):"
+        "assertion ID was %ld, but highest assertion ID = %ld",
+         (long) lexer_rule, (long) lexer_ix,
+         (long) g1_lexeme, (long) lexer_rule,
+         (long) assertion_id,
+         (long) highest_assertion_id);
+    }
   if (lexer_rule < -2)
     {
       croak
@@ -4859,7 +4887,19 @@ PPCODE:
          (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme,
          (long) g1_lexeme);
     }
-  lexer->lexer_rule_to_g1_lexeme[lexer_rule] = g1_lexeme;
+  if (assertion_id < -2)
+    {
+      croak
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld, %ld): assertion ID was %ld, a disallowed value",
+         (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme,
+         (long) g1_lexeme, (long)assertion_id);
+    }
+  if (lexer_rule >= 0) {
+      lexer->lexer_rule_to_g1_lexeme[lexer_rule] = g1_lexeme;
+  }
+  if (g1_lexeme >= 0) {
+      lexer->g1_lexeme_to_assertion[g1_lexeme] = assertion_id;
+  }
   XSRETURN_YES;
 }
 
@@ -6333,4 +6373,4 @@ INCLUDE: general_pattern.xsh
 BOOT:
     marpa_debug_handler_set(marpa_r2_warn);
 
-    /* vim: set expandtab shiftwidth=4: */
+    /* vim: set expandtab shiftwidth=2: */

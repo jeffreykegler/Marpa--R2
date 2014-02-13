@@ -5415,19 +5415,23 @@ The error code can be determined by using the
     int @var{default_value})
 @end deftypefun
 
-@deftypefun int marpa_g_zwa_place( @
+@deftypefun int marpa_g_zwa_place ( @
     Marpa_Grammar @var{g}, @
     Marpa_Assertion_ID @var{zwaid}, @
     Marpa_Rule_ID @var{xrl_id}, @
     int @var{rhs_ix})
 @end deftypefun
 
-@deftypefun int marpa_r_zwa_default_set( @
+@deftypefun int marpa_r_zwa_default_set ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Assertion_ID @var{zwaid}, @
     int @var{default_value})
 
 On success, returns previous default value of the assertion.
+@end deftypefun
+
+@deftypefun Marpa_Assertion_ID marpa_g_highest_zwa_id ( @
+    Marpa_Grammar @var{g} )
 @end deftypefun
 
 @node GNU Free Documentation License,  , Work in Progress, Top
