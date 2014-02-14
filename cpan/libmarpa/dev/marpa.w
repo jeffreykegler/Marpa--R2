@@ -4928,7 +4928,8 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
 @ @<Create an AHM for a precompletion@> =
 {
   @<Initializations common to all AHMs@>@;
-  AHM_predicts_ZWA(current_item) = 0; // Initially unset, this bit will be populated later.
+  AHM_predicts_ZWA(current_item) = 0;
+  // Initially unset, this bit will be populated later.
   Postdot_NSYID_of_AHM (current_item) = rh_nsyid;
   Position_of_AHM (current_item) = rhs_ix;
   SYMI_of_AHM (current_item)
@@ -5993,12 +5994,16 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 {
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
+  NSYID xsy_count;
+  Bit_Vector bv_terminals;
   int min, max, start;
   int next_buffer_ix = 0;
+
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
-  const NSYID xsy_count = XSY_Count_of_G (g);
-  Bit_Vector bv_terminals = bv_create (xsy_count);
+
+  xsy_count = XSY_Count_of_G (g);
+  bv_terminals = bv_create (xsy_count);
   for (start = 0; bv_scan (r->t_bv_nsyid_is_expected, start, &min, &max);
        start = max + 2)
     {
