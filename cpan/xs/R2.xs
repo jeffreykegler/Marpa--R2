@@ -515,7 +515,11 @@ u_r0_new (Scanless_R * slr)
 {
   dTHX;
   Marpa_Recce r0 = slr->r0;
-  G_Wrapper *lexer_wrapper = slr->current_lexer->g_wrapper;
+  const IV trace_lexers = slr->trace_lexers;
+  Lexer *lexer = slr->current_lexer;
+  G_Wrapper *lexer_wrapper = lexer->g_wrapper;
+  const int too_many_earley_items = slr->too_many_earley_items;
+
   if (r0)
     {
       marpa_r_unref (r0);
@@ -524,20 +528,60 @@ u_r0_new (Scanless_R * slr)
   if (!r0)
     {
       if (!lexer_wrapper->throw)
-        return 0;
+	return 0;
       croak ("failure in marpa_r_new(): %s", xs_g_error (lexer_wrapper));
     };
+  if (too_many_earley_items >= 0)
+    {
+      marpa_r_earley_item_warning_threshold_set (r0, too_many_earley_items);
+    }
+  {
+    int i;
+    Marpa_Symbol_ID *terminals_buffer = slr->r1_wrapper->terminals_buffer;
+    const int count = marpa_r_terminals_expected (slr->r1, terminals_buffer);
+    if (count < 0)
+      {
+	croak ("Problem in u_read() with terminals_expected: %s",
+	       xs_g_error (slr->g1_wrapper));
+      }
+    for (i = 0; i < count; i++)
+      {
+	const Marpa_Symbol_ID terminal = terminals_buffer[i];
+	const Marpa_Assertion_ID assertion =
+	  lexer->g1_lexeme_to_assertion[terminal];
+	if (assertion >= 0 && marpa_r_zwa_default_set (r0, assertion, 1) < 0)
+	  {
+	    croak
+	      ("Problem in u_read() with assertion ID %ld and lexeme ID %ld: %s",
+	       (long) assertion, (long) terminal,
+	       xs_g_error (slr->current_lexer->g_wrapper));
+	  }
+	if (trace_lexers >= 1)
+	  {
+	    union marpa_slr_event_s *event =
+	      marpa__slr_event_push (slr->gift);
+	    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_LEXEME_EXPECTED;
+	    event->t_trace_lexeme_expected.t_perl_pos = slr->perl_pos;
+	    event->t_trace_lexeme_expected.t_current_lexer_ix =
+	      slr->current_lexer->index;
+	    event->t_trace_lexeme_expected.t_lexeme = terminal;
+	    event->t_trace_lexeme_expected.t_assertion = assertion;
+	  }
+
+      }
+  }
   {
     int gp_result = marpa_r_start_input (r0);
     if (gp_result == -1)
       return 0;
     if (gp_result < 0)
       {
-        if (lexer_wrapper->throw)
-          {
-            croak ("Problem in r->start_input(): %s", xs_g_error (lexer_wrapper));
-          }
-        return 0;
+	if (lexer_wrapper->throw)
+	  {
+	    croak ("Problem in r->start_input(): %s",
+		   xs_g_error (lexer_wrapper));
+	  }
+	return 0;
       }
   }
   return r0;
@@ -628,47 +672,10 @@ u_read (Scanless_R * slr)
 
   if (!r)
     {
-      const int too_many_earley_items = slr->too_many_earley_items;
       r = u_r0_new (slr);
       if (!r)
         croak ("Problem in u_read(): %s",
                xs_g_error (slr->current_lexer->g_wrapper));
-      if (too_many_earley_items >= 0)
-        {
-          marpa_r_earley_item_warning_threshold_set (r,
-                                                     too_many_earley_items);
-        }
-      {
-        int i;
-        Marpa_Symbol_ID* terminals_buffer = slr->r1_wrapper->terminals_buffer;
-        const int count = marpa_r_terminals_expected (slr->r1, terminals_buffer);
-        if (count < 0) {
-                croak ("Problem in u_read() with terminals_expected: %s",
-                       xs_g_error (slr->g1_wrapper));
-        }
-        for (i = 0; i < count; i++)
-          {
-              const Marpa_Symbol_ID terminal = terminals_buffer[i];
-              const Marpa_Assertion_ID assertion = lexer->g1_lexeme_to_assertion[terminal];
-              if (assertion >= 0 && marpa_r_zwa_default_set(r, assertion, 1) < 0) {
-                croak ("Problem in u_read() with assertion ID %ld and lexeme ID %ld: %s",
-                       (long)assertion,
-                       (long)terminal,
-                       xs_g_error (slr->current_lexer->g_wrapper));
-              }
-if (trace_lexers >= 1)
-  {
-    union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
-    MARPA_SLREV_TYPE(event) = MARPA_SLRTR_LEXEME_EXPECTED;
-    event->t_trace_lexeme_expected.t_perl_pos = slr->perl_pos;
-    event->t_trace_lexeme_expected.t_current_lexer_ix =
-      slr->current_lexer->index;
-    event->t_trace_lexeme_expected.t_lexeme = terminal;
-    event->t_trace_lexeme_expected.t_assertion = assertion;
-  }
-
-          }
-      }
     }
   input_is_utf8 = SvUTF8 (slr->input);
   input = (U8 *) SvPV (slr->input, len);
