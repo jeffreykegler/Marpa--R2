@@ -644,7 +644,7 @@ u_read (Scanless_R * slr)
         const int count = marpa_r_terminals_expected (slr->r1, terminals_buffer);
         if (count < 0) {
                 croak ("Problem in u_read() with terminals_expected: %s",
-                       xs_g_error (slr->current_lexer->g_wrapper));
+                       xs_g_error (slr->g1_wrapper));
         }
         for (i = 0; i < count; i++)
           {
