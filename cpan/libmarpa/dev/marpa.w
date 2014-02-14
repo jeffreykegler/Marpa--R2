@@ -5991,23 +5991,37 @@ in the grammar.
 @<Function definitions@> =
 int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 {
-    @<Return |-2| on failure@>@;
-      @<Unpack recognizer objects@>@;
-    int min, max, start;
-    int ix = 0;
-    @<Fail if fatal error@>@;
-    @<Fail if recognizer not started@>@;
-    for (start = 0; bv_scan (r->t_bv_nsyid_is_expected, start, &min, &max);
-         start = max + 2)
-      {
-        NSYID nsyid;
-        for (nsyid = min; nsyid <= max; nsyid++)
-          {
-            const XSY xsy = Source_XSY_of_NSYID(nsyid);
-            buffer[ix++] = ID_of_XSY(xsy);
-          }
-      }
-    return ix;
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  int min, max, start;
+  int ix = 0;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  const NSYID xsy_count = XSY_Count_of_G (g);
+  Bit_Vector bv_terminals = bv_create (xsy_count);
+  for (start = 0; bv_scan (r->t_bv_nsyid_is_expected, start, &min, &max);
+       start = max + 2)
+    {
+      NSYID nsyid;
+      for (nsyid = min; nsyid <= max; nsyid++)
+	{
+	  const XSY xsy = Source_XSY_of_NSYID (nsyid);
+	  if (!XSY_is_Terminal (xsy))
+	    continue;
+	  bv_bit_set (bv_terminals, ID_of_XSY (xsy));
+	}
+    }
+
+  for (start = 0; bv_scan (bv_terminals, start, &min, &max); start = max + 2)
+    {
+      XSYID xsyid;
+      for (xsyid = min; xsyid <= max; xsyid++)
+	{
+	  buffer[ix++] = xsyid;
+	}
+    }
+  bv_free (bv_terminals);
+  return ix;
 }
 
 @ @<Function definitions@> =

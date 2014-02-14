@@ -448,6 +448,7 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
   Newx (lexer, 1, Lexer);
   lexer->g_sv = g_sv;
   lexer->per_codepoint_hash = newHV ();
+  lexer->index = slg->lexer_count++;
   for (i = 0; i < Dim (lexer->per_codepoint_array); i++)
     {
       lexer->per_codepoint_array[i] = NULL;
@@ -478,7 +479,6 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
       lexer_buffer_size = slg->lexer_buffer_size *= 2;
       Renew (slg->lexers, lexer_buffer_size, Lexer *);
     }
-  lexer->index = slg->lexer_count++;
   slg->lexers[lexer->index] = lexer;
   return lexer;
 }
