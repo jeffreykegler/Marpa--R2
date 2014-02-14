@@ -641,7 +641,11 @@ u_read (Scanless_R * slr)
       {
         int i;
         Marpa_Symbol_ID* terminals_buffer = slr->r1_wrapper->terminals_buffer;
-        const int count = marpa_r_terminals_expected (r, terminals_buffer);
+        const int count = marpa_r_terminals_expected (slr->r1, terminals_buffer);
+        if (count < 0) {
+                croak ("Problem in u_read() with terminals_expected: %s",
+                       xs_g_error (slr->current_lexer->g_wrapper));
+        }
         for (i = 0; i < count; i++)
           {
               const Marpa_Symbol_ID terminal = terminals_buffer[i];

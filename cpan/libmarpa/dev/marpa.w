@@ -5994,7 +5994,7 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
   int min, max, start;
-  int ix = 0;
+  int next_buffer_ix = 0;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
   const NSYID xsy_count = XSY_Count_of_G (g);
@@ -6006,8 +6006,6 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
       for (nsyid = min; nsyid <= max; nsyid++)
 	{
 	  const XSY xsy = Source_XSY_of_NSYID (nsyid);
-	  if (!XSY_is_Terminal (xsy))
-	    continue;
 	  bv_bit_set (bv_terminals, ID_of_XSY (xsy));
 	}
     }
@@ -6017,11 +6015,11 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
       XSYID xsyid;
       for (xsyid = min; xsyid <= max; xsyid++)
 	{
-	  buffer[ix++] = xsyid;
+	  buffer[next_buffer_ix++] = xsyid;
 	}
     }
   bv_free (bv_terminals);
-  return ix;
+  return next_buffer_ix;
 }
 
 @ @<Function definitions@> =
