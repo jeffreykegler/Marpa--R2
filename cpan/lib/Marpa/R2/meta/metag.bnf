@@ -14,7 +14,10 @@
 # http://www.gnu.org/licenses/.
 
 :default ::= action => [start,length,values] bless => ::lhs
-lexeme default = action => [start,length,value] bless => ::name
+lexeme default =
+  action => [start,length,value]
+  bless => ::name
+  forgiving => 1
 
 :start ::= statements
 statements ::= statement+
