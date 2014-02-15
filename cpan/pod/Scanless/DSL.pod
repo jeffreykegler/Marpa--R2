@@ -867,52 +867,64 @@ If the boolean is set it indicates that a token
 is "forgiving".  The default value is 0,
 which indicates that a token is not forgiving.
 
-If a token is forgiving it becomes
-an exception to the usually strict
-"longest tokens match" discipline.
-The usual 
-"longest tokens match" discipline
-dictates that,
-if one or more lexemes are found that
-are the longest match,
-but none of them are acceptable to G1,
-the parse fails.
-This failure occurs even if shorter lexemes would have been
-acceptable to G1, and would have allowed the parse to
-continue.
+Marking a token "forgiving" makes it subject to
+the "longest acceptable tokens match" (LATM)
+discipline.
+In this,
+the lexer find those tokens that
+are the longest that
+would be accepted by the G1 grammar.
+There may be more than one
+such "longest" acceptable token,
+in which case, the lexing will be ambiguous,
+and the parse will use all of the matching tokens.
 
-If all of the longest matching lexemes are "forgiving",
-then their rejection by G1 does B<not>,
-by itself,
-cause the parse to fail.
-Instead, Marpa continues
-the search for acceptable
-or discardable tokens, looking for shorter ones.
-Marpa will search for tokens of decreasing length,
-until
+The alternative to LATM, and the default, is
+the "longest tokens match" (LTM) discipline.
+LTM is similar to LATM, except that it
+takes no account of whether a token would
+be acceptable to the G1 grammar.
+This makes it possible that LTM will find
+one or more lexemes that are a longest match,
+and none of them will be acceptable to G1.
+When that happens, the parse fails with an error message.
+This failure occurs even if shorter
+lexemes would have been
+found using LATM,
+lexemes which would have
+been acceptable to the G1 grammar.
+This means that matching succeeds more often under LATM than 
+under LTM.
 
-=over 4
+Intuitively, LATM is a longest tokens match that considers context,
+while LTM is a longest tokens match that ignores context.
+LATM is usually preferable.
+Usually if LATM is chosen, a parse will want to use the 
+L<a C<:lexeme default> statement|/"Lexeme default statement">
+and use LATM globally.
+It is possible to use the "forgiving" adverb on a lexeme by
+lexeme basis.  When that is done, the lexemes marked
+"forgiving" will match only if acceptable to the G1 grammar,
+and the lexemes not marked "forgiving" will match regardless
+of their acceptability to the G1 grammar.
 
-=item * the token length decreases below one, or
+Whichever token discipline is chosen,
+all tokens matched will be of the same length.
+Shorter tokens will not be considered.
 
-=item * a token is found which is acceptable to G1, or
+LTM is the default for reasons of backward compatibility.
+LTM was the SLIF's original token matching discipline because
+it more closely models traditional lexing.
+Historical reasons also explain why LATM lexemes
+are called "forgiving" -- in the original implementation, an
+LTM search was always done for all lexemes,
+and LATM was implemented by "forgiving" rejection by the G1 grammar,
+and backing up over the input to find acceptable lexemes.
+Marpa now does LATM far more efficiently --
+the G1 grammar indicates to the lexer, in advance,
+which lexemes are acceptable, and the
+lexer searches only for those.
 
-=item * a discardable token is found, or
-
-=item * a unforgiving token is found and rejected.
-
-=back
-
-Marking a token "forgiving" is not without some risk.
-The lexing might repeatedly scan a very long token, only to reject it
-and back up most of that distance to accept a much shorter token.
-If this happens, the time required to parse may become quadratic in the
-length of the input.
-It is for this reaason that "forgiving" is not the default.
-Nonetheless, marking a single token, or a small number of them,
-forgiving, can allow a parser to be written more compactly or
-elegantly than would be the case otherwise.
- 
 =head2 null-ranking
 
 =for Marpa::R2::Display
