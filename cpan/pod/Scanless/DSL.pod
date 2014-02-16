@@ -140,7 +140,7 @@ if necessary.
 Unlike the angle brackets,
 the whitespace in a bracketed symbol token
 B<does> become part of
-of the explicit symbol name,
+the explicit symbol name,
 but it does so in a "normalized" form.
 Leading and trailing whitespace in the name is discarded,
 and all other whitespace sequences are converted to a single ASCII
