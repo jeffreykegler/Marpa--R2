@@ -15,50 +15,12 @@
 
 Revision history for Marpa::R2
 
-2.079_015
+2.080000 Mon Feb 17 17:13:28 PST 2014
 
-   * Phase 4 -- "cheap forgiveness"
+   * Rewrote the parse engine.
 
-2.079_014
-
-   * Phase 3
-
-2.079_013
-
-   * Phase 2/3 "inter-phase"
-
-2.079_012
-
-   * Phase 2 of Marpa parse engine rewrite
-
-2.079_011
-
-   * Phase 1/2 "inter-phase"
-
-2.079_010
-
-   * Fix bug in Phase 1
-
-2.079_009
-
-   * Phase 1 of Marpa parse engine rewrite
-
-2.079_008
-
-   * Documented forgiving tokens
-
-2.079_007
-
-   * Added forgiving tokens
-
-2.079_006
-2.079_004
-2.079_003
-2.079_002
-2.079_001
-2.079_000
-
-   * New series of developer's releases
+   * Added longest acceptable tokens matching (aka LATM,
+     aka "forgiving tokens")
 
 2.078000 Wed Dec 25 08:38:49 PST 2013
 
@@ -72,9 +34,6 @@ Revision history for Marpa::R2
 
    * SLIF character classes and strings
      can be case-insensitive.
-
-   * ASF's documented and ready for trial, but
-     only by adventurous users.
 
 2.074000 Tue Oct 29 20:21:57 PDT 2013
 
