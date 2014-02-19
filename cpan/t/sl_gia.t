@@ -279,7 +279,7 @@ END_OF_SOURCE
     push @tests_data,
         [
         $slg, $input, $expected_output,
-        'Parse OK', 'Test of forgiving token using lexeme default statment'
+        'Parse OK', 'Test of forgiving token using lexeme default statement'
         ];
 }
 
