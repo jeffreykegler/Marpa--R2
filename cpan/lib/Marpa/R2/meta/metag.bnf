@@ -151,7 +151,7 @@ boolean ~ [01]
 <result item descriptor list> ~ <result item descriptor>* separator => <result item descriptor separator>
 <result item descriptor separator> ~ [,]
 <result item descriptor separator> ~ [,] whitespace
-<result item descriptor> ~ 'start' | 'length' | 'lhs' | 'value' | 'values'
+<result item descriptor> ~ 'start' | 'length' | 'lhs' | 'rule' | 'value' | 'values'
 
 # In single quotes strings and character classes
 # no escaping or internal newlines, and disallow empty string

@@ -1271,6 +1271,36 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           goto NEXT_OP_CODE;
 
+        case MARPA_OP_PUSH_RULE:
+          {
+            if (!values_av)
+              {
+                values_av = (AV *) sv_2mortal ((SV *) newAV ());
+              }
+            switch (step_type)
+              {
+              case MARPA_STEP_TOKEN:
+                {
+                  Marpa_Rule_ID rule_id = marpa_v_rule (v);
+                  av_push (values_av, newSViv ((IV) rule_id));
+                }
+                break;
+
+              case MARPA_STEP_RULE:
+                {
+                  Marpa_Rule_ID rule_id = marpa_v_rule (v);
+                  av_push (values_av, newSViv ((IV) rule_id));
+                }
+                break;
+
+              default:
+              case MARPA_STEP_NULLING_SYMBOL:
+                av_push (values_av, &PL_sv_undef);
+                break;
+              }
+          }
+          goto NEXT_OP_CODE;
+
         case MARPA_OP_PUSH_VALUES:
         case MARPA_OP_PUSH_SEQUENCE:
           {

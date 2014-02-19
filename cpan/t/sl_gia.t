@@ -279,7 +279,34 @@ END_OF_SOURCE
     push @tests_data,
         [
         $slg, $input, $expected_output,
-        'Parse OK', 'Test of forgiving token using lexeme default statment'
+        'Parse OK', 'Test of forgiving token using lexeme default statement'
+        ];
+}
+
+# Test of rule array item descriptor for action adverb
+{
+    my $source = <<'END_OF_SOURCE';
+
+    :default ::= action => [lhs, rule, values]
+    lexeme default = action => [lhs, rule, value]
+    start ::= number1 number2
+    number1 ::= <forty two> 
+    number2 ::= <forty three>
+    <forty two> ~ '42'
+    <forty three> ~ '43'
+END_OF_SOURCE
+    
+    my $input = '4243';
+    my $expected_output = [ '42' ];
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    warn $slg->show_rules(1, 'G1');
+    warn $slg->show_rules(1, 'L0');
+    warn $slg->show_symbols(1, 'G1');
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', 'Test of rule array item descriptor for action adverb'
         ];
 }
 
