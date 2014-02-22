@@ -1401,6 +1401,29 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           goto NEXT_OP_CODE;
 
+        case MARPA_OP_PUSH_CONSTANT:
+          {
+            IV constant_ix = ops[op_ix++];
+            SV **p_constant_sv;
+
+            if (!values_av)
+              {
+                values_av = (AV *) sv_2mortal ((SV *) newAV ());
+              }
+            p_constant_sv = av_fetch (v_wrapper->constants, constant_ix, 0);
+            if (p_constant_sv)
+              {
+                SV *constant_sv = newSVsv (*p_constant_sv);
+                av_push (values_av, SvREFCNT_inc_simple_NN (*p_constant_sv));
+              }
+            else
+              {
+                av_push (values_av, &PL_sv_undef);
+              }
+
+          }
+          goto NEXT_OP_CODE;
+
         case MARPA_OP_PUSH_ONE:
           {
             int offset;

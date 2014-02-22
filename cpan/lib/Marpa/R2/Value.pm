@@ -379,6 +379,11 @@ sub show_semantics {
             $op_ix++;
             next OP;
         }
+        if ( $op_name eq 'push_constant' ) {
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            next OP;
+        }
         if ( $op_name eq 'push_one' ) {
             push @op_descs, $ops[$op_ix];
             $op_ix++;
@@ -952,9 +957,11 @@ sub init_registrations {
 
     state $op_bless         = Marpa::R2::Thin::op('bless');
     state $op_callback      = Marpa::R2::Thin::op('callback');
+    state $op_push_constant   = Marpa::R2::Thin::op('push_constant');
     state $op_push_length   = Marpa::R2::Thin::op('push_length');
     state $op_push_lhs      = Marpa::R2::Thin::op('push_lhs');
     state $op_push_rule     = Marpa::R2::Thin::op('push_rule');
+    state $op_push_undef     = Marpa::R2::Thin::op('push_undef');
     state $op_push_one      = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
     state $op_push_start_location =
@@ -1190,7 +1197,16 @@ sub init_registrations {
                     next RESULT_DESCRIPTOR;
                 }
                 if ( $result_descriptor eq 'lhs' ) {
-                    push @push_ops, $op_push_lhs;
+                    if (defined $rule_id) {
+                        my $lhs_id = $grammar_c->rule_lhs($rule_id);
+                        push @push_ops, $op_push_constant, \$lhs_id;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    if ( defined $lexeme_id ) {
+                        push @push_ops, $op_push_constant, \$lexeme_id;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    push @push_ops, $op_push_undef;
                     next RESULT_DESCRIPTOR;
                 }
                 if ( $result_descriptor eq 'rule' ) {
