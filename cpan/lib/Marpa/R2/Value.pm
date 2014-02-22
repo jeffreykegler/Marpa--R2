@@ -959,7 +959,6 @@ sub init_registrations {
     state $op_callback      = Marpa::R2::Thin::op('callback');
     state $op_push_constant   = Marpa::R2::Thin::op('push_constant');
     state $op_push_length   = Marpa::R2::Thin::op('push_length');
-    state $op_push_rule     = Marpa::R2::Thin::op('push_rule');
     state $op_push_undef     = Marpa::R2::Thin::op('push_undef');
     state $op_push_one      = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
@@ -1209,7 +1208,11 @@ sub init_registrations {
                     next RESULT_DESCRIPTOR;
                 }
                 if ( $result_descriptor eq 'rule' ) {
-                    push @push_ops, $op_push_rule;
+                    if (defined $rule_id) {
+                        push @push_ops, $op_push_constant, \$rule_id;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    push @push_ops, $op_push_undef;
                     next RESULT_DESCRIPTOR;
                 }
                 if (   $result_descriptor eq 'values'

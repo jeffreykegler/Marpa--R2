@@ -299,7 +299,7 @@ END_OF_SOURCE
 END_OF_SOURCE
     
     my $input = '4243';
-    my $expected_output = [1,0,[2,1,[4,0,'42']],[3,2,[5,1,'43']]];
+    my $expected_output = [1,0,[2,1,[4,undef,'42']],[3,2,[5,undef,'43']]];
 
     my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
