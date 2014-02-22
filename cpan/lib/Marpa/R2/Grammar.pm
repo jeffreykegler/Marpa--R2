@@ -70,8 +70,6 @@ sub Marpa::R2::Grammar::new {
 
     $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS]            = [];
     $grammar->[Marpa::R2::Internal::Grammar::RULES]              = [];
-    $grammar->[Marpa::R2::Internal::Grammar::RULE_BY_NAME]       = {};
-    $grammar->[Marpa::R2::Internal::Grammar::RULE_NAME_REQUIRED] = 0;
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C] =
         Marpa::R2::Thin::G->new( { if => 1 } );
@@ -130,7 +128,6 @@ sub Marpa::R2::Grammar::set {
                 default_empty_action
                 default_rank
                 inaccessible_ok
-                rule_name_required
                 rules
                 source
                 start
@@ -186,11 +183,6 @@ sub Marpa::R2::Grammar::set {
                 assign_user_symbol( $grammar, $symbol, $properties );
             }
         } ## end if ( defined( my $value = $args->{'symbols'} ) )
-
-        if ( defined( my $value = $args->{'rule_name_required'} ) ) {
-            $grammar->[Marpa::R2::Internal::Grammar::RULE_NAME_REQUIRED] =
-                !!$value;
-        }
 
         if ( defined( my $value = $args->{'terminals'} ) ) {
             Marpa::R2::exception(
@@ -848,11 +840,6 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
 
 } ## end sub Marpa::R2::Grammar::slif_precompute
 
-sub Marpa::R2::Grammar::rule_by_name {
-    my ( $grammar, $name ) = @_;
-    return $grammar->[Marpa::R2::Internal::Grammar::RULE_BY_NAME]->{$name};
-}
-
 sub Marpa::R2::Grammar::show_problems {
     my ($grammar) = @_;
 
@@ -976,6 +963,15 @@ sub Marpa::R2::Grammar::unproductive_symbols {
             ( 0 .. $#{$symbols} )
     ];
 } ## end sub Marpa::R2::Grammar::unproductive_symbols
+
+sub Marpa::R2::Grammar::rule_name {
+    my ( $grammar, $rule_id ) = @_;
+    my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $rule  = $rules->[$rule_id];
+    return "Non-existent rule $rule_id" if not defined $rule;
+    return $rule->[Marpa::R2::Internal::Rule::NAME]
+        // "Unnamed rule $rule_id";
+} ## end sub Marpa::R2::Grammar::rule_name
 
 sub Marpa::R2::Grammar::brief_rule {
     my ( $grammar, $rule_id ) = @_;
@@ -1361,23 +1357,6 @@ sub add_user_rule {
             "Null Ranking must be undefined, 'high' or 'low'\n";
     }
 
-    # Determine the rule's name
-    my $rules_by_name =
-        $grammar->[Marpa::R2::Internal::Grammar::RULE_BY_NAME];
-    if ( defined $rule_name and defined $rules_by_name->{$rule_name} ) {
-        push @rule_problems, qq{rule named "$rule_name" already exists};
-    }
-    if ( !defined $rule_name
-        and $grammar->[Marpa::R2::Internal::Grammar::RULE_NAME_REQUIRED] )
-    {
-        $rule_name =
-            $grammar->symbol_name( $lhs->[Marpa::R2::Internal::Symbol::ID] );
-        if ( defined $rules_by_name->{$rule_name} ) {
-            push @rule_problems,
-                qq{Cannot name rule from LHS; rule named "$rule_name" already exists};
-        }
-    } ## end if ( !defined $rule_name and $grammar->[...])
-
     if ( scalar @rule_problems ) {
         my %dump_options = %{$options};
         delete $dump_options{grammar};
@@ -1448,7 +1427,6 @@ sub add_user_rule {
             ( $null_ranking eq 'high' ? 1 : 0 ) );
         if ( defined $rule_name ) {
             $ordinary_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
-            $rules_by_name->{$rule_name} = $ordinary_rule;
         }
 
         if ( defined $blessing ) {
@@ -1513,7 +1491,6 @@ sub add_user_rule {
 
     if ( defined $rule_name ) {
         $original_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
-        $rules_by_name->{$rule_name} = $original_rule;
     }
     if ( defined $blessing ) {
         $original_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;

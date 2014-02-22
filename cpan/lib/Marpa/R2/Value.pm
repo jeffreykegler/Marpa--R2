@@ -1205,6 +1205,7 @@ sub registration_init {
                     push @push_ops, $op_push_length;
                     next RESULT_DESCRIPTOR;
                 }
+
                 if ( $result_descriptor eq 'lhs' ) {
                     if (defined $rule_id) {
                         my $lhs_id = $grammar_c->rule_lhs($rule_id);
@@ -1218,19 +1219,48 @@ sub registration_init {
                     push @push_ops, $op_push_undef;
                     next RESULT_DESCRIPTOR;
                 }
-                if ( $result_descriptor eq 'lhs_name' ) {
+
+                if ( $result_descriptor eq 'name' ) {
                     if (defined $rule_id) {
-                        my $lhs_id = $grammar_c->rule_lhs($rule_id);
-                        push @push_ops, $op_push_constant, \$lhs_id;
+                        my $name = $grammar->rule_name($rule_id);
+                        push @push_ops, $op_push_constant, \$name;
                         next RESULT_DESCRIPTOR;
                     }
                     if ( defined $lexeme_id ) {
-                        push @push_ops, $op_push_constant, \$lexeme_id;
+                        my $name = $tracer->symbol_name($lexeme_id);
+                        push @push_ops, $op_push_constant, \$name;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    if ( defined $nulling_symbol_id ) {
+                        my $name = $tracer->symbol_name($nulling_symbol_id);
+                        push @push_ops, $op_push_constant, \$name;
                         next RESULT_DESCRIPTOR;
                     }
                     push @push_ops, $op_push_undef;
                     next RESULT_DESCRIPTOR;
                 }
+
+                if ( $result_descriptor eq 'symbol' ) {
+                    if (defined $rule_id) {
+                        my $lhs_id = $grammar_c->rule_lhs($rule_id);
+                        my $name = $tracer->symbol_name($lhs_id);
+                        push @push_ops, $op_push_constant, \$name;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    if ( defined $lexeme_id ) {
+                        my $name = $tracer->symbol_name($lexeme_id);
+                        push @push_ops, $op_push_constant, \$name;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    if ( defined $nulling_symbol_id ) {
+                        my $name = $tracer->symbol_name($nulling_symbol_id);
+                        push @push_ops, $op_push_constant, \$name;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    push @push_ops, $op_push_undef;
+                    next RESULT_DESCRIPTOR;
+                }
+
                 if ( $result_descriptor eq 'rule' ) {
                     if (defined $rule_id) {
                         push @push_ops, $op_push_constant, \$rule_id;

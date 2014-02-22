@@ -60,7 +60,7 @@ alternative ::= rhs <adverb list>
     | <separator specification> | <proper specification>
     | <rank specification> | <null ranking specification>
     | <priority specification> | <pause specification> | <event specification>
-    | <forgiving specification> | blessing | <null adverb>
+    | <forgiving specification> | blessing | naming | <null adverb>
 
 <null adverb> ::= ','
 action ::= ('action' '=>') <action name>
@@ -78,7 +78,9 @@ action ::= ('action' '=>') <action name>
 <event specification> ::= ('event' '=>') <event name>
 <forgiving specification> ::= ('forgiving' '=>') boolean
 <blessing> ::= ('bless' '=>') <blessing name>
+<naming> ::= ('name' '=>') <alternative name>
 
+<alternative name> ::= <standard name> | <single quoted name>
 <lexer name> ::= <standard name> | <single quoted name>
 <event name> ::= <standard name> | <single quoted name>
 <blessing name> ::= <standard name>
@@ -152,8 +154,7 @@ boolean ~ [01]
 <result item descriptor separator> ~ [,]
 <result item descriptor separator> ~ [,] whitespace
 <result item descriptor> ~ 'start' | 'length'
-  | 'blessing' | 'bless_name'
-  | 'lhs' | 'lhs_name' | 'rule' 
+  | 'name' | 'lhs' | 'symbol' | 'rule' 
   | 'value' | 'values'
 
 # In single quotes strings and character classes

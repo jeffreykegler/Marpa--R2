@@ -21,12 +21,15 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 20;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 use Data::Dumper;
+
+my @tests_data = ();
+my $input;
 
 our $DEBUG = 0;
 
@@ -49,16 +52,16 @@ END_OF_SOURCE
     }
 );
 
-my $input = 'child::book';
+$input = 'child::book';
 
-my @tests_data = (
-    [   $glenn_grammar,
-        'child::book',
-        [ 'child', q{::}, 'book' ],
-        'Parse OK',
-        'Nate Glenn bug regression'
-    ],
-);
+push @tests_data,
+    [
+    $glenn_grammar,
+    'child::book',
+    [ 'child', q{::}, 'book' ],
+    'Parse OK',
+    'Nate Glenn bug regression'
+    ];
 
 # Marpa::R2::Display
 # name: Case-insensitive characters examples
@@ -85,11 +88,12 @@ END_OF_SOURCE
 # Marpa::R2::Display::End
 
 push @tests_data,
-    [   $ic_grammar,
-        'ChilD::BooK',
-        [ 'ChilD', q{::}, 'BooK' ],
-        'Parse OK',
-        'Case insensitivity test'
+    [
+    $ic_grammar,
+    'ChilD::BooK',
+    [ 'ChilD', q{::}, 'BooK' ],
+    'Parse OK',
+    'Case insensitivity test'
     ];
 
 my $durand_grammar1 = Marpa::R2::Scanless::G->new(
@@ -119,7 +123,7 @@ push @tests_data, [
 
 # Another comment
 INPUT
-    [ "## Allowed in the input\n" ],
+    ["## Allowed in the input\n"],
     'Parse OK',
     'JDD test of discard versus accepted'
 ];
@@ -186,7 +190,7 @@ push @tests_data, [
     $durand_grammar3, <<INPUT,
  = / dumb
 INPUT
-    [ qw(= / dumb) ],
+    [qw(= / dumb)],
     'Parse OK',
     'Regression test of perl_pos bug found by JDD'
 ];
@@ -297,9 +301,39 @@ END_OF_SOURCE
     <forty two> ~ '42'
     <forty three> ~ '43'
 END_OF_SOURCE
-    
+
     my $input = '4243';
-    my $expected_output = [1,0,[2,1,[4,undef,'42']],[3,2,[5,undef,'43']]];
+    my $expected_output =
+        [ 1, 0, [ 2, 1, [ 4, undef, '42' ] ], [ 3, 2, [ 5, undef, '43' ] ] ];
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', 'Test of rule array item descriptor for action adverb'
+        ];
+}
+
+# Test of 'symbol', 'name' array item descriptors
+{
+    my $source = <<'END_OF_SOURCE';
+
+    :default ::= action => [symbol, name, values]
+    lexeme default = action => [symbol, name, value]
+    start ::= number1 number2 name => top
+    number1 ::= <forty two> name => 'number 1'
+    number2 ::= <forty three> name => 'number 2'
+    <forty two> ~ '42'
+    <forty three> ~ '43'
+END_OF_SOURCE
+
+    my $input           = '4243';
+    my $expected_output = [
+        'start',
+        'top',
+        [ 'number1', 'number 1', [ 'forty two',   'forty two',   '42' ] ],
+        [ 'number2', 'number 2', [ 'forty three', 'forty three', '43' ] ]
+    ];
 
     my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,

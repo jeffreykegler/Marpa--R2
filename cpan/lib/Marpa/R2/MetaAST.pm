@@ -148,15 +148,18 @@ sub Marpa::R2::Internal::MetaAST::Proto_Alternative::combine {
 } ## end sub Marpa::R2::Internal::MetaAST::Proto_Alternative::combine
 
 sub Marpa::R2::Internal::MetaAST::Parse::bless_hash_rule {
-    my ( $parse, $hash_rule, $blessing, $original_lhs ) = @_;
+    my ( $parse, $hash_rule, $blessing, $naming, $original_lhs ) = @_;
     return if (substr $Marpa::R2::Internal::SUBGRAMMAR, 0, 1) eq 'L';
+
+    $naming //= $original_lhs;
+    $hash_rule->{name} = $naming;
+
     return if not defined $blessing;
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
         return if $blessing eq '::undef';
 
         # Rule may be half-formed, but assume we have lhs
-        my $lhs = $hash_rule->{lhs};
         if ( $blessing eq '::lhs' ) {
             $blessing = $original_lhs;
             if ( $blessing =~ / [^ [:alnum:]] /xms ) {
@@ -182,6 +185,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::reserved_action_name::name {
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::action_name::name {
+    my ( $self, $parse ) = @_;
+    return $self->[2]->name($parse);
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::alternative_name::name {
     my ( $self, $parse ) = @_;
     return $self->[2]->name($parse);
 }
@@ -331,6 +339,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::blessing::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $child ) = @{$values};
     return bless { bless => $child->name($parse) }, $PROTO_ALTERNATIVE;
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::naming::evaluate {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $child ) = @{$values};
+    return bless { name => $child->name($parse) }, $PROTO_ALTERNATIVE;
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::right_association::evaluate {
@@ -554,6 +568,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
             my $action;
             my $blessing;
+            my $naming;
             my $null_ranking;
             my $rank;
             ADVERB: for my $key ( keys %{$adverb_list} ) {
@@ -569,6 +584,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 }
                 if ( $key eq 'bless' ) {
                     $blessing = $adverb_list->{$key};
+                    next ADVERB;
+                }
+                if ( $key eq 'name' ) {
+                    $naming = $adverb_list->{$key};
                     next ADVERB;
                 }
                 if ( $key eq 'null_ranking' ) {
@@ -623,7 +642,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                     $lhs, '")'
                 );
             }
-            $parse->bless_hash_rule( \%hash_rule, $blessing, $lhs );
+
+            $parse->bless_hash_rule( \%hash_rule, $blessing, $naming, $lhs );
 
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative (@alternatives)
@@ -704,6 +724,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         my $action;
         my $assoc;
         my $blessing;
+        my $naming;
         my $rank;
         my $null_ranking;
         ADVERB: for my $key ( keys %{$adverb_list} ) {
@@ -718,6 +739,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             }
             if ( $key eq 'bless' ) {
                 $blessing = $adverb_list->{$key};
+                next ADVERB;
+            }
+            if ( $key eq 'name' ) {
+                $naming = $adverb_list->{$key};
                 next ADVERB;
             }
             if ( $key eq 'null_ranking' ) {
@@ -771,7 +796,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 $lhs, '")'
             );
         }
-        $parse->bless_hash_rule( \%new_xs_rule, $blessing, $lhs );
+
+        $parse->bless_hash_rule( \%new_xs_rule, $blessing, $naming, $lhs );
 
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
@@ -852,6 +878,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
 
     my $action;
     my $blessing;
+    my $naming;
     my $rank;
     my $null_ranking;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
@@ -862,6 +889,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         }
         if ( $key eq 'bless' ) {
             $blessing = $adverb_list->{$key};
+            next ADVERB;
+        }
+        if ( $key eq 'name' ) {
+            $naming = $adverb_list->{$key};
             next ADVERB;
         }
         if ( $key eq 'null_ranking' ) {
@@ -912,7 +943,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
             'bless option not allowed in lexical rules (rules LHS was "',
             $lhs, '")' );
     }
-    $parse->bless_hash_rule( \%rule, $blessing, $lhs );
+    $parse->bless_hash_rule( \%rule, $blessing, $naming, $lhs );
 
     # mask not needed
     push @{ $parse->{rules}->{$subgrammar} }, \%rule;
@@ -1110,6 +1141,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
 
     my $action;
     my $blessing;
+    my $naming;
     my $separator;
     my $proper;
     my $rank;
@@ -1122,6 +1154,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         }
         if ( $key eq 'bless' ) {
             $blessing = $adverb_list->{$key};
+            next ADVERB;
+        }
+        if ( $key eq 'name' ) {
+            $naming = $adverb_list->{$key};
             next ADVERB;
         }
         if ( $key eq 'proper' ) {
@@ -1186,7 +1222,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
             'bless option not allowed in lexical rules (rules LHS was "',
             $lhs, '")' );
     }
-    $parse->bless_hash_rule( \%sequence_rule, $blessing, $lhs_name );
+    $parse->bless_hash_rule( \%sequence_rule, $blessing, $naming, $lhs_name );
 
     push @{ $parse->{rules}->{$subgrammar} }, @rules;
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)

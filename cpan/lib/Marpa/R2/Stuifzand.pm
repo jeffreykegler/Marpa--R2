@@ -120,6 +120,8 @@ $node_status{pause_specification} = "The pause adverb is not allowed";
 $node_status{prediction_event_declaration} = "Prediction events are not allowed";
 $node_status{priority_specification} = "The priority adverb is not allowed";
 $node_status{single_quoted_string} = "Quoted strings are not allowed";
+$node_status{alternative_name} = "Alternative naming is not allowed";
+$node_status{naming} = "Alternative naming is not allowed";
 
 my %catch_error_node = 
     map { ; ($_ , 1 ) }

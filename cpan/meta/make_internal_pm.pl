@@ -143,8 +143,6 @@ __DATA__
     DEFAULT_ACTION { Action for rules without one }
     TRACE_FILE_HANDLE
     WARNINGS { print warnings about grammar? }
-    RULE_NAME_REQUIRED
-    RULE_BY_NAME
     INTERFACE { currently 'standard' or 'stuifzand' }
     INTERNAL { internal grammar -- relax various restrictions }
 
