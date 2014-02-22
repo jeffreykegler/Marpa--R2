@@ -1271,6 +1271,53 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           goto NEXT_OP_CODE;
 
+        case MARPA_OP_PUSH_RULE:
+          {
+            if (!values_av)
+              {
+                values_av = (AV *) sv_2mortal ((SV *) newAV ());
+              }
+            switch (step_type)
+              {
+              case MARPA_STEP_TOKEN:
+                {
+                  /* todo: this seems to be inefficient
+                   * so Marpa_Rule_ID* g1_lexeme_to_lexer_rule
+                   * need to be pre-initalized elsewhere for faster lookup
+                   */
+                  Marpa_Rule_ID g1_lexeme = marpa_v_token (v);
+                  Scanless_R *slr = v_wrapper->slr;
+                  Lexer* lexer = slr->current_lexer;
+                  G_Wrapper* g_wrapper = lexer->g_wrapper;
+                  int lexer_rule_count = marpa_g_highest_rule_id (g_wrapper->g) + 1;
+                  int rule_ix;
+
+                  for (rule_ix = 0; rule_ix < lexer_rule_count; rule_ix++)
+                    {
+                      if (lexer->lexer_rule_to_g1_lexeme[rule_ix] == g1_lexeme)
+                        {
+                          av_push (values_av, newSViv ((IV) rule_ix));
+                          break;
+                        }
+                    }
+                }
+                break;
+
+              case MARPA_STEP_RULE:
+                {
+                  Marpa_Rule_ID rule_id = marpa_v_rule (v);
+                  av_push (values_av, newSViv ((IV) rule_id));
+                }
+                break;
+
+              default:
+              case MARPA_STEP_NULLING_SYMBOL:
+                av_push (values_av, &PL_sv_undef);
+                break;
+              }
+          }
+          goto NEXT_OP_CODE;
+
         case MARPA_OP_PUSH_VALUES:
         case MARPA_OP_PUSH_SEQUENCE:
           {

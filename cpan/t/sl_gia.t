@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -279,7 +279,33 @@ END_OF_SOURCE
     push @tests_data,
         [
         $slg, $input, $expected_output,
-        'Parse OK', 'Test of forgiving token using lexeme default statment'
+        'Parse OK', 'Test of forgiving token using lexeme default statement'
+        ];
+}
+
+# Test of rule array item descriptor for action adverb
+# todo: test by converting rule and lhs ID's to names
+# based on $slg->symbol_is_lexeme(symbol_id) -- to be written
+{
+    my $source = <<'END_OF_SOURCE';
+
+    :default ::= action => [lhs, rule, values]
+    lexeme default = action => [lhs, rule, value]
+    start ::= number1 number2
+    number1 ::= <forty two>
+    number2 ::= <forty three>
+    <forty two> ~ '42'
+    <forty three> ~ '43'
+END_OF_SOURCE
+    
+    my $input = '4243';
+    my $expected_output = [1,0,[2,1,[4,0,'42']],[3,2,[5,1,'43']]];
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', 'Test of rule array item descriptor for action adverb'
         ];
 }
 
