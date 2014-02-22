@@ -684,8 +684,19 @@ sub resolve_recce {
 	return ($rule_resolutions, \@lexeme_resolutions);
 }
 
-sub init_registrations {
-    my ( $recce, $grammar, $grammar_c, $per_parse_arg, $trace_actions, $trace_file_handle, $symbols, $rules, $tracer ) = @_;
+sub registration_init {
+    my ( $recce, $per_parse_arg ) = @_;
+    
+    my $trace_file_handle =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $trace_actions =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
     my @closure_by_rule_id   = ();
     my @semantics_by_rule_id = ();
@@ -1207,6 +1218,19 @@ sub init_registrations {
                     push @push_ops, $op_push_undef;
                     next RESULT_DESCRIPTOR;
                 }
+                if ( $result_descriptor eq 'lhs_name' ) {
+                    if (defined $rule_id) {
+                        my $lhs_id = $grammar_c->rule_lhs($rule_id);
+                        push @push_ops, $op_push_constant, \$lhs_id;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    if ( defined $lexeme_id ) {
+                        push @push_ops, $op_push_constant, \$lexeme_id;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    push @push_ops, $op_push_undef;
+                    next RESULT_DESCRIPTOR;
+                }
                 if ( $result_descriptor eq 'rule' ) {
                     if (defined $rule_id) {
                         push @push_ops, $op_push_constant, \$rule_id;
@@ -1285,7 +1309,7 @@ sub init_registrations {
             \@closure_by_rule_id;
         
     } ## end WORK_ITEM: for my $work_item (@work_list)
-} ## end sub Marpa::R2::Recognizer::init_registrations
+}
 
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value {
@@ -1451,17 +1475,7 @@ sub Marpa::R2::Recognizer::value {
         if defined $slr;
 
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
-        init_registrations(
-            $recce, 
-            $grammar, 
-            $grammar_c, 
-            $per_parse_arg, 
-            $trace_actions, 
-            $trace_file_handle, 
-            $symbols, 
-            $rules, 
-            $tracer
-        );
+        registration_init( $recce, $per_parse_arg );
     } ## end if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS...])
     
     my $semantics_arg0;
