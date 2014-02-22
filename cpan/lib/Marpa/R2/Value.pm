@@ -959,7 +959,6 @@ sub init_registrations {
     state $op_callback      = Marpa::R2::Thin::op('callback');
     state $op_push_constant   = Marpa::R2::Thin::op('push_constant');
     state $op_push_length   = Marpa::R2::Thin::op('push_length');
-    state $op_push_lhs      = Marpa::R2::Thin::op('push_lhs');
     state $op_push_rule     = Marpa::R2::Thin::op('push_rule');
     state $op_push_undef     = Marpa::R2::Thin::op('push_undef');
     state $op_push_one      = Marpa::R2::Thin::op('push_one');

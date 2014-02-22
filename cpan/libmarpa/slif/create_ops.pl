@@ -36,7 +36,6 @@ my @ops = sort { $a->[0] cmp $b->[0] }
     [ "noop",                    "MARPA_OP_NOOP" ],
     [ "pause",                   "MARPA_OP_PAUSE" ],
     [ "push_length",             "MARPA_OP_PUSH_LENGTH" ],
-    [ "push_lhs",                "MARPA_OP_PUSH_LHS" ],
     [ "push_constant",           "MARPA_OP_PUSH_CONSTANT" ],
     [ "push_rule",               "MARPA_OP_PUSH_RULE" ],
     [ "push_one",                "MARPA_OP_PUSH_ONE" ],
