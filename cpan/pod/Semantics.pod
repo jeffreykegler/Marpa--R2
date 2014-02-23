@@ -487,6 +487,39 @@ a single-element list into the array.
 That one element will be the length of the rule or lexeme instance.
 Length is in characters.
 
+=item C<lhs>
+
+The C<lhs> array item descriptor puts
+a single-element list into the array.
+That one element will be the LHS symbol ID of 
+the rule.
+Because of historical reasons,
+for a lexeme instance,
+it will the symbol ID,
+but for a nulling symbol it will be a Perl C<undef>.
+
+=item C<name>
+
+The C<name> array item descriptor puts
+a single-element list into the array.
+This will always be a string.
+For a rule whose name is defined,
+that one element will be the rule name.
+For an unnamed rule,
+it will be the name of the LHS symbol.
+For a lexeme,
+it will be the symbol name of the lexeme.
+For a nulling symbol
+it will be the name of that symbol.
+
+=item C<rule>
+
+The C<rule> array item descriptor puts
+a single-element list into the array.
+For a rule,
+that one element will be the rule ID.
+In other cases, that one element will be a Perl C<undef>.
+
 =item C<start>
 
 The C<start> array item descriptor puts
@@ -498,12 +531,17 @@ The elements of the C<length> and C<start> item descriptors are defined
 such that the end location
 is always start location plus length.
 
-=item C<lhs>
+=item C<symbol>
 
-The C<lhs> array item descriptor puts
+The C<symbol> array item descriptor puts
 a single-element list into the array.
-That one element will be the LHS symbol ID of 
-the rule or lexeme instance.
+This will always be the name of a symbol.
+For a rule,
+it will be the name of the LHS symbol.
+For a lexeme,
+it will be the symbol name of the lexeme.
+For a nulling symbol
+it will be the name of that symbol.
 
 =item C<value>
 
