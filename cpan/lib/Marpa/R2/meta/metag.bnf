@@ -65,7 +65,7 @@ alternative ::= rhs <adverb list>
     | <separator specification> | <proper specification>
     | <rank specification> | <null ranking specification>
     | <priority specification> | <pause specification> | <event specification>
-    | <forgiving specification> | blessing | naming | <null adverb>
+    | <latm specification> | blessing | naming | <null adverb>
 
 <null adverb> ::= ','
 action ::= ('action' '=>') <action name>
@@ -81,7 +81,8 @@ action ::= ('action' '=>') <action name>
 <priority specification> ::= ('priority' '=>') <signed integer>
 <pause specification> ::= ('pause' '=>') <before or after>
 <event specification> ::= ('event' '=>') <event name>
-<forgiving specification> ::= ('forgiving' '=>') boolean
+<latm specification> ::= ('forgiving' '=>') boolean
+<latm specification> ::= ('latm' '=>') boolean
 <blessing> ::= ('bless' '=>') <blessing name>
 <naming> ::= ('name' '=>') <alternative name>
 

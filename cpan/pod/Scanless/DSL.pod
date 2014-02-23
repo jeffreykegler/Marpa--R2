@@ -655,7 +655,7 @@ and does not affect rules.
 Only the defaults for
 the L<C<action>|/"action">,
 L<C<bless>|/"bless">,
-and L<C<forgiving>|/"forgiving">
+and L<C<latm>|/"latm">
 adverbs
 can be specified in a lexeme default statement.
 Only one lexeme default statement is allowed in a grammar.
@@ -898,26 +898,38 @@ if the L<C<pause>|/"pause"> adverb is not also specified.
 =head2 forgiving
 
 =for Marpa::R2::Display
-name: forgiving adverb example
+name: latm adverb example
 partial: 1
 normalize-whitespace: 1
 
-    :lexeme ~ value forgiving => 1
+    :lexeme ~ <name> forgiving => 1
 
 =for Marpa::R2::Display::End
 
-The C<forgiving> adverb applies only to lexemes and
+The forgiving adverb is a synonym for 
+L<the C<latm> adverb|/"latm">.
+
+=head2 latm
+
+=for Marpa::R2::Display
+name: latm adverb example
+partial: 1
+normalize-whitespace: 1
+
+    :lexeme ~ value latm => 1
+
+=for Marpa::R2::Display::End
+
+The C<latm> adverb applies only to lexemes and
 is only allowed in 
 L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule"> and 
 L<a C<:lexeme default> statement|/"Lexeme default statement">.
 Its value is a boolean.
 If the boolean is set it indicates that a token
-is "forgiving".  The default value is 0,
-which indicates that a token is not forgiving.
+is LATM.  The default value is 0,
+which indicates that a token is not LATM.
 
-Marking a token "forgiving" makes it subject to
-the "longest acceptable tokens match" (LATM)
-discipline.
+LATM means "longest acceptable tokens match".
 In this,
 the lexer find those tokens that
 are the longest that
@@ -950,10 +962,10 @@ LATM is usually preferable.
 Usually if LATM is chosen, a parse will want to use the 
 L<a C<:lexeme default> statement|/"Lexeme default statement">
 and use LATM globally.
-It is possible to use the "forgiving" adverb on a lexeme by
+It is possible to use LATM adverb on a lexeme by
 lexeme basis.  When that is done, the lexemes marked
-"forgiving" will match only if acceptable to the G1 grammar,
-and the lexemes not marked "forgiving" will match regardless
+LATM will match only if acceptable to the G1 grammar,
+and the lexemes not marked LATM will match regardless
 of their acceptability to the G1 grammar.
 
 Whichever token discipline is chosen,
@@ -963,8 +975,8 @@ Shorter tokens will not be considered.
 LTM is the default for reasons of backward compatibility.
 LTM was the SLIF's original token matching discipline because
 it more closely models traditional lexing.
-Historical reasons also explain why LATM lexemes
-are called "forgiving" -- in the original implementation, an
+For historical reasons, LATM lexemes
+are also called "forgiving" -- in the original implementation, an
 LTM search was always done for all lexemes,
 and LATM was implemented by "forgiving" rejection by the G1 grammar,
 and backing up over the input to find acceptable lexemes.

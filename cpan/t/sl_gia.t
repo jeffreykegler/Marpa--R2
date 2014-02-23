@@ -197,7 +197,13 @@ INPUT
 
 # Test of forgiving token from Peter Stuifzand
 {
-    my $source = <<'SOURCE';
+
+# Marpa::R2::Display
+# name: forgiving adverb example
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
+    my $source = <<'END_OF_SOURCE';
 :default ::= action => ::array
 product ::= sku (nl) name (nl) price price price (nl)
 
@@ -214,7 +220,9 @@ sp        ~ [ ]+
 :lexeme ~ <name> forgiving => 1
 name      ~ [^\n]+
 
-SOURCE
+END_OF_SOURCE
+
+# Marpa::R2::Display::END
 
     my $input = <<'INPUT';
 130.12312
@@ -231,11 +239,11 @@ INPUT
         ];
 }
 
-# Test of forgiving token from Ruslan Zakirov
+# Test of LATM token from Ruslan Zakirov
 {
 
 # Marpa::R2::Display
-# name: forgiving adverb example
+# name: latm adverb example
 # start-after-line: END_OF_SOURCE
 # end-before-line: '^END_OF_SOURCE$'
 
@@ -245,7 +253,7 @@ INPUT
 content ::= name ':' value
 name ~ [A-Za-z0-9-]+
 value ~ [A-Za-z0-9:-]+
-:lexeme ~ value forgiving => 1
+:lexeme ~ value latm => 1
 END_OF_SOURCE
 
 # Marpa::R2::Display
@@ -258,16 +266,16 @@ END_OF_SOURCE
     push @tests_data,
         [
         $slg, $input, $expected_output,
-        'Parse OK', 'Test of forgiving token from Ruslan Zakirov'
+        'Parse OK', 'Test of LATM token from Ruslan Zakirov'
         ];
 }
 
-# Test of forgiving token from Ruslan Zakirov
+# Test of LATM token from Ruslan Zakirov
 # This time using the lexeme default statement
 {
 
     my $source = <<'END_OF_SOURCE';
-lexeme default = forgiving => 1
+lexeme default = latm => 1
 :default ::= action => ::array
 :start ::= content
 content ::= name ':' value
@@ -283,7 +291,7 @@ END_OF_SOURCE
     push @tests_data,
         [
         $slg, $input, $expected_output,
-        'Parse OK', 'Test of forgiving token using lexeme default statement'
+        'Parse OK', 'Test of LATM token using lexeme default statement'
         ];
 }
 

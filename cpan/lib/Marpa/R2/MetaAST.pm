@@ -374,10 +374,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
     return bless { proper => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
-sub Marpa::R2::Internal::MetaAST_Nodes::forgiving_specification::evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::latm_specification::evaluate {
     my ($values) = @_;
     my $child = $values->[2];
-    return bless { forgiving => $child->value() }, $PROTO_ALTERNATIVE;
+    return bless { latm => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::pause_specification::evaluate {
@@ -484,7 +484,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate {
             $parse->{lexeme_default_adverbs}->{$key} = $value;
             next ADVERB;
         }
-        if ( $key eq 'forgiving' ) {
+        if ( $key eq 'latm' ) {
             $parse->{lexeme_default_adverbs}->{$key} = $value;
             next ADVERB;
         }
@@ -1013,7 +1013,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             $declarations{$key} = $raw_value;
             next ADVERB;
         }
-        if ( $key eq 'forgiving' ) {
+        if ( $key eq 'latm' ) {
             $declarations{$key} = $raw_value;
             next ADVERB;
         }

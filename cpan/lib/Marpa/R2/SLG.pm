@@ -344,13 +344,13 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     # A first phase of applying defaults
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
-    my $forgiving_default_value = $lexeme_default_adverbs->{forgiving} // 0;
+    my $latm_default_value = $lexeme_default_adverbs->{latm} // 0;
 
-    # Determine "forgiving" status
+    # Determine "latm" status
     LEXEME: for my $lexeme_name ( keys %lexeme_data ) {
         my $declarations = $lexeme_declarations->{$lexeme_name};
-        my $forgiving_value = $declarations->{forgiving} // $forgiving_default_value;
-        $lexeme_data{$lexeme_name}{forgiving} = $forgiving_value;
+        my $latm_value = $declarations->{latm} // $latm_default_value;
+        $lexeme_data{$lexeme_name}{latm} = $latm_value;
     }
 
     # Lexers
@@ -482,7 +482,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'};
             if ( not defined $assertion_id ) {
                 my $default_assertion_value =
-                    $lexeme_data{$lexeme_name}{forgiving} ? 0 : 1;
+                    $lexeme_data{$lexeme_name}{latm} ? 0 : 1;
                 $assertion_id = $lex_thin->zwa_new($default_assertion_value);
 
                 if ( $trace_terminals >= 2 ) {
@@ -592,13 +592,13 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         ) if defined $lexeme_data{$symbol_name}{'G1'}
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
-    # Now that we have created the SLG, we can set the forgiving value,
+    # Now that we have created the SLG, we can set the latm value,
     # already determined above.
     LEXEME: for my $lexeme_name (keys %lexeme_data) {
        my $g1_lexeme_id = $lexeme_data{$lexeme_name}{'G1'}{'id'};
        next LEXEME if not defined $g1_lexeme_id;
-       my $forgiving_value = $lexeme_data{$lexeme_name}{forgiving} // 0;
-       $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id, $forgiving_value );
+       my $latm_value = $lexeme_data{$lexeme_name}{latm} // 0;
+       $thin_slg->g1_lexeme_latm_set( $g1_lexeme_id, $latm_value );
     }
 
     # Second phase of lexer processing
