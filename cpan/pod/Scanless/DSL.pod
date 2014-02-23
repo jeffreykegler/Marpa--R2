@@ -985,6 +985,24 @@ the G1 grammar indicates to the lexer, in advance,
 which lexemes are acceptable, and the
 lexer searches only for those.
 
+=head2 name
+
+=for Marpa::R2::Display
+name: name adverb example
+partial: 1
+normalize-whitespace: 1
+
+    start ::= number1 number2 name => top
+    number1 ::= <forty two> name => 'number 1'
+    number2 ::= <forty three> name => 'number 2'
+
+=for Marpa::R2::Display::End
+
+The C<name> adverb applies only to rules and
+rule alternatives.
+When specified, it defines a name for that rule
+alternative.
+
 =head2 null-ranking
 
 =for Marpa::R2::Display

@@ -324,6 +324,12 @@ END_OF_SOURCE
 
 # Test of 'symbol', 'name' array item descriptors
 {
+
+# Marpa::R2::Display
+# name: name adverb example
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
     my $source = <<'END_OF_SOURCE';
 
     :default ::= action => [symbol, name, values]
@@ -334,6 +340,8 @@ END_OF_SOURCE
     <forty two> ~ '42'
     <forty three> ~ '43'
 END_OF_SOURCE
+
+# Marpa::R2::Display::End
 
     my $input           = '4243';
     my $expected_output = [
