@@ -219,7 +219,11 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     $slg->[Marpa::R2::Internal::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
 
-    $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] = $g1_args->{trace_file_handle} // \*STDERR;
+    my $trace_fh =
+        $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] =
+        $g1_args->{trace_file_handle} // \*STDERR;
+
+    my $if_inaccessible_default = $hashed_source->{defaults}->{if_inaccessible} // 'warn';
 
     # Prepare the arguments for the G1 grammar
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
@@ -227,8 +231,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     state $g1_target_symbol = '[:start]';
     $g1_args->{start} = $g1_target_symbol;
     $g1_args->{'_internal_'} =
-        { 'if_inaccessible' =>
-            ( $hashed_source->{defaults}->{if_inaccessible} // 'warn' ) };
+        { 'if_inaccessible' => $if_inaccessible_default };
 
     my $thick_g1_grammar = Marpa::R2::Grammar->new($g1_args);
     my $g1_tracer        = $thick_g1_grammar->tracer();
@@ -429,13 +432,9 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         # Prepare the arguments for the lex grammar
         my %lex_args = ();
-        $lex_args{trace_file_handle} =
-            $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE]
-            // \*STDERR;
+        $lex_args{trace_file_handle} = $trace_fh;
         $lex_args{start}        = $lex_start_symbol_name;
-        $lex_args{'_internal_'} =
-            { 'if_inaccessible' =>
-                ( $hashed_source->{defaults}->{if_inaccessible} // 'warn' ) };
+        $lex_args{'_internal_'} = { 'if_inaccessible' => $if_inaccessible_default };
         $lex_args{rules}        = $lexer_rules;
         $lex_args{symbols}        = \%this_lexer_symbols;
         
@@ -460,9 +459,9 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 );
             }
             if ( not $g1_thin->symbol_is_accessible($g1_symbol_id) ) {
-                Marpa::R2::exception(
-                    "A lexeme in lexer $lexer_name is not accessible from the G1 start symbol: $lexeme_name"
-                );
+                my $message = "A lexeme in lexer $lexer_name is not accessible from the G1 start symbol: $lexeme_name";
+                say {$trace_fh} $message if $if_inaccessible_default eq 'warn';
+                Marpa::R2::exception($message) if $if_inaccessible_default eq 'fatal';
             }
             my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
             $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'id'} = $lex_symbol_id;
@@ -487,11 +486,8 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 $assertion_id = $lex_thin->zwa_new($default_assertion_value);
 
                 if ( $trace_terminals >= 2 ) {
-                    say {
-                        $slg->[
-                            Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE
-                        ]
-                    } "Assertion $assertion_id defaults to $default_assertion_value";
+                    say {$trace_fh}
+                     "Assertion $assertion_id defaults to $default_assertion_value";
                 } ## end if ( $trace_terminals >= 2 )
 
                 $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'}
@@ -499,8 +495,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             } ## end if ( not defined $assertion_id )
             $lex_thin->zwa_place( $assertion_id, $rule_id, 0 );
             if ( $trace_terminals >= 2 ) {
-                say { $slg->[
-                        Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] }
+                say {$trace_fh}
                     "Assertion $assertion_id applied to $lexer_name rule ",
                     slg_rule_show( $slg, $rule_id, $lex_grammar );
             } ## end if ( $trace_terminals >= 2 )

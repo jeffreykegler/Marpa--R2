@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 22;
+use Test::More tests => 26;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -378,6 +378,38 @@ END_OF_SOURCE
         $slg, $input, $expected_output,
         'Parse OK', qq{Test of "Inaccessible is ok"}
         ];
+}
+
+{
+    my $source = <<'END_OF_SOURCE';
+ 
+    inaccessible is ok by default
+    :default ::= action => ::first
+    
+    start ::= !START!
+    start1 ::= X
+    start2 ::= Y
+ 
+    X ~ 'X'
+    Y ~ 'X'
+ 
+END_OF_SOURCE
+
+    my $input           = 'X';
+    my $expected_output = 'X';
+
+    for my $this_start (qw/start1 start2/) {
+
+        my $this_source = $source;
+        $this_source =~ s/!START!/$this_start/;
+        my $slg = Marpa::R2::Scanless::G->new( { source => \$this_source } );
+        push @tests_data,
+            [
+            $slg, $input, $expected_output,
+            'Parse OK', qq{Test of changing start symbols: <$this_start>}
+            ];
+
+    } ## end for my $this_start (qw/start1 start2/)
 }
 
 TEST:
