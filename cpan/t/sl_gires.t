@@ -54,6 +54,33 @@ END_OF_MESSAGE
     'Parse OK', 'Missing action' ];
 }
 
+####
+
+{
+    my $source = <<'END_OF_SOURCE';
+
+    inaccessible is fatal by default
+    :default ::= action => [symbol, name, values]
+    lexeme default = action => [symbol, name, value]
+    start ::= stuff*
+    stuff ::= a | b
+    a ::= x 
+    b ::= x 
+    c ::= x 
+    x ::= 'x'
+END_OF_SOURCE
+
+    my $input           = 'xxx';
+    my $expected_value = [];
+
+    push @tests_data,
+        [
+        \$source, $input, $expected_value,
+        'Parse OK', qq{test "inaccessible is fatal by default"}
+        ];
+}
+
+###
 
 TEST:
 for my $test_data (@tests_data) {

@@ -47,7 +47,7 @@ statement ::= <start rule> | <empty rule>
 <prediction event declaration> ::= ('event') <event name> ('=' 'predicted') <symbol name>
 <current lexer statement> ::= ('current' 'lexer' 'is') <lexer name>
 
-<inaccessible statement> ::= 'inaccessible' 'is' <inaccessible treatment> 'by' 'default'
+<inaccessible statement> ::= ('inaccessible' 'is') <inaccessible treatment> ('by' 'default')
 <inaccessible treatment> ::= 'warn' | 'ok' | 'fatal'
 
 <op declare> ::= <op declare bnf> | <op declare match>

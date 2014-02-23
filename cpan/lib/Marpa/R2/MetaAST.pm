@@ -404,7 +404,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::null_ranking_specification::evaluate {
     return bless { null_ranking => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
-
 sub Marpa::R2::Internal::MetaAST_Nodes::null_ranking_constant::value {
     return $_[0]->[2];
 }
@@ -495,6 +494,28 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate {
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate
+
+sub Marpa::R2::Internal::MetaAST_Nodes::inaccessible_statement::evaluate {
+    my ( $data, $parse ) = @_;
+    my ( $start, $length, $inaccessible_treatment ) = @{$data};
+    local $Marpa::R2::Internal::SUBGRAMMAR = 'G1';
+    $DB::single = 1;
+
+    if ( exists $parse->{defaults}->{if_inaccessible} ) {
+        my $problem_rule = $parse->substring( $start, $length );
+        Marpa::R2::exception(
+            qq{More than one inaccessible default statement is not allowed\n},
+            qq{  This was the rule that caused the problem:\n},
+            qq{  $problem_rule\n}
+        );
+    }
+    $parse->{defaults}->{if_inaccessible} = $inaccessible_treatment->value();
+    return undef;
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::inaccessible_treatment::value {
+    return $_[0]->[2];
+}
 
 sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
     my ( $values, $parse ) = @_;

@@ -221,11 +221,18 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] = $g1_args->{trace_file_handle} // \*STDERR;
 
+    # Prepare the arguments for the G1 grammar
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
     $g1_args->{start} = $g1_target_symbol;
     $g1_args->{'_internal_'} = 1;
+
+    my $default_for_if_inaccessible = $hashed_source->{defaults}->{if_inaccessible} // 'warn';
+    for my $symbol (keys %{$g1_args->{symbols}}) {
+        $g1_args->{symbols}->{$symbol}->{if_inaccessible} = $default_for_if_inaccessible;
+    }
+
     my $thick_g1_grammar = Marpa::R2::Grammar->new($g1_args);
     my $g1_tracer        = $thick_g1_grammar->tracer();
     my $g1_thin          = $g1_tracer->grammar();
@@ -423,6 +430,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             }
         } sort keys %is_lexeme_in_this_lexer;
 
+        # Prepare the arguments for the lex grammar
         my %lex_args = ();
         $lex_args{trace_file_handle} =
             $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE]
@@ -431,6 +439,11 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         $lex_args{'_internal_'} = 1;
         $lex_args{rules}        = $lexer_rules;
         $lex_args{symbols}        = \%this_lexer_symbols;
+        
+        for my $symbol ( keys %{ $lex_args{symbols} } ) {
+            $lex_args{symbols}{$symbol}{if_inaccessible} =
+                $default_for_if_inaccessible;
+        }
 
         my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
         $thick_grammar_by_lexer_name{$lexer_name} = $lex_grammar;

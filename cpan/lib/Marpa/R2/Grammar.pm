@@ -1178,6 +1178,11 @@ sub assign_symbol {
             $symbol->[Marpa::R2::Internal::Symbol::DISPLAY_FORM] = $value;
             next PROPERTY;
         }
+        if ( $property eq 'if_inaccessible' ) {
+            my $value = $options->{$property};
+            $symbol->[Marpa::R2::Internal::Symbol::IF_INACCESSIBLE] = $value;
+            next PROPERTY;
+        }
         Marpa::R2::exception(qq{Unknown symbol property "$property"});
     } ## end PROPERTY: for my $property ( keys %{$options} )
 
