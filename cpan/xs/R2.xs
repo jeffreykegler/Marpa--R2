@@ -1329,7 +1329,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
             p_constant_sv = av_fetch (v_wrapper->constants, constant_ix, 0);
             if (p_constant_sv)
               {
-                SV *constant_sv = newSVsv (*p_constant_sv);
                 av_push (values_av, SvREFCNT_inc_simple_NN (*p_constant_sv));
               }
             else
