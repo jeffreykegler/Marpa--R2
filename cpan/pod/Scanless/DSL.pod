@@ -769,6 +769,54 @@ Named events may be queried using
 L<the Scanless recognizer's event()
 method|Marpa::R2::Scanless::R/"event()">.
 
+=head2 Inaccessible symbol statement
+
+=for Marpa::R2::Display
+name: inaccessible is ok statement
+partial: 1
+normalize-whitespace: 1
+
+    inaccessible is ok by default
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: inaccessible is fatal statement
+partial: 1
+normalize-whitespace: 1
+
+    inaccessible is fatal by default
+
+=for Marpa::R2::Display::End
+
+Inaccessible symbols are symbols
+which cannot be reached from the start symbol.
+Often, they
+are the result of an error in grammar writing.
+But inaccessible symbols can also occur for legitimate reasons --
+for example,
+you may have rules and symbols in grammar intended for future use.
+
+The default can be specified
+or changed with a statement of the form:
+
+=for Marpa::R2::Display
+ignore: 1
+
+    inaccessible is TREATMENT by default
+
+=for Marpa::R2::Display
+
+where C<TREATMENT> is one of C<warn>, C<ok>, or C<fatal>.
+
+C<fatal> indicates that an inaccessible symbol should be 
+a fatal error.
+C<warn> indicates that Marpa should print a warning message,
+but proceed with the parse.
+C<warn> is the default.
+C<ok> indicates that the parse should proceed without
+warning messages.
+
 =head1 Adverbs
 
 Adverbs consist of a keyword, the adverb operator ("C<< => >>"),

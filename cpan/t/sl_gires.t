@@ -57,6 +57,12 @@ END_OF_MESSAGE
 ####
 
 {
+
+# Marpa::R2::Display
+# name: inaccessible is fatal statement
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
     my $source = <<'END_OF_SOURCE';
 
     inaccessible is fatal by default
@@ -69,6 +75,8 @@ END_OF_MESSAGE
     c ::= x 
     x ::= 'x'
 END_OF_SOURCE
+
+# Marpa::R2::Display::End
 
     my $input           = 'xxx';
     my $expected_value = 'SLIF grammar failed';

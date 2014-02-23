@@ -345,6 +345,12 @@ END_OF_SOURCE
 
 ### Test of 'inaccessible is ok'
 {
+
+# Marpa::R2::Display
+# name: inaccessible is ok statement
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
     my $source = <<'END_OF_SOURCE';
 
     inaccessible is ok by default
@@ -357,6 +363,8 @@ END_OF_SOURCE
     c ::= x action => ::first
     x ::= 'x'
 END_OF_SOURCE
+
+# Marpa::R2::Display::End
 
     my $input           = 'xx';
     my $expected_output = [
