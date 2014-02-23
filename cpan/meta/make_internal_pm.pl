@@ -114,6 +114,7 @@ __DATA__
     DSL_FORM
     LEGACY_NAME
     DESCRIPTION
+    IF_INACCESSIBLE
 
     :package=Marpa::R2::Internal::Rule
 

@@ -37,6 +37,7 @@ use constant DISPLAY_FORM => 3;
 use constant DSL_FORM => 4;
 use constant LEGACY_NAME => 5;
 use constant DESCRIPTION => 6;
+use constant IF_INACCESSIBLE => 7;
 
 package Marpa::R2::Internal::Rule;
 use constant ID => 0;

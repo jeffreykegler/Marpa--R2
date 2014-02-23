@@ -617,6 +617,7 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
     my $grammar = shift;
 
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $trace_fh =
         $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
@@ -767,32 +768,29 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
             if $infinite_action eq 'fatal';
     } ## end if ( $loop_rule_count and $infinite_action ne 'quiet')
 
-    # A bit hackish here: INACCESSIBLE_OK is not a HASH ref iff
-    # it is a Boolean TRUE indicating that all inaccessibles are OK.
-    # A Boolean FALSE will have been replaced with an empty hash.
-    if ($grammar->[Marpa::R2::Internal::Grammar::WARNINGS]
-        and ref(
-            my $ok = $grammar->[Marpa::R2::Internal::Grammar::INACCESSIBLE_OK]
-        ) eq 'HASH'
-        )
+    SYMBOL:
+    for my $symbol_id ( grep { !$grammar_c->symbol_is_accessible($_) }
+        ( 0 .. $#{$symbols} ) )
     {
-        SYMBOL:
-        for my $symbol (
-            @{ Marpa::R2::Grammar::inaccessible_symbols($grammar) } )
-        {
 
-            # Inaccessible internal symbols may be created
-            # from inaccessible use symbols -- ignore these.
-            # This assumes that Marpa's logic
-            # is correct and that
-            # it is not creating inaccessible symbols from
-            # accessible ones.
-            next SYMBOL if $symbol =~ /\]/xms;
-            next SYMBOL if $ok->{$symbol};
-            say {$trace_fh} "Inaccessible symbol: $symbol"
-                or Marpa::R2::exception("Could not print: $ERRNO");
-        } ## end SYMBOL: for my $symbol ( @{ ...})
-    } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
+        my $symbol      = $symbols->[$symbol_id];
+        my $symbol_name = $grammar->symbol_name($symbol_id);
+
+        # Inaccessible internal symbols may be created
+        # from inaccessible use symbols -- ignore these.
+        # This assumes that Marpa's logic
+        # is correct and that
+        # it is not creating inaccessible symbols from
+        # accessible ones.
+        next SYMBOL if $symbol_name =~ /\]/xms;
+        my $treatment =
+            $symbol->[Marpa::R2::Internal::Symbol::IF_INACCESSIBLE] // 'warn';
+        next SYMBOL if $treatment eq 'ok';
+        my $message = "Inaccessible symbol: $symbol_name";
+        Marpa::R2::exception($message) if $treatment eq 'fatal';
+        say {$trace_fh} $message
+            or Marpa::R2::exception("Could not print: $ERRNO");
+    } ## end for my $symbol_id ( grep { !$grammar_c->...})
 
     # A bit hackish here: UNPRODUCTIVE_OK is not a HASH ref iff
     # it is a Boolean TRUE indicating that all inaccessibles are OK.

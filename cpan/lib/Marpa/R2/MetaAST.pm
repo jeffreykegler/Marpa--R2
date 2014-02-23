@@ -107,15 +107,15 @@ sub ast_to_hash {
         } ## end NAME_LEXER:
     } ## end for my $lexer (@lexers)
 
-        my %stripped_character_classes = ();
-        {
-            my $character_classes = $hashed_ast->{character_classes};
-            for my $symbol_name ( sort keys %{$character_classes} ) {
-                my ($re) = @{ $character_classes->{$symbol_name} };
-                $stripped_character_classes{$symbol_name} = $re;
-            }
+    my %stripped_character_classes = ();
+    {
+        my $character_classes = $hashed_ast->{character_classes};
+        for my $symbol_name ( sort keys %{$character_classes} ) {
+            my ($re) = @{ $character_classes->{$symbol_name} };
+            $stripped_character_classes{$symbol_name} = $re;
         }
-        $hashed_ast->{character_classes} = \%stripped_character_classes;
+    }
+    $hashed_ast->{character_classes} = \%stripped_character_classes;
 
     return $hashed_ast;
 } ## end sub ast_to_hash
