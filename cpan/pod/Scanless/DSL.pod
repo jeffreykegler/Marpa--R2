@@ -817,6 +817,67 @@ C<warn> is the default.
 C<ok> indicates that the parse should proceed without
 warning messages.
 
+=head1 Ambiguity
+
+Marpa parses ambiguous grammars and the design of the SLIF exploits this.
+A flexible, but potentially ambiguous, syntax is used.
+Actual ambiguities are obvious to the human eye,
+and users will create them,
+so that
+the techniques of this section
+will rarely be needed.
+
+If and when an actual ambiguity does occur, an error message reports
+the ambiguity and its exact location.
+It will always possible to disambiguate a SLIF DSL,
+and there will always
+be more than one way to do this.
+
+=head2 Separating statements with semicolons
+
+=for Marpa::R2::Display
+name: statements separted by semicolon
+partial: 1
+normalize-whitespace: 1
+
+        :default ::= action => ::array
+        quartet  ::= a a a a;
+        inaccessible is warn by default
+        a ~ 'a'
+
+=for Marpa::R2::Display::End
+
+A statement may be terminated with a semicolon ("C<;>").
+
+=head2 Grouping statements in curly braces
+
+=for Marpa::R2::Display
+name: statements grouped in curly braces
+partial: 1
+normalize-whitespace: 1
+
+      {
+          :default ::= action => ::array
+          quartet  ::= a a a a
+      }
+      inaccessible is warn by default
+      a ~ 'a'
+
+=for Marpa::R2::Display::End
+
+Statements can be grouped, using curly braces.
+These do B<not> create scopes -- the curly braces
+serve merely to group and to separate groups of
+statements.
+
+=head2 Other ways to disambiguate
+
+There are many other ways to disambiguate SLIF statements.
+If the ambiguity is between keywords and symbol names,
+enclosing a symbol name in angle brackets will force it to be
+treated only as a symbol name.
+And while it is never necessary, statements can be re-ordered.
+
 =head1 Adverbs
 
 Adverbs consist of a keyword, the adverb operator ("C<< => >>"),

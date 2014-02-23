@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 30;
+use Test::More tests => 34;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -155,6 +155,60 @@ push @tests_data,
     [qw(a a a a)],     'Parse OK',
     'Explicit English start statement second'
     ];
+
+#####
+
+{
+
+# Marpa::R2::Display
+# name: statements separted by semicolon
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
+my $source = \(<<'END_OF_SOURCE');
+          :default ::= action => ::array
+          quartet  ::= a a a a;
+        inaccessible is warn by default
+        a ~ 'a'
+END_OF_SOURCE
+
+# Marpa::R2::Display::End
+
+push @tests_data,
+    [
+    $source, 'aaaa',
+    [qw(a a a a)],     'Parse OK',
+    'Explicit inaccessible is warn statement second, using semi-colon'
+    ];
+}
+
+###
+
+{
+
+# Marpa::R2::Display
+# name: statements grouped in curly braces
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
+my $source = \(<<'END_OF_SOURCE');
+      {
+          :default ::= action => ::array
+          quartet  ::= a a a a
+      }
+      inaccessible is warn by default
+      a ~ 'a'
+END_OF_SOURCE
+
+# Marpa::R2::Display::End
+
+push @tests_data,
+    [
+    $source, 'aaaa',
+    [qw(a a a a)],     'Parse OK',
+    'Explicit inaccessible is warn statement second, using grouping'
+    ];
+}
 
 #####
 
