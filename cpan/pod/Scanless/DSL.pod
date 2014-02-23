@@ -898,7 +898,7 @@ if the L<C<pause>|/"pause"> adverb is not also specified.
 =head2 forgiving
 
 =for Marpa::R2::Display
-name: latm adverb example
+name: forgiving adverb example
 partial: 1
 normalize-whitespace: 1
 
