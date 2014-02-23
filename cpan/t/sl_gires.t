@@ -24,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 4;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -71,12 +71,12 @@ END_OF_MESSAGE
 END_OF_SOURCE
 
     my $input           = 'xxx';
-    my $expected_value = [];
+    my $expected_value = 'SLIF grammar failed';
 
     push @tests_data,
         [
         \$source, $input, $expected_value,
-        'Parse OK', qq{test "inaccessible is fatal by default"}
+        "Inaccessible symbol: c\n", qq{test "inaccessible is fatal by default"}
         ];
 }
 

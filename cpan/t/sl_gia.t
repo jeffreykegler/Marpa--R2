@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 20;
+use Test::More tests => 22;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -340,6 +340,35 @@ END_OF_SOURCE
         [
         $slg, $input, $expected_output,
         'Parse OK', 'Test of rule array item descriptor for action adverb'
+        ];
+}
+
+### Test of 'inaccessible is ok'
+{
+    my $source = <<'END_OF_SOURCE';
+
+    inaccessible is ok by default
+
+    :default ::= action => [values]
+    start ::= stuff*
+    stuff ::= a | b
+    a ::= x action => ::first
+    b ::= x action => ::first
+    c ::= x action => ::first
+    x ::= 'x'
+END_OF_SOURCE
+
+    my $input           = 'xx';
+    my $expected_output = [
+        [ [ 'x' ] ],
+        [ [ 'x' ] ]
+    ];
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', qq{Test of "Inaccessible is ok"}
         ];
 }
 

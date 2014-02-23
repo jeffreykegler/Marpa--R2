@@ -226,12 +226,9 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
     $g1_args->{start} = $g1_target_symbol;
-    $g1_args->{'_internal_'} = 1;
-
-    my $default_for_if_inaccessible = $hashed_source->{defaults}->{if_inaccessible} // 'warn';
-    for my $symbol (keys %{$g1_args->{symbols}}) {
-        $g1_args->{symbols}->{$symbol}->{if_inaccessible} = $default_for_if_inaccessible;
-    }
+    $g1_args->{'_internal_'} =
+        { 'if_inaccessible' =>
+            ( $hashed_source->{defaults}->{if_inaccessible} // 'warn' ) };
 
     my $thick_g1_grammar = Marpa::R2::Grammar->new($g1_args);
     my $g1_tracer        = $thick_g1_grammar->tracer();
@@ -436,15 +433,12 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE]
             // \*STDERR;
         $lex_args{start}        = $lex_start_symbol_name;
-        $lex_args{'_internal_'} = 1;
+        $lex_args{'_internal_'} =
+            { 'if_inaccessible' =>
+                ( $hashed_source->{defaults}->{if_inaccessible} // 'warn' ) };
         $lex_args{rules}        = $lexer_rules;
         $lex_args{symbols}        = \%this_lexer_symbols;
         
-        for my $symbol ( keys %{ $lex_args{symbols} } ) {
-            $lex_args{symbols}{$symbol}{if_inaccessible} =
-                $default_for_if_inaccessible;
-        }
-
         my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
         $thick_grammar_by_lexer_name{$lexer_name} = $lex_grammar;
         my $lex_tracer = $lex_grammar->tracer();

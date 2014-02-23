@@ -768,6 +768,9 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
             if $infinite_action eq 'fatal';
     } ## end if ( $loop_rule_count and $infinite_action ne 'quiet')
 
+    my $default_if_inaccessible =
+        $grammar->[Marpa::R2::Internal::Grammar::INTERNAL]->{if_inaccessible}
+        // 'warn';
     SYMBOL:
     for my $symbol_id ( grep { !$grammar_c->symbol_is_accessible($_) }
         ( 0 .. $#{$symbols} ) )
@@ -783,8 +786,10 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
         # it is not creating inaccessible symbols from
         # accessible ones.
         next SYMBOL if $symbol_name =~ /\]/xms;
+        $DB::single = 1;
         my $treatment =
-            $symbol->[Marpa::R2::Internal::Symbol::IF_INACCESSIBLE] // 'warn';
+            $symbol->[Marpa::R2::Internal::Symbol::IF_INACCESSIBLE] //
+            $default_if_inaccessible;
         next SYMBOL if $treatment eq 'ok';
         my $message = "Inaccessible symbol: $symbol_name";
         Marpa::R2::exception($message) if $treatment eq 'fatal';
