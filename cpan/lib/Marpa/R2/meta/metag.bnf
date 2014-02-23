@@ -29,6 +29,8 @@ statement ::= <start rule> | <empty rule>
   | <nulled event declaration>
   | <prediction event declaration>
   | <current lexer statement>
+  | <inaccessible statement>
+
 <null statement> ::= ';'
 <statement group> ::= ('{') statements '}'
 <start rule> ::= (':start' <op declare bnf>) symbol
@@ -44,6 +46,9 @@ statement ::= <start rule> | <empty rule>
 <nulled event declaration> ::= ('event') <event name> ('=' 'nulled') <symbol name>
 <prediction event declaration> ::= ('event') <event name> ('=' 'predicted') <symbol name>
 <current lexer statement> ::= ('current' 'lexer' 'is') <lexer name>
+
+<inaccessible statement> ::= 'inaccessible' 'is' <inaccessible treatment> 'by' 'default'
+<inaccessible treatment> ::= 'warn' | 'ok' | 'fatal'
 
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
