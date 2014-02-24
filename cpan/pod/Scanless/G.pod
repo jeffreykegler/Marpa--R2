@@ -188,6 +188,21 @@ Takes one, optional, argument: the name of a subgrammar.
 Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 
+=head2 rule_name()
+
+=for Marpa::R2::Display
+name: $slg->rule_name() example
+
+    push @rule_names, $slg->rule_name($_) for $slg->rule_ids();
+
+=for Marpa::R2::Display::End
+
+Given a rule ID, returns the rule name.
+A rule name is as defined by
+L<the C<name> adverb|Scanless::R::name>.
+If no rule name was defined, the rule name is the name of
+the LHS symbol.
+
 =head2 rule_show()
 
 =for Marpa::R2::Display
@@ -213,6 +228,19 @@ The first argument is the ID of the rule to be displayed.
 The second, optional, argument is the name of a subgrammar.
 Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
+
+=head2 start_symbol_id()
+
+=for Marpa::R2::Display
+name: $slg->start_symbol_id() example
+
+    my $start_id = $slg->start_symbol_id();
+
+=for Marpa::R2::Display::End
+
+Returns the ID of the start symbol.
+Note that there is no method to return the ID of the start
+rule, because there may be no unique start rule.
 
 =head2 symbol_description()
 

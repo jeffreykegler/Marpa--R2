@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 26;
+use Test::More tests => 30;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -396,7 +396,7 @@ END_OF_SOURCE
         ];
 }
 
-{
+if (1) {
     my $source = <<'END_OF_SOURCE';
  
     inaccessible is ok by default
@@ -427,6 +427,59 @@ END_OF_SOURCE
 
     } ## end for my $this_start (qw/start1 start2/)
 }
+
+if (1) {
+    my $source = <<'END_OF_SOURCE';
+ 
+    :default ::= action => ::first
+    
+    dual_start ::= start1 name => 'first start rule'
+    dual_start ::= start2 name => 'second start rule'
+    start1 ::= X
+    start2 ::= Y
+ 
+    X ~ 'X'
+    Y ~ 'Y'
+ 
+END_OF_SOURCE
+
+    my $input           = 'X';
+    my $expected_output = 'X';
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+
+# Marpa::R2::Display
+# name: $slg->start_symbol_id() example
+
+    my $start_id = $slg->start_symbol_id();
+
+# Marpa::R2::Display::End
+
+    Test::More::is( $start_id, 0, q{Test of $slg->start_symbol_id()} );
+
+    my @rule_names = ();
+
+# Marpa::R2::Display
+# name: $slg->rule_name() example
+
+    push @rule_names, $slg->rule_name($_) for $slg->rule_ids();
+
+# Marpa::R2::Display::End
+
+    my $rule_names = join q{:}, @rule_names;
+    Test::More::is(
+        $rule_names,
+        'first start rule:second start rule:start1:start2:[:start]',
+        q{Test of $slg->rule_name()}
+    );
+
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', qq{Test of alternative as start rule}
+        ];
+
+} ## end if (1)
 
 TEST:
 for my $test_data (@tests_data) {

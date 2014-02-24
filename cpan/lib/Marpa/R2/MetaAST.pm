@@ -499,7 +499,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::inaccessible_statement::evaluate {
     my ( $data, $parse ) = @_;
     my ( $start, $length, $inaccessible_treatment ) = @{$data};
     local $Marpa::R2::Internal::SUBGRAMMAR = 'G1';
-    $DB::single = 1;
 
     if ( exists $parse->{defaults}->{if_inaccessible} ) {
         my $problem_rule = $parse->substring( $start, $length );

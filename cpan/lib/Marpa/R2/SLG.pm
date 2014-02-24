@@ -715,9 +715,19 @@ sub thick_subgrammar_by_name {
         ->[$lexer_id];
 } ## end sub thick_subgrammar_by_name
 
+sub Marpa::R2::Scanless::G::start_symbol_id {
+    my ( $slg, $rule_id, $subgrammar ) = @_;
+    return thick_subgrammar_by_name( $slg, $subgrammar )->start_symbol();
+}
+
+sub Marpa::R2::Scanless::G::rule_name {
+    my ( $slg, $rule_id, $subgrammar ) = @_;
+    return thick_subgrammar_by_name( $slg, $subgrammar )->rule_name($rule_id);
+}
+
 sub Marpa::R2::Scanless::G::rule_expand {
     my ( $slg, $rule_id, $subgrammar ) = @_;
-    return thick_subgrammar_by_name($slg, $subgrammar)->tracer()
+    return thick_subgrammar_by_name( $slg, $subgrammar )->tracer()
         ->rule_expand($rule_id);
 }
 

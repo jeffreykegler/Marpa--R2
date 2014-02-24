@@ -786,7 +786,6 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
         # it is not creating inaccessible symbols from
         # accessible ones.
         next SYMBOL if $symbol_name =~ /\]/xms;
-        $DB::single = 1;
         my $treatment =
             $symbol->[Marpa::R2::Internal::Symbol::IF_INACCESSIBLE] //
             $default_if_inaccessible;
@@ -967,13 +966,22 @@ sub Marpa::R2::Grammar::unproductive_symbols {
     ];
 } ## end sub Marpa::R2::Grammar::unproductive_symbols
 
+sub Marpa::R2::Grammar::start_symbol {
+    my ( $grammar ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    return $grammar_c->start_symbol();
+}
+
 sub Marpa::R2::Grammar::rule_name {
     my ( $grammar, $rule_id ) = @_;
     my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $rule  = $rules->[$rule_id];
     return "Non-existent rule $rule_id" if not defined $rule;
-    return $rule->[Marpa::R2::Internal::Rule::NAME]
-        // "Unnamed rule $rule_id";
+    my $name = $rule->[Marpa::R2::Internal::Rule::NAME];
+    return $name if defined $name;
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my ( $lhs_id ) = $tracer->rule_expand($rule_id);
+    return $grammar->symbol_name($lhs_id);
 } ## end sub Marpa::R2::Grammar::rule_name
 
 sub Marpa::R2::Grammar::brief_rule {
