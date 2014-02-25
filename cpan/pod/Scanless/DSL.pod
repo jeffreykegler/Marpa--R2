@@ -984,7 +984,7 @@ normalize-whitespace: 1
 The C<latm> adverb applies only to lexemes and
 is only allowed in 
 L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule"> and 
-L<a C<:lexeme default> statement|/"Lexeme default statement">.
+L<a C<lexeme default> statement|/"Lexeme default statement">.
 Its value is a boolean.
 If the boolean is set it indicates that a token
 is LATM.  The default value is 0,
@@ -1021,7 +1021,7 @@ Intuitively, LATM is a longest tokens match that considers context,
 while LTM is a longest tokens match that ignores context.
 LATM is usually preferable.
 Usually if LATM is chosen, a parse will want to use the 
-L<a C<:lexeme default> statement|/"Lexeme default statement">
+L<a C<lexeme default> statement|/"Lexeme default statement">
 and use LATM globally.
 It is possible to use LATM adverb on a lexeme by
 lexeme basis.  When that is done, the lexemes marked
