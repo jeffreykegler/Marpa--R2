@@ -345,11 +345,11 @@ in a G1 rule, it still must be implemented at
 the L0 level.
 Marpa knows this and "does what you mean."
 
-=head2 Discard rules
+=head2 Discard pseudo-rules
 
 A new type of rule is introduced:
-a "discard" rule.
-A discard rule has a C<:discard> pseudo-symbol on its LHS
+a "discard" pseudo-rule.
+A discard pseudo-rule has a C<:discard> pseudo-symbol on its LHS
 and one symbol name on its RHS.
 It indicates that, when the RHS symbol is recognized,
 it should not be passed on as usual to the structural (G1) level.
@@ -381,7 +381,7 @@ So in practice I will usually simply refer to "lexemes".
 =head1 Longest tokens match
 
 The L0 grammar looks for tokens on a longest B<tokens> match basis.
-Tokens in discard rules are thrown away, and the rest are passed on
+Tokens in discard pseudo-rules are thrown away, and the rest are passed on
 to the G1 grammar.
 Note that match is longest TOKENS.
 There may be more than one longest match, in which case Marpa
