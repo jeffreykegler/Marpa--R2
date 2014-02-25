@@ -829,7 +829,7 @@ will rarely be needed.
 
 If and when an actual ambiguity does occur, an error message reports
 the ambiguity and its exact location.
-It will always possible to disambiguate a SLIF DSL,
+It will always be possible to disambiguate a SLIF DSL,
 and there will always
 be more than one way to do this.
 
