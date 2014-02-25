@@ -266,7 +266,7 @@ normalize-whitespace: 1
 
 A character class in square brackets ("C<[]>")
 can be used in a RHS alternative of a prioritized rule,
-a quantified rule or a discard rule.
+a quantified rule or a discard pseudo-rule.
 Marpa character classes may contain anything acceptable to Perl,
 and follow the same escaping conventions as Perl's character classes.
 
@@ -531,7 +531,7 @@ The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
 alternatives on each side of it have the same priority.
 Associativity is specified using adverbs, as described below.
 
-=head2 Discard rules
+=head2 Discard pseudo-rules
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -542,18 +542,18 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-A discard rule is a rule whose LHS is
+A discard pseudo-rule is a rule whose LHS is
 the C<:discard> pseudo-symbol,
 and which has only one RHS alternative.
 The RHS alternative must contain
 exactly one symbol name,
 called the B<discarded symbol>.
-Discard rules indicate that the discarded symbol is a top-level L0
+Discard pseudo-rules indicate that the discarded symbol is a top-level L0
 symbol, but one which is not a lexeme.
 When a discarded symbol is recognized,
 it is not passed as a lexeme to the G1 parser, but is
 (as the name suggests) discarded.
-Discard rules must be L0 rules.
+Discard pseudo-rules must be L0 rules.
 No adverbs are allowed.
 
 =head2 Default pseudo-rules
