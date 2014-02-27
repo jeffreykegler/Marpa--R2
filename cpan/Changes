@@ -15,19 +15,15 @@
 
 Revision history for Marpa::R2
 
-2.081_001
+2.082000 Thu Feb 27 15:43:33 PST 2014
 
-   * New array descriptor elements: "name", "symbol", "lhs".
+   * Added new array descriptor elements: "name", "symbol", "lhs".
 
-   * Ability to change treatment of inaccessibles.
+   * Added ability to change treatment of inaccessibles.
 
-   * Documentation of SLIF's use of ambituity in its own DSL.
+   * Documented of SLIF's use of ambiguity in its own DSL.
 
-   * "name" adverb for rules.
-
-2.081_000
-
-   * New series of developer's versions.
+   * Added "name" adverb for rules.
 
 2.080000 Mon Feb 17 17:13:28 PST 2014
 
