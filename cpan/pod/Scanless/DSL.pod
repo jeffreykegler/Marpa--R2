@@ -944,7 +944,7 @@ normalize-whitespace: 1
 
 The C<event> adverb applies only to lexemes and
 is only allowed in 
-L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule">.
+L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rules">.
 It turns a lexeme's pause into a named event,
 using the name specified as its value.
 Applications are encouraged to turn all lexeme
@@ -983,7 +983,7 @@ normalize-whitespace: 1
 
 The C<latm> adverb applies only to lexemes and
 is only allowed in 
-L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule"> and 
+L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rules"> and 
 L<a C<lexeme default> statement|/"Lexeme default statement">.
 Its value is a boolean.
 If the boolean is set it indicates that a token
