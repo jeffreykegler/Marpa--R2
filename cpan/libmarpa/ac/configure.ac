@@ -112,11 +112,14 @@ if test "$ac_cv_sizeof_int" -lt 4; then
         [Marpa requires that int be at least 32 bits -- on this system that is not the case])
 fi
 
-AC_TYPE_UNSIGNED_LONG_LONG_INT
-if test x"$ac_cv_type_unsigned_long_long_int" != xyes; then
-    AC_MSG_ERROR(
-        [Marpa requires an unsigned long long type -- this compiler does not have one])
-fi
+# This was to prepare for 64-bit pseudo-UTF8 characters (which full Perl-style
+# Unicode support would require) in the SLIF.  This approach needs to be re-thought
+# 
+# AC_TYPE_UNSIGNED_LONG_LONG_INT
+# if test x"$ac_cv_type_unsigned_long_long_int" != xyes; then
+#      AC_MSG_ERROR(
+#          [Marpa requires an unsigned long long type -- this compiler does not have one])
+# fi
 
 # Checks for library functions.
 # The following were suggested by autoscan

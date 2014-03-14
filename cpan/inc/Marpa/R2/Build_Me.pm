@@ -522,9 +522,13 @@ INLINEHOOK
 
             $ac->check_stdc_headers;
             $ac->check_default_headers();
-            if (!$ac->check_type('unsigned long long int')) {
-                die "Marpa requires that unsigned long long int is supported by your compiler";
-            }
+
+            # This check was to prepare for Perl's 64-bit pseudo-UTF8 characters inside the SLIF.
+            # It needs to be rethought.
+            #
+            # if (!$ac->check_type('unsigned long long int')) {
+                # die "Marpa requires that unsigned long long int is supported by your compiler";
+            # }
 
             $ac->define_var('PACKAGE', "\"libmarpa\"");
             $ac->define_var('PACKAGE_BUGREPORT', "\"http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa\"");
