@@ -4256,8 +4256,7 @@ Suggested message: "Symbol was nulled".
 
 @deftypevr Macro int MARPA_EVENT_SYMBOL_PREDICTED
 The recognizer can be set to generate an event when a
-symbol is predicted -- that is, recognized as a
-zero-length symbol.
+symbol is predicted.
 To set an predicted symbol event,
 use the recognizer's @code{marpa_r_predicted_symbol_event_set()}
 method.
