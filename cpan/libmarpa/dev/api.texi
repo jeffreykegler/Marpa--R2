@@ -131,7 +131,6 @@ Recognizer methods
 * Recognizer constructor::      
 * Recognizer reference counting::  
 * Recognizer life cycle mutators::  
-* Methods for revising parses::  
 * Location accessors::          
 * Other parse status methods::  
 * Untested recognizer methods::  
@@ -2294,7 +2293,6 @@ On failure, @minus{}2.
 * Recognizer constructor::      
 * Recognizer reference counting::  
 * Recognizer life cycle mutators::  
-* Methods for revising parses::  
 * Location accessors::          
 * Other parse status methods::  
 * Untested recognizer methods::  
@@ -2358,7 +2356,7 @@ to zero, it too is destroyed.
 
 @end deftypefun
 
-@node Recognizer life cycle mutators, Methods for revising parses, Recognizer reference counting, Recognizer methods
+@node Recognizer life cycle mutators, Location accessors, Recognizer reference counting, Recognizer methods
 @section Life cycle mutators
 
 @deftypefun int marpa_r_start_input (Marpa_Recognizer @var{r})
@@ -2593,20 +2591,7 @@ Return value:  On success, the number of events generated.
 On failure, @minus{}2.
 @end deftypefun
 
-@node Methods for revising parses, Location accessors, Recognizer life cycle mutators, Recognizer methods
-@section Methods for revising parses
-
-Marpa allows an application to ``change its mind'' about a parse,
-rejected rule previously recognized or predicted,
-and terminals previously scanned.
-The methods in this section provide that capability.
-
-@deftypefun Marpa_Earleme marpa_r_clean ( @
-    Marpa_Recognizer @var{r})
-
-@end deftypefun
-
-@node Location accessors, Other parse status methods, Methods for revising parses, Recognizer methods
+@node Location accessors, Other parse status methods, Recognizer life cycle mutators, Recognizer methods
 @section Location accessors
 
 @deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
