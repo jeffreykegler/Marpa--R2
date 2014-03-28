@@ -396,7 +396,6 @@ union marpa_slr_event_s;
 @d MARPA_SLREV_DELETED 22
 @d MARPA_SLRTR_LEXEME_ACCEPTABLE 23
 @d MARPA_SLRTR_LEXEME_OUTPRIORITIZED 24
-@d MARPA_SLRTR_LEXEME_FORGIVEN 25
 @d MARPA_SLRTR_LEXEME_EXPECTED 26
 
 @d MARPA_SLREV_TYPE(event) ((event)->t_header.t_event_type)
@@ -497,16 +496,6 @@ union marpa_slr_event_s
     int t_current_lexer_ix;
   }
   t_trace_lexeme_rejected;
-
-  struct
-  {
-    int event_type;
-    int t_start_of_lexeme;
-    int t_end_of_lexeme;
-    int t_lexeme;
-    int t_current_lexer_ix;
-  }
-  t_trace_lexeme_forgiven;
 
   struct
   {
