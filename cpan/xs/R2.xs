@@ -2005,7 +2005,7 @@ slr_alternatives (Scanless_R * slr)
 		  croak
 		    ("Internal error: Marpa recognized unexpected token @%ld-%ld: lexer=%ld, lexeme=%ld",
 		     (long) slr->start_of_lexeme, (long) slr->end_of_lexeme,
-		     (long) g1_lexeme, (long) slr->current_lexer->index);
+                     (long) slr->current_lexer->index, (long) g1_lexeme);
 		}
 	      else
 		{
