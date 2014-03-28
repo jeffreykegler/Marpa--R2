@@ -201,6 +201,10 @@ Work in Progress
 * Experimental methods::        
 * Untested methods::            
 
+Untested methods
+
+* Methods for revising parses::  
+
 @end detailmenu
 @end menu
 
@@ -5421,16 +5425,41 @@ The error code can be determined by using the
     int @var{rhs_ix})
 @end deftypefun
 
+@deftypefun int marpa_r_zwa_default ( @
+    Marpa_Recognizer @var{r}, @
+    Marpa_Assertion_ID @var{zwaid})
+
+On success, returns previous default value of the assertion.
+@end deftypefun
+
 @deftypefun int marpa_r_zwa_default_set ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Assertion_ID @var{zwaid}, @
     int @var{default_value})
 
+Changes default value to @var{default_value}.
 On success, returns previous default value of the assertion.
 @end deftypefun
 
 @deftypefun Marpa_Assertion_ID marpa_g_highest_zwa_id ( @
     Marpa_Grammar @var{g} )
+@end deftypefun
+
+@menu
+* Methods for revising parses::  
+@end menu
+
+@node Methods for revising parses,  , Untested methods, Untested methods
+@subsection Methods for revising parses
+
+Marpa allows an application to ``change its mind'' about a parse,
+rejected rule previously recognized or predicted,
+and terminals previously scanned.
+The methods in this section provide that capability.
+
+@deftypefun Marpa_Earleme marpa_r_clean ( @
+    Marpa_Recognizer @var{r})
+
 @end deftypefun
 
 @node GNU Free Documentation License,  , Work in Progress, Top

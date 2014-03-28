@@ -5250,7 +5250,13 @@ PPCODE:
 {
   IV old_level = slr->trace_lexers;
   slr->trace_lexers = new_level;
-  XSRETURN_IV(old_level);
+  if (new_level)
+    {
+      warn
+	("Setting trace_lexers to %ld; was %ld",
+	 (long) new_level, (long) old_level);
+    }
+  XSRETURN_IV (old_level);
 }
 
 void

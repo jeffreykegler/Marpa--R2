@@ -9268,6 +9268,21 @@ marpa_r_zwa_default_set(Marpa_Recognizer r,
     return old_default_value;
 }
 
+@<Function definitions@> =
+int
+marpa_r_zwa_default(Marpa_Recognizer r,
+    Marpa_Assertion_ID zwaid)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  ZWA zwa;
+  @<Fail if fatal error@>@;
+  @<Fail if |zwaid| is malformed@>@;
+  @<Fail if |zwaid| does not exist@>@;
+  zwa = RZWA_by_ID(zwaid);
+  return Default_Value_of_ZWA(zwa);
+}
+
 @** Progress report code.
 @<Private typedefs@> =
    typedef struct marpa_progress_item* PROGRESS;

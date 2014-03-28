@@ -885,8 +885,6 @@ sub Marpa::R2::Scanless::R::resume {
     my $trace_terminals =
         $slr->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS] // 0;
     my $trace_lexers = $slr->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS] // 0;
-    $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
-    $slr->trace_lexers($trace_lexers)               if $trace_lexers;
 
     $thin_slr->pos_set( $start_pos, $length );
     $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
