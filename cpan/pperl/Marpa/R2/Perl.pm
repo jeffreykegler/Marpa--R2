@@ -978,7 +978,7 @@ sub Marpa::R2::Perl::new {
 } ## end sub Marpa::R2::Perl::new
 
 my @RECCE_NAMED_ARGUMENTS =
-    qw(trace_tasks trace_terminals trace_values trace_actions);
+    qw(trace_terminals trace_values trace_actions);
 
 sub token_not_accepted {
     my ( $ppi_token, $token_name, $token_value, $length ) = @_;

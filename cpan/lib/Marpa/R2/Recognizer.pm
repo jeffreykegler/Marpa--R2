@@ -144,9 +144,6 @@ sub Marpa::R2::Recognizer::new {
 
     my $trace_terminals =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS] // 0;
-    my $trace_tasks = $recce->[Marpa::R2::Internal::Recognizer::TRACE_TASKS]
-        // 0;
-
     if ( $trace_terminals > 1 ) {
         my @terminals_expected = @{ $recce->terminals_expected() };
         for my $terminal ( sort @terminals_expected ) {
@@ -236,7 +233,6 @@ sub Marpa::R2::Recognizer::set {
                 trace_fh
                 trace_file_handle
                 trace_or_nodes
-                trace_tasks
                 trace_terminals
                 trace_values
                 warnings
@@ -362,17 +358,6 @@ sub Marpa::R2::Recognizer::set {
                     or Marpa::R2::exception("Cannot print: $ERRNO");
             }
         } ## end if ( defined( my $value = $args->{'trace_or_nodes'} ...))
-
-        if ( defined( my $value = $args->{'trace_tasks'} ) ) {
-            Marpa::R2::exception('trace_tasks must be set to a number >= 0')
-                if $value !~ /\A\d+\z/xms;
-            $recce->[Marpa::R2::Internal::Recognizer::TRACE_TASKS] =
-                $value + 0;
-            if ($value) {
-                say {$trace_fh} "Setting trace_tasks option to $value"
-                    or Marpa::R2::exception("Cannot print: $ERRNO");
-            }
-        } ## end if ( defined( my $value = $args->{'trace_tasks'} ) )
 
         if ( defined( my $value = $args->{'trace_terminals'} ) ) {
             $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS] =

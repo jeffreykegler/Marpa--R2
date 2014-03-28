@@ -38,7 +38,6 @@ Grammar Named Argument: academic
 Marpa::Evaluator Named Argument: infinite_nodes
 Marpa::Evaluator Named Argument: infinite_scale
 Marpa::Evaluator Named Argument: experimental
-Marpa::Evaluator Named Argument: trace_tasks
 
 Marpa::Evaluator::audit
 in Marpa::Evaluator, Marpa::dump_sort_key

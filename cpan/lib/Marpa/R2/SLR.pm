@@ -371,13 +371,6 @@ sub Marpa::R2::Scanless::R::trace {
     return $thin_slr->trace($level);
 } ## end sub Marpa::R2::Scanless::R::trace
 
-sub Marpa::R2::Scanless::R::trace_lexers {
-    my ( $self, $level ) = @_;
-    my $thin_slr = $self->[Marpa::R2::Internal::Scanless::R::C];
-    $level //= 1;
-    return $thin_slr->trace_lexers($level);
-}
-
 sub Marpa::R2::Scanless::R::error {
     my ($self) = @_;
     return $self->[Marpa::R2::Internal::Scanless::R::READ_STRING_ERROR];
@@ -411,9 +404,10 @@ sub Marpa::R2::Scanless::R::read {
     my $thin_slr = $self->[Marpa::R2::Internal::Scanless::R::C];
     my $trace_terminals =
         $self->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS] // 0;
-    my $trace_lexers = $self->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS] // 0;
+    my $trace_lexers =
+        $self->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS] // 0;
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
-    $self->trace_lexers($trace_lexers)               if $trace_lexers;
+    $thin_slr->trace_lexers($trace_lexers)       if $trace_lexers;
 
     $thin_slr->string_set($p_string);
 
