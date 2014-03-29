@@ -91,16 +91,21 @@ _marpa_avl_at_or_after (const MARPA_AVL_TREE tree, const void *item)
   NODE at_or_after = NULL;
 
   assert (tree != NULL && item != NULL);
-  for (p = tree->avl_root; p != NULL; )
+  for (p = tree->avl_root; p != NULL;)
     {
       int cmp = tree->avl_compare (item, p->avl_data, tree->avl_param);
 
       if (cmp < 0)
-        p = p->avl_link[0];
+	{
+	  at_or_after = p;
+	  p = p->avl_link[0];
+	}
       else if (cmp > 0)
-        at_or_after = p = p->avl_link[1];
-      else /* |cmp == 0| */
-        return p->avl_data;
+	{
+	  p = p->avl_link[1];
+	}
+      else			/* |cmp == 0| */
+	return p->avl_data;
     }
 
   return at_or_after ? at_or_after->avl_data : NULL;
