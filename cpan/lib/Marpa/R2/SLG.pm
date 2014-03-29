@@ -489,16 +489,18 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             $lex_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
             next RULE_ID if $lexeme_id < 0;
             my $lexeme_name = $g1_tracer->symbol_name($lexeme_id);
+
+            # If 1 is the default, we don't need an assertion
+            next RULE_ID if not $lexeme_data{$lexeme_name}{latm};
+
             my $assertion_id =
                 $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'};
             if ( not defined $assertion_id ) {
-                my $default_assertion_value =
-                    $lexeme_data{$lexeme_name}{latm} ? 0 : 1;
-                $assertion_id = $lex_thin->zwa_new($default_assertion_value);
+                $assertion_id = $lex_thin->zwa_new(0);
 
                 if ( $trace_terminals >= 2 ) {
                     say {$trace_fh}
-                     "Assertion $assertion_id defaults to $default_assertion_value";
+                     "Assertion $assertion_id defaults to 0";
                 } ## end if ( $trace_terminals >= 2 )
 
                 $lexeme_data{$lexeme_name}{lexers}{$lexer_name}{'assertion'}

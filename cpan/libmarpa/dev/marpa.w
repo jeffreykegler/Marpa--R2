@@ -3072,7 +3072,7 @@ int marpa_g_precompute(Marpa_Grammar g)
           and nulled symbol CILs@>@;
         @<Mark the event AHMs@>@;
         @<Calculate AHM Event Group Sizes@>@;
-        @<Find the direct ZWA's for each AHM's@>@;
+        @<Find the direct ZWA's for each AHM@>@;
         @<Find the indirect ZWA's for each AHM's@>@;
     }
     g->t_is_precomputed = 1;
@@ -5055,6 +5055,11 @@ the XRL is |NULL|, XRL position is not defined.
 @<Widely aligned AHM elements@> =
    XRL t_xrl;
 @ @d XRL_Position_of_AHM(ahm) ((ahm)->t_xrl_position)
+@d Raw_XRL_Position_of_AHM(ahm) (
+    XRL_Position_of_AHM(ahm) < 0
+    ? Length_of_XRL(XRL_of_AHM(ahm)) 
+    : XRL_Position_of_AHM(ahm)
+  )
 @<Int aligned AHM elements@> =
    int t_xrl_position;
 
@@ -5702,7 +5707,7 @@ marpa_g_zwa_place(Marpa_Grammar g,
 @ The direct ZWA's are the zero-width assertions triggered
 directly by the AHM.  ZWA's triggered via predictions are called
 ``indirect''.
-@<Find the direct ZWA's for each AHM's@> =
+@<Find the direct ZWA's for each AHM@> =
 {
   AHMID ahm_id;
   const int ahm_count_of_g = AHM_Count_of_G (g);
@@ -5717,7 +5722,7 @@ directly by the AHM.  ZWA's triggered via predictions are called
       cil_buffer_clear (&g->t_cilar);
       if (ahm_xrl)
 	{
-	  const int xrl_dot_end = XRL_Position_of_AHM (ahm);
+	  const int xrl_dot_end = Raw_XRL_Position_of_AHM (ahm);
 	  const int xrl_dot_start = xrl_dot_end - Null_Count_of_AHM (ahm);
           /* We assume the null count is zero for a sequence rule */
 
@@ -7537,8 +7542,9 @@ int evaluate_zwas(RECCE r, YSID ysid, AHM ahm)
        MARPA_DEBUG3("At %s: returning 0 for assertion %ld", STRLOC, (long)zwaid);
        return 0;
      }
+
+     MARPA_DEBUG3("At %s: value is 1 for assertion %ld", STRLOC, (long)zwaid);
   }
-  MARPA_DEBUG2("At %s: returning 1 for assertion", STRLOC);
   return 1;
 }
 
