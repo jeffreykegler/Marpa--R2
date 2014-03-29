@@ -33,14 +33,15 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $dsl = <<'END_OF_DSL';
-:default ::= action => ::first
-:start ::= Expression
-Expression ::= Term
+:default ::= action => [name,values]
+lexeme default = latm => 1
+
+Expression ::= Term action => ::first
 Term ::=
-      Factor
+      Factor action => ::first
     | Term '+' Term action => do_add
 Factor ::=
-      Number
+      Number action => ::first
     | Factor '*' Factor action => do_multiply
 Number ~ digits
 digits ~ [\d]+

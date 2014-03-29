@@ -29,7 +29,8 @@ normalize-whitespace: 1
         {   bless_package => 'My_Nodes',
             source        => \(<<'END_OF_SOURCE'),
     :default ::= action => [values] bless => ::lhs
-    lexeme default = action => [ start, length, value ] bless => ::name
+    lexeme default = action => [ start, length, value ]
+        bless => ::name latm => 1
 
     :start ::= Script
     Script ::= Expression+ separator => comma
@@ -460,7 +461,8 @@ name: SLIF DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [start,length,value] bless => ::name
+    lexeme default = action => [ start, length, value ]
+        bless => ::name latm => 1
 
 =for Marpa::R2::Display::End
 
@@ -572,7 +574,7 @@ and may be used interchangeably for both rules alternatives and lexemes.
 The array item descriptors fill out the array in
 the order in which they appear in the array descriptor.
 For example, if we are dealing with a rule,
-and the array descriptor is "C<[start,length,value]>",
+and the array descriptor is "C<[ start, length, value ]>",
 then the return value is an reference to an array,
 whose length will vary, but which will contain at least
 two elements.

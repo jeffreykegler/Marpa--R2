@@ -26,14 +26,15 @@ normalize-whitespace: 1
     use Marpa::R2;
 
     my $dsl = <<'END_OF_DSL';
-    :default ::= action => ::first
-    :start ::= Expression
-    Expression ::= Term
+    :default ::= action => [name,values]
+    lexeme default = latm => 1
+
+    Expression ::= Term action => ::first
     Term ::=
-          Factor
+          Factor action => ::first
         | Term '+' Term action => do_add
     Factor ::=
-          Number
+          Number action => ::first
         | Factor '*' Factor action => do_multiply
     Number ~ digits
     digits ~ [\d]+
@@ -98,14 +99,15 @@ partial: 1
 normalize-whitespace: 1
 
     my $dsl = <<'END_OF_DSL';
-    :default ::= action => ::first
-    :start ::= Expression
-    Expression ::= Term
+    :default ::= action => [name,values]
+    lexeme default = latm => 1
+    
+    Expression ::= Term action => ::first
     Term ::=
-          Factor
+          Factor action => ::first
         | Term '+' Term action => do_add
     Factor ::=
-          Number
+          Number action => ::first
         | Factor '*' Factor action => do_multiply
     Number ~ digits
     digits ~ [\d]+
@@ -153,29 +155,26 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    :default ::= action => ::first
+    :default ::= action => [name,values]
+    lexeme default = latm => 1
 
 =for Marpa::R2::Display::End
 
-The default pseudo-rule specifies (as you might suspect) defaults for
-the other rules.
-Here it sets the default semantics to C<::first>.
-What this means we'll explain when we discuss
-L<the semantics at the end|/"Semantics">.
+These two lines set useful defaults.
+The first sets a default semantics,
+which is especially useful for development.
+This is a finished script, so it's not used much,
+and in real life you'd might change it.
+But here it's kept because it makes for a good template for
+a first DSL.
+We'll talk about this more when we discuess
+L<semantics at the end|/"Semantics">.
 
-=head2 The start pseudo-rule
-
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-
-    :start ::= Expression
-
-=for Marpa::R2::Display::End
-
-The C<start> pseudo-rule is is required.
-Its right hand side (RHS) is the grammar's start symbol.
+The second line sets the longest acceptable tokens match (LATM)
+style of lexing,
+which is what you'll almost always want.
+It is not the default for historical reasons, so your scripts will
+almost always start with this line.
 
 =head2 A G1 rule
 
@@ -192,7 +191,7 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    Expression ::= Term
+    Expression ::= Term action => ::first
 
 =for Marpa::R2::Display::End
 
@@ -221,7 +220,7 @@ partial: 1
 normalize-whitespace: 1
 
     Term ::=
-          Factor
+          Factor action => ::first
         | Term '+' Term action => do_add
 
 =for Marpa::R2::Display::End
@@ -243,7 +242,7 @@ partial: 1
 normalize-whitespace: 1
 
     Factor ::=
-          Number
+          Number action => ::first
         | Factor '*' Factor action => do_multiply
 
 =for Marpa::R2::Display::End
@@ -318,7 +317,7 @@ partial: 1
 normalize-whitespace: 1
 
     Term ::=
-          Factor
+          Factor action => ::first
         | Term '+' Term action => do_add
 
 =for Marpa::R2::Display::End
@@ -489,7 +488,7 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    :default ::= action => ::first
+    :default ::= action => [name,values]
 
 =for Marpa::R2::Display::End
 
@@ -517,12 +516,20 @@ to find the Perl semantic closures.
 
 In this example the default semantics,
 as specified by the C<default_action> named argument,
-come from a "reserved action" named "C<::first>".
-(The initial double colon indicates a reserved action.)
-The "C<::first>" action indicates that the value of a rule is to be
-the value of its first child,
-that is, the value corresponding to the first symbol of the rule's RHS.
-(In the case of an empty rule, the value would be a Perl C<undef>).
+come from a "array descriptor" named "C<[name,values]>".
+This indicates that, by default, the value of a rule is to be
+a reference to an array consisting of the rule's name,
+followed by the values of its children.
+
+In this case,
+the semantics is not actually used,
+and you would usually change it to something more convenient
+for your application.
+But "C<[name,values]>" is an excellent starting point when you're
+first developing a DSL and, since this code is intended as a
+template, we've kept it.
+For more about array descriptors, see the L<semantics
+document|Marpa::R2::Semantics/"Array descriptor actions">
 
 The other way we specify semantics in this example
 is by using an
@@ -537,13 +544,19 @@ partial: 1
 normalize-whitespace: 1
 
     Term ::=
-          Factor
+          Factor action => ::first
         | Term '+' Term action => do_add
     Factor ::=
-          Number
+          Number action => ::first
         | Factor '*' Factor action => do_multiply
 
 =for Marpa::R2::Display::End
+
+The "C<::first>" action indicates that the value of a rule is to be
+the value of its first child,
+that is, the value corresponding to the first symbol of the rule's RHS.
+(In the case of an empty rule, the value would be a Perl C<undef>).
+(The initial double colon indicates a reserved action.)
 
 The action for the second RHS alternative defining C<Term> is C<do_add>,
 and the action for the second RHS alternative defining C<Factor> is C<do_multiply>.

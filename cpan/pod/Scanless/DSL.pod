@@ -30,7 +30,8 @@ normalize-whitespace: 1
         {   bless_package => 'My_Nodes',
             source        => \(<<'END_OF_SOURCE'),
     :default ::= action => [values] bless => ::lhs
-    lexeme default = action => [start,length,value] bless => ::name
+    lexeme default = action => [ start, length, value ]
+        bless => ::name latm => 1
 
     :start ::= Script
     Script ::= Expression+ separator => comma
@@ -635,7 +636,8 @@ name: SLIF DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [start,length,value] bless => ::name
+    lexeme default = action => [ start, length, value ]
+        bless => ::name latm => 
 
 =for Marpa::R2::Display::End
 
@@ -987,8 +989,11 @@ L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rules"> and
 L<a C<lexeme default> statement|/"Lexeme default statement">.
 Its value is a boolean.
 If the boolean is set it indicates that a token
-is LATM.  The default value is 0,
-which indicates that a token is not LATM.
+is LATM.
+A value of 1 is recommended, which indicates
+that a token is LATM.
+The default value is 0,
+for reasons of backward compatibility.
 
 LATM means "longest acceptable tokens match".
 In this,
@@ -1033,11 +1038,11 @@ Whichever token discipline is chosen,
 all tokens matched will be of the same length.
 Shorter tokens will not be considered.
 
-LTM is the default for reasons of backward compatibility.
+LTM is the default for historical reasons.
 LTM was the SLIF's original token matching discipline because
 it more closely models traditional lexing.
-For historical reasons, LATM lexemes
-are also called "forgiving" -- in the original implementation, an
+Also for historical reasons, LATM lexemes
+are sometimes called "forgiving" -- in the original implementation, an
 LTM search was always done for all lexemes,
 and LATM was implemented by "forgiving" rejection by the G1 grammar,
 and backing up over the input to find acceptable lexemes.
