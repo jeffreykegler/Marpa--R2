@@ -379,14 +379,28 @@ the programmer receives a fatal message which describes the
 problem and the symbols involved.
 So in practice I will usually simply refer to "lexemes".
 
-=head1 Longest tokens match
+=head1 Longest acceptable tokens match
 
-The L0 grammar looks for tokens on a longest B<tokens> match basis.
-Tokens in discard pseudo-rules are thrown away, and the rest are passed on
-to the G1 grammar.
-Note that match is longest TOKENS.
-There may be more than one longest match, in which case Marpa
-uses the full set of longest matches.
+If you specify
+"C<< latm => 1 >>"
+as the default,
+which you almost always should,
+the L0 grammar looks for tokens on a
+longest acceptable tokens match (LATM) basis.
+Tokens which the structural grammar would reject
+are thrown away.
+So are tokens in discard pseudo-rules.
+The rest are passed on to the G1 grammar.
+
+Note that the match is longest TOKENS.
+Several tokens may have the same length,
+so several tokens may be "longest".
+When that happens, Marpa
+uses the full set of longest tokens
+in looking for possible parses.
+For more about LATM and its alternative, LTM,
+see L<the detailed description of the C<latm>
+adverb|Marpa::R2::Scanless::DSL/"latm">.
 
 =head1 Semantics
 
