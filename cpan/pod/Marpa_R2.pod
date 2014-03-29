@@ -162,12 +162,10 @@ normalize-whitespace: 1
 
 These two lines set useful defaults.
 The first sets a default semantics,
-which is especially useful for development.
-This is a finished script, so it's not used much,
-and in real life you'd might change it.
-But here it's kept because it makes for a good template for
-a first DSL.
-We'll talk about this more when we discuess
+one which is especially useful for development.
+This is a finished script, so the default semantics
+is not used much.
+We'll talk about this more when we discuss
 L<semantics at the end|/"Semantics">.
 
 The second line sets the longest acceptable tokens match (LATM)
@@ -212,6 +210,12 @@ a G1 (structural) rule.
 Later we will see lexical rules, which will use
 the match operator ("C<~>").
 
+After the rule is an adverb:
+C<< action => ::first >>.
+We'll explain the purpose of the C<action>
+adverbs when we discuss
+L<semantics|/"Semantics">
+
 =head2 More complicated G1 rules
 
 =for Marpa::R2::Display
@@ -228,10 +232,6 @@ normalize-whitespace: 1
 This rule says that a C<Term> may be one of two
 alternatives: either a C<Factor>
 or two C<Term>'s separated by an addition operator.
-The second alternative has an
-C<action> adverb associated with it.
-We'll explain its purpose shortly.
-
 Immediately following is another G1 rule defining
 a C<Factor>.  It is very similar in form
 to the one for C<Term>.
@@ -327,10 +327,27 @@ Something similar happens with the C<'*'> string in the rule for a C<Factor>.
 
 The SLIF's lexer mostly "does what you mean".
 While the input is being read, it looks for all lexemes defined in the DSL.
-The search is a longest tokens match -- if mulitple tokens could match,
+Almost always, you'll want Marpa to look only for tokens that are
+actually acceptable to the parse.
+Telling Marpa to do so was the purpose of this line:
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+    lexeme default = latm => 1
+
+=for Marpa::R2::Display::End
+
+LATM means "longest acceptable tokens match".
+(LATM is not the default for historical reasons.)
+
+Among the acceptable tokens,
+Marpa looks for longest matches -- if multiple tokens match,
 the longest match is the winner.
 Marpa tolerates ambiguity,
-so one feature special to Marpa is that it is a longest B<tokens> match --
+so one feature special to Marpa is that LATM is a longest acceptable B<tokens> match --
 if more than one token is longest, all of them are considered in the parse.
 The logic of SLIF lexing is described with more precision in the
 L<SLIF overview document|Marpa::R2::Scanless>.
@@ -430,7 +447,8 @@ The symbols shared by L0 and G1
 are those lexemes which are not
 discarded.
 In this example, the lexemes visible to G1 are
-C<Number> and the two operators which specified
+C<Number> and two operators
+which are specified
 with a quoted string:
 "C<+>"
 and
@@ -477,11 +495,6 @@ value of the parse,
 and this is the parse result value
 to which the C<value()> method
 returns a reference.
-
-Previously we touched lightly,
-or skipped over entirely,
-the parts of this example dealing with semantics.
-We are now ready to look at them.
 
 =for Marpa::R2::Display
 name: Landing page synopsis
@@ -535,7 +548,8 @@ The other way we specify semantics in this example
 is by using an
 C<action> adverb
 for a RHS alternative.
-We've seen the C<action> adverb twice, but skipped over it.
+We've seen the C<action> adverb several times,
+but skipped over it.
 Now it is time to look at it.
 
 =for Marpa::R2::Display
