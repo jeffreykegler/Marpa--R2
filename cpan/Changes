@@ -15,17 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.083_001
+2.084000 Wed Apr  2 08:25:09 PDT 2014
 
    * No longer require "long long int".
 
    * Update examples to use LATM.
 
    * Speed up LATM.
-
-2.083_000
-
-   * New series of developer's releases.
 
 2.082000 Thu Feb 27 15:43:33 PST 2014
 
