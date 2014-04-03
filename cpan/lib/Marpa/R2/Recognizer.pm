@@ -404,7 +404,8 @@ sub Marpa::R2::Recognizer::set {
             }
             my $closures =
                 $recce->[Marpa::R2::Internal::Recognizer::CLOSURES] = $value;
-            while ( my ( $action, $closure ) = each %{$closures} ) {
+            for my $action ( keys %{$closures} ) {
+                my $closure = $closures->{$action};
                 Marpa::R2::exception(qq{Bad closure for action "$action"})
                     if ref $closure ne 'CODE';
             }

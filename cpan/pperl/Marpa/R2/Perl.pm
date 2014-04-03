@@ -1056,13 +1056,14 @@ sub Marpa::R2::Perl::read_tokens {
     $hash_arg //= {};
 
     my @recce_args = ();
-    HASH_ARG: while ( my ( $arg, $value ) = each %{$hash_arg} ) {
+    HASH_ARG: for my $arg ( keys %{$hash_arg} ) {
+        my $value = $hash_arg->{$arg};
         if ( grep { $_ eq $arg } @RECCE_NAMED_ARGUMENTS ) {
             push @recce_args, $arg, $value;
             next HASH_ARG;
         }
         Carp::croak("Unknown hash arg: $arg");
-    } ## end HASH_ARG: while ( my ( $arg, $value ) = each %{$hash_arg} )
+    } ## end HASH_ARG: for my $arg ( keys %{$hash_arg} )
 
     my $grammar = $parser->{grammar};
 

@@ -223,7 +223,8 @@ TEST: for my $test_data (@test_data) {
                 $pos );
         } ## end TOKEN: for my $token (@expected_symbols)
 
-        TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
+        TOKEN_TYPE: for my $token ( keys %regexes ) {
+            my $regex = $regexes{$token};
             next TOKEN_TYPE
                 if not grep { $token eq $_ } @{$terminals_expected};
             pos $test_input = $pos;
@@ -234,7 +235,7 @@ TEST: for my $test_data (@test_data) {
             $recce->alternative( $token, \$+{match},
                 ( ( pos $test_input ) - $pos ) );
 
-        } ## end TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes )
+        } ## end TOKEN_TYPE: for my $token ( keys %regexes )
         $recce->earleme_complete();
         $terminals_expected = $recce->terminals_expected();
     } ## end for ( my $pos = 0; $pos < $input_length; $pos++ )

@@ -251,7 +251,8 @@ sub run_test {
     ### e_op_action default: $e_op_action
     ### e_number_action default: $e_number_action
 
-    ARG: while ( my ( $arg, $value ) = each %{$args} ) {
+    ARG: for my $arg ( keys %{$args} ) {
+        my $value        = $args->{$arg};
         my $run_test_arg = lc $arg;
         if ( $run_test_arg eq 'e_op_action' ) {
             $e_op_action = $value;
@@ -266,7 +267,7 @@ sub run_test {
             next ARG;
         }
         die "unknown argument to run_test: $arg";
-    } ## end ARG: while ( my ( $arg, $value ) = each %{$args} )
+    } ## end ARG: for my $arg ( keys %{$args} )
 
     ### e_op_action: $e_op_action
     ### e_number_action: $e_number_action
