@@ -438,7 +438,9 @@ sub do_libmarpa {
     local $ENV{CFLAGS};
     $ENV{CFLAGS} = $original_cflags if defined $original_cflags;
 
-    my @configure_command_args = ('--disable-static');
+    # We need PIC, but do not want the overhead of building the shared library
+    my @configure_command_args = qw(--with-pic --disable-shared);
+
     my @debug_flags = ();
     if ( defined $self->args('Marpa-debug') ) {
         if ( defined $ENV{LIBMARPA_CFLAGS} ) {

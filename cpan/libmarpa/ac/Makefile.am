@@ -18,7 +18,7 @@
 AM_CFLAGS = $(WARNING_CFLAGS) $(MARPA_DEBUG_FLAG)
 AM_CPPFLAGS = $(WARNING_CPPFLAGS)
 ACLOCAL_AMFLAGS = -I m4
-noinst_LTLIBRARIES = libmarpa.la
+lib_LTLIBRARIES = libmarpa.la
 libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_obs.c marpa_obs.h \
     marpa_avl.c marpa_avl.h \

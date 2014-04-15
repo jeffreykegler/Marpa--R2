@@ -41,7 +41,7 @@ AM_INIT_AUTOMAKE([])
 # Specify a configuration file
 AC_CONFIG_HEADERS([config.h])
 
-LT_INIT([])
+LT_INIT()
 
 # Checks for programs.
 # The following were suggested by autoscan
