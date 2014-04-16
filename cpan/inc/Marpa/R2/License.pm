@@ -380,6 +380,8 @@ sub file_type {
         if $filepart =~ /[.] (xs|c|h) \z /xms;
     return \&license_problems_in_xsh_file
         if $filepart =~ /[.] (xsh) \z /xms;
+    return \&license_problems_in_sh_file
+        if $filepart =~ /[.] (sh) \z /xms;
     return \&license_problems_in_c_file
         if $filepart =~ /[.] (xs|c|h) [.] in \z /xms;
     return \&license_problems_in_tex_file
@@ -523,6 +525,38 @@ sub license_problems_in_xsh_file {
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
 } ## end sub license_problems_in_xsh_file
+
+sub license_problems_in_sh_file {
+    my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as sh hash style file"
+            or die "say failed: $ERRNO";
+    }
+    my @problems = ();
+    $DB::single = 1;
+    my $ref_text = slurp_top( $filename, 256 + length $r2_hash_license );
+    my $text = ${$ref_text};
+    $text =~ s/ \A [#][!] [^\n]* \n//xms;
+    $text = substr $text, 0, length $r2_hash_license;
+    if ( $r2_hash_license ne $text ) {
+        my $problem = "No license language in $filename (sh hash style)\n";
+        if ($verbose) {
+            $problem
+                .= "=== Differences ===\n"
+                . Text::Diff::diff( \$text, \$r2_hash_license )
+                . ( q{=} x 30 );
+        } ## end if ($verbose)
+        push @problems, $problem;
+    }
+    if ( scalar @problems and $verbose >= 2 ) {
+        my $problem =
+              "=== license for $filename should be as follows:\n"
+            . $r2_hash_license
+            . ( q{=} x 30 );
+        push @problems, $problem;
+    } ## end if ( scalar @problems and $verbose >= 2 )
+    return @problems;
+}
 
 sub license_problems_in_perl_file {
     my ( $filename, $type, $verbose ) = @_;
