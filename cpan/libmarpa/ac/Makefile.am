@@ -27,6 +27,7 @@ libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_codes.c marpa_slif.c
 EXTRA_DIST = VERSION
 libmarpa_la_LIBADD = $(LIBOBJS)
+libmarpa_la_LDFLAGS = -release $(MARPA_MAJOR_VERSION).$(MARPA_MINOR_VERSION).$(MARPA_MICRO_VERSION)
 include_HEADERS = marpa.h \
   marpa_avl.h marpa_tavl.h marpa_ami.h \
   marpa_slif.h marpa_obs.h
