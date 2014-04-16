@@ -7,21 +7,39 @@ use autodie;
 use English qw( -no_match_vars );
 use IPC::Cmd;
 
-chomp( my $LATEST =
-        qx(grep '^[0-9]' cpan/Changes | head -1 | awk '{print \$1}') );
+my $latest;
+LINE: {
+    open my $changes_fh, q{<}, 'cpan/Changes';
+    while ( my $line = <$changes_fh> ) {
+        if ( $line =~ m/ \A \d /xms ) {
+            $latest = $line;
+            chomp $latest;
+            last LINE;
+        }
+    } ## end while ( my $line = <$changes_fh> )
+} ## end LINE:
 
-warn "Bumping -> $LATEST\n";
+die "Could not find latest change" if not defined $latest;
+warn "Bumping -> $latest\n";
 
-my ( $major, $minor, $micro ) = ( $LATEST =~ m/\A (\d+) [.] (\d\d\d) [_]? (\d\d\d) /xms );
-if ( not defined $micro ) {
-    die "bump_version Cannot handle new version number: $LATEST";
+my ( $major, $minor, $underscore, $micro, $libmarpa_major, $libmarpa_minor,
+    $libmarpa_micro )
+    = (
+    $latest =~ m/\A
+	  (\d+) [.] (\d\d\d) ([_]?) (\d\d\d)
+	  \s+ [(] libmarpa \s+ (\d+) [.] (\d+) [.] (\d+) [)]
+	/xms
+    );
+
+if ( not defined $libmarpa_micro ) {
+    die "bump_version Cannot handle new version number: $latest";
 }
+
 $major += 0;
 $minor += 0;
 $micro += 0;
-my $libmarpa_major = $major+3;
-my $libmarpa_minor = $minor+100;
-my $libmarpa_micro = $micro+100;
+my $perlish_version = sprintf '%d%s%.3d%s%.3d', $major, q{.}, $minor,
+    $underscore, $micro;
 
 my @versioned_files = split /\n/xms, <<'END_OF_LIST';
 cpan/html/lib/Marpa/R2/HTML.pm
@@ -48,7 +66,7 @@ END_OF_LIST
 for my $versioned_file (@versioned_files) {
     say STDERR $versioned_file;
     my $file = do { local ( @ARGV, $/ ) = ($versioned_file); <> };
-    $file =~ s/(\$VERSION \s+ =  \s+ ['] ) \d+ [.] \d\d\d [_]? \d\d\d /$1${LATEST}/xms;
+    $file =~ s/(\$VERSION \s+ =  \s+ ['] ) \d+ [.] \d\d\d [_]? \d\d\d /$1${perlish_version}/xms;
     open my $out, '>', $versioned_file;
     print $out $file;
 } ## end for my $versioned_file (@versioned_files)
@@ -91,7 +109,7 @@ for my $configure_ac_file (
   }{$1${libmarpa_micro}$2}xms;
     open my $out, '>', $configure_ac_file;
     print $out $file;
-} ## end for my $configure_ac_file ( qw( cpan/libmarpa/dev/dist/configure.ac...))
+} ## end for my $configure_ac_file ( qw( cpan/libmarpa/ac/configure.ac...))
 
 {
     open my $out, '>', 'cpan/libmarpa/public/marpa.h-version';
@@ -110,13 +128,12 @@ for my $configure_ac_file (
 chdir 'cpan';
 die qq{"perl Build.PL" failed: $!}
     if not IPC::Cmd::run(
-            command => [ $EXECUTABLE_NAME, 'Build.PL' ],
-            verbose => 1
+    command => [ $EXECUTABLE_NAME, 'Build.PL' ],
+    verbose => 1
     );
 die qq{"./Build distmeta" failed: $!}
     if
     not IPC::Cmd::run( command => [ './Build', 'distmeta' ], verbose => 1 );
 chdir 'meta';
 die qq{"make all" in cpan/meta/ directory failed: $!}
-    if
-    not IPC::Cmd::run( command => [ 'make', 'all' ], verbose => 1 );
+    if not IPC::Cmd::run( command => [ 'make', 'all' ], verbose => 1 );
