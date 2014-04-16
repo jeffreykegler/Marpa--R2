@@ -1262,9 +1262,9 @@ of one of these two prefixes.
 @chapter Static methods
 
 @deftypefun Marpa_Error_Code marpa_check_version @
-    (unsigned int @var{required_major}, @
-    unsigned int @var{required_minor}, @
-    unsigned int @var{required_micro} @
+    (int @var{required_major}, @
+    int @var{required_minor}, @
+    int @var{required_micro} @
     )
 
 Checks that the Marpa library in use is compatible with the
@@ -1297,10 +1297,10 @@ one of the following is returned, indicating the nature of the mismatch:
 
 @end deftypefun
 
-@deftypefun Marpa_Error_Code marpa_version (unsigned int* version)
+@deftypefun Marpa_Error_Code marpa_version (int* version)
 
 Returns the version number in @var{version},
-which must have room for three @code{unsigned int}'s.
+which must have room for three @code{int}'s.
 
 Return value: A non-negative number on success,
 @minus{}2 on failure.

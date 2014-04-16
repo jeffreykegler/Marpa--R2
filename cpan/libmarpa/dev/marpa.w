@@ -587,15 +587,15 @@ prototypes, look at
 @** The public header file.
 @*0 Version constants.
 @<Global constant variables@> =
-const unsigned int marpa_major_version = MARPA_MAJOR_VERSION;
-const unsigned int marpa_minor_version = MARPA_MINOR_VERSION;
-const unsigned int marpa_micro_version = MARPA_MICRO_VERSION;
+const int marpa_major_version = MARPA_MAJOR_VERSION;
+const int marpa_minor_version = MARPA_MINOR_VERSION;
+const int marpa_micro_version = MARPA_MICRO_VERSION;
 
 @ @<Function definitions@> =
 Marpa_Error_Code
-marpa_check_version (unsigned int required_major,
-                    unsigned int required_minor,
-                    unsigned int required_micro)
+marpa_check_version (int required_major,
+                    int required_minor,
+                    int required_micro)
 {
   if (required_major != MARPA_MAJOR_VERSION)
     return MARPA_ERR_MAJOR_VERSION_MISMATCH;
@@ -611,7 +611,7 @@ marpa_check_version (unsigned int required_major,
 @ Always succeeds at this point.
 @<Function definitions@> =
 Marpa_Error_Code
-marpa_version (unsigned int* version)
+marpa_version (int* version)
 {
   *version++ = MARPA_MAJOR_VERSION;
   *version++ = MARPA_MINOR_VERSION;
@@ -15820,11 +15820,9 @@ or used strictly for debugging.
 @*0 Public header file.
 @ Our portion of the public header file.
 @ @(marpa.h.p50@> =
-extern const unsigned int marpa_major_version;
-extern const unsigned int marpa_minor_version;
-extern const unsigned int marpa_micro_version;
-extern const unsigned int marpa_interface_age;
-extern const unsigned int marpa_binary_age;
+extern const int marpa_major_version;
+extern const int marpa_minor_version;
+extern const int marpa_micro_version;
 
 #define MARPA_CHECK_VERSION(major,minor,micro) @| \
     @[ (MARPA_MAJOR_VERSION > (major) \

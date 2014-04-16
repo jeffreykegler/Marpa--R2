@@ -2432,7 +2432,7 @@ void
 version()
 PPCODE:
 {
-    unsigned int version[3];
+    int version[3];
     int result = marpa_version(version);
     if (result < 0) { XSRETURN_UNDEF; }
     XPUSHs (sv_2mortal (newSViv (version[0])));
@@ -2455,101 +2455,111 @@ PPCODE:
 
   switch (items)
     {
-    case 1: {
-      /* If we are using the (deprecated) interface 0,
-       * get the throw setting from a (deprecated) global variable
-       */
-      SV *throw_sv = get_sv ("Marpa::R2::Thin::C::THROW", 0);
-      throw = throw_sv && SvTRUE (throw_sv);
-    }
-    break;
-    croak("Usage: Marpa::R2::Thin:G::new(class, arg_hash)");
+    case 1:
+      {
+	/* If we are using the (deprecated) interface 0,
+	 * get the throw setting from a (deprecated) global variable
+	 */
+	SV *throw_sv = get_sv ("Marpa::R2::Thin::C::THROW", 0);
+	throw = throw_sv && SvTRUE (throw_sv);
+      }
+      break;
+      croak ("Usage: Marpa::R2::Thin:G::new(class, arg_hash)");
     case 2:
       {
-        I32 retlen;
-        char *key;
-        SV *arg_value;
-        SV *arg = ST (1);
-        HV *named_args;
-        if (!SvROK (arg) || SvTYPE (SvRV (arg)) != SVt_PVHV)
-            croak ("Problem in $g->new(): argument is not hash ref");
-        named_args = (HV *) SvRV (arg);
-        hv_iterinit (named_args);
-        while ((arg_value = hv_iternextsv (named_args, &key, &retlen)))
-          {
-            if ((*key == 'i') && strnEQ (key, "if", (unsigned) retlen))
-              {
-                interface = SvIV (arg_value);
-                if (interface != 1)
-                  {
-                    croak ("Problem in $g->new(): interface value must be 1");
-                  }
-                continue;
-              }
-            croak ("Problem in $g->new(): unknown named argument: %s", key);
-          }
-        if (interface != 1)
-          {
-            croak
-              ("Problem in $g->new(): 'interface' named argument is required");
-          }
+	I32 retlen;
+	char *key;
+	SV *arg_value;
+	SV *arg = ST (1);
+	HV *named_args;
+	if (!SvROK (arg) || SvTYPE (SvRV (arg)) != SVt_PVHV)
+	  croak ("Problem in $g->new(): argument is not hash ref");
+	named_args = (HV *) SvRV (arg);
+	hv_iterinit (named_args);
+	while ((arg_value = hv_iternextsv (named_args, &key, &retlen)))
+	  {
+	    if ((*key == 'i') && strnEQ (key, "if", (unsigned) retlen))
+	      {
+		interface = SvIV (arg_value);
+		if (interface != 1)
+		  {
+		    croak ("Problem in $g->new(): interface value must be 1");
+		  }
+		continue;
+	      }
+	    croak ("Problem in $g->new(): unknown named argument: %s", key);
+	  }
+	if (interface != 1)
+	  {
+	    croak
+	      ("Problem in $g->new(): 'interface' named argument is required");
+	  }
       }
+    }
+
+  /* Make sure the header is from the version we want */
+  if (MARPA_H_MAJOR_VERSION != EXPECTED_LIBMARPA_MAJOR
+      || MARPA_H_MINOR_VERSION != EXPECTED_LIBMARPA_MINOR
+      || MARPA_H_MICRO_VERSION != EXPECTED_LIBMARPA_MICRO)
+    {
+      croak
+	("Problem in $g->new(): want Libmarpa %d.%d.%d, header was from Libmarpa %d.%d.%d",
+	 EXPECTED_LIBMARPA_MAJOR, EXPECTED_LIBMARPA_MINOR,
+	 EXPECTED_LIBMARPA_MICRO,
+	 MARPA_H_MAJOR_VERSION, MARPA_H_MINOR_VERSION,
+	 MARPA_H_MICRO_VERSION);
     }
 
   {
-    unsigned int version[3];
+    /* Now make sure the library is from the version we want */
+    int version[3];
     error_code = marpa_version (version);
     if (error_code != MARPA_ERR_NONE
-        || version[0] != EXPECTED_LIBMARPA_MAJOR
-        || version[1] != EXPECTED_LIBMARPA_MINOR
-        || version[2] != EXPECTED_LIBMARPA_MICRO)
+	|| version[0] != EXPECTED_LIBMARPA_MAJOR
+	|| version[1] != EXPECTED_LIBMARPA_MINOR
+	|| version[2] != EXPECTED_LIBMARPA_MICRO)
       {
-        croak
-          ("Problem in $g->new(): want Libmarpa %d.%d.%d, using Libmarpa %d.%d.%d",
-           EXPECTED_LIBMARPA_MAJOR, EXPECTED_LIBMARPA_MINOR,
-           EXPECTED_LIBMARPA_MICRO, version[0], version[1], version[2]);
+	croak
+	  ("Problem in $g->new(): want Libmarpa %d.%d.%d, using Libmarpa %d.%d.%d",
+	   EXPECTED_LIBMARPA_MAJOR, EXPECTED_LIBMARPA_MINOR,
+	   EXPECTED_LIBMARPA_MICRO, version[0], version[1], version[2]);
       }
   }
 
-  error_code =
-    marpa_check_version (MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION,
-                         MARPA_MICRO_VERSION);
-  if (error_code == MARPA_ERR_NONE)
+  marpa_c_init (&marpa_configuration);
+  g = marpa_g_new (&marpa_configuration);
+  if (g)
     {
-      marpa_c_init (&marpa_configuration);
-      g = marpa_g_new (&marpa_configuration);
-      if (g)
-        {
-          SV *sv;
-          Newx (g_wrapper, 1, G_Wrapper);
-          g_wrapper->throw = throw;
-          g_wrapper->g = g;
-          g_wrapper->message_buffer = NULL;
-          g_wrapper->libmarpa_error_code = MARPA_ERR_NONE;
-          g_wrapper->libmarpa_error_string = NULL;
-          g_wrapper->message_is_marpa_thin_error = 0;
-          sv = sv_newmortal ();
-          sv_setref_pv (sv, grammar_c_class_name, (void *) g_wrapper);
-          XPUSHs (sv);
-        }
-      else
-        {
-          error_code = marpa_c_error (&marpa_configuration, NULL);
-        }
+      SV *sv;
+      Newx (g_wrapper, 1, G_Wrapper);
+      g_wrapper->throw = throw;
+      g_wrapper->g = g;
+      g_wrapper->message_buffer = NULL;
+      g_wrapper->libmarpa_error_code = MARPA_ERR_NONE;
+      g_wrapper->libmarpa_error_string = NULL;
+      g_wrapper->message_is_marpa_thin_error = 0;
+      sv = sv_newmortal ();
+      sv_setref_pv (sv, grammar_c_class_name, (void *) g_wrapper);
+      XPUSHs (sv);
     }
+  else
+    {
+      error_code = marpa_c_error (&marpa_configuration, NULL);
+    }
+
   if (error_code != MARPA_ERR_NONE)
     {
       const char *error_description = "Error code out of bounds";
       if (error_code >= 0 && error_code < MARPA_ERROR_COUNT)
-        {
-          error_description = marpa_error_description[error_code].name;
-        }
+	{
+	  error_description = marpa_error_description[error_code].name;
+	}
       if (throw)
-        croak ("Problem in Marpa::R2->new(): %s", error_description);
+	croak ("Problem in Marpa::R2->new(): %s", error_description);
       if (GIMME != G_ARRAY)
-        {
-          XSRETURN_UNDEF;
-        }
+	{
+	  XSRETURN_UNDEF;
+	}
       XPUSHs (&PL_sv_undef);
       XPUSHs (sv_2mortal (newSViv (error_code)));
     }

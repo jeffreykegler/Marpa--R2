@@ -152,6 +152,7 @@ libmarpa/obs/marpa_obs.c
 libmarpa/obs/marpa_obs.h
 libmarpa/public/.gitignore
 libmarpa/public/Makefile
+libmarpa/public/marpa.h-version
 libmarpa/public/marpa.h.p10
 libmarpa/public/marpa.h.p90
 libmarpa/public/marpa_codes.c.p10
@@ -188,6 +189,7 @@ libmarpa_dist/Makefile.in
 libmarpa_dist/NEWS
 libmarpa_dist/README
 libmarpa_dist/VERSION
+libmarpa_dist/VERSION.in
 libmarpa_dist/aclocal.m4
 libmarpa_dist/config.guess
 libmarpa_dist/config.h.in
