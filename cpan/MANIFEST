@@ -152,8 +152,6 @@ libmarpa/obs/marpa_obs.c
 libmarpa/obs/marpa_obs.h
 libmarpa/public/.gitignore
 libmarpa/public/Makefile
-libmarpa/public/VERSION
-libmarpa/public/marpa.h-version
 libmarpa/public/marpa.h.p10
 libmarpa/public/marpa.h.p90
 libmarpa/public/marpa_codes.c.p10
