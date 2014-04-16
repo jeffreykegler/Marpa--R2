@@ -53,7 +53,8 @@ STAGE_FILES = \
     stage/marpa_tavl.c \
     stage/marpa_tavl.h \
     stage/NEWS \
-    stage/README 
+    stage/README \
+    stage/VERSION.in
 
 dummy:
 	@echo install is the main target
@@ -111,13 +112,16 @@ stage/marpa_tavl.h: tavl/marpa_tavl.h
 stage/marpa_tavl.c: tavl/marpa_tavl.c
 	cp $? $@
 
-stage/README: ac/README
-	cp $? $@
-
 stage/NEWS: ac/NEWS
 	cp $? $@
 
 stage/AUTHORS: ac/AUTHORS
+	cp $? $@
+
+stage/README: ac/README
+	cp $? $@
+
+stage/VERSION.in: public/VERSION.in
 	cp $? $@
 
 stage/COPYING.LESSER: ac/COPYING.LESSER
