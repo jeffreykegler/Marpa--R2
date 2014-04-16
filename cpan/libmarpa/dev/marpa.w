@@ -586,6 +586,8 @@ prototypes, look at
 
 @** The public header file.
 @*0 Version constants.
+@ I should do something about making sure the |MARPA_H_MAJOR_VERSION|, etc.
+match these.  Static assertions?
 @<Global constant variables@> =
 const int marpa_major_version = MARPA_MAJOR_VERSION;
 const int marpa_minor_version = MARPA_MINOR_VERSION;
