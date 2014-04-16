@@ -111,20 +111,6 @@ for my $configure_ac_file (
     print $out $file;
 } ## end for my $configure_ac_file ( qw( cpan/libmarpa/ac/configure.ac...))
 
-{
-    open my $out, '>', 'cpan/libmarpa/public/marpa.h-version';
-    say $out join " ", q{#define MARPA_MAJOR_VERSION}, $libmarpa_major;
-    say $out join " ", q{#define MARPA_MINOR_VERSION}, $libmarpa_minor;
-    say $out join " ", q{#define MARPA_MICRO_VERSION}, $libmarpa_micro;
-    close $out;
-}
-
-{
-    open my $out, '>', 'cpan/libmarpa/public/VERSION';
-    say $out join q{.}, $libmarpa_major, $libmarpa_minor, $libmarpa_micro;
-    close $out;
-}
-
 chdir 'cpan';
 die qq{"perl Build.PL" failed: $!}
     if not IPC::Cmd::run(
