@@ -268,7 +268,6 @@ my %files_by_type = (
     'author.t/spelling_exceptions.list' => \&trivial,
     'author.t/tidy1'                    => \&trivial,
     'etc/dovg.sh'                           => \&trivial,
-    'etc/copy_from_stage'               => \&license_problems_in_perl_file,
     'etc/compile_for_debug.sh'          => \&trivial,
     'etc/reserved_check.sh'          => \&trivial,
     'html/script/marpa_r2_html_fmt'     => \&license_problems_in_perl_file,
@@ -290,14 +289,13 @@ my %files_by_type = (
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa_dist/VERSION'                 => \&trivial,
     'libmarpa_dist/VERSION.in'                 => \&trivial,
+    'libmarpa/public/VERSION.in'                 => \&trivial,
     'libmarpa/bin/too_long.pl' => \&trivial,
     'libmarpa/shared/copyright_page_license.w' => \&copyright_page,
     'libmarpa/shared/cwebmac.tex' =>
         \&ignored,    # originally from Cweb, leave it alone
     'libmarpa/ac_doc/fdl-1.3.texi'  => \&ignored,
     'libmarpa/ac_doc/lgpl-3.0.texi' => \&ignored,
-    'libmarpa/stage/config.h.in' =>
-        check_tag( 'Generated from configure.ac by autoheader', 250 ),
     'libmarpa/test/Makefile'       => \&trivial,
     'libmarpa/test/README'         => \&trivial,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,
