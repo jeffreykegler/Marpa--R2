@@ -473,7 +473,7 @@ sub do_libmarpa {
                 say join q{ }, "Doing config.h"
                     or die "print failed: $ERRNO";
             }
-            open(CONFIG_H, '>>', 'config.h') || die "Cannot open config.h, $!\n";
+            open my $config_fh, '>>', 'config.h' || die "Cannot open config.h, $!\n";
             my $ac = Config::AutoConf->new();
             my $inline_ok = 0;
             {
@@ -497,7 +497,7 @@ sub do_libmarpa {
                 }
             }
             if ($inline) {
-                print CONFIG_H <<INLINEHOOK;
+                print {$config_fh} <<INLINEHOOK;
 #ifndef __CONFIG_WITH_STUBS_H
 #ifndef __cplusplus
 #define inline $inline
@@ -506,7 +506,7 @@ sub do_libmarpa {
 #endif /* __CONFIG_WITH_STUBS_H */
 INLINEHOOK
             } else {
-                print CONFIG_H <<INLINEHOOK;
+                print {$config_fh} <<INLINEHOOK;
 #ifndef __CONFIG_WITH_STUBS_H
 #ifndef __cplusplus
 /* #undef inline */
@@ -515,7 +515,13 @@ INLINEHOOK
 #endif /* __CONFIG_WITH_STUBS_H */
 INLINEHOOK
             }
-            close(CONFIG_H);
+
+            # Config::Autoconf mistakes 0 for undef, so these must be done explicitly
+            say {$config_fh} join q{ }, '#define MARPA_MAJOR_VERSION', $libmarpa_version[0];
+            say {$config_fh} join q{ }, '#define MARPA_MINOR_VERSION', $libmarpa_version[1];
+            say {$config_fh} join q{ }, '#define MARPA_MICRO_VERSION', $libmarpa_version[2];
+
+            close($config_fh);
             $ac = Config::AutoConf->new();
             my $sizeof_int = $ac->check_sizeof_type('int');
             if ($sizeof_int < 4) {
@@ -535,7 +541,7 @@ INLINEHOOK
             $ac->define_var('PACKAGE', "\"libmarpa\"");
             $ac->define_var('PACKAGE_BUGREPORT', "\"http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa\"");
             $ac->define_var('PACKAGE_NAME', "\"libmarpa\"");
-            $ac->define_var('PACKAGE_STRING', "\"libmarpa $libmarpa_version[0].$libmarpa_version[2].$libmarpa_version[1]\"");
+            $ac->define_var('PACKAGE_STRING', "\"libmarpa $libmarpa_version[0].$libmarpa_version[1].$libmarpa_version[2]\"");
             $ac->define_var('PACKAGE_TARNAME', "\"libmarpa\"");
             $ac->define_var('PACKAGE_URL', "\"\"");
             $ac->define_var('PACKAGE_VERSION', "\"$libmarpa_version\"");
