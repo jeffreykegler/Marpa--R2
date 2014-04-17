@@ -586,8 +586,18 @@ prototypes, look at
 
 @** The public header file.
 @*0 Version constants.
-@ I should do something about making sure the |MARPA_H_MAJOR_VERSION|, etc.
-match these.  Static assertions?
+@ This macro checks that the header version numbers
+and the library version numbers are identical.
+It is all compile-time constants,
+so it is expected that
+it will be optimized out completely at compile time.
+@d HEADER_VERSION_MISMATCH (
+   MARPA_MAJOR_VERSION != MARPA_H_MAJOR_VERSION
+   || MARPA_MINOR_VERSION != MARPA_H_MINOR_VERSION
+   || MARPA_MICRO_VERSION != MARPA_H_MICRO_VERSION
+)
+@ Set globals to the library version numbers,
+so that they can be found at runtime.
 @<Global constant variables@> =
 const int marpa_major_version = MARPA_MAJOR_VERSION;
 const int marpa_minor_version = MARPA_MINOR_VERSION;
@@ -14251,7 +14261,15 @@ if (_MARPA_UNLIKELY(!R_is_Consistent(r))) {
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
 
-@ @<Fail if fatal error@> =
+@ It is expected the first test, for
+mismatched headers, will be optimized
+completely out if the versions
+numbers are consistent.
+@<Fail if fatal error@> =
+if (HEADER_VERSION_MISMATCH) {
+    MARPA_ERROR(MARPA_ERR_HEADERS_DO_NOT_MATCH);
+    return failure_indicator;
+}
 if (_MARPA_UNLIKELY(!IS_G_OK(g))) {
     MARPA_ERROR(g->t_error);
     return failure_indicator;

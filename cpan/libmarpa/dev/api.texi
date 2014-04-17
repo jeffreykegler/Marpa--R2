@@ -4435,15 +4435,6 @@ Numeric value: 16.
 Suggested message: "No event at that index".
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_I_AM_NOT_OK
-The Libmarpa base grammar is in a "not ok"
-state.
-Currently, the only way this can happen
-is if Libmarpa memory is being overwritten.
-Numeric value: 29.
-Suggested message: "Marpa is in a not OK state".
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_GRAMMAR_HAS_CYCLE
 The grammar has a cycle --- one or more loop
 rules.
@@ -4453,6 +4444,26 @@ it as fatal.
 For more see the description of @ref{marpa_g_precompute}.
 Numeric value: 17.
 Suggested message: "Grammar has cycle".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_HEADERS_DO_NOT_MATCH
+This is an internal error, and indicates that
+Libmarpa was wrongly built.
+Libmarpa was compiled with headers which do not
+match the rest of the code.
+The solution is to find a correctly built
+Libmarpa.
+Numeric value: 98.
+Suggested message: "Internal error: Libmarpa was built incorrectly"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_I_AM_NOT_OK
+The Libmarpa base grammar is in a "not ok"
+state.
+Currently, the only way this can happen
+is if Libmarpa memory is being overwritten.
+Numeric value: 29.
+Suggested message: "Marpa is in a not OK state".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INACCESSIBLE_TOKEN
