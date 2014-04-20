@@ -1,1 +1,3 @@
+# This is a file to "touch", when I want to create a Github commit not related to an actual
+# file change.
 commit e4546f16d5095819d26952be7ad70bf0928928bc fixes Github issue #131

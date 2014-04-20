@@ -44,6 +44,7 @@
 \.tar.gz$
 \/\.git\/
 ^Build$
+^TOUCH$
 ^MANIFEST\.SKIP$
 ^MYMETA.json$
 ^MYMETA.yml$
