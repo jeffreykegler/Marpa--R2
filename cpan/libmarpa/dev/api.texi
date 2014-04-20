@@ -22,6 +22,11 @@ A copy of the license is included in the section entitled
 @end quotation
 @end copying
 
+@dircategory Development
+@direntry
+  * Marpa R2: (marpa-r2).                Marpa R2 parser library
+@end direntry
+
 @titlepage
 @title Libmarpa
 @subtitle Version @value{VERSION}
@@ -4029,7 +4034,7 @@ returned by the @code{marpa_v_symbol()}
 macro.
 @end deftypefn
 
-@deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
+@deftypefn {Macro} int marpa_v_token_value (Marpa_Value @var{v})
 For the @code{MARPA_STEP_TOKEN} step,
 returns the integer which is
 (or which represents)
