@@ -74,12 +74,10 @@ docs: marpa.pdf legacy.pdf
 
 update_texi:
 	emacs -batch api.texi \
-	    -f texinfo-every-node-update \
-	    -f texinfo-all-menus-update \
+	    -eval '(texinfo-master-menu 1)' \
 	    -f save-buffer -kill
 	emacs -batch internal.texi \
-	    -f texinfo-every-node-update \
-	    -f texinfo-all-menus-update \
+	    -eval '(texinfo-master-menu 1)' \
 	    -f save-buffer -kill
 
 CLEAN_FILES = marpa.c marpa.c.p10 marpa.c.p40 marpa.c.p50 \

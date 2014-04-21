@@ -109,10 +109,6 @@ Earlemes
 * The generalized model::       
 * General rules for the earleme variables::  
 
-Semantics
-
-* How Libmarpa semantics work::  
-
 Introduction to the external interface
 
 * About the overviews::         
@@ -205,11 +201,18 @@ Work in Progress
 
 Untested methods
 
+* Ranking methods::             
+* Zero-width assertion methods::  
 * Methods for revising parses::  
 
 Deprecated techniques and methods
 
 * Valued and unvalued symbols::  
+
+Valued and unvalued symbols
+
+* What unvalued symbols were::  
+* Grammar methods dealing with unvalued symbols::  
 * Registering semantics in the valuator::  
 
 @end detailmenu
@@ -984,13 +987,6 @@ parse evaluation.
 
 @node Semantics, Threads, Input, Top
 @chapter Semantics
-
-@menu
-* How Libmarpa semantics work::  
-@end menu
-
-@node How Libmarpa semantics work,  , Semantics, Semantics
-@section How the Libmarpa semantics work
 
 Libmarpa handling of semantics is unusual.
 Most semantics are left up to the application,
@@ -5128,6 +5124,15 @@ Their fate is uncertain.
 Users should regard these methods
 as unsupported.
 
+@menu
+* Ranking methods::             
+* Zero-width assertion methods::  
+* Methods for revising parses::  
+@end menu
+
+@node Ranking methods, Zero-width assertion methods, Untested methods, Untested methods
+@subsection Ranking methods
+
 @deftypefun Marpa_Rank marpa_g_default_rank ( @
     Marpa_Grammar @var{g})
 @deftypefunx Marpa_Rank marpa_g_default_rank_set ( @
@@ -5196,6 +5201,9 @@ The error code can be determined by using the
 
 @end deftypefun
 
+@node Zero-width assertion methods, Methods for revising parses, Ranking methods, Untested methods
+@subsection Zero-width assertion methods
+
 @deftypefun Marpa_Assertion_ID marpa_g_zwa_new ( @
     Marpa_Grammar @var{g}, @
     int @var{default_value})
@@ -5228,11 +5236,7 @@ On success, returns previous default value of the assertion.
     Marpa_Grammar @var{g} )
 @end deftypefun
 
-@menu
-* Methods for revising parses::  
-@end menu
-
-@node Methods for revising parses,  , Untested methods, Untested methods
+@node Methods for revising parses,  , Zero-width assertion methods, Untested methods
 @subsection Methods for revising parses
 
 Marpa allows an application to ``change its mind'' about a parse,
@@ -5250,11 +5254,19 @@ The methods in this section provide that capability.
 
 @menu
 * Valued and unvalued symbols::  
+@end menu
+
+@node Valued and unvalued symbols,  , Deprecated techniques and methods, Deprecated techniques and methods
+@section Valued and unvalued symbols
+
+@menu
+* What unvalued symbols were::  
+* Grammar methods dealing with unvalued symbols::  
 * Registering semantics in the valuator::  
 @end menu
 
-@node Valued and unvalued symbols, Registering semantics in the valuator, Deprecated techniques and methods, Deprecated techniques and methods
-@section Valued and unvalued symbols
+@node What unvalued symbols were, Grammar methods dealing with unvalued symbols, Valued and unvalued symbols, Valued and unvalued symbols
+@subsection What unvalued symbols were
 
 Libmarpa symbols can have values,
 which is the traditional way of doing semantics.
@@ -5311,6 +5323,9 @@ conflicts with its locked valued status.
 Doing so usually saves the programmer
 some tricky debugging further down the road.
 
+@node Grammar methods dealing with unvalued symbols, Registering semantics in the valuator, What unvalued symbols were, Valued and unvalued symbols
+@subsection Grammar methods dealing with unvalued symbols
+
 @deftypefun int marpa_g_symbol_is_valued ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id})
@@ -5340,8 +5355,8 @@ or on other failure, @minus{}2.
 
 @end deftypefun
 
-@node Registering semantics in the valuator,  , Valued and unvalued symbols, Deprecated techniques and methods
-@section Registering semantics in the valuator
+@node Registering semantics in the valuator,  , Grammar methods dealing with unvalued symbols, Valued and unvalued symbols
+@subsection Registering semantics in the valuator
 
 By default, Libmarpa's valuator objects
 assume that
