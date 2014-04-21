@@ -1370,8 +1370,34 @@ is arbitrary.
   BITFIELD t_is_valued:1;
   BITFIELD t_is_valued_locked:1;
 @ @<Initialize XSY elements@> =
-  XSY_is_Valued(xsy) = 0;
-  XSY_is_Valued_Locked(xsy) = 0;
+  XSY_is_Valued(xsy) = g->t_force_valued ? 1 : 0;
+  XSY_is_Valued_Locked(xsy) = g->t_force_valued ? 1 : 0;
+
+@ Force all symbols to be valued.
+Unvalued symbols are deprecated,
+so that this will be the default, going
+forward.
+@ @<Int aligned grammar elements@>= int t_force_valued;
+@ @<Initialize grammar elements@> =
+  g->t_force_valued = 0;
+@ @<Function definitions@> =
+int marpa_g_force_valued( Marpa_Grammar g)
+{
+    XSYID xsyid;
+    @<Return |-2| on failure@>@;
+    for (xsyid = 0; xsyid < XSY_Count_of_G(g); xsyid++) {
+      const XSY xsy = XSY_by_ID(xsyid);
+      if (!XSY_is_Valued(xsy) && XSY_is_Valued_Locked(xsy))
+      {
+        MARPA_ERROR ( MARPA_ERR_VALUED_IS_LOCKED);
+        return failure_indicator;
+      }
+      XSY_is_Valued(xsy) = 1;
+      XSY_is_Valued_Locked(xsy) = 1;
+    }
+    g->t_force_valued = 1;
+    return 0;
+}
 
 @ @<Function definitions@> =
 int marpa_g_symbol_is_valued(

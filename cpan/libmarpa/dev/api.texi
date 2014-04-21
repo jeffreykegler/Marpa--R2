@@ -1420,7 +1420,7 @@ use the
 @cindex grammar constructor
 
 @deftypefun Marpa_Grammar marpa_g_new ( @
-    Marpa_Config* configuration )
+    Marpa_Config* @var{configuration} )
 
 Creates a new grammar time object.
 The returned grammar object is not yet precomputed,
@@ -1440,6 +1440,24 @@ Return value: On success, the grammar object.
 On failure, @code{NULL},
 and the error code is set in @var{configuration}.
 
+@end deftypefun
+
+@deftypefun int marpa_g_force_valued ( @
+    Marpa_Grammar @var{g} )
+
+It is recommended that
+this call be made immediately after the
+grammar constructor.
+It turns off a deprecated feature.
+
+The @code{marpa_g_force_valued} forces all the
+symbols in a grammar to be ``valued''.
+The opposite of a valued symbol is one about whose value
+you do not care.
+This distinction has been made in the past in hope
+of gaining efficiencies at evaluation time.
+Current thinking is that the gains do not repay the extra
+complexity.
 @end deftypefun
 
 @node Grammar reference counting, Symbols, Grammar constructor, Grammar methods
@@ -3257,10 +3275,10 @@ Failures: On failure, @minus{}2.
     Marpa_Order @var{o})
 These methods, respectively, set and discover
 the ``high rank only'' flag of ordering @var{o}.
-A flag of 1 indicates that, when ranking,
+A @var{flag} of 1 indicates that, when ranking,
 all choices should be discarded except those of the
 highest rank.
-A valued status of 0 indicates that
+A @var{flag} of 0 indicates that
 no choices should be discarded on the
 basis of their rank.
 
