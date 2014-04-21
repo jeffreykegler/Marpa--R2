@@ -1554,11 +1554,11 @@ sub Marpa::R2::Recognizer::value {
     $semantics_arg0 //= $per_parse_arg // {};
 
     my $value = Marpa::R2::Thin::V->new($tree);
-    $value->valued_force();
     if ($slr) {
         $value->slr_set( $slr->thin() );
     }
     else {
+        $value->valued_force();
         TOKEN_IX:
         for ( my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++ )
         {
