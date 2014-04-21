@@ -813,10 +813,11 @@ if (trace_lexers >= 1)
                     slr->codepoint = codepoint;
                     slr->input_symbol_id = symbol_id;
                     croak
-                      ("Problem alternative() failed at char ix %ld; symbol id %ld; codepoint 0x%lx\n"
+                      ("Problem alternative() failed at char ix %ld; symbol id %ld; codepoint 0x%lx value %ld\n"
                        "Problem in u_read(), alternative() failed: %s",
                        (long) slr->perl_pos, (long) symbol_id,
                        (unsigned long) codepoint,
+                       (long) value,
                        xs_g_error (slr->current_lexer->g_wrapper));
                   }
               }

@@ -632,6 +632,9 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
     } ## end if ($problems)
 
     return if $grammar_c->is_precomputed();
+    if ($grammar_c->force_valued() < 0) {
+        Marpa::R2::uncaught_error( scalar $grammar_c->error() );
+    }
 
     set_start_symbol($grammar);
 

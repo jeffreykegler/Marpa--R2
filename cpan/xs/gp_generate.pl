@@ -158,6 +158,7 @@ print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
 say {$out} gp_generate(qw(error_clear));
 say {$out} gp_generate(qw(event_count));
+say {$out} gp_generate(qw(force_valued));
 say {$out} gp_generate(qw(has_cycle));
 say {$out} gp_generate(qw(highest_rule_id));
 say {$out} gp_generate(qw(highest_symbol_id));
