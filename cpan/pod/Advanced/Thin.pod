@@ -1476,6 +1476,7 @@ name: Thin example
 normalize-whitespace: 1
 
     my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    $grammar->force_valued();
     my $symbol_S = $grammar->symbol_new();
     my $symbol_E = $grammar->symbol_new();
     $grammar->start_symbol_set($symbol_S);
@@ -1522,9 +1523,6 @@ normalize-whitespace: 1
     my @actual_values = ();
     while ( $tree->next() ) {
         my $valuator = Marpa::R2::Thin::V->new($tree);
-        $valuator->rule_is_valued_set( $op_rule_id,     1 );
-        $valuator->rule_is_valued_set( $start_rule_id,  1 );
-        $valuator->rule_is_valued_set( $number_rule_id, 1 );
         my @stack = ();
         STEP: while ( 1 ) {
             my ( $type, @step_data ) = $valuator->step();

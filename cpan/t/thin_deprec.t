@@ -14,23 +14,20 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Testing an ambiguous equation
-# using the thin interface
+# Testing using deprecated methods of
+# the thin interface
 
 use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 use lib 'inc';
 use Marpa::R2::Test;
 use English qw( -no_match_vars );
 use Fatal qw( close open );
 use Marpa::R2;
-
-# Marpa::R2::Display
-# name: Thin example
 
 my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 $grammar->force_valued();
@@ -43,6 +40,7 @@ my $start_rule_id = $grammar->rule_new( $symbol_S, [$symbol_E] );
 my $op_rule_id =
     $grammar->rule_new( $symbol_E, [ $symbol_E, $symbol_op, $symbol_E ] );
 my $number_rule_id = $grammar->rule_new( $symbol_E, [$symbol_number] );
+
 $grammar->precompute();
 
 my $recce = Marpa::R2::Thin::R->new($grammar);
@@ -80,8 +78,8 @@ my $tree          = Marpa::R2::Thin::T->new($order);
 my @actual_values = ();
 while ( $tree->next() ) {
     my $valuator = Marpa::R2::Thin::V->new($tree);
-    my @stack = ();
-    STEP: while ( 1 ) {
+    my @stack    = ();
+    STEP: while (1) {
         my ( $type, @step_data ) = $valuator->step();
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
@@ -124,11 +122,9 @@ while ( $tree->next() ) {
             die "Unknown rule $rule_id";
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
         die "Unexpected step type: $type";
-    } ## end while ( my ( $type, @step_data ) = $valuator->step() )
+    } ## end STEP: while (1)
     push @actual_values, $stack[0];
 } ## end while ( $tree->next() )
-
-# Marpa::R2::Display::End
 
 my %expected_value = (
     '(2-(0*(3+1))) == 2' => 1,
@@ -156,100 +152,60 @@ $grammar = $recce = $bocage = $order = $tree = undef;
 $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 $grammar->force_valued();
 
-# Marpa::R2::Display
-# name: Thin throw_set() example
-
-$grammar->throw_set(0);
-
-# Marpa::R2::Display::End
-
-# Turn it right back on, for safety's sake
-$grammar->throw_set(1);
-
-# Marpa::R2::Display
-# name: Thin grammar error methods
-
 my ( $error_code, $error_description ) = $grammar->error();
 my @error_names = Marpa::R2::Thin::error_names();
-my $error_name = $error_names[$error_code];
-
-# Marpa::R2::Display::End
+my $error_name  = $error_names[$error_code];
 
 Test::More::is( $error_code, 0, 'Grammar error code' );
 Test::More::is( $error_name, 'MARPA_ERR_NONE', 'Grammar error name' );
 Test::More::is( $error_description, 'No error', 'Grammar error description' );
 
 $symbol_S = $grammar->symbol_new();
-my $symbol_a = $grammar->symbol_new();
+my $symbol_a   = $grammar->symbol_new();
 my $symbol_sep = $grammar->symbol_new();
 $grammar->start_symbol_set($symbol_S);
 
-# Marpa::R2::Display
-# name: Thin sequence_new() example
-
 my $sequence_rule_id = $grammar->sequence_new(
-        $symbol_S,
-        $symbol_a,
-        {   separator => $symbol_sep,
-            proper    => 0,
-            min       => 1
-        }
-    );
-
-# Marpa::R2::Display::End
+    $symbol_S,
+    $symbol_a,
+    {   separator => $symbol_sep,
+        proper    => 0,
+        min       => 1
+    }
+);
 
 $grammar->precompute();
 my @events;
 my $event_ix = $grammar->event_count();
 while ( $event_ix-- ) {
 
-# Marpa::R2::Display
-# name: Thin event() example
-
     my ( $event_type, $value ) = $grammar->event( $event_ix++ );
-
-# Marpa::R2::Display::End
 
 }
 
 $recce = Marpa::R2::Thin::R->new($grammar);
 
-# Marpa::R2::Display
-# name: Thin ruby_slippers_set() example
-
 $recce->ruby_slippers_set(1);
-
-# Marpa::R2::Display::End
 
 $recce->start_input();
 $recce->alternative( $symbol_a, 1, 1 );
 $recce->earleme_complete();
 
-# Marpa::R2::Display
-# name: Thin terminals_expected() example
+my @terminals = $recce->terminals_expected();
 
-   my @terminals = $recce->terminals_expected();
-
-# Marpa::R2::Display::End
-
-Test::More::is( (scalar @terminals), 1, 'count of terminals expected' );
+Test::More::is( ( scalar @terminals ), 1, 'count of terminals expected' );
 Test::More::is( $terminals[0], $symbol_sep, 'expected terminal' );
 
 my $report;
 
-# Marpa::R2::Display
-# name: Thin progress_item() example
-
-    my $ordinal = $recce->latest_earley_set();
-    $recce->progress_report_start($ordinal);
-    ITEM: while (1) {
-        my ($rule_id, $dot_position, $origin) = $recce->progress_item();
-        last ITEM if not defined $rule_id;
-        push @{$report}, [$rule_id, $dot_position, $origin];
-    }
-    $recce->progress_report_finish();
-
-# Marpa::R2::Display::End
+my $ordinal = $recce->latest_earley_set();
+$recce->progress_report_start($ordinal);
+ITEM: while (1) {
+    my ( $rule_id, $dot_position, $origin ) = $recce->progress_item();
+    last ITEM if not defined $rule_id;
+    push @{$report}, [ $rule_id, $dot_position, $origin ];
+}
+$recce->progress_report_finish();
 
 Test::More::is( ( join q{ }, map { @{$_} } @{$report} ),
     '0 -1 0 0 0 0', 'progress report' );
@@ -263,18 +219,15 @@ $recce->earleme_complete();
 $recce->alternative( $symbol_a, 1, 1 );
 $recce->earleme_complete();
 $latest_earley_set_ID = $recce->latest_earley_set();
-$bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
-$order         = Marpa::R2::Thin::O->new($bocage);
-$tree          = Marpa::R2::Thin::T->new($order);
+$bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+$order  = Marpa::R2::Thin::O->new($bocage);
+$tree   = Marpa::R2::Thin::T->new($order);
 $tree->next();
-my $valuator = Marpa::R2::Thin::V->new($tree);
+my $valuator         = Marpa::R2::Thin::V->new($tree);
 my $locations_report = q{};
 STEP: for ( ;; ) {
     my ( $type, @step_data ) = $valuator->step();
     last STEP if not defined $type;
-
-# Marpa::R2::Display
-# name: Thin location() example
 
     $type = $valuator->step_type();
     my ( $start, $end ) = $valuator->location();
@@ -292,8 +245,6 @@ STEP: for ( ;; ) {
             .= "Nulling symbol $symbol_id is from $start to $end\n";
     }
 
-# Marpa::R2::Display::End
-
 } ## end STEP: for ( ;; )
 
 Test::More::is( $locations_report, <<'EXPECTED', 'Step locations' );
@@ -305,9 +256,33 @@ Token 1 is from 4 to 5
 Rule 0 is from 0 to 5
 EXPECTED
 
-# Local Variables:
-#   mode: cperl
-#   cperl-indent-level: 4
-#   fill-column: 100
-# End:
+{
+    my $symbol_count     = 0;
+    my @unvalued_symbols = ();
+    for (
+        my $symbol_id = 0;
+        $symbol_id <= $grammar->highest_symbol_id();
+        $symbol_id++
+        )
+    {
+        $grammar->throw_set(0);
+        my $result = $grammar->symbol_is_start($symbol_id);
+        $grammar->throw_set(1);
+        next SYMBOL if $result == -1;    # well-formed but non-existent
+        if ($result < 0) {
+            my ( $error_code, $error_description ) = $grammar->error();
+            die "symbol_is_start($symbol_id) failed ($error_code) $error_description";
+        }
+        $symbol_count++;
+        push @unvalued_symbols, $symbol_id
+            if !$grammar->symbol_is_valued($symbol_id);
+    } ## end for ( my $symbol_id = 0; $symbol_id <= $grammar->...)
+    my $unvalued_desc =
+          ( scalar @unvalued_symbols )
+        ? ( join q{ }, @unvalued_symbols )
+        : 'none';
+    Test::More::ok( ( $unvalued_desc eq 'none' ),
+        "Unvalued symbols: $unvalued_desc of $symbol_count" );
+}
+
 # vim: expandtab shiftwidth=4:
