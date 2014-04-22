@@ -376,6 +376,7 @@ t/sl_wall.t
 t/stuifzand.t
 t/syn_engine.t
 t/syn_stuifzand.t
+t/thin_deprec.t
 t/thin_eq.t
 t/timeflies.t
 t/use.t
