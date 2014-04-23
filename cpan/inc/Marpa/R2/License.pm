@@ -318,6 +318,9 @@ my %files_by_type = (
     'libmarpa/tavl/tavl-test.c' => \&ignored,
     'libmarpa/tavl/test.c' => \&ignored,
     'libmarpa/tavl/test.h' => \&ignored,
+
+    # MS .def file -- comments not allowed, contents trivial
+    'libmarpa_dist/marpa.def' => \&ignored,
 );
 
 # Common files in the GNU distributions

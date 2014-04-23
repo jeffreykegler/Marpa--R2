@@ -207,6 +207,7 @@ libmarpa_dist/m4/ltsugar.m4
 libmarpa_dist/m4/ltversion.m4
 libmarpa_dist/m4/lt~obsolete.m4
 libmarpa_dist/marpa.c
+libmarpa_dist/marpa.def
 libmarpa_dist/marpa.h
 libmarpa_dist/marpa_ami.c
 libmarpa_dist/marpa_ami.h
