@@ -73,7 +73,7 @@ marpa_slif.c.p40: marpa_slif.w
 
 marpa_slif.h.p80: api.texi internal.texi
 	cat api.texi internal.texi | \
-	  perl ../bin/texi2proto.pl > marpa_slif.h.p80
+	  perl ../bin/texi2proto.pl /dev/null > marpa_slif.h.p80
 
 marpa_slif.h-ops marpa_slif.c-ops: create_ops.pl
 	perl create_ops.pl marpa_slif.h-ops | $(CPPWRAP) marpa_slif.c-ops > marpa_slif.c-ops

@@ -72,7 +72,7 @@ marpa_ami.c.p40: marpa_ami.w
 
 marpa_ami.h.p50: api.texi internal.texi
 	cat api.texi internal.texi | \
-	  perl ../bin/texi2proto.pl > marpa_ami.h.p50
+	  perl ../bin/texi2proto.pl /dev/null > marpa_ami.h.p50
 
 update_texi:
 	emacs -batch internal.texi \
