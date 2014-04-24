@@ -13,6 +13,7 @@ use File::Slurp qw/read_file/;
 use IPC::Cmd qw/run/;
 use Module::Load qw/load/;
 use POSIX qw/EXIT_SUCCESS EXIT_FAILURE/;
+use Getopt::Long;
 
 our %PERL_AUTOCONF_OS = map { $_ => 1 } qw( MSWin32 openbsd solaris sunos midnightbsd );
 
@@ -23,6 +24,20 @@ my $CCFLAGS           = $ENV{CCFLAGS} || $Config{ccflags} || '';
 my $SH                = $ENV{SH} || $Config{sh}           || '';
 my $OBJ_EXT           = $ENV{OBJ_EXT} || $Config{obj_ext} || '.o';
 
+GetOptions ('marpa_debug!'       => \$MARPA_DEBUG,
+            'use_perl_autoconf!' => \$USE_PERL_AUTOCONF,
+            'cc=s'               => \$CC,
+            'ccflags=s'          => \$CCFLAGS,
+            'sh=s'               => \$SH,
+            'obj_ext=s'          => \$OBJ_EXT,
+            'help!'              => \$help) ||
+die "Error in command-line arguments";
+
+if ($help) {
+  usage();
+  exit(EXIT_SUCCESS);
+}
+
 if ($USE_PERL_AUTOCONF) {
     load Config::AutoConf || die "Please install Config::AutoConf module";
 }
@@ -32,6 +47,10 @@ my $rc = do_config_h();
 exit($rc ? EXIT_SUCCESS : EXIT_FAILURE);
 
 sub do_config_h {
+
+  $ENV{CC} = $CC;
+  $ENV{CCFLAGS} = $CCFLAGS;
+  $ENV{OBJ_EXT} = $OBJ_EXT;
 
     # If current directory exists and contains a stamp file more recent than an eventual config.h
     # we are done.
@@ -275,4 +294,20 @@ sub up_to_date {
     return 0 if -M $derived > $most_recent_source;
   }
   return 1;
+}
+
+sub usage {
+  print STDERR <<USAGE;
+
+$^X $0 [options] where options can be:
+
+  --marpa_debug       Boolean. Default value: $MARPA_DEBUG.
+  --use_perl_autoconf Boolean. Default value: $USE_PERL_AUTOCONF
+  --cc=...            String.  Default value: $CC
+  --ccflags=...       String.  Default value: $CCFLAGS
+  --sh=...s           String.  Default value: $SH
+  --obj_ext=...       String.  Default value: $OBJ_EXT
+  --help              Boolean. This help -;
+
+USAGE
 }
