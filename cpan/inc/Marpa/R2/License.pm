@@ -320,7 +320,7 @@ my %files_by_type = (
     'libmarpa/tavl/test.h' => \&ignored,
 
     # MS .def file -- contents trivial
-    'libmarpa_dist/marpa.def' => \&ignored,
+    'libmarpa_dist/win32/marpa.def' => \&ignored,
 );
 
 # Common files in the GNU distributions

@@ -182,12 +182,15 @@ libmarpa/tavl/marpa_tavl.h
 libmarpa/tavl/tavl-test.c
 libmarpa/tavl/test.c
 libmarpa/tavl/test.h
+libmarpa/win32/Makefile.win32
+libmarpa/win32/do_config_h.pl
 libmarpa_dist/AUTHORS
 libmarpa_dist/COPYING.LESSER
 libmarpa_dist/ChangeLog
 libmarpa_dist/INSTALL
 libmarpa_dist/Makefile.am
 libmarpa_dist/Makefile.in
+libmarpa_dist/Makefile.win32
 libmarpa_dist/NEWS
 libmarpa_dist/README
 libmarpa_dist/VERSION
@@ -207,7 +210,6 @@ libmarpa_dist/m4/ltsugar.m4
 libmarpa_dist/m4/ltversion.m4
 libmarpa_dist/m4/lt~obsolete.m4
 libmarpa_dist/marpa.c
-libmarpa_dist/marpa.def
 libmarpa_dist/marpa.h
 libmarpa_dist/marpa_ami.c
 libmarpa_dist/marpa_ami.h
@@ -222,6 +224,8 @@ libmarpa_dist/marpa_tavl.c
 libmarpa_dist/marpa_tavl.h
 libmarpa_dist/missing
 libmarpa_dist/stamp-h1
+libmarpa_dist/win32/do_config_h.pl
+libmarpa_dist/win32/marpa.def
 libmarpa_doc_dist/AUTHORS
 libmarpa_doc_dist/COPYING.LESSER
 libmarpa_doc_dist/ChangeLog
