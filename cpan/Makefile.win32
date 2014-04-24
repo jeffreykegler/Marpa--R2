@@ -1,0 +1,44 @@
+#
+# Build static and dynamic libraries of Marpa, using a config.h generated with Marpa::R2::Build_Me
+#
+CC = cl
+CFLAGS = /c /Gy /DWIN32 /MD
+LD = link
+CP = copy
+CPFLAGS = /Y
+RM = del
+MT = mt
+RM_FLAGS = /Q
+PUSHD = pushd
+POPD = popd
+MARPA_DEF = marpa.def
+MARPA_OBJS = marpa.obj marpa_ami.obj marpa_obs.obj marpa_avl.obj
+MARPA_DLL = libmarpa.dll
+
+LDFLAGS = /NOLOGO /SUBSYSTEM:CONSOLE /NODEFAULTLIB:"LIBCMTD.LIB" /DLL /DEF:$(MARPA_DEF) /VERSION:%MARPA_VERSION%
+
+.c.obj:
+        $(CC) $(CFLAGS) /Fo$@ $<
+
+#
+# Trick to be able to run nmake in libmarpa_dist but build in libmarpa_build..
+#
+
+all: $(MARPA_DLL)
+
+$(MARPA_DLL): config.h $(MARPA_OBJS)
+        (@SET /p MARPA_VERSION= < VERSION) && $(LD) $(LDFLAGS) /OUT:$@ $(MARPA_OBJS)
+        if exist $(MARPA_DLL).manifest mt -nologo -manifest $(MARPA_DLL).manifest -outputresource:$(MARPA_DLL);2
+
+config.h:
+        perl do_config_h.pl --cc="$(CC)" --ccflags="$(CFLAGS)" --obj_ext=".obj"
+
+clean:
+        $(RM) $(RM_FLAGS) *.obj
+        $(RM) $(RM_FLAGS) *.exp
+
+distclean: clean
+        $(RM) $(RM_FLAGS) *.dll
+        $(RM) $(RM_FLAGS) *.lib
+
+mrproper: distclean
