@@ -39,6 +39,7 @@ STAGE_FILES = \
     stage/AUTHORS \
     stage/ChangeLog \
     stage/COPYING.LESSER \
+    stage/Makefile.win32 \
     stage/marpa_ami.c \
     stage/marpa_ami.h \
     stage/marpa_avl.c \
@@ -55,7 +56,8 @@ STAGE_FILES = \
     stage/NEWS \
     stage/README \
     stage/VERSION.in \
-    stage/marpa.def
+    stage/win32/do_config_h.pl \
+    stage/win32/marpa.def
 
 dummy:
 	@echo install is the main target
@@ -74,10 +76,17 @@ stage/configure.ac: ac/configure.ac
 stage/Makefile.am: ac/Makefile.am
 	cp $? $@
 
+stage/Makefile.win32: win32/Makefile.win32
+	cp $? $@
+
+stage/win32/do_config_h.pl: win32/do_config_h.pl
+	test -d stage/win32 || mkdir stage/win32
+	cp $? $@
+
 stage/marpa.c: dev/marpa.c
 	cp $? $@
 
-stage/marpa.def: dev/marpa.def
+stage/win32/marpa.def: dev/marpa.def
 	cp $? $@
 
 stage/marpa.h: public/marpa.h
