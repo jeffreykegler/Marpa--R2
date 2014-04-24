@@ -37,28 +37,37 @@ LINE: while ( my $line = <STDIN> ) {
 
     next LINE if $line !~ m/[@]deftypefun/xms;
 
-        my $def = q{};
-        while ( $line =~ / [@] \s* \z /xms ) {
-            $def .= $line;
-            $def =~ s/ [@] \s* \z//xms;
-            $line = <STDIN>;
-        }
+    my $def = q{};
+    while ( $line =~ / [@] \s* \z /xms ) {
         $def .= $line;
-        $def =~ s/\A \s* [@] deftypefun x? \s* //xms;
-        $def =~ s/ [@]var[{] ([^}]*) [}]/$1/xmsg;
-        $def =~ s/ [@]code[{] ([^}]*) [}]/$1/xmsg;
-        $def =~ s/\s+/ /xmsg;
-        $def =~ s/\s \z/;/xmsg;
-        push @protos, $def;
+        $def =~ s/ [@] \s* \z//xms;
+        $line = <STDIN>;
+    }
+    $def .= $line;
+    $def =~ s/\A \s* [@] deftypefun x? \s* //xms;
+    $def =~ s/ [@]var[{] ([^}]*) [}]/$1/xmsg;
+    $def =~ s/ [@]code[{] ([^}]*) [}]/$1/xmsg;
+    $def =~ s/\s+/ /xmsg;
+    $def =~ s/\s \z/;/xmsg;
+    push @protos, $def;
 
-        $def =~ s/ \s* [(] .* //xms;
-        $def =~ s/ \s* [(] .* //xms;
-        $def =~ s/ \A .* \s //xms;
-        push @defs, $def;
+    $def =~ s/ \s* [(] .* //xms;
+    $def =~ s/ \s* [(] .* //xms;
+    $def =~ s/ \A .* \s //xms;
+    push @defs, $def;
 
-} ## end while ( my $line = <STDIN> )
+} ## end LINE: while ( my $line = <STDIN> )
 
 say join "\n", @protos;
-say {$def_fh} "EXPORTS\n", join "\n", map { q{   } . $_ } @defs;
+
+my $def_preamble = << 'END_OF_PREAMBLE';
+; DO NOT EDIT DIRECTLY.
+; This file was automatically generated.
+; This file is for the Microsoft linker.
+END_OF_PREAMBLE
+$def_preamble .= q{; } . localtime() . "\n";
+
+say {$def_fh} $def_preamble, "EXPORTS\n", join "\n",
+    map { q{   } . $_ } @defs;
 
 # vim: expandtab shiftwidth=4:
