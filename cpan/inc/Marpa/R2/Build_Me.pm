@@ -331,7 +331,7 @@ sub marpa_link_c {
     return $spec->{lib_file};
 } ## end sub marpa_link_c
 
-sub do_libmarpa {
+sub do_libmarpa_prepare_build {
     my $self     = shift;
     my $cwd      = $self->cwd();
     my $base_dir = $self->base_dir();
@@ -588,6 +588,23 @@ WriteMakefile(VERSION        => \"$libmarpa_version\",
             } ## end if ( not IPC::Cmd::run( command => [ $shell, $configure_script...]))
         
     }
+
+    chdir $cwd;
+    return 1;
+
+} ## end sub do_libmarpa_prepare_build
+
+sub do_libmarpa {
+    my $self     = shift;
+
+    $self->do_libmarpa_prepare_build();
+
+    my $cwd      = $self->cwd();
+    my $base_dir = $self->base_dir();
+    my $build_dir = File::Spec->catdir( $base_dir, 'libmarpa_build' );
+
+    chdir $build_dir;
+
     if ( $self->verbose() ) {
         print "Making libmarpa: Start\n" or die "Cannot print: $ERRNO";
     }
