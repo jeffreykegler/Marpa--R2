@@ -1,93 +1,50 @@
 #!env perl
 #
-# This script will generate libmarpa_build directory, and libmarpa_build/config.h
+# This script will generate config.h
 #
-use Cwd qw/getcwd/;
-use File::Spec::Functions qw/curdir catdir catfile/;
+# It is assumed that current working directory is a build directory, i.e.
+# the target directory specified on the command-line when you
+# execute: cp_libmarpa.sh target_directory
+#
 use feature 'say';
 use English qw/-no_match_vars/;
-use File::Path qw/rmtree mkpath/;
-use File::Copy qw/copy/;
 use Config;
 use File::Slurp qw/read_file/;
 use IPC::Cmd qw/run/;
 use Module::Load qw/load/;
-use POSIX qw/EXIT_SUCCESS/;
+use POSIX qw/EXIT_SUCCESS EXIT_FAILURE/;
+use constant { STAMP_FILE => 'stamp-h1', CONFIG_H => 'config.h' };
+
+our %PERL_AUTOCONF_OS = map { $_ => 1 } qw( MSWin32 openbsd solaris sunos midnightbsd );
 
 my $MARPA_DEBUG       = $ENV{MARPA_DEBUG}                 || 0;
-my $USE_PERL_AUTOCONF = $ENV{USE_PERL_AUTOCONF}           || 0;
-my $CC                = $ENV{CC} || $Config{cc}           || '';
+my $USE_PERL_AUTOCONF = $ENV{MARPA_USE_PERL_AUTOCONF}     || ( $PERL_AUTOCONF_OS{$^O} // 0 );
+my $CC                = $ENV{CC} || $Config{cc}           || 'cc';
 my $CCFLAGS           = $ENV{CCFLAGS} || $Config{ccflags} || '';
 my $SH                = $ENV{SH} || $Config{sh}           || '';
-my $OBJ_EXT           = $ENV{OBJ_EXT} || $Config{obj_ext} || '';
+my $OBJ_EXT           = $ENV{OBJ_EXT} || $Config{obj_ext} || '.o';
 
 if ($USE_PERL_AUTOCONF) {
     load Config::AutoConf || die "Please install Config::AutoConf module";
 }
 
-do_libmarpa_prepare_build();
+my $rc = do_config_h();
 
-exit(EXIT_SUCCESS);
+exit($rc ? EXIT_SUCCESS : EXIT_FAILURE);
 
-sub do_libmarpa_prepare_build {
-    my $cwd = getcwd();
-    my $base_dir = curdir();
+sub do_config_h {
 
-    my $dist_dir = catdir( $base_dir, 'libmarpa_dist' );
-    my $build_dir = catdir( $base_dir, 'libmarpa_build' );
-
-    if (! -d $dist_dir) {
-	die "Please run this script from the top of Marpa CPAN untarred distribution";
+    # If current directory exists and contains a stamp file more recent than an eventual config.h
+    # we are done.
+    if (-e CONFIG_H && -e STAMP_FILE && up_to_date( CONFIG_H, STAMP_FILE )) {
+      printf "%s is up-to-date v.s. %s. Remove one of them to force a new config.h generation\n", CONFIG_H, STAMP_FILE;
+      return 1;
     }
 
-    my $build_stamp_file = catfile( $build_dir, 'stamp-h1' );
-    my $dist_stamp_file = catfile( $dist_dir, 'stamp-h1' );
+    unlink(CONFIG_H);
+    unlink(STAMP_FILE);
 
-    # If build directory exists and contains a stamp file more recent than the
-    # tar file, we are done.
-    return if up_to_date( [$dist_stamp_file], $build_stamp_file ) ;
-
-    # Otherwise, rebuild from scratch
-    rmtree($build_dir);
-
-    say join q{ }, "Copying files from $dist_dir to $build_dir"
-	or die "print failed: $ERRNO";
-
-     ## Make sure build dir structure exists, even if empty
-     my $m4_dir = catdir( $build_dir, 'm4' );
-
-     # Legacy mkpath(), for compatibility with Perl 5.10.0
-     mkpath($m4_dir);
-
-    my @copy_work_list = ();
-    {
-        my $from_m4_dir = catdir( $dist_dir, 'm4' );
-        my $to_m4_dir = catdir( $build_dir, 'm4' );
-        chdir $from_m4_dir;
-        for my $file (<*>) {
-          my $from_file = catfile($from_m4_dir, $file);
-          my $to_file = catfile($to_m4_dir, $file);
-          push @copy_work_list, [$from_file, $to_file];
-        }
-        chdir $cwd;
-    }
-    {
-        chdir $dist_dir;
-        FILE: for my $file (<*>) {
-          next FILE if -d $file;
-          next FILE if $file eq 'stamp-h1';
-          my $from_file = catfile($dist_dir, $file);
-          my $to_file = catfile($build_dir, $file);
-          push @copy_work_list, [$from_file, $to_file];
-        }
-        chdir $cwd;
-    }
-    for my $file (@copy_work_list) {
-        copy(@{$file});
-    }
-
-    chdir $build_dir;
-
+    # Otherwise, redo config.h
     if (! $USE_PERL_AUTOCONF) {
 
             # This is only necessary for GNU autoconf, which is aggressive
@@ -122,7 +79,7 @@ sub do_libmarpa_prepare_build {
                 utime time(), time(), 'config.h.in';
             } ## end if ( not up_to_date( [ 'configure.ac', 'aclocal.m4'...]))
         
-	    print "Configuring libmarpa\n"
+	    say join q{ }, "Doing config.h with configure"
 		or die "print failed: $ERRNO";
             my $shell = $SH;
         
@@ -166,7 +123,7 @@ sub do_libmarpa_prepare_build {
             ## stubs, we write our config.h with these stubs, our config.h
             ## will then include a generated config_from_autoconf.h
             #
-	    say join q{ }, "Doing config.h"
+	    say join q{ }, "Doing config.h with Config::AutoConf"
 		or die "print failed: $ERRNO";
             open my $config_fh, '>>', 'config.h' || die "Cannot open config.h, $!\n";
             my $ac = Config::AutoConf->new();
@@ -291,7 +248,6 @@ WriteMakefile(VERSION        => \"$libmarpa_version\",
         
     }
 
-    chdir $cwd;
     return 1;
 
 } ## end sub do_libmarpa_prepare_build
