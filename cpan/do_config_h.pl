@@ -13,7 +13,6 @@ use File::Slurp qw/read_file/;
 use IPC::Cmd qw/run/;
 use Module::Load qw/load/;
 use POSIX qw/EXIT_SUCCESS EXIT_FAILURE/;
-use constant { STAMP_FILE => 'stamp-h1', CONFIG_H => 'config.h' };
 
 our %PERL_AUTOCONF_OS = map { $_ => 1 } qw( MSWin32 openbsd solaris sunos midnightbsd );
 
@@ -36,13 +35,13 @@ sub do_config_h {
 
     # If current directory exists and contains a stamp file more recent than an eventual config.h
     # we are done.
-    if (-e CONFIG_H && -e STAMP_FILE && up_to_date( CONFIG_H, STAMP_FILE )) {
-      printf "%s is up-to-date v.s. %s. Remove one of them to force a new config.h generation\n", CONFIG_H, STAMP_FILE;
+    if (-e 'config.h' && -e 'stamp-h1' && up_to_date( 'config.h', 'stamp-h1' )) {
+      printf "%s is up-to-date v.s. %s. Remove one of them to force a new %s generation\n", 'config.h', 'stamp-h1', 'config.h';
       return 1;
     }
 
-    unlink(CONFIG_H);
-    unlink(STAMP_FILE);
+    unlink('config.h');
+    unlink('stamp-h1');
 
     # Otherwise, redo config.h
     if (! $USE_PERL_AUTOCONF) {
