@@ -277,16 +277,24 @@ sub process_xs {
     File::Path::mkpath( $spec->{archdir}, 0, ( oct 777 ) )
         if not -d $spec->{archdir};
 
-    my $libmarpa_archive;
-    if ( $Marpa::R2::USE_PERL_AUTOCONF ) {
+    FIND_LIBRARY: {
+        my $libmarpa_archive = $self->args('marpa-library');
+        last FIND_LIBRARY if defined $libmarpa_archive;
+        if ($Marpa::R2::USE_PERL_AUTOCONF) {
+            my $libmarpa_libs_dir =
+                File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
+                'blib', 'arch', 'auto', 'libmarpa' );
+            $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir,
+                "libmarpa$Config{lib_ext}" );
+            last FIND_LIBRARY;
+        } ## end if ($Marpa::R2::USE_PERL_AUTOCONF)
         my $libmarpa_libs_dir =
-            File::Spec->catdir( $self->base_dir(), 'libmarpa_build', 'blib', 'arch', 'auto', 'libmarpa');
-        $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, "libmarpa$Config{lib_ext}" );
-    } else {
-        my $libmarpa_libs_dir = File::Spec->catdir( $self->base_dir(), 'libmarpa_build', '.libs');
-        $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a');
-    }
-    push @{ $self->{properties}->{objects} }, $libmarpa_archive;
+            File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
+            '.libs' );
+        $libmarpa_archive =
+            File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
+        push @{ $self->{properties}->{objects} }, $libmarpa_archive;
+    } ## end FIND_LIBRARY:
 
     # .xs -> .bs
     $self->add_to_cleanup( $spec->{bs_file} );
@@ -759,7 +767,13 @@ sub ACTION_code {
         $self->file_write( $perl_version_pm,
             qw(pperl Marpa R2 Perl Version.pm) );
     } ## end if ( not $self->up_to_date( [ $config_pm_filename, ...]))
-    $self->do_libmarpa();
+
+    # If we are not overriding it, ...
+    if (not defined $self->args('marpa-library')) {
+        # ... perform the default build.
+        $self->do_libmarpa();
+    }
+
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
 
