@@ -277,8 +277,9 @@ sub process_xs {
     File::Path::mkpath( $spec->{archdir}, 0, ( oct 777 ) )
         if not -d $spec->{archdir};
 
+    my $libmarpa_archive;
     FIND_LIBRARY: {
-        my $libmarpa_archive = $self->args('marpa-library');
+        $libmarpa_archive = $self->args('marpa-library');
         last FIND_LIBRARY if defined $libmarpa_archive;
         if ($Marpa::R2::USE_PERL_AUTOCONF) {
             my $libmarpa_libs_dir =
@@ -293,8 +294,8 @@ sub process_xs {
             '.libs' );
         $libmarpa_archive =
             File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
-        push @{ $self->{properties}->{objects} }, $libmarpa_archive;
     } ## end FIND_LIBRARY:
+    push @{ $self->{properties}->{objects} }, $libmarpa_archive;
 
     # .xs -> .bs
     $self->add_to_cleanup( $spec->{bs_file} );
@@ -790,6 +791,9 @@ sub ACTION_clean {
 
 sub ACTION_test {
     my $self = shift;
+    if (defined $self->args('marpa-library')) {
+        die q{"marpa-library" option not allowed with "test" target};
+    }
     local $ENV{PERL_DL_NONLAZY} = 1;
     return $self->SUPER::ACTION_test;
 }

@@ -34,6 +34,47 @@ use Marpa::R2::Version;
 
 $Marpa::R2::USING_XS = 1;
 $Marpa::R2::USING_PP = 0;
+$Marpa::R2::LIBMARPA_FILE = '[built-in]';
+
+LOAD_EXPLICIT_LIBRARY: {
+    last LOAD_EXPLICIT_LIBRARY if  not $ENV{'MARPA_AUTHOR_TEST'};
+    my $file = $ENV{MARPA_LIBRARY};
+    last LOAD_EXPLICIT_LIBRARY if  not $file;
+
+    require DynaLoader;
+    package DynaLoader;
+    my $bs = $file;
+    $bs =~ s/(\.\w+)?(;\d*)?$/\.bs/; # look for .bs 'beside' the library
+
+    if (-s $bs) { # only read file if it's not empty
+#       print STDERR "BS: $bs ($^O, $dlsrc)\n" if $dl_debug;
+        eval { do $bs; };
+        warn "$bs: $@\n" if $@;
+    }
+
+    my $bootname = "marpa_g_new";
+    @DynaLoader::dl_require_symbols = ($bootname);
+
+    my $libref = dl_load_file($file, 0) or do { 
+        require Carp;
+        Carp::croak("Can't load libmarpa library: '$file'" . dl_error());
+    };
+    push(@DynaLoader::dl_librefs,$libref);  # record loaded object
+
+    my @unresolved = dl_undef_symbols();
+    if (@unresolved) {
+        require Carp;
+        Carp::carp("Undefined symbols present after loading $file: @unresolved\n");
+    }
+
+    dl_find_symbol($libref, $bootname) or do {
+        require Carp;
+        Carp::croak("Can't find '$bootname' symbol in $file\n");
+    };
+
+    push(@DynaLoader::dl_shared_objects, $file); # record files loaded
+    $Marpa::R2::LIBMARPA_FILE = $file;
+}
 
 eval {
     require XSLoader;

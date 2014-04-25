@@ -47,6 +47,7 @@ my $libmarpa_version_desc =
 Test::More::ok( $libmarpa_version_ok, $libmarpa_version_desc );
 
 Test::More::diag($marpa_string_version_desc);
+Test::More::diag('Libmarpa: ' . $Marpa::R2::LIBMARPA_FILE);
 Test::More::diag($libmarpa_version_desc);
 
 my $grammar;
