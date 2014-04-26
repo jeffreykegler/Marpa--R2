@@ -12,6 +12,7 @@
 /_build/
 /blib/
 /libmarpa_build/
+/libmarpa_shared/
 /libmarpa_dist/
 /libmarpa_doc_dist/
 /hide/

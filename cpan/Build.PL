@@ -112,7 +112,7 @@ my @no_index_namespace_inclusive = qw(
 my @files_to_cleanup = (
     'lib/Marpa/R2/Version.pm',   'pperl/Marpa/R2/Perl/Version.pm',
     'lib/Marpa/R2/Installed.pm', 'pperl/Marpa/R2/Perl/Installed.pm',
-    'lib/Marpa/R2.o',            'libmarpa/main/build',
+    'lib/Marpa/R2.o', 'libmarpa_build', 'libmarpa_shared'
 );
 
 my $build = Marpa::R2::Build_Me->new(

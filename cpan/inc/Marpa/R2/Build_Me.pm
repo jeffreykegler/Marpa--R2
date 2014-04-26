@@ -278,16 +278,14 @@ sub process_xs {
         if not -d $spec->{archdir};
 
     my @extra_linker_flags = ();
-        $DB::single = 1;
     if ( defined $self->args('libmarpa-shared') ) {
-        $DB::single = 1;
         die qq{"libmarpa-shared" not supported for Config::AutoConf}
             if $Marpa::R2::USE_PERL_AUTOCONF;
         my $libmarpa_libs_dir =
-            File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
+            File::Spec->catdir( $self->base_dir(), 'libmarpa_shared',
             '.libs' );
         push @extra_linker_flags, '-L' . $libmarpa_libs_dir;
-        my $version_file_name = File::Spec->catfile( $self->base_dir(), 'libmarpa_build', 'VERSION' );
+        my $version_file_name = File::Spec->catfile( $self->base_dir(), 'libmarpa_shared', 'VERSION' );
         my $libmarpa_version = $self->file_slurp($version_file_name);
         chomp $libmarpa_version;
         my @libmarpa_version = split /[.]/xms, $libmarpa_version;
@@ -364,7 +362,13 @@ sub do_libmarpa {
     my $base_dir = $self->base_dir();
 
     my $dist_dir = File::Spec->catdir( $base_dir, 'libmarpa_dist' );
-    my $build_dir = File::Spec->catdir( $base_dir, 'libmarpa_build' );
+    my $build_dir = File::Spec->catdir(
+        $base_dir,
+        (   defined $self->args('libmarpa-shared')
+            ? 'libmarpa_shared'
+            : 'libmarpa_build'
+        )
+    );
 
     my $build_stamp_file = File::Spec->catfile( $build_dir, 'stamp-h1' );
     my $dist_stamp_file = File::Spec->catfile( $dist_dir, 'stamp-h1' );
@@ -486,6 +490,9 @@ sub do_libmarpa {
     } ## end if ( defined $self->args('Marpa-debug') )
         
     if ($Marpa::R2::USE_PERL_AUTOCONF) {
+
+        die qq{"libmarpa-shared" not supported for Config::AutoConf}
+            if defined $self->args('libmarpa-shared');
 
         my $libmarpa_version = $self->file_slurp('VERSION');
         chomp $libmarpa_version;
