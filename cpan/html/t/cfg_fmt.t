@@ -42,7 +42,8 @@ BEGIN { Test::More::plan tests => 10; }
 use lib 'tool/lib';
 use Marpa::R2::Test;
 
-my @script_dir = qw( blib script );
+my $blib = $ENV{MARPA_TEST_BLIB};
+my $script_dir = File::Spec->catdir( $blib, 'script' );
 
 sub run_one_test {
     my ( $test_name, $html, $config_ref, $expected_ref ) = @_;
@@ -61,7 +62,7 @@ sub run_one_test {
     print {$cfg_fh} ${$config_ref};
     close $cfg_fh;
     my $output = Marpa::R2::HTML::Test::Util::run_command(
-        File::Spec->catfile( @script_dir, 'marpa_r2_html_fmt' ),
+        File::Spec->catfile( $script_dir, 'marpa_r2_html_fmt' ),
         '--no-added-tag',
         '--compile=' . $test_config_name,
         $html_file_name

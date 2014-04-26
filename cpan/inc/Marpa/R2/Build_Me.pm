@@ -229,7 +229,10 @@ sub process_xs {
     $self->add_to_cleanup( $spec->{c_file} );
 
     my @libmarpa_build_dir = File::Spec->splitdir( $self->base_dir );
-    push @libmarpa_build_dir, 'libmarpa_build';
+    push @libmarpa_build_dir,
+        ( defined $self->args('libmarpa-shared') )
+        ? 'libmarpa_shared'
+        : 'libmarpa_build';
     my $libmarpa_build_dir = File::Spec->catdir(@libmarpa_build_dir);
 
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file, $dest_gp_xsh );
@@ -802,6 +805,9 @@ sub ACTION_code {
 
     $self->do_libmarpa();
 
+    if ( defined $self->args('libmarpa-shared') ) {
+        $self->blib('blib_shared');
+    }
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
 
@@ -819,6 +825,10 @@ sub ACTION_clean {
 sub ACTION_test {
     my $self = shift;
     local $ENV{PERL_DL_NONLAZY} = 1;
+    if ( defined $self->args('libmarpa-shared') ) {
+        $ENV{MARPA_TEST_BLIB} = 'blib_shared';
+        $self->blib('blib_shared');
+    }
     return $self->SUPER::ACTION_test;
 }
 

@@ -41,13 +41,15 @@ BEGIN { Test::More::plan tests => 2; }
 use lib 'tool/lib';
 use Marpa::R2::Test;
 
-my @script_dir = qw( blib script );
+my $blib = $ENV{MARPA_TEST_BLIB};
+my $script_dir = File::Spec->catdir( $blib, 'script' );
+
 my @data_dir   = qw( html t fmt_t_data );
 
 for my $test (qw(1 2)) {
     my $expected;
     my $output = Marpa::R2::HTML::Test::Util::run_command(
-        File::Spec->catfile( @script_dir, 'marpa_r2_html_fmt' ),
+        File::Spec->catfile( $script_dir, 'marpa_r2_html_fmt' ),
         File::Spec->catfile( @data_dir, ( 'input' . $test . '.html' ) )
     );
     local $RS = undef;
