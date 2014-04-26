@@ -277,23 +277,41 @@ sub process_xs {
     File::Path::mkpath( $spec->{archdir}, 0, ( oct 777 ) )
         if not -d $spec->{archdir};
 
-    my $libmarpa_archive;
-    FIND_LIBRARY: {
-        if ($Marpa::R2::USE_PERL_AUTOCONF) {
-            my $libmarpa_libs_dir =
-                File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
-                'blib', 'arch', 'auto', 'libmarpa' );
-            $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir,
-                "libmarpa$Config{lib_ext}" );
-            last FIND_LIBRARY;
-        } ## end if ($Marpa::R2::USE_PERL_AUTOCONF)
+    my @extra_linker_flags = ();
+        $DB::single = 1;
+    if ( defined $self->args('libmarpa-shared') ) {
+        $DB::single = 1;
+        die qq{"libmarpa-shared" not supported for Config::AutoConf}
+            if $Marpa::R2::USE_PERL_AUTOCONF;
         my $libmarpa_libs_dir =
             File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
             '.libs' );
-        $libmarpa_archive =
-            File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
-    } ## end FIND_LIBRARY:
-    push @{ $self->{properties}->{objects} }, $libmarpa_archive;
+        push @extra_linker_flags, '-L' . $libmarpa_libs_dir;
+        my $version_file_name = File::Spec->catfile( $self->base_dir(), 'libmarpa_build', 'VERSION' );
+        my $libmarpa_version = $self->file_slurp($version_file_name);
+        chomp $libmarpa_version;
+        my @libmarpa_version = split /[.]/xms, $libmarpa_version;
+        push @extra_linker_flags, sprintf q{-lmarpa-} . ( join q{.}, @libmarpa_version );
+    } ## end if ( defined $self->args('libmarpa-shared') )
+    else {
+        my $libmarpa_archive;
+        FIND_LIBRARY: {
+            if ($Marpa::R2::USE_PERL_AUTOCONF) {
+                my $libmarpa_libs_dir =
+                    File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
+                    'blib', 'arch', 'auto', 'libmarpa' );
+                $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir,
+                    "libmarpa$Config{lib_ext}" );
+                last FIND_LIBRARY;
+            } ## end if ($Marpa::R2::USE_PERL_AUTOCONF)
+            my $libmarpa_libs_dir =
+                File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
+                '.libs' );
+            $libmarpa_archive =
+                File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
+        } ## end FIND_LIBRARY:
+        push @{ $self->{properties}->{objects} }, $libmarpa_archive;
+    } ## end else [ if ( defined $self->args('libmarpa-shared') ) ]
 
     # .xs -> .bs
     $self->add_to_cleanup( $spec->{bs_file} );
@@ -309,13 +327,13 @@ sub process_xs {
     } ## end unless ( $self->up_to_date( $xs_file, $spec->{bs_file} ) )
 
     # .o -> .(a|bundle)
-    return marpa_link_c( $self, $spec );
+    return marpa_link_c( $self, $spec, \@extra_linker_flags );
 } ## end sub process_xs
 
 # The following was initially copied from Module::Build, and has
 # been customized for Marpa.
 sub marpa_link_c {
-    my ( $self, $spec ) = @_;
+    my ( $self, $spec, $extra_linker_flags ) = @_;
     my $p = $self->{properties};                             # For convenience
 
     $self->add_to_cleanup( $spec->{lib_file} );
@@ -328,11 +346,13 @@ sub marpa_link_c {
 
     my $module_name = $spec->{module_name} || $self->module_name;
 
+    my @extra_linker_flags = @{$p->{extra_linker_flags}};
+    push @extra_linker_flags, @{$extra_linker_flags};
     $self->cbuilder->link(
         module_name        => $module_name,
         objects            => [ $spec->{obj_file}, @{$objects} ],
         lib_file           => $spec->{lib_file},
-        extra_linker_flags => $p->{extra_linker_flags}
+        extra_linker_flags => \@extra_linker_flags
     );
 
     return $spec->{lib_file};
@@ -446,7 +466,13 @@ sub do_libmarpa {
     $ENV{CFLAGS} = $original_cflags if defined $original_cflags;
 
     # We need PIC, but do not want the overhead of building the shared library
-    my @configure_command_args = qw(--with-pic --disable-shared);
+    my @configure_command_args = ();
+    if ( defined $self->args('libmarpa-shared') ) {
+        push @configure_command_args, qw(--disable-static);
+    }
+    else {
+        push @configure_command_args, qw(--with-pic --disable-shared);
+    }
 
     my @debug_flags = ();
     if ( defined $self->args('Marpa-debug') ) {

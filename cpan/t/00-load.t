@@ -21,10 +21,8 @@ use English qw( -no_match_vars );
 
 use Test::More tests => 4;
 
-use Marpa::R2;
-
-defined $INC{'Marpa/R2.pm'}
-    or Test::More::BAIL_OUT('Could not load Marpa::R2');
+my $ok = eval { require Marpa::R2; 1; };
+Test::More::BAIL_OUT('Could not load Marpa::R2') if not $ok;
 
 my $marpa_version_ok = defined $Marpa::R2::VERSION;
 my $marpa_version_desc =
@@ -47,7 +45,6 @@ my $libmarpa_version_desc =
 Test::More::ok( $libmarpa_version_ok, $libmarpa_version_desc );
 
 Test::More::diag($marpa_string_version_desc);
-Test::More::diag('Libmarpa: ' . $Marpa::R2::LIBMARPA_FILE);
 Test::More::diag($libmarpa_version_desc);
 Test::More::diag('Libmarpa tag: ' . Marpa::R2::Thin::tag());
 
