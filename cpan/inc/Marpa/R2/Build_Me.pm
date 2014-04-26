@@ -832,6 +832,13 @@ sub ACTION_test {
     return $self->SUPER::ACTION_test;
 }
 
+sub ACTION_install {
+    my $self = shift;
+    die qq{"libmarpa-shared" not supported for "install" target\n},
+        qq{  Marpa::R2 supports testing of shared libraries, but is not an installer for them\n}
+        if defined $self->args('libmarpa-shared');
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:
