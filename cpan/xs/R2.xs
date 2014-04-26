@@ -2441,6 +2441,14 @@ PPCODE:
     XPUSHs (sv_2mortal (newSViv (version[2])));
 }
 
+void
+tag()
+PPCODE:
+{
+   const char* tag = _marpa_tag();
+   XSRETURN_PV(tag);
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void

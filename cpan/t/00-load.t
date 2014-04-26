@@ -49,6 +49,7 @@ Test::More::ok( $libmarpa_version_ok, $libmarpa_version_desc );
 Test::More::diag($marpa_string_version_desc);
 Test::More::diag('Libmarpa: ' . $Marpa::R2::LIBMARPA_FILE);
 Test::More::diag($libmarpa_version_desc);
+Test::More::diag('Libmarpa tag: ' . Marpa::R2::Thin::tag());
 
 my $grammar;
 my $eval_ok = eval { $grammar = Marpa::R2::Thin::G->new( { if => 1 } ); 1 };

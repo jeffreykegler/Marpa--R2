@@ -41,7 +41,6 @@ author.t/pod.t
 author.t/spelling_exceptions.list
 author.t/tidy.t
 author.t/tidy1
-c_to_dist.sh
 cp_libmarpa.sh
 etc/.gitignore
 etc/Makefile
@@ -51,6 +50,7 @@ etc/compile_for_debug.sh
 etc/dovg.sh
 etc/my_suppressions
 etc/reserved_check.sh
+etc/work_to_dist.sh
 g/config/default.txt
 html/.gitignore
 html/lib/Marpa/R2/HTML.pm

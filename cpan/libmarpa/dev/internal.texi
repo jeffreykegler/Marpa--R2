@@ -549,6 +549,16 @@ Return the is-predecessor bit for @var{nook_id}.
 @node Debugging methods,  , Valuator internals, Internal Interface
 @section Debugging methods
 
+@deftypefun const char* _marpa_tag(void)
+Returns a ``tag'' value.
+This is to allow tagging the libraries with an
+completely arbitrary string identifier.
+independent even of the versioning mechanism.
+This allows debugging, for example,
+to determine which of two otherwise exactly
+identical libraries is in use.
+@end deftypefun
+
 @deftypefun int marpa_debug_level_set ( int @var{level} )
 @end deftypefun
 

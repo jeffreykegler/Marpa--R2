@@ -660,6 +660,17 @@ Marpa_Error_Code marpa_c_error(Marpa_Config* config, const char** p_error_string
     return error_code;
 }
 
+const char* _marpa_tag(void)
+{
+#if defined(MARPA_TAG)
+  return MARPA_TAG;
+#elif defined(__GNUC__)
+  return __DATE__ " " __TIME__;
+#else
+  return "[no tag]";
+#endif
+}
+
 @** Grammar (GRAMMAR) code.
 @<Public incomplete structures@> =
 struct marpa_g;

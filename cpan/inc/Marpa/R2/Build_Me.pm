@@ -279,8 +279,6 @@ sub process_xs {
 
     my $libmarpa_archive;
     FIND_LIBRARY: {
-        $libmarpa_archive = $self->args('marpa-library');
-        last FIND_LIBRARY if defined $libmarpa_archive;
         if ($Marpa::R2::USE_PERL_AUTOCONF) {
             my $libmarpa_libs_dir =
                 File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
@@ -769,11 +767,7 @@ sub ACTION_code {
             qw(pperl Marpa R2 Perl Version.pm) );
     } ## end if ( not $self->up_to_date( [ $config_pm_filename, ...]))
 
-    # If we are not overriding it, ...
-    if (not defined $self->args('marpa-library')) {
-        # ... perform the default build.
-        $self->do_libmarpa();
-    }
+    $self->do_libmarpa();
 
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
@@ -791,9 +785,6 @@ sub ACTION_clean {
 
 sub ACTION_test {
     my $self = shift;
-    if (defined $self->args('marpa-library')) {
-        die q{"marpa-library" option not allowed with "test" target};
-    }
     local $ENV{PERL_DL_NONLAZY} = 1;
     return $self->SUPER::ACTION_test;
 }
