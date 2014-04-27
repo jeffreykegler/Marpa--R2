@@ -767,7 +767,7 @@ sub ACTION_distmeta {
     require CPAN::Meta;
 
     my $meta   = CPAN::Meta->load_file( $self->metafile() );
-    my @delete = ();
+    my @delete = ('DynaLoader');
     for my $provided ( keys %{ $meta->{provides} } ) {
         push @delete, $provided if $provided =~ m/\AMarpa::R2::Inner::/xms;
         push @delete, $provided if $provided =~ m/\AMarpa::R2::Internal::/xms;
