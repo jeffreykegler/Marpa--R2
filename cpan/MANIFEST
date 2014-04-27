@@ -41,12 +41,12 @@ author.t/pod.t
 author.t/spelling_exceptions.list
 author.t/tidy.t
 author.t/tidy1
-cp_libmarpa.sh
 etc/.gitignore
 etc/Makefile
 etc/check_license.pl
 etc/check_links.pl
 etc/compile_for_debug.sh
+etc/cp_libmarpa.sh
 etc/dovg.sh
 etc/my_suppressions
 etc/reserved_check.sh

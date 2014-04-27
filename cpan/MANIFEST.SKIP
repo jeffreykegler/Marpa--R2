@@ -65,6 +65,7 @@
 ^author.t/perlcritic.errs$
 ^author.t/tidy.errs$
 ^blib/
+^blib_shared/
 ^dovg[.]log$
 ^errs$
 ^etc/track[.]list
@@ -161,6 +162,7 @@
 ^libmarpa/tavl/tavl-test
 ^libmarpa/test/
 ^libmarpa_build/
+^libmarpa_shared/
 ^nogit
 ^nogit/
 ^nytprof/
