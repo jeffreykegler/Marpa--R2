@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.085_003 (libmarpa 6.0.2) Sat Apr 26 20:39:07 PDT 2014
+
+   * Support use of Marpa::R2 to test external shared libraries
+
 2.085_003 (libmarpa 6.0.2) Mon Apr 21 10:58:44 PDT 2014
 
    * Deprecate unvalued symbols in Libmarpa
