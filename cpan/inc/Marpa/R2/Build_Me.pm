@@ -230,9 +230,10 @@ sub process_xs {
 
     my @libmarpa_build_dir = File::Spec->splitdir( $self->base_dir );
     push @libmarpa_build_dir,
-        ( defined $self->args('libmarpa-shared') )
+        (
+        defined $self->args('libmarpa-shared')
         ? 'libmarpa_shared'
-        : 'libmarpa_build';
+        : 'libmarpa_build' );
     my $libmarpa_build_dir = File::Spec->catdir(@libmarpa_build_dir);
 
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file, $dest_gp_xsh );
@@ -281,33 +282,47 @@ sub process_xs {
         if not -d $spec->{archdir};
 
     my @extra_linker_flags = ();
+    my $libmarpa_build_directory = File::Spec->catdir(
+        $self->base_dir(),
+        (   defined $self->args('libmarpa-shared')
+            ? 'libmarpa_shared'
+            : 'libmarpa_build'
+        )
+    );
+
     if ( defined $self->args('libmarpa-shared') ) {
-        die qq{"libmarpa-shared" not supported for Config::AutoConf}
-            if $Marpa::R2::USE_PERL_AUTOCONF;
-        my $libmarpa_libs_dir =
-            File::Spec->catdir( $self->base_dir(), 'libmarpa_shared',
-            '.libs' );
+        my $libmarpa_libs_dir;
+        if ($Marpa::R2::USE_PERL_AUTOCONF) {
+            $libmarpa_libs_dir =
+                File::Spec->catdir( $libmarpa_build_directory,
+                qw(blib_shared arch auto libmarpa) );
+        }
+        else {
+            $libmarpa_libs_dir =
+                File::Spec->catdir( $libmarpa_build_directory, '.libs' );
+        }
         push @extra_linker_flags, '-L' . $libmarpa_libs_dir;
-        my $version_file_name = File::Spec->catfile( $self->base_dir(), 'libmarpa_shared', 'VERSION' );
+        my $version_file_name =
+            File::Spec->catfile( $libmarpa_build_directory, 'VERSION' );
         my $libmarpa_version = $self->file_slurp($version_file_name);
         chomp $libmarpa_version;
         my @libmarpa_version = split /[.]/xms, $libmarpa_version;
-        push @extra_linker_flags, sprintf q{-lmarpa-} . ( join q{.}, @libmarpa_version );
+        push @extra_linker_flags,
+            sprintf q{-lmarpa-} . ( join q{.}, @libmarpa_version );
     } ## end if ( defined $self->args('libmarpa-shared') )
     else {
         my $libmarpa_archive;
         FIND_LIBRARY: {
             if ($Marpa::R2::USE_PERL_AUTOCONF) {
                 my $libmarpa_libs_dir =
-                    File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
-                    'blib', 'arch', 'auto', 'libmarpa' );
+                    File::Spec->catdir( $libmarpa_build_directory, 'blib',
+                    'arch', 'auto', 'libmarpa' );
                 $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir,
                     "libmarpa$Config{lib_ext}" );
                 last FIND_LIBRARY;
             } ## end if ($Marpa::R2::USE_PERL_AUTOCONF)
             my $libmarpa_libs_dir =
-                File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
-                '.libs' );
+                File::Spec->catdir( $libmarpa_build_directory, '.libs' );
             $libmarpa_archive =
                 File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
         } ## end FIND_LIBRARY:
@@ -492,14 +507,13 @@ sub do_libmarpa {
             'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
     } ## end if ( defined $self->args('Marpa-debug') )
         
+    # As of this writing, only used by Config::AutoConf logic,
+    # but that may change.
+    my $libmarpa_version = $self->file_slurp('VERSION');
+    chomp $libmarpa_version;
+    my @libmarpa_version = split /[.]/xms, $libmarpa_version;
+
     if ($Marpa::R2::USE_PERL_AUTOCONF) {
-
-        die qq{"libmarpa-shared" not supported for Config::AutoConf}
-            if defined $self->args('libmarpa-shared');
-
-        my $libmarpa_version = $self->file_slurp('VERSION');
-        chomp $libmarpa_version;
-        my @libmarpa_version = split /[.]/xms, $libmarpa_version;
 
         #
         ## C.f. http://fr.slideshare.net/hashashin/building-c-and-c-libraries-with-perl
@@ -596,14 +610,25 @@ INLINEHOOK
         if (! -r 'Makefile.PL') {
             open my $makefile_pl_fh, '>', 'Makefile.PL';
             my $CCFLAGS = @debug_flags ? "$Config{ccflags} @debug_flags" : '';
+            my $linktype = 'static';
+            my $blib = 'blib';
+            my $name = 'libmarpa';
+            if (defined $self->args('libmarpa-shared')) {
+                $linktype = 'dynamic';
+                $blib = 'blib_shared';
+            }
             print {$makefile_pl_fh} "
 use ExtUtils::MakeMaker;
 WriteMakefile(VERSION        => \"$libmarpa_version\",
               XS_VERSION     => \"$libmarpa_version\",
-              NAME           => 'libmarpa',
+              NAME           => \"$name\",
               OBJECT         => '@o',
               CCFLAGS        => '$CCFLAGS',
-              LINKTYPE       => 'static');
+              INST_LIB       => \"./$blib/lib\",
+              INST_ARCHLIB   => \"./$blib/arch\",
+              INST_SCRIPT    => \"./$blib/script\",
+              INST_BIN       => \"./$blib/bin\",
+              LINKTYPE       => $linktype);
 ";
             close $makefile_pl_fh;
             die 'Making Makefile: perl Failure'
@@ -646,6 +671,21 @@ WriteMakefile(VERSION        => \"$libmarpa_version\",
     }
 
     chdir $cwd;
+
+    if ( $Marpa::R2::USE_PERL_AUTOCONF
+        && defined $self->args('libmarpa-shared') )
+    {
+        # Config::AutoConf creates a shared library with the wrong name, and
+        # easiest thing to do is to make a copy with the right one.
+        my $libmarpa_libs_dir =
+            File::Spec->catdir( $build_dir,
+            qw(blib_shared arch auto libmarpa) );
+        my $from = File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.so' );
+        my $to = File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa-' .$libmarpa_version . '.so' );
+        say "Copying $from -> $to ";
+        File::Copy::copy($from, $to) or die "Copy of $from to $to failed: $EVAL_ERROR";
+    } ## end if ( $Marpa::R2::USE_PERL_AUTOCONF && defined $self->...)
+
     return 1;
 
 } ## end sub do_libmarpa
