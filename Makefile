@@ -53,7 +53,7 @@ install:
 	(cd cpan/xs && make)
 	test -d cpan/libmarpa_dist || mkdir cpan/libmarpa_dist
 	test -d cpan/libmarpa_doc_dist || mkdir cpan/libmarpa_doc_dist
-	(cd cpan && sh c_to_dist.sh)
+	(cd cpan && sh etc/work_to_dist.sh)
 	(cd cpan && perl Build.PL)
 	(cd cpan && ./Build distmeta)
 	(cd cpan && ./Build code)
