@@ -41,7 +41,7 @@ BEGIN { Test::More::plan tests => 2; }
 use lib 'tool/lib';
 use Marpa::R2::Test;
 
-my $blib = $ENV{MARPA_TEST_BLIB};
+my $blib = $ENV{MARPA_TEST_BLIB} // 'blib';
 my $script_dir = File::Spec->catdir( $blib, 'script' );
 
 my @data_dir   = qw( html t fmt_t_data );
