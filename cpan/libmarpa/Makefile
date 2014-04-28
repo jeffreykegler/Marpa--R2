@@ -13,164 +13,12 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: install docs sources
-
-# Order matters -- configure.ac must be first
-DOC_SOURCE_FILES = \
-    doc/configure.ac \
-    doc/Makefile.am \
-    doc/fdl-1.3.texi \
-    doc/lgpl-3.0.texi \
-    doc/api.texi \
-    doc/internal.texi \
-    doc/NEWS \
-    doc/README \
-    doc/ChangeLog \
-    doc/COPYING.LESSER \
-    doc/AUTHORS
-
-# Order matters -- configure.ac must be first
-CONFIGURE_FILES = \
-    stage/configure.ac \
-    stage/Makefile.am
-
-STAGE_FILES = \
-    $(CONFIGURE_FILES) \
-    stage/AUTHORS \
-    stage/ChangeLog \
-    stage/COPYING.LESSER \
-    stage/Makefile.win32 \
-    stage/marpa_ami.c \
-    stage/marpa_ami.h \
-    stage/marpa_avl.c \
-    stage/marpa_avl.h \
-    stage/marpa.c \
-    stage/marpa_codes.c \
-    stage/marpa.h \
-    stage/marpa_obs.c \
-    stage/marpa_obs.h \
-    stage/marpa_slif.c \
-    stage/marpa_slif.h \
-    stage/marpa_tavl.c \
-    stage/marpa_tavl.h \
-    stage/NEWS \
-    stage/README \
-    stage/VERSION.in \
-    stage/win32/do_config_h.pl \
-    stage/win32/marpa.def
+.PHONY: install docs sources stage_copy
 
 dummy:
 	@echo install is the main target
 
-doc/configure.ac: ac_doc/configure.ac
-	test -d doc || mkdir doc
-	cp $? $@
-
-doc/Makefile.am: ac_doc/Makefile.am
-	cp $? $@
-
-stage/configure.ac: ac/configure.ac
-	test -d stage || mkdir stage
-	cp $? $@
-
-stage/Makefile.am: ac/Makefile.am
-	cp $? $@
-
-stage/Makefile.win32: win32/Makefile.win32
-	cp $? $@
-
-stage/win32/do_config_h.pl: win32/do_config_h.pl
-	test -d stage/win32 || mkdir stage/win32
-	cp $? $@
-
-stage/marpa.c: dev/marpa.c
-	cp $? $@
-
-stage/win32/marpa.def: dev/marpa.def
-	cp $? $@
-
-stage/marpa.h: public/marpa.h
-	cp $? $@
-
-stage/marpa_slif.h: public/marpa_slif.h
-	cp $? $@
-
-stage/marpa_obs.c: obs/marpa_obs.c
-	cp $? $@
-
-stage/marpa_obs.h: obs/marpa_obs.h
-	cp $? $@
-
-stage/marpa_ami.c: ami/marpa_ami.c
-	cp $? $@
-
-stage/marpa_codes.c: public/marpa_codes.c
-	cp $? $@
-
-stage/marpa_slif.c: slif/marpa_slif.c
-	cp $? $@
-
-stage/marpa_ami.h: ami/marpa_ami.h
-	cp $? $@
-
-stage/marpa_avl.c: avl/marpa_avl.c
-	cp $? $@
-
-stage/marpa_avl.h: avl/marpa_avl.h
-	cp $? $@
-
-stage/marpa_tavl.h: tavl/marpa_tavl.h
-	cp $? $@
-
-stage/marpa_tavl.c: tavl/marpa_tavl.c
-	cp $? $@
-
-stage/AUTHORS: ac/AUTHORS
-	cp $? $@
-
-stage/COPYING.LESSER: ac/COPYING.LESSER
-	cp $? $@
-
-stage/ChangeLog: ac/ChangeLog
-	cp $? $@
-
-stage/NEWS: ac/NEWS
-	cp $? $@
-
-stage/README: ac/README
-	cp $? $@
-
-stage/VERSION.in: public/VERSION.in
-	cp $? $@
-
-doc/README: ac_doc/README
-	cp $? $@
-
-doc/NEWS: ac_doc/NEWS
-	cp $? $@
-
-doc/AUTHORS: ac_doc/AUTHORS
-	cp $? $@
-
-doc/COPYING.LESSER: ac_doc/COPYING.LESSER
-	cp $? $@
-
-doc/ChangeLog: ac_doc/ChangeLog
-	cp $? $@
-
-doc/fdl-1.3.texi: ac_doc/fdl-1.3.texi
-	cp $? $@
-
-doc/lgpl-3.0.texi: ac_doc/lgpl-3.0.texi
-	cp $? $@
-
-doc/api.texi: dev/api.texi
-	cp $? $@
-
-doc/internal.texi: dev/internal.texi
-	cp $? $@
-
-stage/configure: $(STAGE_FILES)
+stage/configure: stage_copy
 	test -d stage || mkdir stage
 	test -d stage/m4 || mkdir stage/m4
 	cd stage && autoreconf -iv
@@ -178,17 +26,20 @@ stage/configure: $(STAGE_FILES)
 stage/Makefile: stage/configure
 	cd stage && ./configure
 
-doc/api.pdf: doc/Makefile doc/api.texi
+doc/api.pdf: stage_copy doc/Makefile doc/api.texi
 	cd doc && make pdf
 
-doc/api.html/index.html: doc/Makefile doc/api.texi
+doc/api.html/index.html: stage_copy doc/Makefile doc/api.texi
 	cd doc && make html
 
-doc/internal.pdf: doc/Makefile doc/internal.texi
+doc/internal.pdf: stage_copy doc/Makefile doc/internal.texi
 	cd doc && make pdf
 
-doc/internal.html/index.html: doc/Makefile doc/internal.texi
+doc/internal.html/index.html: stage_copy doc/Makefile doc/internal.texi
 	cd doc && make html
+
+stage_copy:
+	perl bin/to_stage.pl
 
 install: sources stage/stamp-h1 doc/stamp-h1
 
@@ -201,7 +52,7 @@ sources:
 clean:
 	for d in $(CLEANABLE_DIR); do (cd $$d; make clean); done
 
-stage/stamp-h1: stage/Makefile $(STAGE_FILES)
+stage/stamp-h1: stage/Makefile stage_copy
 	(cd stage; make dist)
 	date > $@
 

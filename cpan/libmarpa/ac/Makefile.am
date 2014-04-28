@@ -26,7 +26,8 @@ libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_ami.c marpa_ami.h \
     marpa_codes.c marpa_slif.c
 EXTRA_DIST = VERSION \
-  win32/marpa.def Makefile.win32 win32/do_config_h.pl
+  win32/marpa.def Makefile.win32 win32/do_config_h.pl \
+  notes/shared_test.txt
 libmarpa_la_LIBADD = $(LIBOBJS)
 libmarpa_la_LDFLAGS = -release $(MARPA_MAJOR_VERSION).$(MARPA_MINOR_VERSION).$(MARPA_MICRO_VERSION)
 include_HEADERS = marpa.h \

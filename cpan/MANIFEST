@@ -140,6 +140,7 @@ libmarpa/avl/marpa_avl.c
 libmarpa/avl/marpa_avl.h
 libmarpa/bin/cppwrap.pl
 libmarpa/bin/texi2proto.pl
+libmarpa/bin/to_stage.pl
 libmarpa/bin/too_long.pl
 libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
@@ -149,6 +150,7 @@ libmarpa/dev/internal.texi
 libmarpa/dev/legacy.w
 libmarpa/dev/marpa.w
 libmarpa/dev/w2private_h.pl
+libmarpa/notes/shared_test.txt
 libmarpa/obs/marpa_obs.c
 libmarpa/obs/marpa_obs.h
 libmarpa/public/.gitignore
@@ -223,6 +225,7 @@ libmarpa_dist/marpa_slif.h
 libmarpa_dist/marpa_tavl.c
 libmarpa_dist/marpa_tavl.h
 libmarpa_dist/missing
+libmarpa_dist/notes/shared_test.txt
 libmarpa_dist/stamp-h1
 libmarpa_dist/win32/do_config_h.pl
 libmarpa_dist/win32/marpa.def
