@@ -1595,6 +1595,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 
     }
 
+  /* Never reached */
   return -1;
 }
 
@@ -2473,7 +2474,6 @@ PPCODE:
 	throw = throw_sv && SvTRUE (throw_sv);
       }
       break;
-      croak ("Usage: Marpa::R2::Thin:G::new(class, arg_hash)");
     case 2:
       {
 	I32 retlen;
