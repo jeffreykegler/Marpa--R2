@@ -877,6 +877,7 @@ sub ACTION_install {
     die qq{"libmarpa-shared" not supported for "install" target\n},
         qq{  Marpa::R2 supports testing of shared libraries, but is not an installer for them\n}
         if defined $self->args('libmarpa-shared');
+    return $self->SUPER::ACTION_test;
 }
 
 1;
