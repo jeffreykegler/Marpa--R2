@@ -6107,6 +6107,10 @@ A boolean vector by symbol ID,
 with the bits set if, when
 that symbol is an expected symbol,
 an event should be created.
+Here ``expected'' means ``expected as a terminal''.
+All predicted symbols are expected symbols,
+but the reverse is not true --
+predicted non-terminals are not ``expected'' symbols.
 @<Widely aligned recognizer elements@> = LBV t_nsy_expected_is_event;
 @ @<Initialize recognizer elements@> = 
   r->t_nsy_expected_is_event = lbv_obs_new0(r->t_obs, nsy_count);

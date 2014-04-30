@@ -2653,6 +2653,12 @@ if and only if the expected symbol event bit
 for @var{symbol_id} is 1.
 The ``expected symbol event bit'' must be 1 or 0.
 
+In this context, ``expected'' means ``expected as a terminal''.
+Even if a symbol is predicted at the current earleme,
+if it is not acceptable as a terminal,
+it does not trigger an
+``expected symbol event''.
+
 By default, the ``expected symbol event bit'' is 0.
 It is an error to attempt to set the
 ``expected symbol event bit'' to 1 for a nulling symbol,
@@ -4024,9 +4030,13 @@ Suggested message: "Completed symbol".
 
 @deftypevr Macro int MARPA_EVENT_SYMBOL_EXPECTED
 The recognizer can be set to generate an event when a
-symbol is expected
+symbol is expected as a terminal,
 using its @code{marpa_r_expected_symbol_event_set()}
 method.
+Note that this event only triggers if the symbol is
+expected as a terminal.
+Predicted symbols which are not expected as terminals
+do not trigger this event.
 This event code indicates that one of those events
 occurred.
 Event value: The ID of the expected symbol.
@@ -4053,6 +4063,11 @@ symbol is predicted.
 To set an predicted symbol event,
 use the recognizer's @code{marpa_r_predicted_symbol_event_set()}
 method.
+Unlike the 
+@code{MARPA_EVENT_SYMBOL_EXPECTED} event,
+the @code{MARPA_EVENT_SYMBOL_PREDICTED} event
+triggers for predictions of both
+non-terminals and terminals.
 This event code indicates that a predicted symbol event
 occurred.
 Event value: The ID of the predicted symbol.
