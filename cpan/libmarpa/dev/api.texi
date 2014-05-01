@@ -1726,6 +1726,7 @@ or on other failure, @minus{}2.
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
 
 Creates a new symbol.
+The symbol ID will be a non-negative integer.
 
 Return value: On success, the ID of a new symbol;
 On failure, @minus{}2.
@@ -1842,7 +1843,16 @@ On other failure, @minus{}2.
     Marpa_Symbol_ID @var{lhs_id}, @
  Marpa_Symbol_ID *@var{rhs_ids}, @
      int @var{length})
-Creates a new external rule in grammar @var{g}.
+Creates a new external BNF rule in grammar @var{g}.
+The ID of the new rule will be a non-negative integer,
+which will be unique to that rule.
+In addition to BNF rules, Marpa also allows sequence rules,
+which are created by another method:
+@code{marpa_g_sequence_new()}.
+Sequence rules and BNF rules are numbered in the same series,
+so that a BNF rule will never have the same rule ID as a sequence
+rule, and vice versa.
+
 The LHS symbol is @var{lhs_id},
 and there are @var{length} symbols on the RHS.
 The RHS symbols are in an array
@@ -1929,14 +1939,11 @@ or on other failure, @minus{}2.
     int @var{min}, @
  int @var{flags} )
 Adds a new sequence rule to grammar @var{g}.
-Sequence rules do not add to the classes of grammar parsed
-by Libmarpa ---
-a sequence can always be written as BNF rules.
-When a rule is created
-with the @code{marpa_g_sequence_new()} method,
-Libmarpa will understand that it is a sequence,
-and will optimize accordingly.
-The speedup is often considerable.
+The ID of the new sequence rule will be a non-negative integer,
+which is unique to that rule.
+Sequence rules and BNF rules are numbered in the same series,
+so that a BNF rule will never have the same rule ID as a sequence
+rule, and vice versa.
 
 The sequence is @var{lhs_id},
 and the item to be repeated in the sequence is @var{rhs_id}.
@@ -1986,6 +1993,15 @@ LHS,
 @code{marpa_g_sequence_new()} fails,
 setting the error code to
 @code{MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE}.
+
+Sequence rules do not add to the classes of grammar parsed
+by Libmarpa ---
+a sequence can always be written as BNF rules.
+When a rule is created
+with the @code{marpa_g_sequence_new()} method,
+Libmarpa will understand that it is a sequence,
+and will optimize accordingly.
+The speedup is often considerable.
 
 Return value:  On success, the ID of the external rule.
 On failure, @minus{}2.
