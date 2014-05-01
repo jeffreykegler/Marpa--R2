@@ -1562,7 +1562,7 @@ as non-zero in length can only generate completed events.
 
 Zero length derivations can be ambiguous.
 When a zero length symbol is recognized,
-all of its zero-length derviations are also considered to be
+all of its zero-length derivations are also considered to be
 recognized.
 
 The nulled event marking cannot be changed once
