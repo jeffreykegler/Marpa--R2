@@ -17,6 +17,7 @@
 
 AM_CFLAGS = $(WARNING_CFLAGS) $(MARPA_DEBUG_FLAG)
 AM_CPPFLAGS = $(WARNING_CPPFLAGS)
+RELEASE= $(MARPA_LIB_MAJOR_VERSION).$(MARPA_LIB_MINOR_VERSION).$(MARPA_LIB_MICRO_VERSION)
 ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libmarpa.la
 libmarpa_la_SOURCES = marpa.c marpa.h \
@@ -29,7 +30,7 @@ EXTRA_DIST = VERSION \
   win32/marpa.def Makefile.win32 win32/do_config_h.pl \
   notes/shared_test.txt
 libmarpa_la_LIBADD = $(LIBOBJS)
-libmarpa_la_LDFLAGS = -release $(MARPA_MAJOR_VERSION).$(MARPA_MINOR_VERSION).$(MARPA_MICRO_VERSION)
+libmarpa_la_LDFLAGS = -release $(RELEASE)
 include_HEADERS = marpa.h \
   marpa_avl.h marpa_tavl.h marpa_ami.h \
   marpa_slif.h marpa_obs.h

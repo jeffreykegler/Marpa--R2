@@ -592,16 +592,16 @@ It is all compile-time constants,
 so it is expected that
 it will be optimized out completely at compile time.
 @d HEADER_VERSION_MISMATCH (
-   MARPA_MAJOR_VERSION != MARPA_H_MAJOR_VERSION
-   || MARPA_MINOR_VERSION != MARPA_H_MINOR_VERSION
-   || MARPA_MICRO_VERSION != MARPA_H_MICRO_VERSION
+   MARPA_LIB_MAJOR_VERSION != MARPA_H_MAJOR_VERSION
+   || MARPA_LIB_MINOR_VERSION != MARPA_H_MINOR_VERSION
+   || MARPA_LIB_MICRO_VERSION != MARPA_H_MICRO_VERSION
 )
 @ Set globals to the library version numbers,
 so that they can be found at runtime.
 @<Global constant variables@> =
-const int marpa_major_version = MARPA_MAJOR_VERSION;
-const int marpa_minor_version = MARPA_MINOR_VERSION;
-const int marpa_micro_version = MARPA_MICRO_VERSION;
+const int marpa_major_version = MARPA_LIB_MAJOR_VERSION;
+const int marpa_minor_version = MARPA_LIB_MINOR_VERSION;
+const int marpa_micro_version = MARPA_LIB_MICRO_VERSION;
 
 @ @<Function definitions@> =
 Marpa_Error_Code
@@ -609,13 +609,11 @@ marpa_check_version (int required_major,
                     int required_minor,
                     int required_micro)
 {
-  if (required_major != MARPA_MAJOR_VERSION)
+  if (required_major != MARPA_LIB_MAJOR_VERSION)
     return MARPA_ERR_MAJOR_VERSION_MISMATCH;
-  if (required_minor > MARPA_MINOR_VERSION)
+  if (required_minor != MARPA_LIB_MINOR_VERSION)
     return MARPA_ERR_MINOR_VERSION_MISMATCH;
-  if (required_minor < MARPA_MINOR_VERSION)
-    return MARPA_ERR_NONE;
-  if (required_micro > MARPA_MICRO_VERSION)
+  if (required_micro != MARPA_LIB_MICRO_VERSION)
     return MARPA_ERR_MICRO_VERSION_MISMATCH;
   return MARPA_ERR_NONE;
 }
@@ -625,9 +623,9 @@ marpa_check_version (int required_major,
 Marpa_Error_Code
 marpa_version (int* version)
 {
-  *version++ = MARPA_MAJOR_VERSION;
-  *version++ = MARPA_MINOR_VERSION;
-  *version = MARPA_MICRO_VERSION;
+  *version++ = MARPA_LIB_MAJOR_VERSION;
+  *version++ = MARPA_LIB_MINOR_VERSION;
+  *version = MARPA_LIB_MICRO_VERSION;
   return 0;
 }
 
@@ -15912,12 +15910,9 @@ extern const int marpa_major_version;
 extern const int marpa_minor_version;
 extern const int marpa_micro_version;
 
-#define MARPA_CHECK_VERSION(major,minor,micro) @| \
-    @[ (MARPA_MAJOR_VERSION > (major) \
-        @| || (MARPA_MAJOR_VERSION == (major) && MARPA_MINOR_VERSION > (minor)) \
-        @| || (MARPA_MAJOR_VERSION == (major) && MARPA_MINOR_VERSION == (minor) \
-        @|  && MARPA_MICRO_VERSION >= (micro)))
-        @]@#
+#define MARPA_MAJOR_VERSION MARPA_H_MAJOR_VERSION
+#define MARPA_MINOR_VERSION MARPA_H_MINOR_VERSION
+#define MARPA_MICRO_VERSION MARPA_H_MICRO_VERSION
 
 @<Public defines@>@;
 @<Public incomplete structures@>@;
