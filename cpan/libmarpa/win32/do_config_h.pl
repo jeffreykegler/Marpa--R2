@@ -204,6 +204,9 @@ INLINEHOOK
             say {$config_fh} join q{ }, '#define MARPA_MAJOR_VERSION', $libmarpa_version[0];
             say {$config_fh} join q{ }, '#define MARPA_MINOR_VERSION', $libmarpa_version[1];
             say {$config_fh} join q{ }, '#define MARPA_MICRO_VERSION', $libmarpa_version[2];
+            say {$config_fh} join q{ }, '#define MARPA_H_MAJOR_VERSION', $libmarpa_version[0];
+            say {$config_fh} join q{ }, '#define MARPA_H_MINOR_VERSION', $libmarpa_version[1];
+            say {$config_fh} join q{ }, '#define MARPA_H_MICRO_VERSION', $libmarpa_version[2];
 
             close($config_fh);
             $ac = Config::AutoConf->new();
