@@ -4034,7 +4034,7 @@ Suggested message: "This symbol is a nulling terminal".
 @deftypevr Macro int MARPA_EVENT_SYMBOL_COMPLETED
 The recognizer can be set to generate an event 
 a symbol is completed
-using its @code{marpa_r_completed_symbol_event_set()}
+using its @code{marpa_g_symbol_is_completion_event_set()}
 method.
 (A symbol is "completed" if and only if any rule with that symbol
 as its LHS is completed.)
