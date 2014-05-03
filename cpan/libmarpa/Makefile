@@ -51,6 +51,7 @@ sources:
 
 clean:
 	for d in $(CLEANABLE_DIR); do (cd $$d; make clean); done
+	rm -rf stage
 
 stage/stamp-h1: stage/Makefile stage_copy
 	(cd stage; make dist)

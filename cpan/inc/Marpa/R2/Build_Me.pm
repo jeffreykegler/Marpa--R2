@@ -303,7 +303,7 @@ sub process_xs {
         }
         push @extra_linker_flags, '-L' . $libmarpa_libs_dir;
         my $version_file_name =
-            File::Spec->catfile( $libmarpa_build_directory, 'VERSION' );
+            File::Spec->catfile( $libmarpa_build_directory, 'LIB_VERSION' );
         my $libmarpa_version = $self->file_slurp($version_file_name);
         chomp $libmarpa_version;
         my @libmarpa_version = split /[.]/xms, $libmarpa_version;
@@ -509,7 +509,7 @@ sub do_libmarpa {
         
     # As of this writing, only used by Config::AutoConf logic,
     # but that may change.
-    my $libmarpa_version = $self->file_slurp('VERSION');
+    my $libmarpa_version = $self->file_slurp('LIB_VERSION');
     chomp $libmarpa_version;
     my @libmarpa_version = split /[.]/xms, $libmarpa_version;
 

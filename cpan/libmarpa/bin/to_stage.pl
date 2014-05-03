@@ -75,7 +75,7 @@ stage/COPYING.LESSER: ac/COPYING.LESSER
 stage/ChangeLog: ac/ChangeLog
 stage/NEWS: ac/NEWS
 stage/README: ac/README
-stage/VERSION.in: public/VERSION.in
+stage/LIB_VERSION.in: public/LIB_VERSION.in
 doc/README: ac_doc/README
 doc/NEWS: ac_doc/NEWS
 doc/AUTHORS: ac_doc/AUTHORS

@@ -26,7 +26,7 @@ libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_tavl.c marpa_tavl.h \
     marpa_ami.c marpa_ami.h \
     marpa_codes.c marpa_slif.c
-EXTRA_DIST = VERSION \
+EXTRA_DIST = LIB_VERSION \
   win32/marpa.def Makefile.win32 win32/do_config_h.pl \
   notes/shared_test.txt
 libmarpa_la_LIBADD = $(LIBOBJS)
