@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.085_006 (libmarpa 6.0.5) Fri May  2 19:44:29 PDT 2014
+
+   * More work on versioning
+
 2.085_005 (libmarpa 6.0.4) Sun Apr 27 21:27:48 PDT 2014
 
    * Fix install failure
