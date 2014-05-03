@@ -587,9 +587,9 @@ prototypes, look at
 @** The public header file.
 @*0 Version constants.
 @ This macro checks that the header version numbers
-(MARPA_xxx_VERSION)
+(|MARPA_xxx_VERSION|)
 and the library version numbers
-(MARPA_LIB_xxx_VERSION)
+(|MARPA_LIB_xxx_VERSION|)
 are identical.
 It is a sanity check.
 The best argument for the cost-effectiveness here
