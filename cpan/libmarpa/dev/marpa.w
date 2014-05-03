@@ -587,17 +587,21 @@ prototypes, look at
 @** The public header file.
 @*0 Version constants.
 @ This macro checks that the header version numbers
-and the library version numbers are identical.
+(MARPA_xxx_VERSION)
+and the library version numbers
+(MARPA_LIB_xxx_VERSION)
+are identical.
 It is a sanity check.
 The best argument for the cost-effectiveness here
-is that it should be free --
+is that the check is almost certainly cost-free at
+runtime --
 it is all compile-time constants,
-which I can expected to be
-optimized out completely at compile time.
+which I can reasonably expect to be
+optimized out.
 @d HEADER_VERSION_MISMATCH (
-   MARPA_LIB_MAJOR_VERSION != MARPA_H_MAJOR_VERSION
-   || MARPA_LIB_MINOR_VERSION != MARPA_H_MINOR_VERSION
-   || MARPA_LIB_MICRO_VERSION != MARPA_H_MICRO_VERSION
+   MARPA_LIB_MAJOR_VERSION != MARPA_MAJOR_VERSION
+   || MARPA_LIB_MINOR_VERSION != MARPA_MINOR_VERSION
+   || MARPA_LIB_MICRO_VERSION != MARPA_MICRO_VERSION
 )
 @ Set globals to the library version numbers,
 so that they can be found at runtime.
@@ -15920,10 +15924,6 @@ or used strictly for debugging.
 extern const int marpa_major_version;
 extern const int marpa_minor_version;
 extern const int marpa_micro_version;
-
-#define MARPA_MAJOR_VERSION MARPA_H_MAJOR_VERSION
-#define MARPA_MINOR_VERSION MARPA_H_MINOR_VERSION
-#define MARPA_MICRO_VERSION MARPA_H_MICRO_VERSION
 
 @<Public defines@>@;
 @<Public incomplete structures@>@;

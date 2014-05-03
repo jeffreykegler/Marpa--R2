@@ -104,6 +104,13 @@ fi
 
 AC_SUBST(WARNING_CFLAGS)
 AC_SUBST(WARNING_CPPFLAGS)
+
+# There are two sets of version numbers, one that travels as
+# a define with the public headers, and this one, which is compiled
+# into the library.  Both *should* be the same.
+# We use these duplicate headers to make sure applications match the
+# right headers to the right library, and also for some sanity checking
+# at build and development time.
 AC_SUBST(MARPA_LIB_MAJOR_VERSION, [marpa_major_version])
 AC_SUBST(MARPA_LIB_MINOR_VERSION, [marpa_minor_version])
 AC_SUBST(MARPA_LIB_MICRO_VERSION, [marpa_micro_version])
