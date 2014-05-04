@@ -1064,7 +1064,7 @@ Libmarpa terminates the program with a fatal error.
 
 While this is in keeping with current practice,
 future versions of Libmarpa are likely to both allow
-an alternative memory allocator to be specificied,
+an alternative memory allocator to be specified,
 and to allow the user to specifier a handler to
 be called when an out-of-memory condition occurs.
 
@@ -3163,6 +3163,11 @@ highest rank.
 A @var{flag} of 0 indicates that
 no choices should be discarded on the
 basis of their rank.
+
+A value of 1 is the default.
+The value of the ``high rank only'' flag has no effect
+unless ranking has been turned on using the
+@code{marpa_o_rank()} method.
 
 Return value:  On success, the  value of the
 ``high rank only'' flag @strong{after}
