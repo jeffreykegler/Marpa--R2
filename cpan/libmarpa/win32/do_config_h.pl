@@ -140,7 +140,7 @@ sub do_config_h {
         
     if ($USE_PERL_AUTOCONF) {
 
-        my $libmarpa_version = read_file('VERSION');
+        my $libmarpa_version = read_file('LIB_VERSION');
         chomp $libmarpa_version;
         my @libmarpa_version = split /[.]/xms, $libmarpa_version;
 
