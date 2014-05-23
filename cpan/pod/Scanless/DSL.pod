@@ -1054,7 +1054,7 @@ lexer searches only for those.
 =head2 name
 
 =for Marpa::R2::Display
-name: name adverb example
+name: symbol, name array descriptor example
 partial: 1
 normalize-whitespace: 1
 

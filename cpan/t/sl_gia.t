@@ -326,7 +326,7 @@ END_OF_SOURCE
 {
 
 # Marpa::R2::Display
-# name: name adverb example
+# name: symbol, name array descriptor example
 # start-after-line: END_OF_SOURCE
 # end-before-line: '^END_OF_SOURCE$'
 
