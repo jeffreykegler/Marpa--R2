@@ -196,7 +196,7 @@ INPUT
 ];
 
 # Test of forgiving token from Peter Stuifzand
-{
+if (1) {
 
 # Marpa::R2::Display
 # name: forgiving adverb example
@@ -240,7 +240,7 @@ INPUT
 }
 
 # Test of LATM token from Ruslan Zakirov
-{
+if (1) {
 
 # Marpa::R2::Display
 # name: latm adverb example
@@ -272,7 +272,7 @@ END_OF_SOURCE
 
 # Test of LATM token from Ruslan Zakirov
 # This time using the lexeme default statement
-{
+if (1) {
 
     my $source = <<'END_OF_SOURCE';
 lexeme default = latm => 1
@@ -292,6 +292,46 @@ END_OF_SOURCE
         [
         $slg, $input, $expected_output,
         'Parse OK', 'Test of LATM token using lexeme default statement'
+        ];
+}
+
+# Test of rank adverb
+{
+
+# Marpa::R2::Display
+# name: rank adverb example
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
+    my $source = <<'END_OF_SOURCE';
+lexeme default = latm => 1
+:default ::= action => [name, values]
+:start ::= externals
+externals ::= external*
+external ::= special | unspecial
+unspecial ::= 'I' 'am' 'special' words 'NOT!' ';' rank => 1
+special ::= words ';'
+words ::= word*
+
+:discard ~ whitespace
+whitespace ~ [\s]+
+word ~ [\w!]+
+END_OF_SOURCE
+
+    my $input = <<'END_OF_INPUT';
+I am special so very special -- NOT!;
+I am special and nothing is going to change that;
+END_OF_INPUT
+
+# Marpa::R2::Display
+
+    my $expected_output = [];
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', 'Test of rank adverb from Ruslan Zakirov'
         ];
 }
 
