@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 30;
+use Test::More tests => 32;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -29,14 +29,13 @@ use Marpa::R2;
 use Data::Dumper;
 
 my @tests_data = ();
-my $input;
 
 our $DEBUG = 0;
 
 # In crediting test, JDD = Jean-Damien Durand
-
-my $glenn_grammar = Marpa::R2::Scanless::G->new(
-    {   source => \(<<'END_OF_SOURCE'),
+if (1) {
+    my $glenn_grammar = Marpa::R2::Scanless::G->new(
+        {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
 
             Start  ::= Child DoubleColon Token
@@ -49,27 +48,29 @@ my $glenn_grammar = Marpa::R2::Scanless::G->new(
             word ~ [\w]+
 
 END_OF_SOURCE
-    }
-);
+        }
+    );
 
-$input = 'child::book';
+    my $input = 'child::book';
 
-push @tests_data,
-    [
-    $glenn_grammar,
-    'child::book',
-    [ 'child', q{::}, 'book' ],
-    'Parse OK',
-    'Nate Glenn bug regression'
-    ];
+    push @tests_data,
+        [
+        $glenn_grammar,
+        'child::book',
+        [ 'child', q{::}, 'book' ],
+        'Parse OK',
+        'Nate Glenn bug regression'
+        ];
+} ## end if (1)
 
 # Marpa::R2::Display
 # name: Case-insensitive characters examples
 # start-after-line: END_OF_SOURCE
 # end-before-line: '^END_OF_SOURCE$'
 
-my $ic_grammar = Marpa::R2::Scanless::G->new(
-    {   source => \(<<'END_OF_SOURCE'),
+if (1) {
+    my $ic_grammar = Marpa::R2::Scanless::G->new(
+        {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
 
             Start  ::= Child DoubleColon Token
@@ -82,19 +83,20 @@ my $ic_grammar = Marpa::R2::Scanless::G->new(
             word ~ [\w]:ic +
 
 END_OF_SOURCE
-    }
-);
+        }
+    );
 
 # Marpa::R2::Display::End
 
-push @tests_data,
-    [
-    $ic_grammar,
-    'ChilD::BooK',
-    [ 'ChilD', q{::}, 'BooK' ],
-    'Parse OK',
-    'Case insensitivity test'
-    ];
+    push @tests_data,
+        [
+        $ic_grammar,
+        'ChilD::BooK',
+        [ 'ChilD', q{::}, 'BooK' ],
+        'Parse OK',
+        'Case insensitivity test'
+        ];
+} ## end if (1)
 
 my $durand_grammar1 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
@@ -296,7 +298,7 @@ END_OF_SOURCE
 }
 
 # Test of rank adverb
-{
+if (1) {
 
 # Marpa::R2::Display
 # name: rank adverb example
@@ -338,7 +340,7 @@ END_OF_INPUT
 # Test of rule array item descriptor for action adverb
 # todo: test by converting rule and lhs ID's to names
 # based on $slg->symbol_is_lexeme(symbol_id) -- to be written
-{
+if (1) {
     my $source = <<'END_OF_SOURCE';
 
     :default ::= action => [lhs, rule, values]
@@ -363,7 +365,7 @@ END_OF_SOURCE
 }
 
 # Test of 'symbol', 'name' array item descriptors
-{
+if (1) {
 
 # Marpa::R2::Display
 # name: symbol, name array descriptor example
@@ -400,7 +402,7 @@ END_OF_SOURCE
 }
 
 ### Test of 'inaccessible is ok'
-{
+if (1) {
 
 # Marpa::R2::Display
 # name: inaccessible is ok statement
