@@ -33,7 +33,7 @@ my @tests_data = ();
 our $DEBUG = 0;
 
 # In crediting test, JDD = Jean-Damien Durand
-if (1) {
+if (0) {
     my $glenn_grammar = Marpa::R2::Scanless::G->new(
         {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
@@ -61,14 +61,14 @@ END_OF_SOURCE
         'Parse OK',
         'Nate Glenn bug regression'
         ];
-} ## end if (1)
+} ## end if (0)
 
 # Marpa::R2::Display
 # name: Case-insensitive characters examples
 # start-after-line: END_OF_SOURCE
 # end-before-line: '^END_OF_SOURCE$'
 
-if (1) {
+if (0) {
     my $ic_grammar = Marpa::R2::Scanless::G->new(
         {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
@@ -96,10 +96,11 @@ END_OF_SOURCE
         'Parse OK',
         'Case insensitivity test'
         ];
-} ## end if (1)
+} ## end if (0)
 
-my $durand_grammar1 = Marpa::R2::Scanless::G->new(
-    {   source => \(<<'END_OF_SOURCE'),
+if (0) {
+    my $durand_grammar1 = Marpa::R2::Scanless::G->new(
+        {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
 start symbol is test
 test ::= TEST
@@ -116,20 +117,22 @@ COMMENT               ~ WS_any POUND NOT_NEWLINE_any _NEWLINE
 BLANKLINE             ~ WS_any _NEWLINE
 :discard              ~ BLANKLINE
 END_OF_SOURCE
-    }
-);
+        }
+    );
 
-push @tests_data, [
-    $durand_grammar1, <<INPUT,
+    push @tests_data, [
+        $durand_grammar1, <<INPUT,
 ## Allowed in the input
 
 # Another comment
 INPUT
-    ["## Allowed in the input\n"],
-    'Parse OK',
-    'JDD test of discard versus accepted'
-];
+        ["## Allowed in the input\n"],
+        'Parse OK',
+        'JDD test of discard versus accepted'
+    ];
+} ## end if (0)
 
+if (0) {
 my $durand_grammar2 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
@@ -159,9 +162,11 @@ INPUT
     'Parse OK',
     'Regression test of bug found by JDD'
 ];
+}
 
 # ===============
 
+if (0) {
 my $durand_grammar3 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
@@ -196,9 +201,10 @@ INPUT
     'Parse OK',
     'Regression test of perl_pos bug found by JDD'
 ];
+}
 
 # Test of forgiving token from Peter Stuifzand
-if (1) {
+if (0) {
 
 # Marpa::R2::Display
 # name: forgiving adverb example
@@ -242,7 +248,7 @@ INPUT
 }
 
 # Test of LATM token from Ruslan Zakirov
-if (1) {
+if (0) {
 
 # Marpa::R2::Display
 # name: latm adverb example
@@ -274,7 +280,7 @@ END_OF_SOURCE
 
 # Test of LATM token from Ruslan Zakirov
 # This time using the lexeme default statement
-if (1) {
+if (0) {
 
     my $source = <<'END_OF_SOURCE';
 lexeme default = latm => 1
@@ -298,7 +304,7 @@ END_OF_SOURCE
 }
 
 # Test of rank adverb
-if (1) {
+if (0) {
 
 # Marpa::R2::Display
 # name: rank adverb example
@@ -340,7 +346,7 @@ END_OF_INPUT
 # Test of rule array item descriptor for action adverb
 # todo: test by converting rule and lhs ID's to names
 # based on $slg->symbol_is_lexeme(symbol_id) -- to be written
-if (1) {
+if (0) {
     my $source = <<'END_OF_SOURCE';
 
     :default ::= action => [lhs, rule, values]
@@ -365,7 +371,7 @@ END_OF_SOURCE
 }
 
 # Test of 'symbol', 'name' array item descriptors
-if (1) {
+if (0) {
 
 # Marpa::R2::Display
 # name: symbol, name array descriptor example
@@ -402,7 +408,7 @@ END_OF_SOURCE
 }
 
 ### Test of 'inaccessible is ok'
-if (1) {
+if (0) {
 
 # Marpa::R2::Display
 # name: inaccessible is ok statement
@@ -438,7 +444,7 @@ END_OF_SOURCE
         ];
 }
 
-if (1) {
+if (0) {
     my $source = <<'END_OF_SOURCE';
  
     inaccessible is ok by default
@@ -470,7 +476,7 @@ END_OF_SOURCE
     } ## end for my $this_start (qw/start1 start2/)
 }
 
-if (1) {
+if (0) {
     my $source = <<'END_OF_SOURCE';
  
     :default ::= action => ::first
@@ -521,7 +527,7 @@ END_OF_SOURCE
         'Parse OK', qq{Test of alternative as start rule}
         ];
 
-} ## end if (1)
+} ## end if (0)
 
 TEST:
 for my $test_data (@tests_data) {
