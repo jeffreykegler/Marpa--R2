@@ -33,7 +33,7 @@ my @tests_data = ();
 our $DEBUG = 0;
 
 # In crediting test, JDD = Jean-Damien Durand
-if (0) {
+if (1) {
     my $glenn_grammar = Marpa::R2::Scanless::G->new(
         {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
@@ -68,7 +68,7 @@ END_OF_SOURCE
 # start-after-line: END_OF_SOURCE
 # end-before-line: '^END_OF_SOURCE$'
 
-if (0) {
+if (1) {
     my $ic_grammar = Marpa::R2::Scanless::G->new(
         {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
@@ -98,7 +98,7 @@ END_OF_SOURCE
         ];
 } ## end if (0)
 
-if (0) {
+if (1) {
     my $durand_grammar1 = Marpa::R2::Scanless::G->new(
         {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
@@ -132,7 +132,7 @@ INPUT
     ];
 } ## end if (0)
 
-if (0) {
+if (1) {
 my $durand_grammar2 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
@@ -166,7 +166,7 @@ INPUT
 
 # ===============
 
-if (0) {
+if (1) {
 my $durand_grammar3 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
@@ -204,7 +204,7 @@ INPUT
 }
 
 # Test of forgiving token from Peter Stuifzand
-if (0) {
+if (1) {
 
 # Marpa::R2::Display
 # name: forgiving adverb example
@@ -248,7 +248,7 @@ INPUT
 }
 
 # Test of LATM token from Ruslan Zakirov
-if (0) {
+if (1) {
 
 # Marpa::R2::Display
 # name: latm adverb example
@@ -280,7 +280,7 @@ END_OF_SOURCE
 
 # Test of LATM token from Ruslan Zakirov
 # This time using the lexeme default statement
-if (0) {
+if (1) {
 
     my $source = <<'END_OF_SOURCE';
 lexeme default = latm => 1
@@ -304,7 +304,7 @@ END_OF_SOURCE
 }
 
 # Test of rank adverb
-if (0) {
+if (1) {
 
 # Marpa::R2::Display
 # name: rank adverb example
@@ -346,7 +346,7 @@ END_OF_INPUT
 # Test of rule array item descriptor for action adverb
 # todo: test by converting rule and lhs ID's to names
 # based on $slg->symbol_is_lexeme(symbol_id) -- to be written
-if (0) {
+if (1) {
     my $source = <<'END_OF_SOURCE';
 
     :default ::= action => [lhs, rule, values]
@@ -371,7 +371,7 @@ END_OF_SOURCE
 }
 
 # Test of 'symbol', 'name' array item descriptors
-if (0) {
+if (1) {
 
 # Marpa::R2::Display
 # name: symbol, name array descriptor example
@@ -408,7 +408,7 @@ END_OF_SOURCE
 }
 
 ### Test of 'inaccessible is ok'
-if (0) {
+if (1) {
 
 # Marpa::R2::Display
 # name: inaccessible is ok statement
@@ -444,7 +444,7 @@ END_OF_SOURCE
         ];
 }
 
-if (0) {
+if (1) {
     my $source = <<'END_OF_SOURCE';
  
     inaccessible is ok by default
@@ -476,7 +476,7 @@ END_OF_SOURCE
     } ## end for my $this_start (qw/start1 start2/)
 }
 
-if (0) {
+if (1) {
     my $source = <<'END_OF_SOURCE';
  
     :default ::= action => ::first
