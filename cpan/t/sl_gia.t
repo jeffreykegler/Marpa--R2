@@ -318,8 +318,8 @@ lexeme default = latm => 1
 externals ::= external* action => [values]
 external ::= special action => ::first
    | unspecial action => ::first
-unspecial ::= ('I' 'am' 'special') words ('--' 'NOT!' ';')
-special ::= words ';' rank => -1
+unspecial ::= ('I' 'am' 'special') words ('--' 'NOT!' ';') rank => 1
+special ::= words (';') rank => -1
 words ::= word* action => [values]
 
 :discard ~ whitespace
@@ -337,7 +337,7 @@ END_OF_INPUT
     my $expected_output = [
         [ 'unspecial', [qw(so very special)] ],
         [   'special',
-            [qw(I am special and nothing is going to change that)], ';'
+            [qw(I am special and nothing is going to change that)],
         ]
     ];
 

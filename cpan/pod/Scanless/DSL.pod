@@ -1272,6 +1272,16 @@ sequence items.
 
 =head2 rank
 
+=for Marpa::R2::Display
+name: rank adverb example
+partial: 1
+normalize-whitespace: 1
+
+unspecial ::= ('I' 'am' 'special') words ('--' 'NOT!' ';') rank => 1
+special ::= words (';') rank => -1
+
+=for Marpa::R2::Display::End
+
 C<rank> is ignored unless
 the recognizer's C<ranking_method> named argument
 is set to something other than its default.
