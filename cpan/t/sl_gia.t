@@ -313,14 +313,14 @@ if (1) {
 
     my $source = <<'END_OF_SOURCE';
 lexeme default = latm => 1
-:default ::= action => [values]
+:default ::= action => [name,values]
 :start ::= externals
 externals ::= external* action => [values]
 external ::= special action => ::first
    | unspecial action => ::first
-unspecial ::= ('I' 'am' 'special') words ('--' 'NOT!' ';') rank => 1 action => [name,values]
-special ::= words (';') action => [name,values]
-words ::= word*
+unspecial ::= ('I' 'am' 'special') words ('--' 'NOT!' ';')
+special ::= words ';' rank => -1
+words ::= word* action => [values]
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -336,7 +336,9 @@ END_OF_INPUT
 
     my $expected_output = [
         [ 'unspecial', [qw(so very special)] ],
-        [ 'special',   [qw(I am special and nothing is going to change that)] ]
+        [   'special',
+            [qw(I am special and nothing is going to change that)], ';'
+        ]
     ];
 
     my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
