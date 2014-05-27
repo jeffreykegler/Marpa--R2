@@ -266,16 +266,16 @@ my %files_by_type = (
     'author.t/critic1'                  => \&trivial,
     'author.t/perltidyrc'               => \&trivial,
     'author.t/spelling_exceptions.list' => \&trivial,
-    'author.t/tidy1'                       => \&trivial,
-    'etc/dovg.sh'                      => \&trivial,
-    'etc/compile_for_debug.sh'         => \&trivial,
-    'etc/reserved_check.sh'            => \&trivial,
-    'html/script/marpa_r2_html_fmt'    => \&license_problems_in_perl_file,
-    'html/script/marpa_r2_html_score'  => \&license_problems_in_perl_file,
-    'html/t/fmt_t_data/expected1.html' => \&ignored,
-    'html/t/fmt_t_data/expected2.html' => \&ignored,
-    'html/t/fmt_t_data/input1.html'    => \&trivial,
-    'html/t/fmt_t_data/input2.html'    => \&trivial,
+    'author.t/tidy1'                    => \&trivial,
+    'etc/dovg.sh'                       => \&trivial,
+    'etc/compile_for_debug.sh'          => \&trivial,
+    'etc/reserved_check.sh'             => \&trivial,
+    'html/script/marpa_r2_html_fmt'     => \&license_problems_in_perl_file,
+    'html/script/marpa_r2_html_score'   => \&license_problems_in_perl_file,
+    'html/t/fmt_t_data/expected1.html'  => \&ignored,
+    'html/t/fmt_t_data/expected2.html'  => \&ignored,
+    'html/t/fmt_t_data/input1.html'     => \&trivial,
+    'html/t/fmt_t_data/input2.html'     => \&trivial,
     'html/t/fmt_t_data/score_expected1.html'   => \&trivial,
     'html/t/fmt_t_data/score_expected2.html'   => \&trivial,
     'html/t/no_tang.html'                      => \&ignored,
@@ -293,14 +293,15 @@ my %files_by_type = (
     'libmarpa/bin/too_long.pl'                 => \&trivial,
     'libmarpa/shared/copyright_page_license.w' => \&copyright_page,
     'libmarpa/shared/cwebmac.tex' =>
-    \&ignored,    # originally from Cweb, leave it alone
+        \&ignored,    # originally from Cweb, leave it alone
     'libmarpa/ac_doc/fdl-1.3.texi'  => \&ignored,
     'libmarpa/ac_doc/lgpl-3.0.texi' => \&ignored,
     'libmarpa/test/Makefile'        => \&trivial,
     'libmarpa/test/README'          => \&trivial,
     'libmarpa/test/dev/install-sh'  => \&check_X_copyright,
+    'libmarpa/win32/make.bat'           => \&trivial,
     'libmarpa_doc_dist/fdl-1.3.texi' =>
-    \&ignored,    ## GNU license text, leave it alone
+        \&ignored,    ## GNU license text, leave it alone
     'libmarpa_doc_dist/lgpl-3.0.texi'  => \&ignored,
     'libmarpa_doc_dist/version.texi'   => \&trivial,
     'libmarpa_doc_dist/version_i.texi' => \&trivial,
@@ -315,9 +316,9 @@ my %files_by_type = (
     'libmarpa/tavl/marpa_tavl.c' => \&ignored,
     'libmarpa/tavl/marpa_tavl.h' => \&ignored,
     'libmarpa/tavl/README.Pfaff' => \&ignored,
-    'libmarpa/tavl/tavl-test.c' => \&ignored,
-    'libmarpa/tavl/test.c' => \&ignored,
-    'libmarpa/tavl/test.h' => \&ignored,
+    'libmarpa/tavl/tavl-test.c'  => \&ignored,
+    'libmarpa/tavl/test.c'       => \&ignored,
+    'libmarpa/tavl/test.h'       => \&ignored,
 
     # MS .def file -- contents trivial
     'libmarpa_dist/win32/marpa.def' => \&ignored,
