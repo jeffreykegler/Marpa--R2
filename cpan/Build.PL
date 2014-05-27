@@ -29,17 +29,39 @@ use lib File::Spec->catdir('inc');
 use Marpa::R2::Build_Me;
 use Marpa::R2::Config;
 
-my @packages_for_perl_autoconf = qw( Config::AutoConf ExtUtils::MakeMaker );
+my @packages_for_perl_autoconf = qw( Config::AutoConf );
+my @always_required            = qw(
+    Carp
+    Cwd
+    Data::Dumper
+    DynaLoader
+    English
+    Exporter
+    ExtUtils::CBuilder
+    ExtUtils::MakeMaker
+    ExtUtils::Manifest
+    ExtUtils::Mkbootstrap
+    Fatal
+    File::Copy
+    File::Spec
+    IPC::Cmd
+    List::Util
+    PPI
+    Scalar::Util
+    Test::More
+    Time::Piece
+    XSLoader
+);
 
 my %configure_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( CPAN::Meta::Converter Carp Data::Dumper
-    ExtUtils::CBuilder List::Util Module::Build
-    Scalar::Util Test::More),
+    qw( CPAN::Meta::Converter Module::Build ),
+    @always_required,
     @packages_for_perl_autoconf;
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( Scalar::Util List::Util HTML::Entities HTML::Parser Carp Data::Dumper );
+    qw( HTML::Entities HTML::Parser ),
+    @always_required;
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     ( @packages_for_perl_autoconf, qw( PPI ) );
@@ -112,7 +134,8 @@ my @no_index_namespace_inclusive = qw(
 my @files_to_cleanup = (
     'lib/Marpa/R2/Version.pm',   'pperl/Marpa/R2/Perl/Version.pm',
     'lib/Marpa/R2/Installed.pm', 'pperl/Marpa/R2/Perl/Installed.pm',
-    'lib/Marpa/R2.o', 'libmarpa_build', 'libmarpa_shared'
+    'lib/Marpa/R2.o',            'libmarpa_build',
+    'libmarpa_shared'
 );
 
 my $build = Marpa::R2::Build_Me->new(
@@ -130,7 +153,7 @@ my $build = Marpa::R2::Build_Me->new(
         'html/script/marpa_r2_html_fmt',
         'html/script/marpa_r2_html_score',
     ],
-    xs_files   => { 'xs/R2.xs' => 'lib/Marpa/R2.xs' },
+    xs_files => { 'xs/R2.xs' => 'lib/Marpa/R2.xs' },
     meta_add => {
         no_index => {
             directory => [
@@ -150,13 +173,14 @@ my $build = Marpa::R2::Build_Me->new(
         resources =>
             { repository => 'git://github.com/jeffreykegler/Marpa--R2.git', },
     },
-    pod_files          => \%pod_files,
-    license            => 'lgpl3',
-    create_readme      => 0,
+    pod_files     => \%pod_files,
+    license       => 'lgpl3',
+    create_readme => 0,
+
     # Removed per suggestion of Andreas Koenig
     # create_makefile_pl => 'small',
-    test_files         => [ map { glob $_ } qw(t/*.t html/t/*.t) ],
-    getoptions         => { Dev => {}, 'Marpa-debug' => {} },
+    test_files => [ map { glob $_ } qw(t/*.t html/t/*.t) ],
+    getoptions => { Dev => {}, 'Marpa-debug' => {} },
 );
 
 $build->create_build_script;
