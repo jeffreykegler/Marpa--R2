@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.085_007 (libmarpa 6.0.6) Mon May 26 21:01:29 PDT 2014
+
+   * Explicit core module dependencies
+
 2.085_006 (libmarpa 6.0.5) Fri May  2 19:44:29 PDT 2014
 
    * More work on versioning
