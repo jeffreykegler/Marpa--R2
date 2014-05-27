@@ -80,7 +80,6 @@ sub my_parser {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
-        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error, $self->show_last_expression();
     } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
     my $value_ref = $recce->value($self);

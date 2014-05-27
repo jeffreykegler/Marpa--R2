@@ -169,7 +169,6 @@ sub my_parser {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
-        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         die $self->show_last_expression(), $EVAL_ERROR;
     } ## end if ( not defined $eval_ok )
     my $value_ref = $recce->value;

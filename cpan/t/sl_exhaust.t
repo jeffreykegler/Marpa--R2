@@ -84,7 +84,6 @@ sub my_parser {
     if ( not $eval_ok ) {
         chomp $eval_error;
         $eval_error =~ s/\n.*//xms;
-        $eval_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $eval_error, $self->show_last_expression(),
             $exhausted_status;
     } ## end if ( not $eval_ok )

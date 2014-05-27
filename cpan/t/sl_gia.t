@@ -345,7 +345,7 @@ END_OF_INPUT
     push @tests_data,
         [
         $slg, $input, $expected_output,
-        'Parse OK', 'Test of rank adverb from Ruslan Zakirov'
+        'Parse OK', 'Test of rank adverb for display'
         ];
 }
 
@@ -560,8 +560,6 @@ sub my_parser {
         say $EVAL_ERROR if $DEBUG;
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
-        $abbreviated_error =~ s/\n.*//xms;
-        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
     my $value_ref = $recce->value();

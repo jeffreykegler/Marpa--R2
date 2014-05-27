@@ -63,7 +63,6 @@ PROCESSING: {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
-        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         $actual_value  = 'No parse';
         $actual_result = $abbreviated_error;
         $is_ambiguous_parse = 0;

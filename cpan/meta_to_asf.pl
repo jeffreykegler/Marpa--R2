@@ -50,8 +50,6 @@ sub my_parser {
     if ( not defined eval { $slr->read($p_string); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
-        $abbreviated_error =~ s/\n.*//xms;
-        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $slr->read($p_string); 1 } )
     my $asf = Marpa::R2::ASF->new( { slr => $slr } );
