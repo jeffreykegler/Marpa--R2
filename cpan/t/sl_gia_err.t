@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 34;
+use Test::More tests => 36;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -320,7 +320,7 @@ END_OF_SOURCE
 
 #####
 
-{
+if (1) {
     my $grammar = \(<<'END_OF_SOURCE');
     :default ::= action => [ lhs, value]
     lexeme default = action => [lhs, value ]
@@ -336,7 +336,22 @@ END_OF_SOURCE
         ];
 }
 
-#####
+if (1) {
+    my $grammar = \(<<'END_OF_SOURCE');
+:default ::= action => [ name, value]
+lexeme default = action => [name, value ]
+:start ::= start
+start ~ 'X'
+:discard ~ [^[:print:]]
+END_OF_SOURCE
+
+    push @tests_data,
+        [
+        $grammar,      'X',
+        [ qw(start X) ], 'Parse OK',
+        'Bug found by Jean-Damien Durand'
+        ];
+}
 
 TEST:
 for my $test_data (@tests_data) {

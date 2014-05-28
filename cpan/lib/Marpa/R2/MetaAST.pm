@@ -1099,6 +1099,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
     my $lexer_name = $parse->{current_lexer};
+    local $Marpa::R2::Internal::SUBGRAMMAR = $lexer_name;
     my $discard_lhs = '[:discard]';
     $parse->symbol_names_set(
         $discard_lhs,
@@ -1438,6 +1439,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
     my $character_class = $values->[2];
     my $subgrammar = $Marpa::R2::Internal::SUBGRAMMAR;
+    $DB::single = 1 if not defined $subgrammar;
     if  (( substr $subgrammar, 0, 1 ) eq 'L') {
         return Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
             $parse, $character_class );
