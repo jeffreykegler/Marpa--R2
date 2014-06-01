@@ -15,39 +15,21 @@
 
 Revision history for Marpa::R2
 
-2.085_008 (libmarpa 6.0.7) Tue May 27 07:27:39 PDT 2014
+2.087_000 (libmarpa 6.1.1) Sat May 31 18:07:17 PDT 2014
 
-   * Minor fixes
+   * New series of developer's releases.
 
-2.085_007 (libmarpa 6.0.6) Mon May 26 21:01:29 PDT 2014
+2.086000 (libmarpa 6.1.0) Sat May 31 16:25:53 PDT 2014
 
    * Explicit core module dependencies
 
-2.085_006 (libmarpa 6.0.5) Fri May  2 19:44:29 PDT 2014
-
-   * More work on versioning
-
-2.085_005 (libmarpa 6.0.4) Sun Apr 27 21:27:48 PDT 2014
-
-   * Fix install failure
-
-2.085_004 (libmarpa 6.0.3) Sat Apr 26 20:39:07 PDT 2014
-
    * Support use of Marpa::R2 to test external shared libraries
-
-2.085_003 (libmarpa 6.0.2) Mon Apr 21 10:58:44 PDT 2014
 
    * Deprecate unvalued symbols in Libmarpa
 
    * Add marpa_g_force_valued() method
 
-2.085_002 (libmarpa 6.0.1) Tue Apr 15 17:11:40 PDT 2014
-
    * New libmarpa versioning
-
-2.085_000
-
-   * New series of developer's releases.
 
 2.084000 Wed Apr  2 08:25:09 PDT 2014
 
