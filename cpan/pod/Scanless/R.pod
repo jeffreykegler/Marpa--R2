@@ -573,7 +573,16 @@ The C<read()> method also
 pauses as specified with the
 L<Scanless DSL's pause adverb|Marpa::R2::Scanless::DSL/"pause">.
 
-On failure, throws an exception.
+A parse is said to be exhausted if, based on the input
+read so far, there is no way for it
+to continue successfully.
+Exhaustion is not a problem if that Marpa has read
+all the way to the end of the input,
+or if it is pausing for some other reason.
+Otherwise,
+C<read()> treats an exhausted parse as a failure.
+
+On failure, C<read()> throws an exception.
 The call is considered successful
 if it ended because a parse was found,
 or because internal scanning was paused.
