@@ -306,7 +306,6 @@ my %files_by_type = (
     'libmarpa_doc_dist/version.texi'   => \&trivial,
     'libmarpa_doc_dist/version_i.texi' => \&trivial,
     'etc/my_suppressions'              => \&trivial,
-    't/etc/wall_proof.txt'             => \&cc_a_nd,
     'xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
     'libmarpa/tavl/README' => \&trivial,
 
@@ -678,6 +677,7 @@ sub tex_closed {
     return @problems;
 } ## end sub tex_closed
 
+# Note!!!  This license is not Debian-compatible!!!
 sub tex_cc_a_nd {
     my ( $filename, $verbose ) = @_;
     my @problems = ();
