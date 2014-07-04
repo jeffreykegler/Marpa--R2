@@ -13,9 +13,6 @@
 /blib/
 /blib_shared/
 /libmarpa_build/
-/libmarpa_shared/
-/libmarpa_dist/
-/libmarpa_doc_dist/
 /hide/
 /pod2htmd.tmp
 /pod2htmi.tmp
