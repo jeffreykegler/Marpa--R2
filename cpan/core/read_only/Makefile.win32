@@ -15,8 +15,12 @@
 
 # Build static and dynamic libraries of Marpa, using a config.h generated with Marpa::R2::Build_Me
 
+# IMPORTANT!!!  MARPA HAS BEEN REFACTORED AND THIS SCRIPT WILL NO LONGER WORK.
+# Libmarpa has been split into a separate repository, and the directory
+# structures have changed
+
 #
-# You should execute this Makefile in the libmarpa_dist directory like this:
+# You should execute this Makefile in the ??? directory like this:
 # nmake -f Makefile.win32
 #
 

@@ -19,14 +19,14 @@ use strict;
 use warnings;
 use autodie;
 use IPC::Cmd;
-use Cwd;
+use File::Path;
 
 my $commitish = 'master';
 my $libmarpa_repo = 'git@github.com:jeffreykegler/libmarpa.git';
 my $stage = 'core/stage';
 
-die "core/stage already exists" if -r $stage;
-die "libmarpa_build already exists" if -r 'libmarpa_build';
+die "core/stage already exists" if -e $stage;
+die "libmarpa_build already exists" if -e 'libmarpa_build';
 
 if (not IPC::Cmd::run(
         command => [ qw(git clone --depth 1), $libmarpa_repo, $stage ],
@@ -57,6 +57,9 @@ if (not IPC::Cmd::run(
 {
     die qq{Could not make dist};
 } ## end if ( not IPC::Cmd::run( command => [ qw(git checkout)...]))
+
+my $deleted_count = File::Path::remove_tree('../read_only');
+say "$deleted_count files deleted in ../read_only";
 
 if (not IPC::Cmd::run(
         command => [ qw(sh etc/cp_libmarpa.sh ../read_only) ],

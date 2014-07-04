@@ -13,6 +13,9 @@
 # General Public License along with Libmarpa.  If not, see
 # http://www.gnu.org/licenses/.
 
+# IMPORTANT!!! The Marpa build has changed and this script no
+# longer works.
+
 I've added the ability to test external shared libraries to Marpa::R2.
 
 Note the primary intent is to test *external* shared libraries in
