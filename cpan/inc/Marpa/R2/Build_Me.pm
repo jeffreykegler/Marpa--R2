@@ -379,7 +379,7 @@ sub do_libmarpa {
     my $cwd      = $self->cwd();
     my $base_dir = $self->base_dir();
 
-    my $dist_dir = File::Spec->catdir( $base_dir, 'libmarpa_dist' );
+    my $dist_dir = File::Spec->catdir( $base_dir, 'core/stage/dist' );
     my $build_dir = File::Spec->catdir(
         $base_dir,
         (   defined $self->args('libmarpa-shared')
@@ -389,11 +389,12 @@ sub do_libmarpa {
     );
 
     my $build_stamp_file = File::Spec->catfile( $build_dir, 'stamp-h1' );
+    my $build_makefile = File::Spec->catfile( $build_dir, 'Makefile' );
     my $dist_stamp_file = File::Spec->catfile( $dist_dir, 'stamp-h1' );
 
     # If build directory exists and contains a stamp file more recent than the
     # tar file, we are done.
-    return if  $self->up_to_date( [$dist_stamp_file], $build_stamp_file ) ;
+    return if  $self->up_to_date( [$dist_stamp_file], [$build_stamp_file, $build_makefile] ) ;
 
     # Otherwise, rebuild from scratch
     File::Path::rmtree($build_dir);

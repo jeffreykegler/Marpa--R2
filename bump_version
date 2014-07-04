@@ -89,36 +89,6 @@ for my $versioned_file (@versioned_files) {
     print $out $file;
 }
 
-for my $configure_ac_file (
-    qw(
-    cpan/libmarpa/ac/configure.ac
-    cpan/libmarpa/ac_doc/configure.ac
-    )
-    )
-{
-    say STDERR $configure_ac_file;
-    my $file = do { local ( @ARGV, $/ ) = ($configure_ac_file); <> };
-    $file =~ s{
-    ( m4_define [(] [\[] marpa_major_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
-  }{$1${libmarpa_major}$2}xms;
-    $file =~ s{
-    ( m4_define [(] [\[] marpa_minor_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
-  }{$1${libmarpa_minor}$2}xms;
-    $file =~ s{
-    ( m4_define [(] [\[] marpa_micro_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
-  }{$1${libmarpa_micro}$2}xms;
-    open my $out, '>', $configure_ac_file;
-    print $out $file;
-} ## end for my $configure_ac_file ( qw( cpan/libmarpa/ac/configure.ac...))
-
-{
-    open my $out, '>', 'cpan/libmarpa/public/marpa.h-version';
-    say $out join " ", q{#define MARPA_MAJOR_VERSION}, $libmarpa_major;
-    say $out join " ", q{#define MARPA_MINOR_VERSION}, $libmarpa_minor;
-    say $out join " ", q{#define MARPA_MICRO_VERSION}, $libmarpa_micro;
-    close $out;
-}
-
 chdir 'cpan';
 die qq{"perl Build.PL" failed: $!}
     if not IPC::Cmd::run(

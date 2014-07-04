@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.087_001 (libmarpa 7.0.0) Fri Jul  4 10:31:34 PDT 2014
+
+   * New build procedure.
+
 2.087_000 (libmarpa 6.1.1) Sat May 31 18:07:17 PDT 2014
 
    * New series of developer's releases.
