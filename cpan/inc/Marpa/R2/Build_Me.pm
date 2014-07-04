@@ -290,27 +290,7 @@ sub process_xs {
         )
     );
 
-    if ( defined $self->args('libmarpa-shared') ) {
-        my $libmarpa_libs_dir;
-        if ($Marpa::R2::USE_PERL_AUTOCONF) {
-            $libmarpa_libs_dir =
-                File::Spec->catdir( $libmarpa_build_directory,
-                qw(blib_shared arch auto libmarpa) );
-        }
-        else {
-            $libmarpa_libs_dir =
-                File::Spec->catdir( $libmarpa_build_directory, '.libs' );
-        }
-        push @extra_linker_flags, '-L' . $libmarpa_libs_dir;
-        my $version_file_name =
-            File::Spec->catfile( $libmarpa_build_directory, 'LIB_VERSION' );
-        my $libmarpa_version = $self->file_slurp($version_file_name);
-        chomp $libmarpa_version;
-        my @libmarpa_version = split /[.]/xms, $libmarpa_version;
-        push @extra_linker_flags,
-            sprintf q{-lmarpa-} . ( join q{.}, @libmarpa_version );
-    } ## end if ( defined $self->args('libmarpa-shared') )
-    else {
+    {
         my $libmarpa_archive;
         FIND_LIBRARY: {
             if ($Marpa::R2::USE_PERL_AUTOCONF) {
@@ -379,14 +359,8 @@ sub do_libmarpa {
     my $cwd      = $self->cwd();
     my $base_dir = $self->base_dir();
 
-    my $dist_dir = File::Spec->catdir( $base_dir, 'core/stage/dist' );
-    my $build_dir = File::Spec->catdir(
-        $base_dir,
-        (   defined $self->args('libmarpa-shared')
-            ? 'libmarpa_shared'
-            : 'libmarpa_build'
-        )
-    );
+    my $dist_dir = File::Spec->catdir( $base_dir, 'core/read_only' );
+    my $build_dir = File::Spec->catdir( $base_dir, 'libmarpa_build');
 
     my $build_stamp_file = File::Spec->catfile( $build_dir, 'stamp-h1' );
     my $build_makefile = File::Spec->catfile( $build_dir, 'Makefile' );
@@ -490,12 +464,7 @@ sub do_libmarpa {
 
     # We need PIC, but do not want the overhead of building the shared library
     my @configure_command_args = ();
-    if ( defined $self->args('libmarpa-shared') ) {
-        push @configure_command_args, qw(--disable-static);
-    }
-    else {
-        push @configure_command_args, qw(--with-pic --disable-shared);
-    }
+    push @configure_command_args, qw(--with-pic --disable-shared);
 
     my @debug_flags = ();
     if ( defined $self->args('Marpa-debug') ) {
@@ -616,7 +585,6 @@ INLINEHOOK
             my $name = 'libmarpa';
             if (defined $self->args('libmarpa-shared')) {
                 $linktype = 'dynamic';
-                $blib = 'blib_shared';
             }
             print {$makefile_pl_fh} "
 use ExtUtils::MakeMaker;
@@ -672,20 +640,6 @@ WriteMakefile(VERSION        => \"$libmarpa_version\",
     }
 
     chdir $cwd;
-
-    if ( $Marpa::R2::USE_PERL_AUTOCONF
-        && defined $self->args('libmarpa-shared') )
-    {
-        # Config::AutoConf creates a shared library with the wrong name, and
-        # easiest thing to do is to make a copy with the right one.
-        my $libmarpa_libs_dir =
-            File::Spec->catdir( $build_dir,
-            qw(blib_shared arch auto libmarpa) );
-        my $from = File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.so' );
-        my $to = File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa-' .$libmarpa_version . '.so' );
-        say "Copying $from -> $to ";
-        File::Copy::copy($from, $to) or die "Copy of $from to $to failed: $EVAL_ERROR";
-    } ## end if ( $Marpa::R2::USE_PERL_AUTOCONF && defined $self->...)
 
     return 1;
 
@@ -844,11 +798,11 @@ sub ACTION_code {
             qw(pperl Marpa R2 Perl Version.pm) );
     } ## end if ( not $self->up_to_date( [ $config_pm_filename, ...]))
 
-    $self->do_libmarpa();
-
-    if ( defined $self->args('libmarpa-shared') ) {
-        $self->blib('blib_shared');
+    # If it's a shared library, we don't build it here.
+    if ( not defined $self->args('libmarpa-shared') ) {
+        $self->do_libmarpa();
     }
+
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
 
@@ -866,10 +820,6 @@ sub ACTION_clean {
 sub ACTION_test {
     my $self = shift;
     local $ENV{PERL_DL_NONLAZY} = 1;
-    if ( defined $self->args('libmarpa-shared') ) {
-        $ENV{MARPA_TEST_BLIB} = 'blib_shared';
-        $self->blib('blib_shared');
-    }
     return $self->SUPER::ACTION_test;
 }
 
