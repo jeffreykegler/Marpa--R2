@@ -1,9 +1,0 @@
-This is the developer's directory.  The distribution should *NOT*
-be built in this directory -- instead files are copied to a staging
-directory.  See the Makefile for details.
-
-Special tools (such as Cweb) are required.  These tools are all free,
-readily available, and highly portable.  *But* these tools are not
-included.  It may not be easy or even possible to install all these
-tools on some of the systems to which libmarpa, Marpa or Marpa::XS
-can be ported.
