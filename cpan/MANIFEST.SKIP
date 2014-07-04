@@ -92,6 +92,7 @@
 ^lib/Marpa/R2\.xs
 ^nogit
 ^nogit/
+^libmarpa_build/
 ^nytprof/
 ^nytprof[.]out$
 ^pod/Semantics/Order[.]pod[.]save$
@@ -99,3 +100,4 @@
 ^pod2htmi.tmp
 ^pperl/Marpa/R2/Perl/Installed[.]pm$
 ^pperl/Marpa/R2/Perl/Version[.]pm$
+^core/stage/
