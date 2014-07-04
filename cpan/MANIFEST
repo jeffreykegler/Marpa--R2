@@ -89,12 +89,10 @@ etc/Makefile
 etc/check_license.pl
 etc/check_links.pl
 etc/compile_for_debug.sh
-etc/cp_libmarpa.sh
 etc/dovg.sh
 etc/libmarpa_get.pl
 etc/my_suppressions
 etc/reserved_check.sh
-etc/work_to_dist.sh
 g/config/default.txt
 html/.gitignore
 html/lib/Marpa/R2/HTML.pm
