@@ -21,8 +21,10 @@ use English qw( -no_match_vars );
 
 use Test::More tests => 4;
 
-my $ok = eval { require Marpa::R2; 1; };
-Test::More::BAIL_OUT('Could not load Marpa::R2') if not $ok;
+if (not eval { require Marpa::R2; 1; }) {
+    Test::More::diag($EVAL_ERROR);
+    Test::More::BAIL_OUT('Could not load Marpa::R2');
+}
 
 my $marpa_version_ok = defined $Marpa::R2::VERSION;
 my $marpa_version_desc =

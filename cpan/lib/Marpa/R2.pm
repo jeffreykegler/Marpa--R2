@@ -80,13 +80,15 @@ eval {
     require XSLoader;
     XSLoader::load( 'Marpa::R2', $Marpa::R2::STRING_VERSION );
     1;
-} or eval {
+} or do {
+    say STDERR "XSLoader problem: ", $EVAL_ERROR;
+    say STDERR "Trying DynaLaoder";
     require DynaLoader;
 ## no critic(ClassHierarchies::ProhibitExplicitISA)
     push @ISA, 'DynaLoader';
     Dynaloader::bootstrap Marpa::R2 $Marpa::R2::STRING_VERSION;
-    1;
-} or Carp::croak("Could not load XS version of Marpa::R2: $EVAL_ERROR");
+};
+# or Carp::croak("Could not load XS version of Marpa::R2: $EVAL_ERROR");
 
 
 if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {

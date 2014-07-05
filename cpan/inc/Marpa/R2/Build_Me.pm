@@ -229,11 +229,7 @@ sub process_xs {
     $self->add_to_cleanup( $spec->{c_file} );
 
     my @libmarpa_build_dir = File::Spec->splitdir( $self->base_dir );
-    push @libmarpa_build_dir,
-        (
-        defined $self->args('libmarpa-shared')
-        ? 'libmarpa_shared'
-        : 'libmarpa_build' );
+    push @libmarpa_build_dir, 'libmarpa_build' ;
     my $libmarpa_build_dir = File::Spec->catdir(@libmarpa_build_dir);
 
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file, $dest_gp_xsh );
@@ -282,14 +278,13 @@ sub process_xs {
         if not -d $spec->{archdir};
 
     my @extra_linker_flags = ();
-    my $libmarpa_build_directory = File::Spec->catdir(
-        $self->base_dir(),
-        (   defined $self->args('libmarpa-shared')
-            ? 'libmarpa_shared'
-            : 'libmarpa_build'
-        )
-    );
+    my $libmarpa_build_directory =
+        File::Spec->catdir( $self->base_dir(), 'libmarpa_build' );
 
+    if ( defined $self->args('libmarpa-external') ) {
+        my $libmarpa_external_flags = $self->args('libmarpa-external'); 
+        push @extra_linker_flags, split q{ }, $libmarpa_external_flags;
+    } else
     {
         my $libmarpa_archive;
         FIND_LIBRARY: {
@@ -307,7 +302,7 @@ sub process_xs {
                 File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
         } ## end FIND_LIBRARY:
         push @{ $self->{properties}->{objects} }, $libmarpa_archive;
-    } ## end else [ if ( defined $self->args('libmarpa-shared') ) ]
+    }
 
     # .xs -> .bs
     $self->add_to_cleanup( $spec->{bs_file} );
@@ -583,9 +578,6 @@ INLINEHOOK
             my $linktype = 'static';
             my $blib = 'blib';
             my $name = 'libmarpa';
-            if (defined $self->args('libmarpa-shared')) {
-                $linktype = 'dynamic';
-            }
             print {$makefile_pl_fh} "
 use ExtUtils::MakeMaker;
 WriteMakefile(VERSION        => \"$libmarpa_version\",
@@ -799,7 +791,7 @@ sub ACTION_code {
     } ## end if ( not $self->up_to_date( [ $config_pm_filename, ...]))
 
     # If it's a shared library, we don't build it here.
-    if ( not defined $self->args('libmarpa-shared') ) {
+    if ( not defined $self->args('libmarpa-external') ) {
         $self->do_libmarpa();
     }
 
