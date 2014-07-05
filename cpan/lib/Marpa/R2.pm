@@ -76,20 +76,13 @@ LOAD_EXPLICIT_LIBRARY: {
     $Marpa::R2::LIBMARPA_FILE = $file;
 }
 
-eval {
+my $ok = eval {
     require XSLoader;
     XSLoader::load( 'Marpa::R2', $Marpa::R2::STRING_VERSION );
     1;
-} or do {
-    say STDERR "XSLoader problem: ", $EVAL_ERROR;
-    say STDERR "Trying DynaLaoder";
-    require DynaLoader;
-## no critic(ClassHierarchies::ProhibitExplicitISA)
-    push @ISA, 'DynaLoader';
-    Dynaloader::bootstrap Marpa::R2 $Marpa::R2::STRING_VERSION;
 };
-# or Carp::croak("Could not load XS version of Marpa::R2: $EVAL_ERROR");
-
+Carp::croak( "Marpa::R2 failed due to an XSLoader problem\n" . $EVAL_ERROR )
+    if not $ok;
 
 if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {
     $Marpa::R2::DEBUG = 0;
