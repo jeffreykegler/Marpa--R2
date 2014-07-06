@@ -28,4 +28,39 @@ external static library in /tmp/libmarpa.a.
 
    ./Build code --libmarpa-external=/tmp/libmarpa.a
 
-[ INCOMPLETE!!! ]
+or, to build and test
+
+   ./Build test --libmarpa-external=/tmp/libmarpa.a
+
+5.)  Once, you've switched to an external Libmarpa, a
+"--libmarpa-external" option *must* be specified every time you use
+"Build" with a target which has Libmarpa as a dependency.  If you forget
+to specify a "--libmarpa-external" option, ./Build will abend with
+an error message.  To go back to using the internal Libmarpa, use the
+"--libmarpa-internal" option.
+
+   ./Build code --libmarpa-internal=on
+
+
+TAGS
+====
+
+To be sure you are actually testing the library you hope you
+are testing, Libmarpa now has a "tag", which can be set at compile
+time and which can identify every compilation uniquely.  By default,
+if you compile with GCC, the tag is a time stamp, recording when the
+preprocessor was run.  You can also set the tag explicitly:
+
+    ./configure MARPA_DEBUG_FLAG=-DMARPA_TAG=testing123
+
+The tag appears early in the test output:
+
+    t/00-load.t ............ 1/4 # Marpa::R2 version is 2.085_004
+    # Libmarpa version is 6.0.3
+    # Libmarpa tag: testing123
+
+You can put spaces and other non-word characters into the tag, but you have to
+figure out how to make them run the guantlet from shell to Makefile to compiler
+command line.  Here's an example who works on Linux:
+
+    ./configure MARPA_DEBUG_FLAG="\"-DMARPA_TAG=*This is a test*\""
