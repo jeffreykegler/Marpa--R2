@@ -1,0 +1,15 @@
+This document describes how to link an external static library with
+Marpa::R2.  This method, and this document, is intended for re-packagers
+and other very advanced users.  This method is not supported by the CPAN
+infrastructure.  Most users should perfer the basic method described in
+the INSTALL document at the top level of the Marpa::R2 CPAN directory.
+
+Here are the steps:
+
+1.) Build an external static library using the separate Libmarpa
+repository.  Libmarpa uses autoconf.  Instructions on how to
+build it can be found beginning in the INSTALL file at the top
+level of the Libmarpa repository.  Libmarpa's repository is here:
+https://github.com/jeffreykegler/libmarpa
+
+[ INCOMPLETE !!! ]

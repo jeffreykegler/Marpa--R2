@@ -1,0 +1,25 @@
+BASIC INSTALLATION
+
+To install this module, just do:
+ 
+  perl Build.PL
+  ./Build
+  ./Build test
+  ./Build install  (this step may need to be done as the superuser)
+ 
+Or, if you're on a platform (like DOS or Windows) that doesn't require
+the "./" notation, you can do this:
+ 
+  perl Build.PL
+  Build
+  Build test
+  Build install
+ 
+The important thing is that the "Build" script gets executed and that
+you pass it the "test", "install", etc. arguments.
+ 
+ADVANCED INSTALLATION
+
+Most users will want to stick to the basic installation method of this
+document.  Re-packagers, and other adventurers, will find alternative
+methods discussed in the core/ALTERNATIVES document.

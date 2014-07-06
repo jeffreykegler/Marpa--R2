@@ -1,0 +1,23 @@
+This directory contains the Libmarpa code used in the basic installation
+method, the one supported by the CPAN infrasture.  It also contains
+documents describing alternative ways of using Libmarpa -- external
+static libraries and external shared libraries.
+
+The code in the "core" subdirectory should *NOT* be used for building
+a separate Libmarpa.  It is specifically targeted at the needs of Perl
+builds, and may contain specials kludges and hacks.
+
+If you want to build your own separate Libmarpa, build a distribution, or
+build a distribution tar file, from Libmarpa's repository.  Instructions
+on how to build distribution directories and tar files are in the INSTALL
+file at the top level of the repository.  Libmarpa's repository is here:
+https://github.com/jeffreykegler/libmarpa
+
+As an advanced technique, Marpa::R2 can be linked with external static
+or shared Libmarpa libraries.  Use of external Libmapra libraries is
+*NOT* supported by the CPAN infrastructure, which does not deal well
+with non-Perl dependencies.
+
+For more on linking with an external static library, see the STATIC file
+in this directory.  For more on linking with an external shared library,
+see the SHARED file in this directory.
