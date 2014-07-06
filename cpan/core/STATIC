@@ -6,10 +6,26 @@ the INSTALL document at the top level of the Marpa::R2 CPAN directory.
 
 Here are the steps:
 
-1.) Build an external static library using the separate Libmarpa
+1.) Be sure the library that you are building is a match to the one
+that Marpa::R2 expects.  The expected version can be found in the
+core/read_only/LIB_VERSION file.  Do *NOT* edit this file.  This version
+number must match exactly the version number of your external static
+library.
+
+2.) Build an external static library using the separate Libmarpa
 repository.  Libmarpa uses autoconf.  Instructions on how to
 build it can be found beginning in the INSTALL file at the top
 level of the Libmarpa repository.  Libmarpa's repository is here:
 https://github.com/jeffreykegler/libmarpa
 
-[ INCOMPLETE !!! ]
+3.) Install the external static library.  Where and how you install it
+is up to you.  The Libmarpa distribution is set up to use autoconf.
+Instructions on how to install using autoconf can be found in the
+autoconf documentation.  We will assume that you have installed the
+external static library in /tmp/libmarpa.a.
+
+4.) Build Marpa::R2 to use the external static library.
+
+   ./Build code --libmarpa-external=/tmp/libmarpa.a
+
+[ INCOMPLETE!!! ]
