@@ -1,7 +1,7 @@
 This document describes how to link an external static library with
-Marpa::R2.  This method, and this document, is intended for re-packagers
+Marpa::R2.  This method, and this document, are intended for re-packagers
 and other very advanced users.  This method is not supported by the CPAN
-infrastructure.  Most users should perfer the basic method described in
+infrastructure.  Most users should prefer the basic method described in
 the INSTALL document at the top level of the Marpa::R2 CPAN directory.
 
 Here are the steps:
@@ -13,16 +13,15 @@ number must match exactly the version number of your external static
 library.
 
 2.) Build an external static library using the separate Libmarpa
-repository.  Libmarpa uses autoconf.  Instructions on how to
-build it can be found beginning in the INSTALL file at the top
-level of the Libmarpa repository.  Libmarpa's repository is here:
-https://github.com/jeffreykegler/libmarpa
+repository.  Instructions on how to build Libmarpa can be found beginning
+in the INSTALL file at the top level of the Libmarpa repository.
+Libmarpa's repository is here: https://github.com/jeffreykegler/libmarpa
 
 3.) Install the external static library.  Where and how you install it
 is up to you.  The Libmarpa distribution is set up to use autoconf.
 Instructions on how to install using autoconf can be found in the
-autoconf documentation.  We will assume that you have installed the
-external static library in /tmp/libmarpa.a.
+autoconf documentation.  Here, we will assume that, for test purposes,
+you have installed the external static library in /tmp/libmarpa.a.
 
 4.) Build Marpa::R2 to use the external static library.
 
@@ -41,26 +40,25 @@ an error message.  To go back to using the internal Libmarpa, use the
 
    ./Build code --libmarpa-internal=on
 
-
 TAGS
 ====
 
-To be sure you are actually testing the library you hope you
-are testing, Libmarpa now has a "tag", which can be set at compile
-time and which can identify every compilation uniquely.  By default,
-if you compile with GCC, the tag is a time stamp, recording when the
-preprocessor was run.  You can also set the tag explicitly:
+You can configure Libmarpa to include a "tag" which identifies it.
+If Libmarpa is compiled with GCC, the tag defaults to a time stamp,
+but it can be set explicitly: For instructions on how to set the tag,
+see the installation documentation of Libmarpa.
 
-    ./configure MARPA_DEBUG_FLAG=-DMARPA_TAG=testing123
-
-The tag appears early in the test output:
+The tag appears at the beginning of Marpa::R2's test output:
 
     t/00-load.t ............ 1/4 # Marpa::R2 version is 2.085_004
     # Libmarpa version is 6.0.3
     # Libmarpa tag: testing123
 
-You can put spaces and other non-word characters into the tag, but you have to
-figure out how to make them run the guantlet from shell to Makefile to compiler
-command line.  Here's an example who works on Linux:
+LINKER FLAGS
+============
 
-    ./configure MARPA_DEBUG_FLAG="\"-DMARPA_TAG=*This is a test*\""
+The value of "libmarpa-external" option is passed literally as a set of
+arguments to the linker, after being split on whitespace.  This means
+it is not restricted to being only the name of the static library to
+be linked.  It can also be used to pass other kinds of arguments to
+the linker.

@@ -1,0 +1,54 @@
+This document describes how to link an external shared library with
+Marpa::R2.  This method, and this document, are intended for re-packagers
+and other very advanced users.  This method is not supported by the CPAN
+infrastructure.  Most users should prefer the basic method described in
+the INSTALL document at the top level of the Marpa::R2 CPAN directory.
+
+This document only describes those aspects of linking which are special
+to shared libraries.  This document assumes you have already read the
+STATIC document, which contains, along with instructions for linking
+static libraries, many instructions applicable to linking with external
+libraries in general.  That material is not repeated here.
+
+Here are the steps:
+
+1.) As with linking a static library, you must ensure that the version
+of the library is an exact match to the one that Marpa::R2 expects.
+For more detail, refer back to the "STATIC" document.
+
+2.) Build an external shared library using the separate Libmarpa
+repository.  Instructions on how to build Libmarpa can be found beginning
+in the INSTALL file at the top level of the Libmarpa repository.
+Libmarpa's repository is here: https://github.com/jeffreykegler/libmarpa
+
+3.) Install the external shared library.  Where and how you install it
+is up to you.  The Libmarpa distribution is set up to use autoconf.
+Instructions on how to install using autoconf can be found in the
+autoconf documentation.  Here, we will assume that, for test purposes,
+you have installed the external static library in /tmp/libmarpa.so.
+
+4.) To build and test
+
+    LD_LIBRARY_PATH=/tmp ./Build test --libmarpa-external=/tmp/libmarpa.so
+
+or
+
+    LD_LIBRARY_PATH=/tmp ./Build test --libmarpa-external=-L/tmp\ -lmarpa
+
+Note that, in each case, the location of the library is specified twice.
+The linker needs to find the library using the flags, as specified in the
+"--libmarpa-external" option.  At runtime, however, the tester cannot
+assume that is where the shared library is installed and, in this example,
+LD_LIBRARY_PATH is used so that Libmarpa can be found at runtime.
+
+5.)  To switch back to an internal Libmarpa, specify the
+"--libmarpa-external" option.
+
+   ./Build code --libmarpa-internal=on
+
+
+LD_LIBRARY_PATH
+===============
+
+Readers should be aware the use of LD_LIBRARY_PATH in actual installations
+is controversial.  This example is of a testing situation.

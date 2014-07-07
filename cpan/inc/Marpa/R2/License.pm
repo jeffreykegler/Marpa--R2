@@ -291,7 +291,7 @@ my %files_by_type = (
     'core/read_only/win32/do_config_h.pl' => gen_license_problems_in_perl_file($libmarpa_hash_license),
     'etc/my_suppressions'              => \&trivial,
     'xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
-    'libmarpa/tavl/README' => \&trivial,
+    'core/read_only/README.INSTALL' => \&trivial,
 
     # Leave Pfaff's licensing as is
     'core/read_only/marpa_tavl.c' => \&ignored,

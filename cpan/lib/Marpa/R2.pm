@@ -29,6 +29,7 @@ $DEBUG = 0;
 
 use Carp;
 use English qw( -no_match_vars );
+use XSLoader;
 
 use Marpa::R2::Version;
 
@@ -76,13 +77,7 @@ LOAD_EXPLICIT_LIBRARY: {
     $Marpa::R2::LIBMARPA_FILE = $file;
 }
 
-my $ok = eval {
-    require XSLoader;
-    XSLoader::load( 'Marpa::R2', $Marpa::R2::STRING_VERSION );
-    1;
-};
-Carp::croak( "Marpa::R2 failed due to an XSLoader problem\n" . $EVAL_ERROR )
-    if not $ok;
+XSLoader::load( 'Marpa::R2', $Marpa::R2::STRING_VERSION );
 
 if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {
     $Marpa::R2::DEBUG = 0;
