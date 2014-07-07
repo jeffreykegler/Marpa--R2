@@ -20,6 +20,7 @@
 Build.PL
 COPYING.LESSER
 Changes
+INSTALL
 LICENSE
 MANIFEST
 MANIFEST.SKIP
@@ -41,6 +42,11 @@ author.t/pod.t
 author.t/spelling_exceptions.list
 author.t/tidy.t
 author.t/tidy1
+core/LOG_DATA
+core/README
+core/SHARED
+core/STATIC
+core/cf/LIBMARPA_MODE
 core/read_only/AUTHORS
 core/read_only/COPYING.LESSER
 core/read_only/ChangeLog
@@ -52,6 +58,7 @@ core/read_only/Makefile.in
 core/read_only/Makefile.win32
 core/read_only/NEWS
 core/read_only/README
+core/read_only/README.INSTALL
 core/read_only/aclocal.m4
 core/read_only/config.guess
 core/read_only/config.h.in
@@ -80,7 +87,6 @@ core/read_only/marpa_slif.h
 core/read_only/marpa_tavl.c
 core/read_only/marpa_tavl.h
 core/read_only/missing
-core/read_only/README.INSTALL
 core/read_only/stamp-h1
 core/read_only/win32/do_config_h.pl
 core/read_only/win32/marpa.def

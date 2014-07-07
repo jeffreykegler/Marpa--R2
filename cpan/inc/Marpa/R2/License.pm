@@ -263,6 +263,7 @@ my %files_by_type = (
     'META.yml' =>
         \&ignored,    # not source, and not clear how to add license at top
     'README'                            => \&trivial,
+    'INSTALL'                            => \&trivial,
     'TODO'                              => \&trivial,
     'author.t/accept_tidy'              => \&trivial,
     'author.t/critic1'                  => \&trivial,
@@ -272,26 +273,34 @@ my %files_by_type = (
     'etc/dovg.sh'                       => \&trivial,
     'etc/compile_for_debug.sh'          => \&trivial,
     'etc/reserved_check.sh'             => \&trivial,
-    'html/script/marpa_r2_html_fmt'     => gen_license_problems_in_perl_file(),
-    'html/script/marpa_r2_html_score'   => gen_license_problems_in_perl_file(),
-    'html/t/fmt_t_data/expected1.html'  => \&ignored,
-    'html/t/fmt_t_data/expected2.html'  => \&ignored,
-    'html/t/fmt_t_data/input1.html'     => \&trivial,
-    'html/t/fmt_t_data/input2.html'     => \&trivial,
-    'html/t/fmt_t_data/score_expected1.html'   => \&trivial,
-    'html/t/fmt_t_data/score_expected2.html'   => \&trivial,
-    'html/t/no_tang.html'                      => \&ignored,
-    'html/t/test.html'                         => \&ignored,
-    'core/read_only/LIB_VERSION'                => \&trivial,
-    'core/read_only/LIB_VERSION.in'             => \&trivial,
-    'core/read_only/Makefile.am'             => gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'core/read_only/configure.ac'             => gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'core/read_only/notes/shared_test.txt' => gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'core/read_only/Makefile.win32'             => gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'core/read_only/win32/do_config_h.pl' => gen_license_problems_in_perl_file($libmarpa_hash_license),
-    'etc/my_suppressions'              => \&trivial,
+    'html/script/marpa_r2_html_fmt'    => gen_license_problems_in_perl_file(),
+    'html/script/marpa_r2_html_score'  => gen_license_problems_in_perl_file(),
+    'html/t/fmt_t_data/expected1.html' => \&ignored,
+    'html/t/fmt_t_data/expected2.html' => \&ignored,
+    'html/t/fmt_t_data/input1.html'    => \&trivial,
+    'html/t/fmt_t_data/input2.html'    => \&trivial,
+    'html/t/fmt_t_data/score_expected1.html' => \&trivial,
+    'html/t/fmt_t_data/score_expected2.html' => \&trivial,
+    'html/t/no_tang.html'                    => \&ignored,
+    'html/t/test.html'                       => \&ignored,
+    'core/LOG_DATA'             => \&trivial,
+'core/cf/LIBMARPA_MODE' => \&trivial,
+    'core/read_only/LIB_VERSION'             => \&trivial,
+    'core/read_only/LIB_VERSION.in'          => \&trivial,
+    'core/read_only/Makefile.am' =>
+        gen_license_problems_in_hash_file($libmarpa_hash_license),
+    'core/read_only/configure.ac' =>
+        gen_license_problems_in_hash_file($libmarpa_hash_license),
+    'core/read_only/notes/shared_test.txt' =>
+        gen_license_problems_in_hash_file($libmarpa_hash_license),
+    'core/read_only/Makefile.win32' =>
+        gen_license_problems_in_hash_file($libmarpa_hash_license),
+    'core/read_only/win32/do_config_h.pl' =>
+        gen_license_problems_in_perl_file($libmarpa_hash_license),
+    'etc/my_suppressions' => \&trivial,
     'xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
-    'core/read_only/README.INSTALL' => \&trivial,
+    'core/read_only/README.INSTALL' =>
+        gen_license_problems_in_text_file($libmarpa_hash_license),
 
     # Leave Pfaff's licensing as is
     'core/read_only/marpa_tavl.c' => \&ignored,
