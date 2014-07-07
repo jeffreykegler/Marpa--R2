@@ -80,7 +80,7 @@ core/read_only/marpa_slif.h
 core/read_only/marpa_tavl.c
 core/read_only/marpa_tavl.h
 core/read_only/missing
-core/read_only/notes/shared_test.txt
+core/read_only/README.INSTALL
 core/read_only/stamp-h1
 core/read_only/win32/do_config_h.pl
 core/read_only/win32/marpa.def
