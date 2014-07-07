@@ -57,7 +57,7 @@ assume that is where the shared library is installed and, in this example,
 LD_LIBRARY_PATH is used so that Libmarpa can be found at runtime.
 
 5.)  To switch back to an internal Libmarpa, specify the
-"--libmarpa-external" option.
+"--libmarpa-internal" option.
 
    ./Build code --libmarpa-internal=on
 
