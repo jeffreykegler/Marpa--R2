@@ -46,7 +46,6 @@ core/LOG_DATA
 core/README
 core/SHARED
 core/STATIC
-core/cf/LIBMARPA_MODE
 core/read_only/AUTHORS
 core/read_only/COPYING.LESSER
 core/read_only/ChangeLog
