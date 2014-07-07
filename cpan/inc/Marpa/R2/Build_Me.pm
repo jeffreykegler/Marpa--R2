@@ -847,17 +847,21 @@ sub ACTION_code {
 
     # If it's a shared library, we don't build it here.
     if ( not defined $self->args('libmarpa-external') ) {
+
         # If the mode file exists, any switch to the internal Libmarpa
         # must be made explicitly
         if ( not defined $self->args('libmarpa-internal') ) {
             my $libmarpa_mode_file =
-                File::Spec->catdir( $self->base_dir(), 'core', 'cf', 'LIBMARPA_MODE' );
-            die "Libmarpa is external, but you did not explicity specify that -- you need to\n",
-            '  If you want to go back to the built-in Libmarpa, ',
-                qq{use Build's "--libmarpa-internal=on" flag\n};
-        }
+                File::Spec->catdir( $self->base_dir(), 'core', 'cf',
+                'LIBMARPA_MODE' );
+            die
+                "Libmarpa is external, but you did not explicity specify that -- you need to\n",
+                '  If you want to go back to the built-in Libmarpa, ',
+                qq{use Build's "--libmarpa-internal=on" flag\n}
+                if -e $libmarpa_mode_file;
+        } ## end if ( not defined $self->args('libmarpa-internal') )
         $self->do_libmarpa();
-    }
+    } ## end if ( not defined $self->args('libmarpa-external') )
 
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
