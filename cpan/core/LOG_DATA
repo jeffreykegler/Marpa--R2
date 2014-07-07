@@ -1,0 +1,29 @@
+commit d20255f1a56516bdc0d9b26ae6a5c4c99bab1f45
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Jul 6 21:10:27 2014 -0700
+
+    Packaging
+
+commit d19e5d63a1457e74446a4bef69ed1351c43edcef
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Jul 6 21:05:02 2014 -0700
+
+    Packaging
+
+commit b708d20aab2cb18a83bab04c467548c36d693ca2
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Jul 6 19:37:52 2014 -0700
+
+    Packaging
+
+commit 2926c38b16408374d133921608e5921f89b4838c
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Jul 6 19:26:41 2014 -0700
+
+    Installation docs
+
+commit 5cc7c09632ecf2aa4bee4217d55d853cd9629975
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Jul 6 19:22:47 2014 -0700
+
+    Bump version

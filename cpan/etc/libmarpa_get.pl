@@ -21,9 +21,6 @@ use autodie;
 use IPC::Cmd;
 use File::Path;
 
-my $commitish = shift;
-die "Usage: $0 commitish" if not $commitish;
-
 my $libmarpa_repo = 'git@github.com:jeffreykegler/libmarpa.git';
 my $stage = 'core/stage';
 
@@ -31,7 +28,7 @@ die "core/stage already exists" if -e $stage;
 die "libmarpa_build already exists" if -e 'libmarpa_build';
 
 if (not IPC::Cmd::run(
-        command => [ qw(git clone), $libmarpa_repo, $stage ],
+        command => [ qw(git clone -b r2 --depth 5), $libmarpa_repo, $stage ],
         verbose => 1
     )
     )
@@ -42,14 +39,22 @@ if (not IPC::Cmd::run(
 # CHIDR into staging dir
 chdir $stage || die "Could not chdir";
 
+my $log_data;
 if (not IPC::Cmd::run(
-        command => [ qw(git checkout -b working), $commitish ],
-        verbose => 1
+        command => [ qw(git log -n 5) ],
+        verbose => 1,
+	buffer => \$log_data
     )
     )
 {
-    die qq{Could not checkout "$commitish"};
-} ## end if ( not IPC::Cmd::run( command => [ qw(git checkout)...]))
+    die "Could not clone";
+} ## end if ( not IPC::Cmd::run( command => [ qw(git clone -n --depth 1)...]))
+
+{
+   open my $fh, q{>}, '../LOG_DATA';
+   print {$fh} $log_data;
+   close $fh;
+}
 
 if (not IPC::Cmd::run(
         command => [ qw(make dist) ],
