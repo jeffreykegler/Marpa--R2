@@ -449,6 +449,7 @@ my $libmarpa_trace_event_handlers = {
         say {$trace_file_handle} qq{Lexer "$lexer_name" accepted lexeme },
             input_range_describe( $slr, $lexeme_start_pos,
             $lexeme_end_pos - 1 ),
+            q{ e}, $slr->current_g1_location(),
             q{: },
             $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
@@ -572,6 +573,7 @@ my $libmarpa_trace_event_handlers = {
             'Attempting to read lexeme ',
             input_range_describe( $slr, $lexeme_start_pos,
             $lexeme_end_pos - 1 ),
+            q{ e}, $slr->current_g1_location(),
             q{: },
             $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
