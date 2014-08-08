@@ -78,7 +78,7 @@ Marpa::R2::Test::is( $progress_report,
 F0 @0-20 S -> Top_sequence .
 P1 @20-20 Top_sequence -> . Top Top_sequence
 R1:1 @19-20 Top_sequence -> Top . Top_sequence
-F1 x20 @0...19-20 Top_sequence -> Top Top_sequence .
+F1 x19 @0...18-20 Top_sequence -> Top Top_sequence .
 P2 @20-20 Top_sequence -> . Top
 F2 @19-20 Top_sequence -> Top .
 P3 @20-20 Top -> . Upper_Middle
