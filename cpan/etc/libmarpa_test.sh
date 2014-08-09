@@ -4,7 +4,7 @@ else
    echo $1 is not a directory 1>&2
    exit 1
 fi
-if test -d core/cf
+if test -d engine/cf
 then :
 else
    (echo $1 is not a directory;
@@ -20,6 +20,6 @@ fi
 (cd "$1"; make tar)
 lib_version=`cat $1/LIB_VERSION`
 tar_file=$1/libmarpa-$lib_version.tar.gz
-(cd core; tar -xvzf $tar_file)
-(cd core; test -d read_only && rm -rf read_only)
-(cd core; mv libmarpa-$lib_version read_only)
+(cd engine; tar -xvzf $tar_file)
+(cd engine; test -d read_only && rm -rf read_only)
+(cd engine; mv libmarpa-$lib_version read_only)

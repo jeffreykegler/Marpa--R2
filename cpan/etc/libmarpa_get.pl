@@ -22,9 +22,9 @@ use IPC::Cmd;
 use File::Path;
 
 my $libmarpa_repo = 'git@github.com:jeffreykegler/libmarpa.git';
-my $stage = 'core/stage';
+my $stage = 'engine/stage';
 
-die "core/stage already exists" if -e $stage;
+die "engine/stage already exists" if -e $stage;
 die "libmarpa_build already exists" if -e 'libmarpa_build';
 
 if (not IPC::Cmd::run(

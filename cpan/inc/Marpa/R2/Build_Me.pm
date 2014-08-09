@@ -284,7 +284,7 @@ sub process_xs {
     my $switched_to_file =
         File::Spec->catdir( $libmarpa_build_directory, 'SWITCHED_TO' );
     my $libmarpa_mode_file =
-        File::Spec->catdir( $self->base_dir(), 'core', 'cf', 'LIBMARPA_MODE' );
+        File::Spec->catdir( $self->base_dir(), 'engine', 'cf', 'LIBMARPA_MODE' );
     if ( defined $self->args('libmarpa-external') ) {
         my $libmarpa_external_flags = $self->args('libmarpa-external');
         push @extra_linker_flags, split q{ }, $libmarpa_external_flags;
@@ -409,7 +409,7 @@ sub do_libmarpa {
     my $cwd      = $self->cwd();
     my $base_dir = $self->base_dir();
 
-    my $dist_dir = File::Spec->catdir( $base_dir, 'core/read_only' );
+    my $dist_dir = File::Spec->catdir( $base_dir, 'engine/read_only' );
     my $build_dir = File::Spec->catdir( $base_dir, 'libmarpa_build');
 
     my $build_stamp_file = File::Spec->catfile( $build_dir, 'stamp-h1' );
@@ -852,7 +852,7 @@ sub ACTION_code {
         # must be made explicitly
         if ( not defined $self->args('libmarpa-internal') ) {
             my $libmarpa_mode_file =
-                File::Spec->catdir( $self->base_dir(), 'core', 'cf',
+                File::Spec->catdir( $self->base_dir(), 'engine', 'cf',
                 'LIBMARPA_MODE' );
             die
                 "Libmarpa is external, but you did not explicity specify that -- you need to\n",

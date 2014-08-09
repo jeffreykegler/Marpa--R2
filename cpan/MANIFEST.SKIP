@@ -63,8 +63,8 @@
 ^author.t/tidy.errs$
 ^blib/
 ^blib_shared/
-^core/cf/LIBMARPA_MODE$
-^core/stage/
+^engine/cf/LIBMARPA_MODE$
+^engine/stage/
 ^dovg[.]log$
 ^errs$
 ^etc/track[.]list
