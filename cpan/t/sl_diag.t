@@ -222,7 +222,7 @@ P2 @11-11 L1c19 Calculation -> . 'say' Expression
 P3 @11-11 L1c19 Expression -> . Number
 F3 @10-11 L1c17-19 Expression -> Number .
 P4 @11-11 L1c19 Expression -> . '+' Expression Expression
-F4 x3 @0,6,10-11 L1c1-19 Expression -> '+' Expression Expression .
+F4 x2 @0,6-11 L1c1-19 Expression -> '+' Expression Expression .
 F5 @0-11 L1c1-19 :start -> Script .
 END_OF_EXPECTED_OUTPUT
 
@@ -236,35 +236,35 @@ Expecting "[Lex-0]" at earleme 0
 Expecting "[Lex-1]" at earleme 0
 Lexer "L0" registering character U+002b '+' as symbol 5: [\+]
 Lexer "L0" registering character U+002b '+' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
-Lexer "L0" accepted lexeme L1c1: '+'; value="+"
-Lexer "L0" accepted lexeme L1c2: '+'; value="+"
-Lexer "L0" accepted lexeme L1c3: '+'; value="+"
+Lexer "L0" accepted lexeme L1c1 e1: '+'; value="+"
+Lexer "L0" accepted lexeme L1c2 e2: '+'; value="+"
+Lexer "L0" accepted lexeme L1c3 e3: '+'; value="+"
 Lexer "L0" registering character U+0020 as symbol 7: [\s]
 Lexer "L0" registering character U+0020 as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Lexer "L0" registering character U+0031 '1' as symbol 6: [\d]
 Lexer "L0" registering character U+0031 '1' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Lexer "L0" discarded lexeme L1c4: whitespace
-Lexer "L0" accepted lexeme L1c5: Number; value="1"
+Lexer "L0" accepted lexeme L1c5 e4: Number; value="1"
 Lexer "L0" registering character U+0032 '2' as symbol 6: [\d]
 Lexer "L0" registering character U+0032 '2' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Lexer "L0" discarded lexeme L1c6: whitespace
-Lexer "L0" accepted lexeme L1c7: Number; value="2"
+Lexer "L0" accepted lexeme L1c7 e5: Number; value="2"
 Lexer "L0" registering character U+0033 '3' as symbol 6: [\d]
 Lexer "L0" registering character U+0033 '3' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Lexer "L0" discarded lexeme L1c8: whitespace
-Lexer "L0" accepted lexeme L1c9: Number; value="3"
+Lexer "L0" accepted lexeme L1c9 e6: Number; value="3"
 Lexer "L0" discarded lexeme L1c10: whitespace
-Lexer "L0" accepted lexeme L1c11: '+'; value="+"
+Lexer "L0" accepted lexeme L1c11 e7: '+'; value="+"
 Lexer "L0" discarded lexeme L1c12: whitespace
-Lexer "L0" accepted lexeme L1c13: '+'; value="+"
+Lexer "L0" accepted lexeme L1c13 e8: '+'; value="+"
 Lexer "L0" discarded lexeme L1c14: whitespace
-Lexer "L0" accepted lexeme L1c15: Number; value="1"
+Lexer "L0" accepted lexeme L1c15 e9: Number; value="1"
 Lexer "L0" discarded lexeme L1c16: whitespace
-Lexer "L0" accepted lexeme L1c17: Number; value="2"
+Lexer "L0" accepted lexeme L1c17 e10: Number; value="2"
 Lexer "L0" registering character U+0034 '4' as symbol 6: [\d]
 Lexer "L0" registering character U+0034 '4' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Lexer "L0" discarded lexeme L1c18: whitespace
-Lexer "L0" accepted lexeme L1c19: Number; value="4"
+Lexer "L0" accepted lexeme L1c19 e11: Number; value="4"
 END_OF_OUTPUT
 
     my $expected_progress_output = [
@@ -273,7 +273,6 @@ END_OF_OUTPUT
         [ 3, -1, 10 ],
         [ 4, -1, 0 ],
         [ 4, -1, 6 ],
-        [ 4, -1, 10 ],
         [ 5, -1, 0 ],
         [ 0, 0,  0 ],
         [ 1, 0,  11 ],
