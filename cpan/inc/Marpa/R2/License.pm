@@ -272,6 +272,7 @@ my %files_by_type = (
     'author.t/tidy1'                    => \&trivial,
     'etc/dovg.sh'                       => \&trivial,
     'etc/compile_for_debug.sh'          => \&trivial,
+    'etc/libmarpa_test.sh'              => \&trivial,
     'etc/reserved_check.sh'             => \&trivial,
     'html/script/marpa_r2_html_fmt'    => gen_license_problems_in_perl_file(),
     'html/script/marpa_r2_html_score'  => gen_license_problems_in_perl_file(),

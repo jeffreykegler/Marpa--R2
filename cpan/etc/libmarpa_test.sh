@@ -23,3 +23,4 @@ tar_file=$1/libmarpa-$lib_version.tar.gz
 (cd engine; tar -xvzf $tar_file)
 (cd engine; test -d read_only && rm -rf read_only)
 (cd engine; mv libmarpa-$lib_version read_only)
+date > engine/read_only/stamp-h1

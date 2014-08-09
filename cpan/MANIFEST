@@ -96,6 +96,7 @@ etc/check_links.pl
 etc/compile_for_debug.sh
 etc/dovg.sh
 etc/libmarpa_get.pl
+etc/libmarpa_test.sh
 etc/my_suppressions
 etc/reserved_check.sh
 g/config/default.txt
