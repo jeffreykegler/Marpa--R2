@@ -18,7 +18,7 @@ method, the one supported by the CPAN infrasture.  It also contains
 documents describing alternative ways of using Libmarpa -- external
 static libraries and external shared libraries.
 
-The code in the "core" subdirectory should *NOT* be used for building
+The code in the "engine" subdirectory should *NOT* be used for building
 a separate Libmarpa.  It is specifically targeted at the needs of Perl
 builds, and may contain specials kludges and hacks.
 
