@@ -312,18 +312,18 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 Marpa::R2::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
 Setting trace_terminals option
 Setting trace_values option
-Lexer "L0" accepted lexeme L1c1: variable; value="a"
+Lexer "L0" accepted lexeme L1c1 e1: variable; value="a"
 Lexer "L0" discarded lexeme L1c2: whitespace
-Lexer "L0" accepted lexeme L1c3: '='; value="="
+Lexer "L0" accepted lexeme L1c3 e2: '='; value="="
 Lexer "L0" discarded lexeme L1c4: whitespace
 Lexer "L0" rejected lexeme L1c5-11: number; value="8675309"
-Lexer "L0" accepted lexeme L1c5-11: variable; value="8675309"
+Lexer "L0" accepted lexeme L1c5-11 e3: variable; value="8675309"
 Lexer "L0" discarded lexeme L1c12: whitespace
 Lexer "L0" rejected lexeme L1c13: '+'; value="+"
-Lexer "L0" accepted lexeme L1c13: '+'; value="+"
+Lexer "L0" accepted lexeme L1c13 e4: '+'; value="+"
 Lexer "L0" discarded lexeme L1c14: whitespace
 Lexer "L0" rejected lexeme L1c15-16: number; value="42"
-Lexer "L0" accepted lexeme L1c15-16: variable; value="42"
+Lexer "L0" accepted lexeme L1c15-16 e5: variable; value="42"
 Lexer "L0" discarded lexeme L1c17: whitespace
 Lexer "L0" rejected lexeme L1c18: '*'; value="*"
 END_TRACE_OUTPUT
