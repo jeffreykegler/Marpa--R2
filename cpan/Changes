@@ -15,14 +15,10 @@
 
 Revision history for Marpa::R2
 
-2.089_001 (libmarpa 7.0.3) Fri Aug  8 18:52:59 PDT 2014
+2.090000 (libmarpa 7.0.3) Mon Aug 11 18:39:00 PDT 2014
 
-   * Fix bug in progress reports.  Origin of rule
-     sometimes reported wrong for left recursions.
-
-2.089_000 (libmarpa 7.0.2) Sat May 31 18:07:17 PDT 2014
-
-   * New series of developer's releases.
+   * Fix bug in progress reports.  The start of a rule
+     was reported wrong for some left recursions.
 
 2.088000 (libmarpa 7.0.2) Thu Jul 10 10:04:02 PDT 2014
 
