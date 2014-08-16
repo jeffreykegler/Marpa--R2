@@ -507,6 +507,20 @@ sub do_libmarpa {
             $shell or die q{No Bourne shell available says $Config{sh}};
         ##use critic
     }
+
+    local $ENV{$_} = $ENV{$_} for qw(TMPDIR PATH_SEPARATOR CONFIG_SHELL);
+    
+    if ( $^O eq 'android' ) {
+        # TMPDIR must be set due to a bug in /system/bin/sh
+        # which breaks shell heredocs; this is for both
+        # configure and libtool
+        $ENV{TMPDIR}         ||= File::Spec->tmpdir();
+        # 'configure' hardcodes /bin/sh in several spots;
+        # setting CONFIG_SHELL gets all but one, the test
+        # for PATH_SEPARATOR.
+        $ENV{CONFIG_SHELL}   ||= $Config{sh};
+        $ENV{PATH_SEPARATOR} ||= $Config{path_sep};
+    }
     
     my $original_cflags = $ENV{CFLAGS};
     local $ENV{CFLAGS};
