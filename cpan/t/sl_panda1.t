@@ -161,7 +161,7 @@ sub full_traverser {
         #
         # However, start, length, lhs, and values builtins can be emulated by
         # using $glade->span(), $glade->symbol_id(), and $glade->rh_values().
-        # Stull, defining closures would probably serve you better.
+        # Still, defining closures would probably serve you better.
         unless (defined $closure and ref $closure eq 'CODE'){
             die "The semantics of Rule #" . $glade->rule_id() . "is not defined as a closure.";
         }
