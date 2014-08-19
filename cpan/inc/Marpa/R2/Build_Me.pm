@@ -167,11 +167,17 @@ sub marpa_infer_xs_spec {
     $spec{archdir} =
         File::Spec->catdir( $self->blib, 'arch', 'auto', @d, $file_base );
 
-    $spec{bs_file} = File::Spec->catfile( $spec{archdir}, "${file_base}.bs" );
-
+    
+    require DynaLoader;
+    my $modfname = defined &DynaLoader::mod2fname
+                 ? DynaLoader::mod2fname([@d, $file_base])
+                 : $file_base;
+ 
+    $spec{bs_file} = File::Spec->catfile( $spec{archdir}, "${modfname}.bs" );
+ 
     $spec{lib_file} =
         File::Spec->catfile( $spec{archdir},
-        "${file_base}." . $cf->get('dlext') );
+        "${modfname}." . $cf->get('dlext') );
 
     $spec{c_file} = File::Spec->catfile( $spec{src_dir}, "${file_base}.c" );
 
@@ -250,9 +256,12 @@ sub process_xs {
     if ( $self->config('ccname') eq 'gcc' ) {
         ## -W instead of -Wextra is case the GCC is pre 3.0.0
         ## -Winline omitted because too noisy
-        push @new_ccflags, qw( -Wall -W -ansi
+        push @new_ccflags, qw( -Wall -W
             -Wpointer-arith -Wstrict-prototypes -Wwrite-strings
             -Wmissing-declarations );
+        # -ansi undefs 'inline' on Android, which breaks
+        # the build since it's used by bionic's headers.
+        push @new_ccflags, '-ansi' if $^O ne 'android';
         push @new_ccflags, '-Wdeclaration-after-statement' if gcc_is_at_least('3.4.6');
     } ## end if ( $self->config('cc') eq 'gcc' )
     if ( defined $self->args('XS-debug') ) {
@@ -506,6 +515,20 @@ sub do_libmarpa {
         ##no critic(ValuesAndExpressions::RequireInterpolationOfMetachars)
             $shell or die q{No Bourne shell available says $Config{sh}};
         ##use critic
+    }
+
+    local $ENV{$_} = $ENV{$_} for qw(TMPDIR PATH_SEPARATOR CONFIG_SHELL);
+    
+    if ( $^O eq 'android' ) {
+        # TMPDIR must be set due to a bug in /system/bin/sh
+        # which breaks shell heredocs; this is for both
+        # configure and libtool
+        $ENV{TMPDIR}         ||= File::Spec->tmpdir();
+        # 'configure' hardcodes /bin/sh in several spots;
+        # setting CONFIG_SHELL gets all but one, the test
+        # for PATH_SEPARATOR.
+        $ENV{CONFIG_SHELL}   ||= $Config{sh};
+        $ENV{PATH_SEPARATOR} ||= $Config{path_sep};
     }
     
     my $original_cflags = $ENV{CFLAGS};
