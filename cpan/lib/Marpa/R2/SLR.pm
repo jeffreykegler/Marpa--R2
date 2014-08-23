@@ -1294,11 +1294,21 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
     my ($slr) = @_;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
-    $thick_g1_recce->ordering_create();
-    my $ordering = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $ordering = $thick_g1_recce->ordering_create();
     return 0 if not $ordering;
     return $ordering->ambiguity_metric();
 } ## end sub Marpa::R2::Scanless::R::ambiguity_metric
+
+sub Marpa::R2::Scanless::R::ambiguous {
+    my ($slr) = @_;
+    return q{No parse} if $slr->ambiguity_metric() <= 0;
+    return q{} if $slr->ambiguity_metric() == 1;
+    my $asf = Marpa::R2::ASF->new( { slr => $slr } );
+    die 'Could not create ASF' if not defined $asf;
+    my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
+    my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
+    return Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
+} ## end sub Marpa::R2::Scanless::R::ambiguous
 
 sub Marpa::R2::Scanless::R::rule_closure {
 

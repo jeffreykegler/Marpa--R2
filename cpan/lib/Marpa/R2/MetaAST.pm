@@ -33,17 +33,12 @@ use English qw( -no_match_vars );
 sub new {
     my ( $class, $p_rules_source ) = @_;
     my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
-    eval { $meta_recce->read($p_rules_source) } or
-        Marpa::R2::exception("Parse of BNF/Scanless source failed\n", $EVAL_ERROR);
-    if ( $meta_recce->ambiguity_metric() > 1 ) {
-    my $asf = Marpa::R2::ASF->new( { slr => $meta_recce } );
-    say STDERR 'No ASF' if not defined $asf;
-    my $ambiguities = Marpa::R2::Internal::ASF::ambiguities( $asf );
-    my @ambiguities = grep { defined } @{$ambiguities}[0 .. 1 ];
-        Marpa::R2::exception(
-            "Parse of BNF/Scanless source is ambiguous\n",
-            Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities )
-        );
+    eval { $meta_recce->read($p_rules_source) }
+        or Marpa::R2::exception( "Parse of BNF/Scanless source failed\n",
+        $EVAL_ERROR );
+    if ( my $ambiguity_status = $meta_recce->ambiguous() ) {
+        Marpa::R2::exception( "Parse of BNF/Scanless source failed:\n",
+            $ambiguity_status );
     }
     my $value_ref = $meta_recce->value();
     Marpa::R2::exception('Parse of BNF/Scanless source failed')

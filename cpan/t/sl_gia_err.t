@@ -96,7 +96,7 @@ push @tests_data, [
     $english2_grammar, 'aaaa',
     'SLIF grammar failed',
     <<'END_OF_MESSAGE',
-Parse of BNF/Scanless source is ambiguous
+Parse of BNF/Scanless source failed:
 Length of symbol "statement" at line 2, column 13 is ambiguous
   Choices start with: quartet  ::= a a a a
   Choice 1, length=20, ends at line 2, column 32

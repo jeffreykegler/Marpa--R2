@@ -415,6 +415,8 @@ sub show_semantics {
     return join q{ }, @op_descs;
 } ## end sub show_semantics
 
+# Return false if no ordering was created,
+# otherwise return the ordering.
 sub Marpa::R2::Recognizer::ordering_create {
     my ($recce) = @_;
     return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
@@ -432,7 +434,7 @@ sub Marpa::R2::Recognizer::ordering_create {
         $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE] = 1;
         return;
     }
-    $recce->[Marpa::R2::Internal::Recognizer::O_C] =
+    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
         Marpa::R2::Thin::O->new($bocage);
 
     GIVEN_RANKING_METHOD: {
@@ -448,7 +450,7 @@ sub Marpa::R2::Recognizer::ordering_create {
         }
     } ## end GIVEN_RANKING_METHOD:
 
-    return 1;
+    return $ordering;
 } ## end sub Marpa::R2::Recognizer::ordering_create
 
 sub resolve_rule_by_id {
@@ -1469,9 +1471,8 @@ sub Marpa::R2::Recognizer::value {
     else {
         # No tree, therefore not initialized
 
-        $recce->ordering_create();
-        return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
-        my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+        my $order = $recce->ordering_create();
+        return if not $order;
         $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
             Marpa::R2::Thin::T->new($order);
 
