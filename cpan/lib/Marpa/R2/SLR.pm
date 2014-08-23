@@ -1310,6 +1310,48 @@ sub Marpa::R2::Scanless::R::ambiguous {
     return Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
 } ## end sub Marpa::R2::Scanless::R::ambiguous
 
+# This is a Marpa Scanless::G method, but is included in this
+# file because internally it is allow about the recognizer.
+sub Marpa::R2::Scanless::G::parse {
+    my ( $slg, @args ) = @_;
+    my @input = grep { ref ne 'HASH' } @args;
+    if ( scalar @input != 1 or ref $input[0] ne 'SCALAR' ) {
+        for my $arg_ix ( 0 .. $#args ) {
+            my $ref_type = ref $args[$arg_ix];
+            next ARG if $ref_type eq 'HASH';
+            next ARG if $ref_type eq 'SCALAR';
+            my $message =
+                '$slr->parse(): Arguments to $slr->parse must be ref to HASH or ref to SCALAR'
+                . "\n";
+            $message .= "  Argument $arg_ix is a ref to $ref_type\n"
+                if $ref_type;
+            $message .= "  Argument $arg_ix is not a ref\n" if not $ref_type;
+        } ## end for my $arg_ix ( 0 .. $#args )
+    } ## end if ( scalar @input != 1 or ref $input[0] ne 'SCALAR')
+    my @hash_args    = grep { ref eq 'HASH' } @args;
+    my $slr          = Marpa::R2::Scanless::R->new({ grammar => $slg}, @hash_args);
+    my $input_length = ${ $input[0] };
+    my $length_read  = $slr->read( $input[0] );
+    if ( $length_read != length $input_length ) {
+        die 'read in $slr->parse() ended prematurely', "\n",
+            "  The input length is $input_length\n",
+            "  The length read is $length_read\n",
+            "  The cause may be an event\n",
+            "  The $slr->parse() method does not allow parses to trigger events";
+    } ## end if ( $length_read != length $input_length )
+    if ( my $ambiguous_status = $slr->ambiguous() ) {
+        Marpa::R2::exception( "Parse of BNF/Scanless source is ambiguous\n",
+            $ambiguous_status );
+    }
+
+    my $value_ref = $slr->value();
+    Marpa::R2::exception(
+        '$slr->parse() read the input, but there was no parse', "\n" )
+        if not $value_ref;
+
+    return $value_ref;
+} ## end sub Marpa::R2::Scanless::R::parse
+
 sub Marpa::R2::Scanless::R::rule_closure {
 
     my ( $slr, $rule_id ) = @_;
