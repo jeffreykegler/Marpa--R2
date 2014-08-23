@@ -160,12 +160,6 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-=head1 THIS INTERFACE is ALPHA and EXPERIMENTAL
-
-The interface described in this document is very much a work in progress.
-It is alpha and experimental --
-subject to radical change without notice.
-
 =head1 About this document
 
 This document describes the abstract syntax forests (ASF's) of

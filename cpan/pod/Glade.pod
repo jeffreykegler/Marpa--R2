@@ -81,14 +81,6 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-=head1 This INTERFACE is ALPHA and EXPERIMENTAL
-
-The interface described in this document is very much a work in progress.
-It is alpha and experimental.
-The bad side of this is that it is subject to radical change without notice.
-The good side is that field is 100% open for users
-to have feedback into the final interface.
-
 =head1 About this document
 
 This document describes the low-level interface to Marpa's abstract syntax forests (ASF's).
