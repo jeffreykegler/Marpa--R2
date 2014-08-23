@@ -19,12 +19,8 @@ Marpa::R2 To Do -- "To Do" list for Marpa
 
 =head1 About this document
 
-The primary purpose of this document is to act as notes
-to myself.
-Statements made in this document should in no sense be
-taken as commitments.
-Items mentioned may be removed, changed, re-ranked, etc., etc.
-arbitrarily, suddenly and without notice.
+This list needs to be revisted in light of the Kollos project.
+Most of its items will probably never been done in Marpa::R2.
 
 =head1 Items to do
 
