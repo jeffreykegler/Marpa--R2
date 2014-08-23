@@ -464,7 +464,7 @@ name: Debug Leo Example Progress Report
 partial: 1
 normalize-whitespace: 1
 
-    F1 x20 @0...19-20 Top_sequence -> Top Top_sequence .
+    F1 x19 @0...18-20 Top_sequence -> Top Top_sequence .
 
 =for Marpa::R2::Display::End
 

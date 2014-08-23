@@ -43,13 +43,9 @@ normalize-whitespace: 1
     END_OF_DSL
 
     my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
-    my $recce = Marpa::R2::Scanless::R->new(
-        { grammar => $grammar, semantics_package => 'My_Actions' } );
     my $input = '42 * 1 + 7';
-    $recce->read( \$input );
-
-    my $value_ref = $recce->value;
-    my $value = $value_ref ? ${$value_ref} : 'No Parse';
+    my $value_ref =
+        $grammar->parse( \$input, { semantics_package => 'My_Actions' } );
 
     sub My_Actions::do_add {
         my ( undef, $t1, undef, $t2 ) = @_;
@@ -352,32 +348,6 @@ if more than one token is longest, all of them are considered in the parse.
 The logic of SLIF lexing is described with more precision in the
 L<SLIF overview document|Marpa::R2::Scanless>.
 
-=head2 Marpa::R2::Scanless::R::new
-
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-
-    my $recce = Marpa::R2::Scanless::R->new(
-        { grammar => $grammar, semantics_package => 'My_Actions' } );
-
-=for Marpa::R2::Display::End
-
-C<Marpa::R2::Scanless::R::new> creates a new SLIF recognizer.
-Its arguments are references to hashes of named arguments.
-In this example the first named argument is
-the required argument: "C<grammar>".
-The value of the
-C<grammar>
-named argument must be a Marpa::R2 SLIF
-grammar.
-
-The second argument is optional, but you will use it frequently.
-The "C<semantics_package>" named argument tells Marpa in which Perl package to
-look for the closures implementing the semantics for this grammar.
-We will talk more about this below.
-
 =head2 Marpa::R2::Scanless::R::read
 
 =for Marpa::R2::Display
@@ -386,37 +356,25 @@ partial: 1
 normalize-whitespace: 1
 
     my $input = '42 * 1 + 7';
-    $recce->read( \$input );
+    my $value_ref =
+        $grammar->parse( \$input, { semantics_package => 'My_Actions' } );
 
 =for Marpa::R2::Display::End
 
 To parse a string,
 we use 
-the C<Marpa::R2::Scanless::R::read()> method.
-In its simplest form,
-as here,
-the C<Marpa::R2::Scanless::R::read()> takes a reference
-to a string containing the input stream as its argument.
-
-=head2 Marpa::R2::Scanless::R::value
-
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-
-    my $value_ref = $recce->value;
-    my $value = $value_ref ? ${$value_ref} : 'No Parse';
-
-=for Marpa::R2::Display::End
-
-The C<Marpa::R2::Scanless::R::value()> method returns
-a reference to the parse result's value,
-if there was a parse result.
-If there was no parse result,
-C<Marpa::R2::Scanless::R::value()>
-returns
-C<undef>.
+the C<Marpa::R2::Scanless::G::parse()> method.
+The C<Marpa::R2::Scanless::G::parse()> takes a reference
+to a string containing the input stream as its argument,
+and one or more hash references, as here.
+The named arguments in the hash references are passed on the to recognizer,
+as it is being created.
+Here, as often,
+all we need is
+the "C<semantics_package>" named argument,
+which tells Marpa in which Perl package to
+look for the closures implementing the semantics for this grammar.
+We will talk more about this below.
 
 We have yet to describe how the Marpa SLIF computes the value
 of a parse.
@@ -517,14 +475,15 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::R2::Scanless::R->new(
-        { grammar => $grammar, semantics_package => 'My_Actions' } );
+    my $value_ref =
+        $grammar->parse( \$input, { semantics_package => 'My_Actions' } );
 
 =for Marpa::R2::Display::End
 
-Above we saw the C<semantics_package> named argument used when
-constructing the SLIF recognizer.
-As we noted, this specifies the package that is used
+Above we used the C<semantics_package> named argument when
+we did the pars.
+The C<semantics_package> named argument
+specifies the package that is used
 to find the Perl semantic closures.
 
 In this example the default semantics,
