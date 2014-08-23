@@ -1314,24 +1314,32 @@ sub Marpa::R2::Scanless::R::ambiguous {
 # file because internally it is allow about the recognizer.
 sub Marpa::R2::Scanless::G::parse {
     my ( $slg, @args ) = @_;
-    my @input = grep { ref ne 'HASH' } @args;
-    if ( scalar @input != 1 or ref $input[0] ne 'SCALAR' ) {
+    if ( grep { ref ne 'HASH' } @args ) {
         for my $arg_ix ( 0 .. $#args ) {
             my $ref_type = ref $args[$arg_ix];
             next ARG if $ref_type eq 'HASH';
-            next ARG if $ref_type eq 'SCALAR';
             my $message =
-                '$slr->parse(): Arguments to $slr->parse must be ref to HASH or ref to SCALAR'
+                '$slr->parse(): Arguments to $slr->parse must be ref to HASH'
                 . "\n";
             $message .= "  Argument $arg_ix is a ref to $ref_type\n"
                 if $ref_type;
             $message .= "  Argument $arg_ix is not a ref\n" if not $ref_type;
         } ## end for my $arg_ix ( 0 .. $#args )
-    } ## end if ( scalar @input != 1 or ref $input[0] ne 'SCALAR')
-    my @hash_args    = grep { ref eq 'HASH' } @args;
-    my $slr          = Marpa::R2::Scanless::R->new({ grammar => $slg}, @hash_args);
-    my $input_length = ${ $input[0] };
-    my $length_read  = $slr->read( $input[0] );
+    } ## end if ( grep { ref ne 'HASH' } @args )
+    my $input_ref = scalar @args ? $args[0]->{input} : undef;
+    if ( not defined $input_ref ) {
+        Marpa::R2::exception(
+            q{$slr->parse: no 'input' named argument -- one is required});
+    }
+    if ( ref $input_ref ne 'SCALAR' ) {
+        Marpa::R2::exception(
+            q{$slr->parse: 'input' named argument must be a ref to SCALAR});
+    }
+    $args[0]->{grammar} = $slg;
+    delete $args[0]->{input};
+    my $slr          = Marpa::R2::Scanless::R->new(@args);
+    my $input_length = ${$input_ref};
+    my $length_read  = $slr->read($input_ref);
     if ( $length_read != length $input_length ) {
         die 'read in $slr->parse() ended prematurely', "\n",
             "  The input length is $input_length\n",
@@ -1350,7 +1358,7 @@ sub Marpa::R2::Scanless::G::parse {
         if not $value_ref;
 
     return $value_ref;
-} ## end sub Marpa::R2::Scanless::R::parse
+} ## end sub Marpa::R2::Scanless::G::parse
 
 sub Marpa::R2::Scanless::R::rule_closure {
 
