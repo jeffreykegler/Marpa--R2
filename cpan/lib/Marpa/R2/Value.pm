@@ -417,9 +417,11 @@ sub show_semantics {
 
 # Return false if no ordering was created,
 # otherwise return the ordering.
-sub Marpa::R2::Recognizer::ordering_create {
+sub Marpa::R2::Recognizer::ordering_get {
     my ($recce) = @_;
     return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
+    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    return $ordering if $ordering;
     my $parse_set_arg =
         $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -434,7 +436,7 @@ sub Marpa::R2::Recognizer::ordering_create {
         $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE] = 1;
         return;
     }
-    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
+    $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
         Marpa::R2::Thin::O->new($bocage);
 
     GIVEN_RANKING_METHOD: {
@@ -451,7 +453,7 @@ sub Marpa::R2::Recognizer::ordering_create {
     } ## end GIVEN_RANKING_METHOD:
 
     return $ordering;
-} ## end sub Marpa::R2::Recognizer::ordering_create
+} ## end sub Marpa::R2::Recognizer::ordering_get
 
 sub resolve_rule_by_id {
     my ( $recce, $rule_id ) = @_;
@@ -1471,7 +1473,7 @@ sub Marpa::R2::Recognizer::value {
     else {
         # No tree, therefore not initialized
 
-        my $order = $recce->ordering_create();
+        my $order = $recce->ordering_get();
         return if not $order;
         $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
             Marpa::R2::Thin::T->new($order);

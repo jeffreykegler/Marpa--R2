@@ -1294,7 +1294,7 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
     my ($slr) = @_;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
-    my $ordering = $thick_g1_recce->ordering_create();
+    my $ordering = $thick_g1_recce->ordering_get();
     return 0 if not $ordering;
     return $ordering->ambiguity_metric();
 } ## end sub Marpa::R2::Scanless::R::ambiguity_metric

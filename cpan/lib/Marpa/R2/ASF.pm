@@ -401,7 +401,7 @@ sub Marpa::R2::ASF::new {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
 
-    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C] // $recce->ordering_create();
+    my $ordering = $recce->ordering_get();
     Marpa::R2::exception( "Parse failed\n") if not $ordering;
 
     Marpa::R2::exception(
