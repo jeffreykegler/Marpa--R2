@@ -192,6 +192,7 @@ pod/Semantics/Order.pod
 pod/Semantics/Phases.pod
 pod/Support.pod
 pod/Tracing.pod
+pod/Tutorial2.pod
 pod/Vocabulary.pod
 pperl/Marpa/R2/Perl.pm
 pperl/Marpa/R2/Perl/.gitignore
@@ -284,6 +285,7 @@ t/sl_syn.t
 t/sl_taint.t
 t/sl_timeflies.t
 t/sl_topsyn.t
+t/sl_tut2.t
 t/sl_wall.t
 t/stuifzand.t
 t/syn_engine.t
