@@ -348,7 +348,7 @@ if more than one token is longest, all of them are considered in the parse.
 The logic of SLIF lexing is described with more precision in the
 L<SLIF overview document|Marpa::R2::Scanless>.
 
-=head2 Marpa::R2::Scanless::R::read
+=head2 Marpa::R2::Scanless::G::parse
 
 =for Marpa::R2::Display
 name: Landing page synopsis
@@ -375,14 +375,6 @@ the "C<semantics_package>" named argument,
 which tells Marpa in which Perl package to
 look for the closures implementing the semantics for this grammar.
 We will talk more about this below.
-
-We have yet to describe how the Marpa SLIF computes the value
-of a parse.
-In fact,
-up to this point,
-we have been skipping everything that had to do
-with semantics.
-Now it is time to go back to those features.
 
 =head2 Semantics
 
@@ -480,9 +472,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Above we used the C<semantics_package> named argument when
-we did the pars.
-The C<semantics_package> named argument
+When we did the parse,
+we used the C<semantics_package> named argument.
+The value of the C<semantics_package> argument
 specifies the package that is used
 to find the Perl semantic closures.
 
@@ -636,10 +628,14 @@ DBI, LWP and Moose.
 =head1 Other documents
 
 This document gives a semi-tutorial overview of Marpa's Scanless interface (SLIF).
-For more details about the SLIF,
-there is an
-L<overview|Marpa::R2::Scanless>,
-and pages describing
+For a continuation of this tutorial, which describes how to get finer control
+of Marpa and access more of its features,
+see
+L<the followup tutorial to this one|Marpa::R2::Tutorial2>.
+If you are beginner who wants to learn more about Marpa,
+you probably want to go next to
+L<the overview of the SLIF interface|Marpa::R2::Scanless>,
+and then the pages describing
 L<its DSL|Marpa::R2::Scanless::DSL>,
 L<its grammar methods|Marpa::R2::Scanless::G>,
 and
