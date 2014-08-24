@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Landing page synopsis
+# Tutorial 2 synopsis
 
 use 5.010;
 use strict;

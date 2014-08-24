@@ -90,7 +90,7 @@ going straight to what is new.
 =head2 Marpa::R2::Scanless::R::new
 
 =for Marpa::R2::Display
-name: Landing page synopsis
+name: Tutorial 2 synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -116,7 +116,7 @@ We will talk more about this below.
 =head2 Marpa::R2::Scanless::R::read
 
 =for Marpa::R2::Display
-name: Landing page synopsis
+name: Tutorial 2 synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -136,7 +136,7 @@ to a string containing the input stream as its argument.
 =head2 Marpa::R2::Scanless::R::value
 
 =for Marpa::R2::Display
-name: Landing page synopsis
+name: Tutorial 2 synopsis
 partial: 1
 normalize-whitespace: 1
 
