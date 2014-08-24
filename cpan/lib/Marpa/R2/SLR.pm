@@ -1335,9 +1335,10 @@ sub Marpa::R2::Scanless::G::parse {
         Marpa::R2::exception(
             q{$slr->parse: 'input' named argument must be a ref to SCALAR});
     }
-    $args[0]->{grammar} = $slg;
-    delete $args[0]->{input};
-    my $slr          = Marpa::R2::Scanless::R->new(@args);
+    my %args0 = %{$args[0]}; # clone, so we don't modify the original
+    $args0{grammar} = $slg;
+    delete $args0{input};
+    my $slr          = Marpa::R2::Scanless::R->new(\%args0, @args[1 .. $#args]);
     my $input_length = ${$input_ref};
     my $length_read  = $slr->read($input_ref);
     if ( $length_read != length $input_length ) {
