@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 5;
 use English qw( -no_match_vars );
 
 use lib 'inc';
@@ -64,7 +64,13 @@ END_OF_SOURCE
     }
 );
 
+my $input = '42 * 1 + 7';
+my $value_ref =
+    $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+
 # Marpa::R2::Display::End
+
+Marpa::R2::Test::is( ${$value_ref}, 49, 'Synopsis value test');
 
 my $show_rules_output = $grammar->show_rules();
 $show_rules_output .= $grammar->show_rules(1, 'L0');

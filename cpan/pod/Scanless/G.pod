@@ -117,7 +117,20 @@ Specifies the C<default_action> named argument that
 will be used for the G1 grammar.
 For details, see L<Marpa::R2::NAIF::Grammar/"default_action">.
 
-=head1 Mutator
+=head1 Mutators
+
+=head2 parse()
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+normalize-whitespace: 1
+
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+    my $input = '42 * 1 + 7';
+    my $value_ref =
+        $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+
+=for Marpa::R2::Display::End
 
 =head2 set()
 
