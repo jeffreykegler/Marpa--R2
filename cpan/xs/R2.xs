@@ -6083,6 +6083,7 @@ PPCODE:
   }
 
   av_clear (slr->r1_wrapper->event_queue);
+  marpa__slr_event_clear(slr->gift);
   result = marpa_r_earleme_complete (slr->r1);
   if (result >= 0)
     {
