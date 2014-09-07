@@ -1311,7 +1311,7 @@ sub Marpa::R2::Scanless::R::ambiguous {
 } ## end sub Marpa::R2::Scanless::R::ambiguous
 
 # This is a Marpa Scanless::G method, but is included in this
-# file because internally it is allow about the recognizer.
+# file because internally it is all about the recognizer.
 sub Marpa::R2::Scanless::G::parse {
     my ( $slg, @args ) = @_;
     if ( grep { ref ne 'HASH' } @args ) {
