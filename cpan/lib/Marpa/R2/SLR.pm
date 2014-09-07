@@ -1324,6 +1324,7 @@ sub Marpa::R2::Scanless::G::parse {
             $message .= "  Argument $arg_ix is a ref to $ref_type\n"
                 if $ref_type;
             $message .= "  Argument $arg_ix is not a ref\n" if not $ref_type;
+            Marpa::R2::exception( $message );
         } ## end for my $arg_ix ( 0 .. $#args )
     } ## end if ( grep { ref ne 'HASH' } @args )
     my $input_ref = scalar @args ? $args[0]->{input} : undef;

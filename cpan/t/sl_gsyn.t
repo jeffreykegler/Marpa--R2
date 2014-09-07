@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 use English qw( -no_match_vars );
 
 use lib 'inc';
@@ -65,6 +65,17 @@ END_OF_SOURCE
 );
 
 my $input = '42 * 1 + 7';
+
+# test with wrong arguments
+my $err_msg_expected = q{$slr->parse(): Arguments to $slr->parse must be ref to HASH
+  Argument 0 is a ref to SCALAR
+};
+
+eval { $grammar->parse( \$input ) };
+my $err_msg = $@;
+like( $err_msg, qr/^\Q$err_msg_expected\E/m, "ref to SCALAR arg caught" );
+
+# test with proper arguments
 my $value_ref =
     $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
 
