@@ -77,7 +77,7 @@ tracing terminals can tell you a lot.
 Tracing the recognizer's progress
 with
 C<show_progress>
-is most powerful tool available
+is the most powerful tool available
 in the basic toolkit.
 C<show_progress>
 should provide all the
