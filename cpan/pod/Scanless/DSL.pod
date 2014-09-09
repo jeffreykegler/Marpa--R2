@@ -1261,7 +1261,7 @@ token.
 The C<proper> keyword is only valid for a quantified right side,
 and its value must be a boolean,
 in the form of a binary digit (C<0> or C<1>).
-It is only relevant is a separator
+It is only relevant if a separator
 is defined and is 1 if proper separation
 is required, and 0 if Perl separation is allowed.
 "Perl separation" allows a final separator.
