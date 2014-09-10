@@ -15,17 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.091_001 (libmarpa 7.0.3) Sat Sep  6 17:46:19 PDT 2014
+2.092000 (libmarpa 7.0.3) Sat Sep  6 17:46:19 PDT 2014
 
    * Fix bug -- some duplicate SLIF events occurred
      when external scanning was used.
 
-   * This version is a bugfix test and
+   * This is a bugfix release -- it
      "leapfrogs" 2.091_000.
-
-2.091_000 (libmarpa 7.0.3) Tue Aug 12 09:20:37 PDT 2014
-
-   * Packaging changes; new top-level SLIF methods.
 
 2.090000 (libmarpa 7.0.3) Mon Aug 11 18:39:00 PDT 2014
 
