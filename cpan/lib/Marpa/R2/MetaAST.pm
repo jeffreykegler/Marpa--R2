@@ -575,7 +575,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 and grep { !$_ } @mask )
             {
                 Marpa::R2::exception(
-                    qq{hidden symbols are not allowed in lexical rules (rules LHS was "$lhs")}
+                    qq{hidden symbols are not allowed in lexical rules (rule's LHS was "$lhs")}
                 );
             }
             my %hash_rule =
@@ -622,27 +622,24 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             $action //= $default_adverbs->{action};
             if ( defined $action ) {
                 Marpa::R2::exception(
-                    'actions not allowed in lexical rules (rules LHS was "',
-                    $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+                    qq{actions not allowed in lexical rules (rule's LHS was "$lhs")}
+                ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
 
             $rank //= $default_adverbs->{rank};
             if ( defined $rank ) {
                 Marpa::R2::exception(
-                    'ranks not allowed in lexical rules (rules LHS was "',
-                    $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+                    qq{ranks not allowed in lexical rules (rule's LHS was "$lhs")}
+                ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
                 $hash_rule{rank} = $rank;
             } ## end if ( defined $rank )
 
             $null_ranking //= $default_adverbs->{null_ranking};
             if ( defined $null_ranking ) {
                 Marpa::R2::exception(
-                    'null-ranking allowed in lexical rules (rules LHS was "',
-                    $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+                    qq{null-ranking allowed in lexical rules (rule's LHS was "$lhs")}
+                ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
                 $hash_rule{null_ranking} = $null_ranking;
             } ## end if ( defined $rank )
 
@@ -778,27 +775,24 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         $action //= $default_adverbs->{action};
         if ( defined $action ) {
             Marpa::R2::exception(
-                'actions not allowed in lexical rules (rules LHS was "',
-                $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+                qq{actions not allowed in lexical rules (rule's LHS was "$lhs")}
+            ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
         $null_ranking //= $default_adverbs->{null_ranking};
         if ( defined $null_ranking ) {
             Marpa::R2::exception(
-                'null-ranking not allowed in lexical rules (rules LHS was "',
-                $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+                qq{null-ranking not allowed in lexical rules (rule's LHS was "$lhs")}
+            ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
             $new_xs_rule{null_ranking} = $null_ranking;
         } ## end if ( defined $rank )
 
         $rank //= $default_adverbs->{rank};
         if ( defined $rank ) {
             Marpa::R2::exception(
-                'ranks not allowed in lexical rules (rules LHS was "',
-                $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+                qq{ranks not allowed in lexical rules (rule's LHS was "$lhs")}
+            ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
             $new_xs_rule{rank} = $rank;
         } ## end if ( defined $rank )
 
@@ -926,27 +920,24 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
     $action //= $default_adverbs->{action};
     if ( defined $action ) {
         Marpa::R2::exception(
-            'actions not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            qq{actions not allowed in lexical rules (rule's LHS was "$lhs")}
+        ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $rule{action} = $action;
     } ## end if ( defined $action )
 
     $null_ranking //= $default_adverbs->{null_ranking};
     if ( defined $null_ranking ) {
         Marpa::R2::exception(
-            'null-ranking not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            qq{null-ranking not allowed in lexical rules (rule's LHS was "$lhs")}
+        ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $rule{null_ranking} = $null_ranking;
     } ## end if ( defined $null_ranking )
 
     $rank //= $default_adverbs->{rank};
     if ( defined $rank ) {
         Marpa::R2::exception(
-            'ranks not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            qq{ranks not allowed in lexical rules (rule's LHS was "$lhs")}
+        ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $rule{rank} = $rank;
     } ## end if ( defined $rank )
 
@@ -955,8 +946,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         and ( substr $subgrammar, 0, 1 ) eq 'L' )
     {
         Marpa::R2::exception(
-            'bless option not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' );
+            qq{bless option not allowed in lexical rules (rule's LHS was "$lhs")}
+        );
     }
     $parse->bless_hash_rule( \%rule, $blessing, $naming, $lhs );
 
@@ -1207,27 +1198,24 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     $action //= $default_adverbs->{action};
     if ( defined $action ) {
         Marpa::R2::exception(
-            'actions not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            qq{actions not allowed in lexical rules (rule's LHS was "$lhs")}
+        ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
     $null_ranking //= $default_adverbs->{null_ranking};
     if ( defined $null_ranking ) {
         Marpa::R2::exception(
-            'null-ranking not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            qq{null-ranking not allowed in lexical rules (rule's LHS was "$lhs")}
+        ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{null_ranking} = $null_ranking;
     } ## end if ( defined $null_ranking )
 
     $rank //= $default_adverbs->{rank};
     if ( defined $rank ) {
         Marpa::R2::exception(
-            'ranks not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            qq{ranks not allowed in lexical rules (rule's LHS was "$lhs")}
+        ) if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{rank} = $rank;
     } ## end if ( defined $rank )
 
@@ -1235,8 +1223,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     if ( defined $blessing and ( substr $subgrammar, 0, 1 ) eq 'L' )
     {
         Marpa::R2::exception(
-            'bless option not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' );
+            qq{bless option not allowed in lexical rules (rule's LHS was "$lhs")}
+        );
     }
     $parse->bless_hash_rule( \%sequence_rule, $blessing, $naming, $lhs_name );
 
