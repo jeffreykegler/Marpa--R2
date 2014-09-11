@@ -154,6 +154,11 @@ typedef struct
   int lexer_read_result;
   int r1_earleme_complete_result;
 
+  /* A boolean to prevent the inappropriate mixing
+   * of internal and external scanning
+   */
+  int is_external_scanning;
+
   /* Make sure that, when we allow fallback_lexer to be changed, we do NOT
    * allow that to happen while we are "hitting" the same perl_pos repeatedly --
    * this to avoid infinite loops.
@@ -5185,6 +5190,7 @@ PPCODE:
 
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
+  slr->is_external_scanning = 0;
 
   slr->perl_pos = 0;
   slr->perl_pos_hits = 0;
@@ -5424,6 +5430,10 @@ PPCODE:
 {
   int lexer_read_result = 0;
   const int trace_lexers = slr->trace_lexers;
+
+  if (slr->is_external_scanning) {
+     XSRETURN_PV("unpermitted mix of external and internal scanning");
+  }
 
   slr->lexer_read_result = 0;
   slr->r1_earleme_complete_result = 0;
@@ -6036,6 +6046,9 @@ PPCODE:
     }
 
   result = marpa_r_alternative (slr->r1, symbol_id, token_ix, 1);
+  if (result >= MARPA_ERR_NONE) {
+    slr->is_external_scanning = 1;
+  }
   XSRETURN_IV (result);
 }
 
@@ -6083,7 +6096,9 @@ PPCODE:
   }
 
   av_clear (slr->r1_wrapper->event_queue);
+  marpa__slr_event_clear(slr->gift);
   result = marpa_r_earleme_complete (slr->r1);
+  slr->is_external_scanning = 0;
   if (result >= 0)
     {
       r_convert_events (slr->r1_wrapper);
