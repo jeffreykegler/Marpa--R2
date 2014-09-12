@@ -132,6 +132,39 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+This very-high level method is a "one shot"
+way of producing a parse value from a grammar and an input stream.
+The features this method provides
+are those most often wanted in
+the "first cut" of a parser.
+
+As the parser grows,
+users are likely to find their application has
+outgrown this method.
+It is recommended, rather than spend a lot of time
+exploring ways to adapt this method to expanding needs,
+that users be quick to abandon it
+in favor of the lower level calls.
+As an example of how to make this transition,
+the tutorial in L<Marpa::R2> is reimplemented
+using low-level calls in L<Marpa::R2::Tutorial2>.
+
+The C<parse()> method takes one or more arguments.
+The first argument, which is required, is a ref to an input string.
+Optionally, the second argument may be a string specifying the package name
+for the semantics.
+The remaining arguments
+(including the second argument if it exists, but is not a string)
+must be references to hashes of named arguments.
+These hash references will be
+passed, as is,
+to the constructor for the recognizer.
+
+This method returns a reference to the only parse value, if there is
+exactly one parse value.
+If there is no parse, or if the parse is ambiguous,
+C<parse()> throws an exception.
+
 =head2 set()
 
 =for Marpa::R2::Display

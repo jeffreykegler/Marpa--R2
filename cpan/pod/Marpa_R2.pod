@@ -362,16 +362,13 @@ normalize-whitespace: 1
 To parse a string,
 we use 
 the C<Marpa::R2::Scanless::G::parse()> method.
-The C<Marpa::R2::Scanless::G::parse()> takes a reference
-to a string containing the input stream as its argument,
-and one or more hash references, as here.
-The named arguments in the hash references are passed on the to recognizer,
-as it is being created.
-Here, as often,
-all we need is
-the "C<semantics_package>" named argument,
-which tells Marpa in which Perl package to
-look for the closures implementing the semantics for this grammar.
+C<Marpa::R2::Scanless::G::parse()> requires a reference
+to a string as its first argument.
+Optionally, the second argument is
+another string specifying the "semantics package".
+The "C<semantics_package>"
+tells Marpa the name of the Perl package that contains
+the closures implementing the semantics for this grammar.
 We will talk more about this below.
 
 =head2 Semantics

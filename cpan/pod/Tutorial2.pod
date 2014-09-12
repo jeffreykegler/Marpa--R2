@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2 - Marpa Tutorial 2
+Marpa::R2::Tutorial2 - Marpa Tutorial 2
 
 =head1 Synopsis
 
@@ -74,18 +74,33 @@ This tutorial is under construction.
 This document contains a second tutorial
 of the Scanless interface (SLIF),
 which demonstrates a lower level of method calls.
-These lower level allow access to more of Marpa's
+These lower level calls
+allow access to more of Marpa's
 features.
-As examples, users will use these lower level calls
+For example, users will use need to
+use the lower level calls
+
+=over 4
+
+=item *
+
 to use Marpa events;
-to examine the values of multiple  parses of an ambiguous parse;
+
+=item *
+
+to examine the values of multiple  parses of an ambiguous parse; and
+
+=item *
+
 and to get finer control of the response to Marpa errors.
 
+=back
+
 This uses the same extremely simple calculator
-as the tutorial in the landing page.
+as the tutorial in the L<landing page|Marpa::R2>.
 Must of the code is exactly the same in fact,
-and we will skip it,
-going straight to what is new.
+and we will skip it.
+Here is what is new:
 
 =head2 Marpa::R2::Scanless::R::new
 
@@ -111,7 +126,6 @@ grammar.
 The second argument is optional, but you will use it frequently.
 The "C<semantics_package>" named argument tells Marpa in which Perl package to
 look for the closures implementing the semantics for this grammar.
-We will talk more about this below.
 
 =head2 Marpa::R2::Scanless::R::read
 
