@@ -25,7 +25,7 @@ partial: 1
 normalize-whitespace: 1
 
     my $grammar = Marpa::R2::Scanless::G->new(
-        {   
+        {
             source          => \(<<'END_OF_SOURCE'),
     :default ::= action => do_first_arg
     :start ::= Script
@@ -123,12 +123,12 @@ For details, see L<Marpa::R2::NAIF::Grammar/"default_action">.
 
 =for Marpa::R2::Display
 name: Landing page synopsis
-normalize-whitespace: 1
+normalize-whitespace: 1 
+partial: 1
 
-    my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
-    my $input = '42 * 1 + 7';
-    my $value_ref =
-        $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+    my $grammar   = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+    my $input     = '42 * 1 + 7';
+    my $value_ref = $grammar->parse( \$input, 'My_Actions' );
 
 =for Marpa::R2::Display::End
 

@@ -44,8 +44,7 @@ normalize-whitespace: 1
 
     my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
     my $input = '42 * 1 + 7';
-    my $value_ref =
-        $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+    my $value_ref = $grammar->parse( \$input, 'My_Actions' );
 
     sub My_Actions::do_add {
         my ( undef, $t1, undef, $t2 ) = @_;
@@ -356,8 +355,7 @@ partial: 1
 normalize-whitespace: 1
 
     my $input = '42 * 1 + 7';
-    my $value_ref =
-        $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+    my $value_ref = $grammar->parse( \$input, 'My_Actions' );
 
 =for Marpa::R2::Display::End
 
@@ -467,8 +465,7 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $value_ref =
-        $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+    my $value_ref = $grammar->parse( \$input, 'My_Actions' );
 
 =for Marpa::R2::Display::End
 
