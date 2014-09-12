@@ -1311,34 +1311,43 @@ sub Marpa::R2::Scanless::R::ambiguous {
 } ## end sub Marpa::R2::Scanless::R::ambiguous
 
 # This is a Marpa Scanless::G method, but is included in this
-# file because internally it is allow about the recognizer.
+# file because internally it is all about the recognizer.
 sub Marpa::R2::Scanless::G::parse {
-    my ( $slg, @args ) = @_;
-    if ( grep { ref ne 'HASH' } @args ) {
-        for my $arg_ix ( 0 .. $#args ) {
-            my $ref_type = ref $args[$arg_ix];
-            next ARG if $ref_type eq 'HASH';
-            my $message =
-                '$slr->parse(): Arguments to $slr->parse must be ref to HASH'
-                . "\n";
-            $message .= "  Argument $arg_ix is a ref to $ref_type\n"
-                if $ref_type;
-            $message .= "  Argument $arg_ix is not a ref\n" if not $ref_type;
-        } ## end for my $arg_ix ( 0 .. $#args )
-    } ## end if ( grep { ref ne 'HASH' } @args )
-    my $input_ref = scalar @args ? $args[0]->{input} : undef;
-    if ( not defined $input_ref ) {
+    my ( $slg, $input_ref, $arg1, @more_args ) = @_;
+    if ( not defined $input_ref or ref $input_ref ne 'SCALAR' ) {
         Marpa::R2::exception(
-            q{$slr->parse: no 'input' named argument -- one is required});
+            q{$slr->parse(): first argument must be a ref to string});
     }
-    if ( ref $input_ref ne 'SCALAR' ) {
+    my @recce_args = ( { grammar => $slg } );
+    my @semantics_package_arg = ();
+    DO_ARG1: {
+        last if not defined $arg1;
+        my $reftype = ref $arg1;
+        if ( $reftype eq 'HASH' ) {
+
+            # if second arg is ref to hash, it is the first set
+            # of named args for
+            # the recognizer
+            push @recce_args, $arg1;
+            last DO_ARG1;
+        } ## end if ( $reftype eq 'HASH' )
+        if ( $reftype eq q{} ) {
+
+            # if second arg is a string, it is the semantic package
+            push @semantics_package_arg, { semantics_package => $arg1 };
+        }
+        if ( ref $arg1 and ref $input_ref ne 'HASH' ) {
+            Marpa::R2::exception(
+                q{$slr->parse(): second argument must be a package name or a ref to HASH}
+            );
+        }
+    } ## end DO_ARG1:
+    if ( grep { ref $_ ne 'HASH' } @more_args ) {
         Marpa::R2::exception(
-            q{$slr->parse: 'input' named argument must be a ref to SCALAR});
+            q{$slr->parse(): third and later arguments must be ref to HASH});
     }
-    my %args0 = %{$args[0]}; # clone, so we don't modify the original
-    $args0{grammar} = $slg;
-    delete $args0{input};
-    my $slr          = Marpa::R2::Scanless::R->new(\%args0, @args[1 .. $#args]);
+    my $slr = Marpa::R2::Scanless::R->new( @recce_args, @more_args,
+        @semantics_package_arg );
     my $input_length = ${$input_ref};
     my $length_read  = $slr->read($input_ref);
     if ( $length_read != length $input_length ) {

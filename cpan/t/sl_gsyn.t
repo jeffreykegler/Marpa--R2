@@ -65,8 +65,7 @@ END_OF_SOURCE
 );
 
 my $input = '42 * 1 + 7';
-my $value_ref =
-    $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+my $value_ref = $grammar->parse( \$input, 'My_Actions' );
 
 # Marpa::R2::Display::End
 

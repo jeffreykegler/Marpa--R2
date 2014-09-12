@@ -51,8 +51,7 @@ END_OF_DSL
 
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $input = '42 * 1 + 7';
-my $value_ref =
-    $grammar->parse( { input => \$input, semantics_package => 'My_Actions' } );
+my $value_ref = $grammar->parse( \$input, 'My_Actions' );
 
 sub My_Actions::do_add {
     my ( undef, $t1, undef, $t2 ) = @_;
