@@ -53,7 +53,14 @@ my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $recce = Marpa::R2::Scanless::R->new(
     { grammar => $grammar, semantics_package => 'My_Actions' } );
 my $input = '42 * 1 + 7';
-$recce->read( \$input );
+my $length_read = $recce->read( \$input );
+
+die "Read ended after $length_read of ", length $input, " characters"
+    if $length_read != length $input;
+
+if ( my $ambiguous_status = $recce->ambiguous() ) {
+    die "Parse is ambiguous\n", $ambiguous_status;
+}
 
 my $value_ref = $recce->value;
 my $value = $value_ref ? ${$value_ref} : 'No Parse';

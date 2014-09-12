@@ -46,7 +46,14 @@ normalize-whitespace: 1
     my $recce = Marpa::R2::Scanless::R->new(
         { grammar => $grammar, semantics_package => 'My_Actions' } );
     my $input = '42 * 1 + 7';
-    $recce->read( \$input );
+    my $length_read = $recce->read( \$input );
+
+    die "Read ended after $length_read of ", length $input, " characters"
+        if $length_read != length $input;
+
+    if ( my $ambiguous_status = $recce->ambiguous() ) {
+        die "Parse is ambiguous\n", $ambiguous_status;
+    }
 
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
@@ -62,10 +69,6 @@ normalize-whitespace: 1
     }
 
 =for Marpa::R2::Display::End
-
-=head1 UNDER CONSTRUCTION
-
-This tutorial is under construction.
 
 =head1 Description
 
@@ -135,7 +138,7 @@ partial: 1
 normalize-whitespace: 1
 
     my $input = '42 * 1 + 7';
-    $recce->read( \$input );
+    my $length_read = $recce->read( \$input );
 
 =for Marpa::R2::Display::End
 
@@ -146,6 +149,31 @@ In its simplest form,
 as here,
 the C<Marpa::R2::Scanless::R::read()> takes a reference
 to a string containing the input stream as its argument.
+
+=head2 Checking for a premature end
+
+=for Marpa::R2::Display
+name: Tutorial 2 synopsis
+partial: 1
+normalize-whitespace: 1
+
+    die "Read ended after $length_read of ", length $input, " characters"
+        if $length_read != length $input;
+
+=for Marpa::R2::Display::End
+
+=head2 Checking for an ambiguous parse
+
+=for Marpa::R2::Display
+name: Tutorial 2 synopsis
+partial: 1
+normalize-whitespace: 1
+
+    if ( my $ambiguous_status = $recce->ambiguous() ) {
+        die "Parse is ambiguous\n", $ambiguous_status;
+    }
+
+=for Marpa::R2::Display::End
 
 =head2 Marpa::R2::Scanless::R::value
 
