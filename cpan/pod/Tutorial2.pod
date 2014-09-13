@@ -220,10 +220,10 @@ The L<C<ambigous()>
 method|Marpa::R2::Scanless::R::ambiguous()> returns the empty string
 if there was exactly one parse.
 If there was no parse, 
-The L<C<ambigous()>
+the L<C<ambigous()>
 method|Marpa::R2::Scanless::R::ambiguous()> returns a string stating that.
 If there were two or more parses,
-The L<C<ambigous()>
+the L<C<ambigous()>
 method|Marpa::R2::Scanless::R::ambiguous()> returns a string describing
 the ambiguity.
 
