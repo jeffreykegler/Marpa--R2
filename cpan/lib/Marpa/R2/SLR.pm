@@ -1358,7 +1358,7 @@ sub Marpa::R2::Scanless::G::parse {
             "  The $slr->parse() method does not allow parses to trigger events";
     } ## end if ( $length_read != length $input_length )
     if ( my $ambiguous_status = $slr->ambiguous() ) {
-        Marpa::R2::exception( "Parse of BNF/Scanless source is ambiguous\n",
+        Marpa::R2::exception( "Parse of the input is ambiguous\n",
             $ambiguous_status );
     }
 
