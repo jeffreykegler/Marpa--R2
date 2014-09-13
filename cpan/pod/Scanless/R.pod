@@ -520,6 +520,30 @@ grammar.
 
 =head1 Basic mutators
 
+=head2 ambiguous()
+
+=for Marpa::R2::Display
+name: Tutorial 2 synopsis
+partial: 1
+normalize-whitespace: 1
+
+    if ( my $ambiguous_status = $recce->ambiguous() ) {
+        die "Parse is ambiguous\n", $ambiguous_status;
+    }
+
+=for Marpa::R2::Display::End
+
+This method should be called after the C<read()> method.
+If there is exactly one parse, it returns the empty string.
+If there is no parse, it returns a non-empty string indicating that fact.
+If there are two or more parses,
+it returns a non-empty string describing the ambiguity.
+
+Applications should only test the returned string to see if it is
+empty or non-empty.
+The non-empty strings are intended only for reading by
+humans -- their exact format is subject to change.
+
 =head2 read()
 
 =for Marpa::R2::Display
