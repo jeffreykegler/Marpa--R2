@@ -56,7 +56,7 @@ normalize-whitespace: 1
     }
 
     my $value_ref = $recce->value;
-    my $value = $value_ref ? ${$value_ref} : 'No Parse';
+    my $value = ${$value_ref};
 
     sub My_Actions::do_add {
         my ( undef, $t1, undef, $t2 ) = @_;
@@ -147,7 +147,8 @@ we use
 the C<Marpa::R2::Scanless::R::read()> method.
 In its simplest form,
 as here,
-the C<Marpa::R2::Scanless::R::read()> takes a reference
+the C<Marpa::R2::Scanless::R::read()> method
+takes a reference
 to a string containing the input stream as its argument.
 
 =head2 Checking for a premature end
@@ -162,6 +163,29 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Most premature endings occur when a parse is exhausted.
+A parse is "exhausted" when there is no possible way for it
+to continue on to success.
+Premature parse exhaustion is thrown as a failure by
+the C<Marpa::R2::Scanless::R::read()> method,
+and it is not necessary to check for it explicitly.
+
+There are other premature endings
+that are not necessarily failures,
+and which therefore are not thrown.
+These are Marpa's events.
+Events are an advanced feature, and are described
+L<elsewhere|Marpa::R2::Scanless::R::events()>.
+In this example,
+any premature endings due to events will be caused by stray events --
+unexpected events due to a mistake in writing the DSL.
+
+Arguably, this check is not really necessary.
+Programming a stray event is not a very likely programming mistake.
+There are no events, stray or otherwise, in this example.
+But this check is included for completeness,
+and as an example of a cautious programming style.
+
 =head2 Checking for an ambiguous parse
 
 =for Marpa::R2::Display
@@ -175,6 +199,34 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Much more likely than stray events are ambiguous parses -- parses
+where the input can be parsed in two or more ways.
+Ambiguous parses are not necessarily a problem -- some applications
+may not care about them.
+Other applications, as an advanced technique,
+actually exploit ambiguity,
+
+Beginners should regard an ambiguous parse
+as a sign of trouble.
+The existence of ambiguous parses should be tolerated
+only if you understand the kind of ambiguity that exists
+in your grammar,
+and only if you know that ambiguities of that kind
+will not cause trouble.
+The above code uses
+L<the recognizer's C<ambigous()>
+method|Marpa::R2::Scanless::R::ambiguous()> to spot ambiguous parses.
+The L<C<ambigous()>
+method|Marpa::R2::Scanless::R::ambiguous()> returns the empty string
+if there was exactly one parse.
+If there was no parse, 
+The L<C<ambigous()>
+method|Marpa::R2::Scanless::R::ambiguous()> returns a string stating that.
+If there were two or more parses,
+The L<C<ambigous()>
+method|Marpa::R2::Scanless::R::ambiguous()> returns a string describing
+the ambiguity.
+
 =head2 Marpa::R2::Scanless::R::value
 
 =for Marpa::R2::Display
@@ -183,7 +235,7 @@ partial: 1
 normalize-whitespace: 1
 
     my $value_ref = $recce->value;
-    my $value = $value_ref ? ${$value_ref} : 'No Parse';
+    my $value = ${$value_ref};
 
 =for Marpa::R2::Display::End
 
@@ -194,6 +246,9 @@ If there was no parse result,
 C<Marpa::R2::Scanless::R::value()>
 returns
 C<undef>.
+This code does not check for the case where there is
+no parse result, because we already performed that
+check along with the check for ambiguity.
 
 The value of the parse is exactly the same,
 and computed in exactly the same way,

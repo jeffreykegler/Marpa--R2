@@ -63,7 +63,7 @@ if ( my $ambiguous_status = $recce->ambiguous() ) {
 }
 
 my $value_ref = $recce->value;
-my $value = $value_ref ? ${$value_ref} : 'No Parse';
+my $value = ${$value_ref};
 
 sub My_Actions::do_add {
     my ( undef, $t1, undef, $t2 ) = @_;
