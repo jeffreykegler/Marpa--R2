@@ -221,8 +221,8 @@ sub new {
         {
             source         => \(<<'END_OF_SOURCE'),
 
-            :default     ::= action => [lhs,values]
-            lexeme default = action => [lhs,value]
+            :default     ::= action => [name, value]
+            lexeme default = action => [name, value]
 
             json         ::= object 
                            | array
@@ -305,7 +305,6 @@ sub decode {
     
     if (ref $ast){
         my ($id, @nodes) = @$ast;
-        $id = $parser->{grammar}->symbol_display_form($id);
         if ($id eq 'json'){
             $parser->decode(@nodes);
         }

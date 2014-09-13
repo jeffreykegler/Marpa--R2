@@ -58,8 +58,8 @@ use Marpa::R2;
 my $grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
         
-:default ::= action => [lhs, values ]
-lexeme default = action => [ lhs, value ]
+:default     ::= action => [ name, values ]
+lexeme default = action => [ name, value ]
 
 S   ::= NP  VP  period  
 
@@ -141,8 +141,7 @@ for my $sentence (split /\n/, $paragraph){
 }
 
 sub bracket   { 
-    my ($lhs_id, @contents) = @{ $_[0] };
-    my $tag = $grammar->symbol_display_form($lhs_id);
+    my ($tag, @contents) = @{ $_[0] };
     state $level++;
     my $bracketed = 
         exists $s_tags{$tag} ? ("\n" . ("  " x ($level-1))) : '';
