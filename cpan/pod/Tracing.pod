@@ -135,11 +135,6 @@ on the SLIF grammar.
 L<C<show_progress()>|Marpa::R2::Progress>
 on the SLIF recognizer.
 
-=item * Set the
-L<SLIF recognizer's C<trace_terminals> named
-argument|Marpa::R2::Scanless::R/"trace_terminals">
-to level 1.
-
 =back
 
 When considering how much tracing to turn on,
