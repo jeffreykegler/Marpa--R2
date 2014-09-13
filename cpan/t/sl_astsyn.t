@@ -70,8 +70,6 @@ END_OF_SOURCE
 
 # Marpa::R2::Display::End
 
-my $show_rules_output = $grammar->show_rules();
-
 sub my_parser {
     my ( $grammar, $p_input_string ) = @_;
 
