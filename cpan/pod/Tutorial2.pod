@@ -175,7 +175,7 @@ that are not necessarily failures,
 and which therefore are not thrown.
 These are Marpa's events.
 Events are an advanced feature, and are described
-L<elsewhere|Marpa::R2::Scanless::R::events()>.
+L<elsewhere|Marpa::R2::Scanless::R/"events()">.
 In this example,
 any premature endings due to events will be caused by stray events --
 unexpected events due to a mistake in writing the DSL.
@@ -215,7 +215,7 @@ and only if you know that ambiguities of that kind
 will not cause trouble.
 The above code uses
 L<the recognizer's C<ambigous()>
-method|Marpa::R2::Scanless::R::ambiguous()> to spot ambiguous parses.
+method|Marpa::R2::Scanless::R/"ambiguous()"> to spot ambiguous parses.
 The L<C<ambigous()>
 method|Marpa::R2::Scanless::R::ambiguous()> returns the empty string
 if there was exactly one parse.

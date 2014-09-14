@@ -245,7 +245,7 @@ name: $slg->rule_name() example
 
 Given a rule ID, returns the rule name.
 A rule name is as defined by
-L<the C<name> adverb|Scanless::R::name>.
+L<the C<name> adverb|Scanless::R/"name">.
 If no rule name was defined, the rule name is the name of
 the LHS symbol.
 
