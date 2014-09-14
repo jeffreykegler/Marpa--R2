@@ -1275,11 +1275,19 @@ sub Marpa::R2::Internal::Scanless::input_escape {
         $pos++;
     } ## end CHAR: while ( $pos < $end_of_input )
 
-    my $first_non_space_ix = $#escaped_chars;
-    my $trailing_spaces    = 0;
-    $trailing_spaces++ while $escaped_chars[ $first_non_space_ix-- ] eq q{ };
+    my $trailing_spaces = 0;
+    TRAILING_SPACE:
+    for (
+        my $first_non_space_ix = $#escaped_chars;
+        $first_non_space_ix >= 0;
+        $first_non_space_ix--
+        )
+    {
+        last TRAILING_SPACE if $escaped_chars[$first_non_space_ix] ne q{ };
+        pop @escaped_chars;
+        $trailing_spaces++;
+    } ## end TRAILING_SPACE: for ( my $first_non_space_ix = $#escaped_chars; ...)
     if ($trailing_spaces) {
-        splice @escaped_chars, -$trailing_spaces;
         $length_so_far -= $trailing_spaces;
         TRAILING_SPACE: while ( $trailing_spaces-- > 0 ) {
             $length_so_far += 2;
