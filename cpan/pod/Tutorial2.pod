@@ -91,7 +91,7 @@ to use Marpa events;
 
 =item *
 
-to examine the values of multiple  parses of an ambiguous parse; and
+to examine the values of multiple  parses of an ambiguous parse;
 
 =item *
 
@@ -101,7 +101,7 @@ and to get finer control of the response to Marpa errors.
 
 This uses the same extremely simple calculator
 as the tutorial in the L<landing page|Marpa::R2>.
-Must of the code is exactly the same in fact,
+Most of the code is exactly the same in fact,
 and we will skip it.
 Here is what is new:
 
