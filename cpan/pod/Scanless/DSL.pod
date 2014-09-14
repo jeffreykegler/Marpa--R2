@@ -573,7 +573,7 @@ name: SLIF "time flies" DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    :default ::= action => [lhs, values ]
+    :default ::= action => [ name, values ]
 
 =for Marpa::R2::Display::End
 
@@ -646,7 +646,7 @@ name: SLIF "time flies" DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [ lhs, value ]
+    lexeme default = action => [ name, value ]
 
 =for Marpa::R2::Display::End
 
