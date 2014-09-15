@@ -80,7 +80,7 @@ which demonstrates a lower level of method calls.
 These lower level calls
 allow access to more of Marpa's
 features.
-For example, users will use need to
+For example, users will need to
 use the lower level calls
 
 =over 4
