@@ -1356,6 +1356,26 @@ sub Marpa::R2::ASF::traverse {
     return $method->( $traverser, $per_traverse_object );
 } ## end sub Marpa::R2::ASF::traverse
 
+sub Marpa::R2::Internal::ASF::Traverse::all_choices {
+    my ( $traverser ) = @_;
+
+    my @values = Marpa::R2::Internal::ASF::Traverse::rh_values( $traverser );
+    my @results = ( [] );
+    for my $rh_ix ( 0 .. @values - 1 ) {
+        my @new_results = ();
+        for my $old_result (@results) {
+            my $child_value = $values[$rh_ix];
+            for my $new_value ( @{ $child_value } ) {
+                push @new_results, [ @{$old_result}, $new_value ];
+            }
+        }
+        @results = @new_results;
+    } ## end for my $rh_ix ( 0 .. $length - 1 )
+
+    return @results;
+}
+
+
 sub Marpa::R2::Internal::ASF::Traverse::literal {
     my ( $traverser ) = @_;
     my $asf = $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF];
