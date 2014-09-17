@@ -373,7 +373,7 @@ We will talk more about this below.
 
 =head2 Semantics
 
-The value of the parse result, as returned via the C<value()> method,
+The value of the parse result, as returned via the C<parse()> method,
 is determined by the parse's B<semantics>.
 Marpa's semantics are the traditional ones:
 The input is seen as a tree which takes its structure from the G1 rules.
