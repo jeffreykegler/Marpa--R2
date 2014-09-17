@@ -15,15 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.093_000 (libmarpa 7.0.3) Sat Sep 13 17:19:01 PDT 2014
+2.094000 (libmarpa 7.0.3) Tue Sep 16 18:57:54 PDT 2014
 
    * Add $slg->parse() and $slr->ambiguous() methods.
 
    * Add Andriod and improve Cygwin portability.
 
    * Minor bugs and typos.
-
-   * Resuming leapfrogged series of developer's releases.
 
 2.092000 (libmarpa 7.0.3) Wed Sep 10 18:09:04 PDT 2014
 
