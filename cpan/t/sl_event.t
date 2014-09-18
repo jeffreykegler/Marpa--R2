@@ -153,22 +153,21 @@ sub do_test {
         $slr->activate($_) for @{$reactivate_events};
 
     }
+
+# Marpa::R2::Display
+# name: SLIF events() method synopsis
+
     my $length = length $string;
     my $pos    = $slr->read( \$string );
     READ: while (1) {
 
         my @actual_events = ();
 
-# Marpa::R2::Display
-# name: SLIF events() method synopsis
-
         EVENT:
         for my $event ( @{ $slr->events() } ) {
             my ($name) = @{$event};
             push @actual_events, $name;
         }
-
-# Marpa::R2::Display::End
 
         if (@actual_events) {
             $actual_events .= join q{ }, $pos, @actual_events;
@@ -177,6 +176,9 @@ sub do_test {
         last READ if $pos >= $length;
         $pos = $slr->resume($pos);
     } ## end READ: while (1)
+
+# Marpa::R2::Display::End
+
     my $value_ref = $slr->value();
     if ( not defined $value_ref ) {
         die "No parse\n";

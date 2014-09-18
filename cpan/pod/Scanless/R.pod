@@ -1012,7 +1012,7 @@ Returns the current G1 location.
 =for Marpa::R2::Display
 name: SLIF events() method synopsis
 normalize-whitespace: 1
-
+partial: 1
 
         EVENT:
         for my $event ( @{ $slr->events() } ) {

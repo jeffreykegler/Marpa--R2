@@ -96,7 +96,7 @@ and therefore, they also are not supported.
 Since the Stuifzand interface does not implement internal
 scanning,
 everything to do with internal scanning is unsupported.
-Events and pauses are the most visible of these features.
+SLIF parse events are the most visible of these features.
 
 In most cases,
 when features have introduced after the SLIF replaced
@@ -137,11 +137,14 @@ Rules with the tilde declarator ("C<~>") defined L0 rules.
 
 =item * Event declarations
 
-Events exist to pause the SLIF internal scanning.
+Events exist to trigger returns from the SLIF internal scanning
+methods.
 
 =item * The pause adverb
 
-The pause adverb exists to pause the SLIF internal scanning.
+The pause adverb exists
+to trigger returns from the SLIF internal scanning
+methods.
 
 =item * The priority adverb
 
