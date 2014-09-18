@@ -1,0 +1,57 @@
+# Copyright 2014 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Events - SLIF parse events
+
+=head1 About this document
+
+This document describes SLIF parse events.
+Parse events may trigger during an event-active SLIF
+recognizer method, causing it to return.
+
+In the documentation of previous Marpa, SLIF parse events have been 
+called "pauses" or simply ``events''.
+Some of the method names still contain the word ``pause'', for backward
+compatibility,
+and SLIF parse events sitll may be called simply ``events'',
+in contexts where the meaning is clear.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2014 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# vim: expandtab shiftwidth=4:
