@@ -35,7 +35,9 @@ compatibility,
 and SLIF parse events still may be called simply ``events'',
 in contexts where the meaning is clear.
 
-Every SLIF parse event is a lexeme event or a non-lexeme events,
+=head1 Types of parse event
+
+Every SLIF parse event is a lexeme event or a non-lexeme event,
 depending on whether it is associated with a lexeme read.
 The description for each SLIF parse event indicates whether it
 is a lexeme event or not.
@@ -49,6 +51,7 @@ and unnamed events should never be used in new applications.
 
 =head2 Completion events
 
+Completion events are non-lexeme events.
 Completion SLIF parse events can be specifed for any
 symbol that is not a lexeme.
 The completion event triggers
@@ -64,6 +67,7 @@ zero-length instance of a symbol.
 
 =head2 Nulling events
 
+Nulling events are non-lexeme events.
 Nulling SLIF parse events may be defined for any symbol
 which is not a lexeme.
 A nulling SLIf parse event occurs whenever a zero-length symbol instance
@@ -87,6 +91,8 @@ a nulling event.
 
 Prediction SLIF parse events may be defined for any symbol,
 whether it is a lexeme or not.
+Prediction events are non-lexeme events, even if their symbol
+is a lexeme.
 A prediction event occurs at any location where a non-zero length
 symbol would be accepted by the recognizer.
 It can be thought of as occurring when a symbol is "expected".
@@ -103,14 +109,15 @@ only nulling events.
 
 =head2 After-lexeme events
 
+An after-lexeme event is a lexeme event.
+
 =head2 Before-lexeme events
 
-Completed and nulled events may not be defined
-for symbols that are lexemes, but lexemes are allowed to be predicted
-events.
-A prediction event of a symbol which is a lexeme
-is different from a before-lexeme event,
-althought the two may occur at once.
+An before-lexeme event is a lexeme event.
+A before-lexeme event is B<not>
+the same as
+a prediction event of a symbol which is a lexeme,
+although the two may occur at once.
 A before-lexeme event does not occur unless that the lexeme is actually
 found in the input.
 A prediction event, on the other hand, is
