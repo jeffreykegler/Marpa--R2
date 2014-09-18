@@ -22,13 +22,123 @@ Marpa::R2::Events - SLIF parse events
 This document describes SLIF parse events.
 Parse events may trigger during an event-active SLIF
 recognizer method, causing it to return.
+The event-active methods are
+L<C<read()>|Marpa::R2::Scanless::R/"read()">,
+L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
+L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
+L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
 
 In the documentation of previous Marpa, SLIF parse events have been 
 called "pauses" or simply ``events''.
 Some of the method names still contain the word ``pause'', for backward
 compatibility,
-and SLIF parse events sitll may be called simply ``events'',
+and SLIF parse events still may be called simply ``events'',
 in contexts where the meaning is clear.
+
+Every SLIF parse event is a lexeme event or a non-lexeme events,
+depending on whether it is associated with a lexeme read.
+The description for each SLIF parse event indicates whether it
+is a lexeme event or not.
+
+Events may be named or unnamed.
+All non-lexeme events are named events.
+All lexeme events may be named or unnamed,
+at the user's choice.
+Use of unnamed events is discouraged,
+and unnamed events should never be used in new applications.
+
+=head2 Completion events
+
+Completion SLIF parse events can be specifed for any
+symbol that is not a lexeme.
+The completion event triggers
+occur whenever a rule with that symbol on
+its LHS is fully recognized in the parse.
+(The idea is that "symbol completion" occurs when the
+rule, and therefore its LHS, is "complete".)
+For this purpose,
+a nulled symbol is not considered "complete",
+and nulled symbols never trigger completion events.
+A completion event is never triggered by any
+zero-length instance of a symbol.
+
+=head2 Nulling events
+
+Nulling SLIF parse events may be defined for any symbol
+which is not a lexeme.
+A nulling SLIf parse event occurs whenever a zero-length symbol instance
+is recognized.
+Null symbols may derive other null symbols,
+and these derivations may be ambiguous.
+Ambiguous or not,
+all such derivations cause nulling SLIF parse events.
+
+Again,
+for this purpose,
+a nulled symbol is never considered ``complete''.
+This means that
+nulling events and completion events are mutually exclusive --
+A nulled, or zero-length, symbol will only trigger a nulling event
+and never a completion event.
+And any symbol recognized at greater than zero-length will never trigger
+a nulling event.
+
+=head2 Prediction events
+
+Prediction SLIF parse events may be defined for any symbol,
+whether it is a lexeme or not.
+A prediction event occurs at any location where a non-zero length
+symbol would be accepted by the recognizer.
+It can be thought of as occurring when a symbol is "expected".
+The expectation may or may not come true, depending on future
+input.
+
+There is no actual distinction between expecting
+a zero-length symbol,
+and actually seeing one.
+Zero-length symbols are always regarded as actually being
+recognized as soon as they are predicted, and
+they never generate prediction events,
+only nulling events.
+
+=head2 After-lexeme events
+
+=head2 Before-lexeme events
+
+Completed and nulled events may not be defined
+for symbols that are lexemes, but lexemes are allowed to be predicted
+events.
+A prediction event of a symbol which is a lexeme
+is different from a before-lexeme event,
+althought the two may occur at once.
+A before-lexeme event does not occur unless that the lexeme is actually
+found in the input.
+A prediction event, on the other hand, is
+as the name suggests, only a prediction.
+The predicted symbol may or not actually be found in the input.
+
+=head1 Unnamed events
+
+Use of unnamed events is strongly discouraged.
+However, to support legacy code, unnamed events are still supported
+and are still described in this documentation.
+
+Unnamed events are defined in
+L<C<:lexeme> pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rules">,
+when the
+L<the C<pause> adverb|Marpa::R2::Scanless::DSL/"pause"> to 
+is used without an
+L<the C<event> adverb|Marpa::R2::Scanless::DSL/"event">.
+(The C<pause> adverb is so named, because
+Marpa's SLIF parse events were once called ``pauses''.)
+Since the
+L<the C<pause> adverb|Marpa::R2::Scanless::DSL/"pause">
+does create a SLIF parse event, but
+it is the
+L<the C<event> adverb|Marpa::R2::Scanless::DSL/"event">
+that provide the name for the SLIF parse event,
+this results in an event without a name --
+an unnamed event.
 
 =head1 Copyright and License
 
