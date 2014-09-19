@@ -56,38 +56,70 @@ including their own "external" scanning.
 The application may ask Marpa to resume internal scanning at
 any point.
 
-In the documentation of previous Marpa, SLIF parse events have been 
+SLIF parse events may be named or unnamed.
+Use of unnamed events is discouraged, and should be reserved for legacy
+code.
+New applications should only use named events.
+For more about unnamed events, see
+L<below|/"Unnamed events">.
+
+Historically SLIF parse events have also been 
 called "pauses" or simply ``events''.
 Some of the method names still contain the word ``pause'', for backward
 compatibility,
-and SLIF parse events still may be called simply ``events'',
+and SLIF parse events are sometimes still simply called ``events'',
 in contexts where the meaning is clear.
 
-SLIF parse events may trigger during an event-active SLIF
-recognizer method, causing it to return.
-The event-active methods are
+=head1 The life cycle of events
+
+Events are first B<declared>.
+A declared event may B<trigger>.
+Once an event triggers, it may be read.
+
+Events are declared in the SLIF DSL.
+Parse events are divided into lexeme events
+and non-lexeme events.
+Lexeme events are declared using
+L<a C<:lexeme> pseudo-rules|Marpa::R2::DSL/"Lexeme pseudo-rules">.
+Non-lexeme events are declared using
+L<named event statements|Marpa::R2::DSL/"Named event statement">.
+Below, the various parse events will be described in detail,
+and the descriptions
+will indicate specifically whether the event described is a lexeme
+or a non-lexeme event.
+
+Once declared, events
+may trigger during any event-active SLIF
+recognizer method.
+When an event triggers, it causes the event-active
+method to return immediate, with the current location
+at the B<trigger point>.
+The event-active SLIF recognizer methods are
 L<C<read()>|Marpa::R2::Scanless::R/"read()">,
 L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
 L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
 
+Applications should be careful of a special case --
+event-active method which returns for other reasons
+may also have triggered events.
+For example,
+an application cannot assume,
+just because 
+the C<< $slr->read()>> method has reached end of string and returned
+normally, 
+that there is no parse event to be read.
+A parse event might have triggered at the end of string,
+in which case the trigger point will also be
+the end of string.
+
 =head1 Types of parse event
-
-Every SLIF parse event is a lexeme event or a non-lexeme event,
-depending on whether it is associated with a lexeme read.
-The description for each SLIF parse event indicates whether it
-is a lexeme event or not.
-
-Events may be named or unnamed.
-All non-lexeme events are named events.
-All lexeme events may be named or unnamed,
-at the user's choice.
-Use of unnamed events is discouraged,
-and unnamed events should never be used in new applications.
 
 =head2 Completion events
 
-Completion events are non-lexeme events.
+Completion events are non-lexeme events,
+and are declared in
+L<named event statements|Marpa::R2::DSL/"Named event statement">.
 Completion SLIF parse events can be specifed for any
 symbol that is not a lexeme.
 The completion event triggers
@@ -103,7 +135,9 @@ zero-length instance of a symbol.
 
 =head2 Nulling events
 
-Nulling events are non-lexeme events.
+Nulling events are non-lexeme events,
+and are declared in
+L<named event statements|Marpa::R2::DSL/"Named event statement">.
 Nulling SLIF parse events may be defined for any symbol
 which is not a lexeme.
 A nulling SLIf parse event occurs whenever a zero-length symbol instance
