@@ -791,6 +791,12 @@ sub ACTION_distmeta {
     # not on install, so we don't have to be too paranoid
     require CPAN::Meta;
 
+    # link to Marpa IRC channel for metacpan sidebar as described in
+    # http://blogs.perl.org/users/peter_rabbitson/2014/09/encourage-user-participation-via-a-single-line-patch-to-your-dist-metadata.html
+    my $irc_link = 'irc://irc.freenode.net/#marpa';
+    $meta->{resources}->{IRC}   = $irc_link;
+    $meta->{resources}->{x_IRC} = $irc_link;
+
     my $meta   = CPAN::Meta->load_file( $self->metafile() );
     my @delete = ('DynaLoader');
     for my $provided ( keys %{ $meta->{provides} } ) {
