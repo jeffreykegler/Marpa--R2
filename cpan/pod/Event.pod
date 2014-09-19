@@ -15,18 +15,46 @@
 
 =head1 NAME
 
-Marpa::R2::Events - SLIF parse events
+Marpa::R2::Event - SLIF parse events
+
+=head1 Synopsis
+
+=for Marpa::R2::Display
+name: SLIF events() method synopsis
+normalize-whitespace: 1
+
+    my $length = length $string;
+    my $pos    = $slr->read( \$string );
+    READ: while (1) {
+
+        my @actual_events = ();
+
+        EVENT:
+        for my $event ( @{ $slr->events() } ) {
+            my ($name) = @{$event};
+            push @actual_events, $name;
+        }
+
+        if (@actual_events) {
+            $actual_events .= join q{ }, $pos, @actual_events;
+            $actual_events .= "\n";
+        }
+        last READ if $pos >= $length;
+        $pos = $slr->resume($pos);
+    } ## end READ: while (1)
+
+=for Marpa::R2::Display::End
 
 =head1 About this document
 
 This document describes SLIF parse events.
-Parse events may trigger during an event-active SLIF
-recognizer method, causing it to return.
-The event-active methods are
-L<C<read()>|Marpa::R2::Scanless::R/"read()">,
-L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
-L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
-L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
+These allow the SLIF internal scanning to be interrupted when events
+specified by the application occur.
+This allows applications to take over from Marpa,
+and do their own processing,
+including their own "external" scanning.
+The application may ask Marpa to resume internal scanning at
+any point.
 
 In the documentation of previous Marpa, SLIF parse events have been 
 called "pauses" or simply ``events''.
@@ -34,6 +62,14 @@ Some of the method names still contain the word ``pause'', for backward
 compatibility,
 and SLIF parse events still may be called simply ``events'',
 in contexts where the meaning is clear.
+
+SLIF parse events may trigger during an event-active SLIF
+recognizer method, causing it to return.
+The event-active methods are
+L<C<read()>|Marpa::R2::Scanless::R/"read()">,
+L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
+L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
+L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
 
 =head1 Types of parse event
 
