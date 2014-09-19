@@ -169,8 +169,11 @@ my $build = Marpa::R2::Build_Me->new(
         }
     },
     meta_merge => {
-        resources =>
-            { repository => 'git://github.com/jeffreykegler/Marpa--R2.git', },
+        resources => {
+            repository => 'git://github.com/jeffreykegler/Marpa--R2.git',
+            IRC        => 'irc://irc.freenode.net/#marpa',
+            x_IRC      => 'irc://irc.freenode.net/#marpa',
+        },
     },
     pod_files     => \%pod_files,
     license       => 'lgpl3',
