@@ -92,7 +92,7 @@ Once declared, events
 may trigger during any event-active SLIF
 recognizer method.
 When an event triggers, it causes the event-active
-method to return immediate, with the current location
+method to return immediately, with the current location
 at the B<trigger point>.
 The event-active SLIF recognizer methods are
 L<C<read()>|Marpa::R2::Scanless::R/"read()">,
