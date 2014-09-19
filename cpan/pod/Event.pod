@@ -64,17 +64,17 @@ For more about unnamed events, see
 L<below|/"Unnamed events">.
 
 Historically SLIF parse events have also been 
-called "pauses" or simply ``events''.
-Some of the method names still contain the word ``pause'', for backward
+called "pauses" or simply "events".
+Some of the method names still contain the word "pause", for backward
 compatibility,
-and SLIF parse events are sometimes still simply called ``events'',
+and SLIF parse events are sometimes still simply called "events",
 in contexts where the meaning is clear.
 
 =head1 The life cycle of events
 
 Events are first B<declared>.
 A declared event may B<trigger>.
-Once an event triggers, it may be read.
+Once an event triggers, it may be B<read>.
 
 Events are declared in the SLIF DSL.
 Parse events are divided into lexeme events
@@ -106,8 +106,8 @@ may also have triggered events.
 For example,
 an application cannot assume,
 just because 
-the C<< $slr->read()>> method has reached end of string and returned
-normally, 
+the L<C<read()>|Marpa::R2::Scanless::R/"read()"> method 
+has reached end of string and returned normally, 
 that there is no parse event to be read.
 A parse event might have triggered at the end of string,
 in which case the trigger point will also be
@@ -140,7 +140,7 @@ and are declared in
 L<named event statements|Marpa::R2::DSL/"Named event statement">.
 Nulling SLIF parse events may be defined for any symbol
 which is not a lexeme.
-A nulling SLIf parse event occurs whenever a zero-length symbol instance
+A nulling SLIF parse event occurs whenever a zero-length symbol instance
 is recognized.
 Null symbols may derive other null symbols,
 and these derivations may be ambiguous.
@@ -149,10 +149,10 @@ all such derivations cause nulling SLIF parse events.
 
 Again,
 for this purpose,
-a nulled symbol is never considered ``complete''.
+a nulled symbol is never considered "complete".
 This means that
 nulling events and completion events are mutually exclusive --
-A nulled, or zero-length, symbol will only trigger a nulling event
+a nulled, or zero-length, symbol will only trigger a nulling event
 and never a completion event.
 And any symbol recognized at greater than zero-length will never trigger
 a nulling event.
@@ -202,8 +202,8 @@ and are still described in this documentation.
 
 Unnamed events are defined in
 L<C<:lexeme> pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rules">,
-when the
-L<the C<pause> adverb|Marpa::R2::Scanless::DSL/"pause"> to 
+when
+L<the C<pause> adverb|Marpa::R2::Scanless::DSL/"pause"> 
 is used without an
 L<the C<event> adverb|Marpa::R2::Scanless::DSL/"event">.
 (The C<pause> adverb is so named, because
