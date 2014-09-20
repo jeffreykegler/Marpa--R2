@@ -165,7 +165,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 A completion event triggers
-whenever a rule with that symbol on
+whenever a rule with its symbol on
 its LHS is fully recognized in the parse.
 (The idea is that "symbol completion" occurs when the
 rule, and therefore its LHS, is "complete".)
@@ -185,6 +185,10 @@ they will never trigger completion events.
 
 =head2 Nulling events
 
+Nulling events are declared in the SLIF DSL
+using the
+L<named event statement|Marpa::R2::DSL/"Named event statement">:
+
 =for Marpa::R2::Display
 name: SLIF nulled event statement synopsis
 partial: 1
@@ -194,29 +198,51 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Nulling events are non-lexeme events,
-and are declared in
-L<named event statements|Marpa::R2::DSL/"Named event statement">.
-Nulling SLIF parse events may be defined for any symbol
-which is not a lexeme.
 A nulling SLIF parse event occurs whenever a zero-length symbol instance
-is recognized.
-Null symbols may derive other null symbols,
-and these derivations may be ambiguous.
-Ambiguous or not,
-all such derivations cause nulling SLIF parse events.
+of its symbol is recognized.
+The trigger location is the location of the triggering symbol instance --
+the location where the nulled symbol both begins and ends.
 
-Again,
-for this purpose,
-a nulled symbol is never considered "complete".
-This means that
-nulling events and completion events are mutually exclusive --
-a nulled, or zero-length, symbol will only trigger a nulling event
-and never a completion event.
+Nulling SLIF parse events can be specifed for any
+symbol that is not a lexeme.
+Nulling events are non-lexeme events.
+
+Nulled symbols may derive other null symbols,
+and null derivations may be ambiguous.
+All nulling events for symbols in these derivations will
+trigger if they are declared.
+More precisely,
+
+=over 4
+
+=item * If the grammar allows
+any derivation of the symbol
+I<Y> from I<X> in which I<X> and I<Y> are both
+nulled; and
+
+=item * a nulling
+SLIF parse event is declared for I<Y>; and
+
+=item * a nulled instance of I<X> is encountered
+in the parse at location I<L>; then
+
+=item * a nulling SLIF parse event for IY>
+will trigger at location I<L>.
+
+=back
+
+Nulling events and completion events are mutually exclusive.
+A nulled, or zero-length, symbol will never trigger a completion event.
 And any symbol recognized at greater than zero-length will never trigger
-a nulling event.
+a nulling event, so that
+no symbol instance which triggers a completion event will also
+trigger a nulling event.
 
 =head2 Prediction events
+
+Prediction events are declared in the SLIF DSL
+using the
+L<named event statement|Marpa::R2::DSL/"Named event statement">:
 
 =for Marpa::R2::Display
 name: SLIF predicted event statement synopsis
