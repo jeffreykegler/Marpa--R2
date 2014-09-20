@@ -89,19 +89,19 @@ will indicate specifically whether the event described is a lexeme
 or a non-lexeme event.
 
 Once declared, events
-may trigger during any event-active SLIF
+may trigger during any event-triggering SLIF
 recognizer method.
-When an event triggers, it causes the event-active
+When an event triggers, it causes the event-triggering
 method to return immediately, with the current location
 at the B<trigger point>.
-The event-active SLIF recognizer methods are
+The event-triggering SLIF recognizer methods are
 L<C<read()>|Marpa::R2::Scanless::R/"read()">,
 L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
 L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
 
 Applications should be careful of a special case --
-event-active method which returns for other reasons
+event-triggering method which returns for other reasons
 may also have triggered events.
 For example,
 an application cannot assume,
