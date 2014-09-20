@@ -85,8 +85,7 @@ END_OF_DSL
 
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $slr = Marpa::R2::Scanless::R->new(
-    { grammar => $grammar, semantics_package => 'My_Actions',
-    trace_terminals => 99 } );
+    { grammar => $grammar, semantics_package => 'My_Actions' } );
 my $input = q{a b c "insert d here" e f};
 my $length = length $input;
 my $pos    = $slr->read( \$input );
@@ -101,7 +100,6 @@ READ: while (1) {
     EVENT:
     for my $event ( @{ $slr->events() } ) {
         my ($name) = @{$event};
-        say STDERR "$pos $name";
         if ($name eq 'insert d') {
            my (undef, $length) = $slr->pause_span();
            $next_lexeme = ['real d', 'd', $length];
@@ -110,12 +108,11 @@ READ: while (1) {
     }
 
     if (@actual_events) {
-        $actual_events .= join q{ }, $pos, @actual_events;
+        $actual_events .= join q{ }, "Events at position $pos:", @actual_events;
         $actual_events .= "\n";
     }
 
     if ($next_lexeme) {
-        say STDERR join q{ }, 'lexeme_read:', @{$next_lexeme};
         $slr->lexeme_read(@{$next_lexeme});
         next READ;
     }
@@ -127,6 +124,14 @@ READ: while (1) {
 } ## end READ: while (1)
 
 my $expected_events = <<'=== EOS ===';
+Events at position 0: ^test
+Events at position 1: "a" ^start1 ^start2
+Events at position 3: "b" start1$ ^c ^mid1
+Events at position 5: "c" start2$ ^d ^mid2
+Events at position 6: insert d
+Events at position 6: d$ mid1$ mid2$ e[] ^e
+Events at position 23: "e" e$
+Events at position 25: "f" test$
 === EOS ===
 
 Test::More::is( $actual_events, $expected_events, 'SLIF parse event synopsis' );
