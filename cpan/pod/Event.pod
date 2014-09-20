@@ -226,16 +226,19 @@ SLIF parse event is declared for I<Y>; and
 =item * a nulled instance of I<X> is encountered
 in the parse at location I<L>; then
 
-=item * a nulling SLIF parse event for IY>
+=item * a nulling SLIF parse event for I<Y>
 will trigger at location I<L>.
 
 =back
 
 Nulling events and completion events are mutually exclusive.
-A nulled, or zero-length, symbol will never trigger a completion event.
-And any symbol recognized at greater than zero-length will never trigger
+A nulled, or zero-length, symbol will never trigger a
+prediction event or a completion event.
+And any symbol recognized or predicted
+at greater than zero-length will never trigger
 a nulling event, so that
-no symbol instance which triggers a completion event will also
+no symbol instance which triggers either a prediction
+event or a completion event will also
 trigger a nulling event.
 
 =head2 Prediction events
@@ -253,19 +256,23 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+A prediction event occurs at any location where a non-zero-length
+instance of its
+symbol would be accepted by the recognizer.
+The trigger location is the location of the prediction --
+the location at which that instance of the triggering symbol
+would begin, if it actually does occur in the input.
+
 Prediction SLIF parse events may be defined for any symbol,
 whether it is a lexeme or not.
-Prediction events are non-lexeme events, even if their symbol
-is a lexeme.
-A prediction event occurs at any location where a non-zero length
-symbol would be accepted by the recognizer.
-It can be thought of as occurring when a symbol is "expected".
-The expectation may or may not come true, depending on future
-input.
+But prediction events are always non-lexeme events,
+even if their symbol is a lexeme.
 
-There is no actual distinction between expecting
-a zero-length symbol,
-and actually seeing one.
+As a special case, a symbol which is only predicted as a
+zero-length symbol does B<not> trigger a prediction event.
+This is because
+there is no practical distinction between expecting
+a zero-length symbol, and actually seeing one.
 Zero-length symbols are always regarded as actually being
 recognized as soon as they are predicted, and
 they never generate prediction events,
