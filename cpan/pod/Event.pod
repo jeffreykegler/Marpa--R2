@@ -47,46 +47,62 @@ normalize-whitespace: 1
 
 =head1 About this document
 
-This document describes SLIF parse events.
-These allow the SLIF internal scanning to be interrupted when events
-specified by the application occur.
-This allows applications to take over from Marpa,
-and do their own processing,
-including their own "external" scanning.
-The application may ask Marpa to resume internal scanning at
+This document is an overview of B<SLIF parse events>.
+The purpose of SLIF parse events is to interrupt SLIF
+internal parsing, or "B<trigger>", based on "B<events>" chosen
+by the application.
+The events available
+include things as the prediction or recognition
+of symbols.
+
+SLIF parse events are often used to enable the application to
+switch over to its own custom procedural logic.
+Among other things,
+an application can do its own "external" scanning of lexemes.
+An application may ask Marpa to resume internal scanning at
 any point.
 
 SLIF parse events may be named or unnamed.
 Use of unnamed events is discouraged, and should be reserved for legacy
 code.
 New applications should only use named events.
-For more about unnamed events, see
-L<below|/"Unnamed events">.
+When not otherwise specified,
+this document is talking about named events.
+Unnamed events are described
+L<below,
+in a section dedicated to them|/"Unnamed events">.
 
-Historically SLIF parse events have also been 
-called "pauses" or simply "events".
-Some of the method names still contain the word "pause", for backward
-compatibility,
-and SLIF parse events are sometimes still simply called "events",
+SLIF parse events are called B<parse events>
+or simply B<events>,
 in contexts where the meaning is clear.
+
+SLIF parse events evolved over time from simpler
+mechanisms,
+and the term SLIF parse event was introduced late
+in the development of Marpa::R2.
+In previous versions of Marpa::R2,
+SLIF parse events and their precursors are called "pauses" or simply "events".
+For historical reasons,
+some of the method names dealing with SLIF parse events
+still have the word "pause" as part of their name.
 
 =head1 The life cycle of events
 
 Events are first B<declared>.
 A declared event may B<trigger>.
-Once an event triggers, it may be B<read>.
+Once an event triggers, it may be B<accessed>.
 
 Events are declared in the SLIF DSL.
-Parse events are divided into lexeme events
-and non-lexeme events.
+Parse events can be either a lexeme event
+or a non-lexeme event.
 Lexeme events are declared using
 L<a C<:lexeme> pseudo-rules|Marpa::R2::DSL/"Lexeme pseudo-rules">.
 Non-lexeme events are declared using
 L<named event statements|Marpa::R2::DSL/"Named event statement">.
-Below, the various parse events will be described in detail,
-and the descriptions
-will indicate specifically whether the event described is a lexeme
-or a non-lexeme event.
+The various kinds of parse events are described in detail below.
+For each type of parse event,
+its descriptions
+will indicate whether it is a lexeme or a non-lexeme event.
 
 Once declared, events
 may trigger during any event-triggering SLIF
@@ -99,19 +115,30 @@ L<C<read()>|Marpa::R2::Scanless::R/"read()">,
 L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
 L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
+Non-lexeme events may trigger during any of the event-triggering
+methods.
+Lexeme events will only trigger during calls of the
+C<< $slr->read() >> and C<< $slr->resume() >> methods.
 
-Applications should be careful of a special case --
-event-triggering method which returns for other reasons
-may also have triggered events.
-For example,
-an application cannot assume,
-just because 
-the L<C<read()>|Marpa::R2::Scanless::R/"read()"> method 
-has reached end of string and returned normally, 
-that there is no parse event to be read.
-A parse event might have triggered at the end of string,
-in which case the trigger point will also be
-the end of string.
+When an event triggers, it causes the method
+to return immediately, leaving the current location at the location
+at which the event triggered -- its B<trigger location>.
+Applications need to be aware of a special case --
+SLIF parse events may trigger at a location at which the method
+would return in any case.
+
+For example, the C<< $slr->read() >> method always returns
+at end of string.
+But an event may have triggered at the end of string as well.
+The code in the synopsis is carefully written to catch
+events which trigger at end of string.
+Normally, you end the read loop at end of string,
+and applications which do not use parse events may do this.
+But the code above, after an the end of string is reached,
+makes one additional
+pass through the 
+event-reading logic, in order to report any events which
+occurred at end of string.
 
 =head1 Types of parse event
 
