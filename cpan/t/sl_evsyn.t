@@ -71,6 +71,8 @@ event 'mid1$' = completed mid1
 event '^mid2' = predicted mid2
 event 'mid2$' = completed mid2
 
+event '^a' = predicted a
+event '^b' = predicted b
 event '^c' = predicted c
 event 'd[]' = nulled d
 event 'd$' = completed d
@@ -114,6 +116,7 @@ READ: while (1) {
 
     if ($next_lexeme) {
         $slr->lexeme_read(@{$next_lexeme});
+        $pos = $slr->pos();
         next READ;
     }
     if ($pos < $length) {
@@ -124,19 +127,19 @@ READ: while (1) {
 } ## end READ: while (1)
 
 my $expected_events = <<'=== EOS ===';
-Events at position 0: ^test
-Events at position 1: "a" ^start1 ^start2
+Events at position 0: ^test ^a
+Events at position 1: "a" ^b ^start1 ^start2
 Events at position 3: "b" start1$ ^c ^mid1
 Events at position 5: "c" start2$ ^d ^mid2
 Events at position 6: insert d
-Events at position 6: d$ mid1$ mid2$ e[] ^e
+Events at position 21: d$ mid1$ mid2$ e[] ^e
 Events at position 23: "e" e$
 Events at position 25: "f" test$
 === EOS ===
 
-Test::More::is( $actual_events, $expected_events, 'SLIF parse event synopsis' );
-
 # Marpa::R2::Display::End
+
+Test::More::is( $actual_events, $expected_events, 'SLIF parse event synopsis' );
 
 1;    # In case used as "do" file
 
