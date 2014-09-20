@@ -144,23 +144,48 @@ occurred at end of string.
 
 =head2 Completion events
 
-Completion events are non-lexeme events,
-and are declared in
-L<named event statements|Marpa::R2::DSL/"Named event statement">.
-Completion SLIF parse events can be specifed for any
-symbol that is not a lexeme.
-The completion event triggers
-occur whenever a rule with that symbol on
+Completion events are declared in the SLIF DSL
+using the
+L<named event statement|Marpa::R2::DSL/"Named event statement">:
+
+=for Marpa::R2::Display
+name: SLIF completed event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event subtext = completed <subtext>
+
+=for Marpa::R2::Display::End
+
+A completion event triggers
+whenever a rule with that symbol on
 its LHS is fully recognized in the parse.
 (The idea is that "symbol completion" occurs when the
 rule, and therefore its LHS, is "complete".)
-For this purpose,
-a nulled symbol is not considered "complete",
-and nulled symbols never trigger completion events.
-A completion event is never triggered by any
+The trigger location is the end location
+of the triggering symbol instance.
+
+Completion SLIF parse events can be specifed for any
+symbol that is not a lexeme.
+Completion events are non-lexeme events.
+
+As a special case,
+a completion event is never triggered by any
 zero-length instance of a symbol.
+Nulled symbols
+may only be detected as nulling events --
+they will never trigger completion events.
 
 =head2 Nulling events
+
+=for Marpa::R2::Display
+name: SLIF nulled event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event 'A[]' = nulled <A>
+
+=for Marpa::R2::Display::End
 
 Nulling events are non-lexeme events,
 and are declared in
@@ -185,6 +210,15 @@ And any symbol recognized at greater than zero-length will never trigger
 a nulling event.
 
 =head2 Prediction events
+
+=for Marpa::R2::Display
+name: SLIF predicted event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event '^a' = predicted A
+
+=for Marpa::R2::Display::End
 
 Prediction SLIF parse events may be defined for any symbol,
 whether it is a lexeme or not.
