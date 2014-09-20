@@ -87,7 +87,7 @@ use the lower level calls
 
 =item *
 
-to use Marpa events;
+to use SLIF parse events;
 
 =item *
 
@@ -173,16 +173,19 @@ and it is not necessary to check for it explicitly.
 There are other premature endings
 that are not necessarily failures,
 and which therefore are not thrown.
-These are Marpa's events.
-Events are an advanced feature, and are described
-L<elsewhere|Marpa::R2::Scanless::R/"events()">.
+These are Marpa's SLIF parse events.
+SLIF parse events are an advanced feature, and are described
+L<elsewhere|Marpa::R2::Scanless::Event>.
 In this example,
-any premature endings due to events will be caused by stray events --
-unexpected events due to a mistake in writing the DSL.
+any premature ending caused by
+the triggering of a SLIF parse event will be caused
+by stray parse events --
+unexpected parse events due to a mistake in writing the DSL.
 
-Arguably, this check is not really necessary.
-Programming a stray event is not a very likely programming mistake.
-There are no events, stray or otherwise, in this example.
+Programming a stray parse event is a programming mistake that you
+are not likely to make,
+so arguably this check is not really necessary.
+There are no SLIF parse events, stray or otherwise, in this example.
 But this check is included for completeness,
 and as an example of a cautious programming style.
 
@@ -199,8 +202,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Much more likely than stray events are ambiguous parses -- parses
-where the input can be parsed in two or more ways.
+Much more likely than stray SLIF parse events are ambiguous parses --
+parses where the input can be parsed in two or more ways.
 Ambiguous parses are not necessarily a problem -- some applications
 may not care about them.
 Other applications, as an advanced technique,

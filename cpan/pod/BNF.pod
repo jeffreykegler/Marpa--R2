@@ -137,7 +137,7 @@ Rules with the tilde declarator ("C<~>") defined L0 rules.
 
 =item * Event declarations
 
-Events exist to trigger returns from the SLIF internal scanning
+Parse events exist to trigger returns from the SLIF internal scanning
 methods.
 
 =item * The pause adverb
