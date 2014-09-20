@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -30,13 +30,16 @@ use Marpa::R2::Test;
 # Marpa::R2::Display
 # name: Event synopsis
 
+sub forty_two { return 42; };
+
 use Marpa::R2;
 
 my $dsl = <<'END_OF_DSL';
 :default ::= action => [name,values]
 lexeme default = latm => 1
 
-test ::= a b c d e f | a ambig1 | a ambig2
+test ::= a b c d e e f action => main::forty_two
+    | a ambig1 | a ambig2
 e ::= <real e> | <null e>
 <null e> ::=
 d ::= <real d> | <insert d>
@@ -88,7 +91,7 @@ END_OF_DSL
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $slr = Marpa::R2::Scanless::R->new(
     { grammar => $grammar, semantics_package => 'My_Actions' } );
-my $input = q{a b c "insert d here" e f};
+my $input = q{a b c "insert d here" e e f};
 my $length = length $input;
 my $pos    = $slr->read( \$input );
 
@@ -133,13 +136,19 @@ Events at position 3: "b" start1$ ^c ^mid1
 Events at position 5: "c" start2$ ^d ^mid2
 Events at position 6: insert d
 Events at position 21: d$ mid1$ mid2$ e[] ^e
-Events at position 23: "e" e$
-Events at position 25: "f" test$
+Events at position 23: "e" e$ e[] ^e
+Events at position 25: "e" e$
+Events at position 27: "f" test$
 === EOS ===
 
 # Marpa::R2::Display::End
 
+my $value_ref = $slr->value();
+my $value = $value_ref ? ${$value_ref} : 'No Parse';
+
 Test::More::is( $actual_events, $expected_events, 'SLIF parse event synopsis' );
+
+Test::More::is( $value, 42, 'SLIF parse event synopsis value' );
 
 1;    # In case used as "do" file
 
