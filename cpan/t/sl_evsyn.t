@@ -36,18 +36,48 @@ my $dsl = <<'END_OF_DSL';
 :default ::= action => [name,values]
 lexeme default = latm => 1
 
-test ::= a b c d e | ambig1 | ambig2
+test ::= a b c d e f | a ambig1 | a ambig2
+e ::= <real e> | <null e>
+<null e> ::=
+d ::= <real d> | <insert d>
 ambig1 ::= start1 mid1 z
 ambig2 ::= start2 mid2 z
 start1 ::= b  mid1 ::= c d
 start2 ::= b c  mid2 ::= d
 
-a ~ 'a' b ~ 'b' c ~ 'c' d ~ 'd' e ~ 'e'
+a ~ 'a' b ~ 'b' c ~ 'c'
+<real d> ~ 'd'
+<insert d> ~ ["] 'insert d here' ["]
+<real e> ~ 'e'
+f ~ 'f'
 z ~ 'z'
 
-:lexeme ~ <a> pause => after event => 'a<'
-:lexeme ~ <b> pause => after event => 'b<'
-:lexeme ~ <e> pause => before event => '>e'
+:lexeme ~ <a> pause => after event => '"a"'
+:lexeme ~ <b> pause => after event => '"b"'
+:lexeme ~ <c> pause => after event => '"c"'
+:lexeme ~ <real d> pause => after event => '"d"'
+:lexeme ~ <insert d> pause => before event => 'insert d'
+:lexeme ~ <real e> pause => after event => '"e"'
+:lexeme ~ <f> pause => after event => '"f"'
+
+event '^test' = predicted test
+event 'test$' = completed test
+event '^start1' = predicted start1
+event 'start1$' = completed start1
+event '^start2' = predicted start2
+event 'start2$' = completed start2
+event '^mid1' = predicted mid1
+event 'mid1$' = completed mid1
+event '^mid2' = predicted mid2
+event 'mid2$' = completed mid2
+
+event '^c' = predicted c
+event 'd[]' = nulled d
+event 'd$' = completed d
+event '^d' = predicted d
+event '^e' = predicted e
+event 'e[]' = nulled e
+event 'e$' = completed e
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -55,8 +85,9 @@ END_OF_DSL
 
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $slr = Marpa::R2::Scanless::R->new(
-    { grammar => $grammar, semantics_package => 'My_Actions' } );
-my $input = 'a b c d e';
+    { grammar => $grammar, semantics_package => 'My_Actions',
+    trace_terminals => 99 } );
+my $input = q{a b c "insert d here" e f};
 my $length = length $input;
 my $pos    = $slr->read( \$input );
 
@@ -66,11 +97,14 @@ READ: while (1) {
 
     my @actual_events = ();
 
+    my $next_lexeme;
     EVENT:
     for my $event ( @{ $slr->events() } ) {
         my ($name) = @{$event};
-        if ($name eq '>e') {
-           $slr->lexeme_read('e', 'e');
+        say STDERR "$pos $name";
+        if ($name eq 'insert d') {
+           my (undef, $length) = $slr->pause_span();
+           $next_lexeme = ['real d', 'd', $length];
         }
         push @actual_events, $name;
     }
@@ -80,10 +114,16 @@ READ: while (1) {
         $actual_events .= "\n";
     }
 
-    say STDERR $actual_events;
-
-    last READ if $pos >= $length;
-    $pos = $slr->resume($pos);
+    if ($next_lexeme) {
+        say STDERR join q{ }, 'lexeme_read:', @{$next_lexeme};
+        $slr->lexeme_read(@{$next_lexeme});
+        next READ;
+    }
+    if ($pos < $length) {
+        $pos = $slr->resume();
+        next READ;
+    }
+    last READ;
 } ## end READ: while (1)
 
 my $expected_events = <<'=== EOS ===';
