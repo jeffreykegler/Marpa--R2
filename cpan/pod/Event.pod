@@ -123,10 +123,17 @@ C<< $slr->read() >> and C<< $slr->resume() >> methods.
 When an event triggers, it causes the method
 to return immediately, leaving the current location at the location
 at which the event triggered -- its B<trigger location>.
-Applications need to be aware of a special case --
+Events may be accessed using
+L<the Scanless recognizer's events()
+method|/"events()">.
+The beginning and end of the lexeme triggering a lexeme event
+may be found using
+L<the Scanless recognizer's pause_span()
+method|/"pause_span()">.
+
+Applications need to be aware of a special case:
 SLIF parse events may trigger at a location at which the method
 would return in any case.
-
 For example, the C<< $slr->read() >> method always returns
 at end of string.
 But an event may have triggered at the end of string as well.

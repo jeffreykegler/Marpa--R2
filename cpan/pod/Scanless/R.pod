@@ -1268,13 +1268,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<pause_lexeme()> method accepts no arguments,
-and returns the name of the lexeme which caused the most
-recent pause.
-The pause lexeme is initially undefined
-and it is reset to undefined at the beginning of
-each call to the L<C<read()>|/"read()"> or L<C<resume()>|/"resume()"> methods.
+Use of this method is discouraged.
+New applications should avoid it.
+Instead a named event should be used,
+and the name of the event used to determine the name of
+the lexeme which triggered the lexeme event.
 
+The C<pause_lexeme()> method accepts no arguments.
+It returns the name of the lexeme which triggered the most
+recent lexeme SLIF parse event.
 
 More than one lexeme may cause a pause.
 When this is the case,
@@ -1290,10 +1292,11 @@ or on that choice being repeated,
 even when the choice is made
 in similar or identical circumstances.
 
-Not every pause is caused by a lexeme.
-A pause often occurs because
-of the length argument of an internal scanning method.
-When the most recent pause was not caused by a lexeme,
+If the most recent call of
+an event-triggering method did not trigger
+a lexeme event,
+or if no event-triggering method has yet been called
+for the current parse series,
 the pause lexeme is undefined.
 C<pause_lexeme()> returns a Perl C<undef> when
 the pause lexeme is undefined.
