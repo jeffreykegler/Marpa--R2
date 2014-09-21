@@ -239,25 +239,6 @@ Nulled symbols may derive other null symbols,
 and null derivations may be ambiguous.
 All nulling events for symbols in these derivations will
 trigger if they are declared.
-More precisely,
-
-=over 4
-
-=item * If the grammar allows
-any derivation of the symbol
-I<Y> from I<X> in which I<X> and I<Y> are both
-nulled; and
-
-=item * a nulling
-SLIF parse event is declared for I<Y>; and
-
-=item * a nulled instance of I<X> is encountered
-in the parse at location I<L>; then
-
-=item * a nulling SLIF parse event for I<Y>
-will trigger at location I<L>.
-
-=back
 
 Nulling events and completion events are mutually exclusive.
 A nulled, or zero-length, symbol will never trigger a
@@ -349,13 +330,68 @@ rule.
 
 =head1 Implications
 
-Some of the implications of the way events work will be found,
-at first, to be unexpected.
-This section contains potential surprises,
-show that they are Marpa working as designed.
-I also hope readers will also find these behaviors, 
-if at first unexpected,
-are desirable.
+This section describes 
+some implications of the SLIF parse events mechanism
+that may be unexpected at first to some users.
+It explains why they are Marpa as designed,
+and I hope the reader will come to agree,
+as is desirable.
+
+=head1 Ambiguity
+
+If a parse is ambiguous, events trigger for
+B<all> the possible symbols.
+A user thinking in terms of one of the parses,
+and unaware of the ambiguity, may find this unexpected.
+In L<the example|/"An example">,
+events for both the symbols C<< <ambig1> >>
+and C<< <ambig2> >>, as well as all their
+derived symbols, trigger.
+
+=head1 Nulled forests
+
+When a symbol is nulled, any symbol which can be null-derived
+is considered to be nulled.
+In L<the example|/"An example">,
+when the 
+symbol C<< <g> >> is nulled,
+it derived symbols
+C<< <g1> >>,
+C<< <g2> >>,
+C<< <g3> >>,
+C<< <g4> >>.
+
+Note that what was said about
+L<ambiguity|"Ambiguity">
+applies here.
+In the example, the symbols
+C<< <g1> >> and
+C<< <g2> >> are in one derivation,
+while C<< <g3> >> and
+C<< <g4> >> are in another,
+so that not just a parse tree,
+but a entire parse forest
+in nulled.
+
+More precisely,
+
+=over 4
+
+=item * If the grammar allows
+any derivation of the symbol
+I<Y> from I<X> in which I<X> and I<Y> are both
+nulled; and
+
+=item * a nulling
+a SLIF parse event is declared for I<Y>; and
+
+=item * a nulled instance of I<X> is encountered
+in the parse at location I<L>; then
+
+=item * a nulling SLIF parse event for I<Y>
+will trigger at location I<L>.
+
+=back
 
 =head1 An example
 
@@ -378,10 +414,15 @@ normalize-whitespace: 1
     :default ::= action => [name,values]
     lexeme default = latm => 1
 
-    test ::= a b c d e e f action => main::forty_two
+    test ::= a b c d e e f g h action => main::forty_two
         | a ambig1 | a ambig2
     e ::= <real e> | <null e>
     <null e> ::=
+    g ::= g1 | g3
+    g1 ::= g2
+    g2 ::= 
+    g3 ::= g4
+    g4 ::= 
     d ::= <real d> | <insert d>
     ambig1 ::= start1 mid1 z
     ambig2 ::= start2 mid2 z
@@ -393,6 +434,7 @@ normalize-whitespace: 1
     <insert d> ~ ["] 'insert d here' ["]
     <real e> ~ 'e'
     f ~ 'f'
+    h ~ 'h'
     z ~ 'z'
 
     :lexeme ~ <a> pause => after event => '"a"'
@@ -402,6 +444,7 @@ normalize-whitespace: 1
     :lexeme ~ <insert d> pause => before event => 'insert d'
     :lexeme ~ <real e> pause => after event => '"e"'
     :lexeme ~ <f> pause => after event => '"f"'
+    :lexeme ~ <h> pause => after event => '"h"'
 
     event '^test' = predicted test
     event 'test$' = completed test
@@ -423,6 +466,15 @@ normalize-whitespace: 1
     event '^e' = predicted e
     event 'e[]' = nulled e
     event 'e$' = completed e
+    event '^f' = predicted f
+    event 'g[]' = nulled g
+    event '^g' = predicted g
+    event 'g$' = completed g
+    event 'g1[]' = nulled g1
+    event 'g2[]' = nulled g2
+    event 'g3[]' = nulled g3
+    event 'g4[]' = nulled g4
+    event '^h' = predicted h
 
     :discard ~ whitespace
     whitespace ~ [\s]+
@@ -431,7 +483,7 @@ normalize-whitespace: 1
     my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
     my $slr = Marpa::R2::Scanless::R->new(
         { grammar => $grammar, semantics_package => 'My_Actions' } );
-    my $input = q{a b c "insert d here" e e f};
+    my $input = q{a b c "insert d here" e e f h};
     my $length = length $input;
     my $pos    = $slr->read( \$input );
 
@@ -475,10 +527,11 @@ normalize-whitespace: 1
     Events at position 3: "b" start1$ ^c ^mid1
     Events at position 5: "c" start2$ ^d ^mid2
     Events at position 6: insert d
-    Events at position 21: d$ mid1$ mid2$ e[] ^e
-    Events at position 23: "e" e$ e[] ^e
-    Events at position 25: "e" e$
-    Events at position 27: "f" test$
+    Events at position 21: d$ mid1$ mid2$ e[] ^e ^f
+    Events at position 23: "e" e$ e[] ^e ^f
+    Events at position 25: "e" e$ ^f
+    Events at position 27: "f" g[] g1[] g3[] g2[] g4[] ^h
+    Events at position 29: "h" test$
     === EOS ===
 
 =for Marpa::R2::Display::End
