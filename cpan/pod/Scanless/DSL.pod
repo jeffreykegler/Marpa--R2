@@ -691,57 +691,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The named event statement sets up a symbol
-so that a named event is triggered
-when some condition occurs at a location.
-Named events
-can be defined to occur when
-a symbol is predicted,
-when a symbol is completed,
-or 
-when a symbol is nulled.
-
-A "completed" event
-occurs whenever a rule with that symbol on
-its LHS is fully recognized in the parse.
-(The idea is that "symbol completion" occurs when the
-rule, and therefore its LHS, is "complete".)
-For the purpose of "completed" events,
-a nulled symbol is not considered "complete",
-and "completed" events will not be triggered
-for a zero-length instance of a symbol.
-
-A "nulled" event occurs whenever a zero-length symbol instance
-is recognized.
-Null symbols may derive other null symbols,
-and these derivations may be ambiguous.
-Ambiguous or not,
-all such derivations cause "nulled" events.
-Again, nulled events and completed events are mutually
-exclusive -- a nulled, or zero-length, symbol is not considered
-"complete" for this purpose.
-
-A "predicted" event occurs at any location where a non-zero length
-symbol would be accepted by the recognizer.
-It can be thought of as occurring when a symbol is "expected".
-The expectation may or may not come true, depending on future
-input.
-Because there is no physical distinction between expecting
-a zero-length symbol,
-and actually seeing one,
-"predicted" events are not generated for symbols which
-are only expected in zero-length form.
-
-Completed and nulled events may not be defined
-for symbols that are lexemes, but lexemes are allowed to be predicted
-events.
-A predicted event which is a lexeme is different from a lexeme pause.
-The lexeme pause will not occur unless that the lexeme is actually
-found in the input.
-A predicted event, on the other hand, is
-as the name suggests, only a prediction.
-The predicted symbol may or not actually be found in the input.
-
+The named event statement sets up a
+SLIF parse event.
 The name of an event may be either a bare name,
 or enclosed in single quotes.
 A bare event name must be one or more word characters,
@@ -757,19 +708,23 @@ Names containing single quotes (which, in any case,
 are impossible to add using
 current syntax) are reserved.
 
-Named completion events can occur during the
+The SLIF's event-triggering methods are
 L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">,
 L<resume()|Marpa::R2::Scanless::R/"resume()">,
 L<lexeme_complete()|Marpa::R2::Scanless::R/"lexeme_complete()">,
-and L<lexeme_read()|Marpa::R2::Scanless::R/"lexeme_read()">
-methods.
-When they occur
-in L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">,
-and L<resume()|Marpa::R2::Scanless::R/"resume()"> methods,
-they pause internal scanning.
-Named events may be queried using
+and L<lexeme_read()|Marpa::R2::Scanless::R/"lexeme_read()">.
+If the condition described
+as described in the named event statement
+occurs during an event-triggering method,
+the method will return immediately,
+with the current location at the trigger location.
+Once triggered,
+named events may be queried using
 L<the Scanless recognizer's event()
 method|Marpa::R2::Scanless::R/"event()">.
+For details, see
+L<the document on SLIF parse
+events|Marpa::R2::Event>.
 
 =head2 Inaccessible symbol statement
 
