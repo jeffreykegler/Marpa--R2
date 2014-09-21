@@ -323,6 +323,40 @@ A prediction event, on the other hand, is
 as the name suggests, only a prediction.
 The predicted symbol may or not actually be found in the input.
 
+=head1 Techniques
+
+=head2 Markers
+
+It is quite reasonable to create "markers" --
+nulling symbols
+whose primary (or sole) purpose
+is to have nulling events declared for them.
+Markers are the only way to declare events that trigger in
+the middle of rule.
+
+=head2 Rules
+
+There are no events explicitly defined in terms of rules,
+but every rule event that is wanted can be achieved in
+one or more ways.
+The most flexible of these, and the best for most purposes,
+is to use L<markers|/"Markers">.
+
+Another method is to use the LHS of a rule to track rule
+predictions and completions.
+This requires that the LHS symbol of the rule be unique to that
+rule.
+
+=head1 Implications
+
+Some of the implications of the way events work will be found,
+at first, to be unexpected.
+This section contains potential surprises,
+show that they are Marpa working as designed.
+I also hope readers will also find these behaviors, 
+if at first unexpected,
+are desirable.
+
 =head1 An example
 
 The SLIF DSL in this example

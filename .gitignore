@@ -10,3 +10,4 @@ junk
 /nogit/
 nogit*
 *.exe
+cpan/pod/Event.pod~
