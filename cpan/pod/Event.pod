@@ -303,6 +303,9 @@ normalize-whitespace: 1
 
 An post-lexeme event is a lexeme event.
 Its trigger location is the location where the lexeme ends.
+Post-lexeme events which trigger during
+C<< $slr->lexeme_complete() >> and
+C<< $slr->lexeme_read() >> calls are discarded.
 
 =head2 Pre-lexeme events
 
@@ -323,6 +326,9 @@ one of their intended use cases is catching a lexeme which
 is about to be read, and giving it special treatment.
 For more on this, see
 L<below|"External scanning">.
+Pre-lexeme events which trigger during
+C<< $slr->lexeme_complete() >> and
+C<< $slr->lexeme_read() >> calls are discarded.
 
 There is a lot of similarity
 between pre-lexeme events and predictions,
@@ -592,6 +598,67 @@ always occur together.
 This very special nature of nulled symbols motivates their
 separation into a special case.
 
+=head2 Hidden events
+
+An important aspect of the event mechanism is that
+it always triggers a return from the event-triggering
+method at the trigger location.
+It may happen, however, that the method would return
+at that location in any case.
+When a method triggers an event, the triggering
+can be said to be B<hidden>.
+A event which causes hidden triggering is called
+a B<hidden event>.
+
+As one example of hidden triggering,
+the
+L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()"> and
+L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()">
+methods return at every lexeme at which a lexme is read, so
+all triggering in those methods is hidden triggering.
+As another example of hidden triggering,
+the C<< $slr->read() >> and C<< $slr->resume() >> methods
+return at end of string,
+but events may also trigger at end of string.
+
+Applications must be programmed with the possibility of hidden
+triggering in mind.
+The L<example below|/"An example"> is coded to access all
+events, including hidden events.
+To do this, it is careful to access events after its
+calls to the
+L< C<< $slr->lexeme_read() >>
+as well as to make an additional pass through the event-accessing loop
+after an end of string is encountered.
+
+=head2 Lexeme events and external scanning
+
+During external scanning, lexemes are read using the
+L< C<< $slr->lexeme_complete() >>|Marpa::R2::Scanless::R/"lexeme_complete()"> and
+L< C<< $slr->lexeme_read() >>|Marpa::R2::Scanless::R/"lexeme_read()"> methods.
+Non-lexeme events may trigger during this methods, as was discussed
+in L</"Hidden events">.
+However, lexeme events that would occur during the
+C<< $slr->lexeme_complete() >> and
+C<< $slr->lexeme_read() >> methods are ignored,
+and will never trigger.
+
+While, in one sense, this is non-orthogonal behavior
+it is the most consistent course of action.
+A pre-lexeme event occuring during 
+a C<< $slr->lexeme_complete() >> and
+C<< $slr->lexeme_read() >> method call would reverse its effect,
+which is at best pointless.
+
+A post-lexeme event would be less dangerous,
+but it also be completely redundant.
+Its presence or absence
+would only tell the application only what
+it already knows when the
+C<< $slr->lexeme_complete() >> or
+C<< $slr->lexeme_read() >> methods
+return success or failure.
+
 =head1 An example
 
 The SLIF DSL in this example
@@ -764,22 +831,6 @@ the L< the C<< $slr->pause_lexeme() >>
 method|Marpa::R2::Scanless::R/"pause_lexeme()">.
 and the L< the C<< $slr->pause_span() >>
 method|Marpa::R2::Scanless::R/"pause_span()">.
-
-=head1 Semi-triggered returns
-
-An important aspect of the event mechanism is that
-it always triggers a return from the event-triggering
-method at the trigger location.
-It may happen, however, that the method would return
-at that location in any case.
-When a method triggers an event, but
-would have returned in any case,
-
-A return from a method which
-
-In the case of the 
-L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
-L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()">
 
 =head1 Copyright and License
 
