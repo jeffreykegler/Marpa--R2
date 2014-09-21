@@ -22,25 +22,44 @@ Marpa::R2::Event - SLIF parse events
 =for Marpa::R2::Display
 name: SLIF events() method synopsis
 normalize-whitespace: 1
+partial: 1
 
-    my $length = length $string;
-    my $pos    = $slr->read( \$string );
+    my $input = q{a b c "insert d here" e e f};
+    my $length = length $input;
+    my $pos    = $slr->read( \$input );
+
+    my $actual_events = q{};
+
     READ: while (1) {
 
         my @actual_events = ();
 
+        my $next_lexeme;
         EVENT:
         for my $event ( @{ $slr->events() } ) {
             my ($name) = @{$event};
+            if ($name eq 'insert d') {
+               my (undef, $length) = $slr->pause_span();
+               $next_lexeme = ['real d', 'd', $length];
+            }
             push @actual_events, $name;
         }
 
         if (@actual_events) {
-            $actual_events .= join q{ }, $pos, @actual_events;
+            $actual_events .= join q{ }, "Events at position $pos:", @actual_events;
             $actual_events .= "\n";
         }
-        last READ if $pos >= $length;
-        $pos = $slr->resume($pos);
+
+        if ($next_lexeme) {
+            $slr->lexeme_read(@{$next_lexeme});
+            $pos = $slr->pos();
+            next READ;
+        }
+        if ($pos < $length) {
+            $pos = $slr->resume();
+            next READ;
+        }
+        last READ;
     } ## end READ: while (1)
 
 =for Marpa::R2::Display::End
@@ -294,6 +313,132 @@ found in the input.
 A prediction event, on the other hand, is
 as the name suggests, only a prediction.
 The predicted symbol may or not actually be found in the input.
+
+=head1 An example
+
+The SLIF DSL in this example
+is unlike anything you would actually
+use in practice.
+It
+is intended to illusrate the unusual and "corner" cases
+described above.
+
+=for Marpa::R2::Display
+name: SLIF events() method synopsis
+normalize-whitespace: 1
+
+    sub forty_two { return 42; };
+
+    use Marpa::R2;
+
+    my $dsl = <<'END_OF_DSL';
+    :default ::= action => [name,values]
+    lexeme default = latm => 1
+
+    test ::= a b c d e e f action => main::forty_two
+        | a ambig1 | a ambig2
+    e ::= <real e> | <null e>
+    <null e> ::=
+    d ::= <real d> | <insert d>
+    ambig1 ::= start1 mid1 z
+    ambig2 ::= start2 mid2 z
+    start1 ::= b  mid1 ::= c d
+    start2 ::= b c  mid2 ::= d
+
+    a ~ 'a' b ~ 'b' c ~ 'c'
+    <real d> ~ 'd'
+    <insert d> ~ ["] 'insert d here' ["]
+    <real e> ~ 'e'
+    f ~ 'f'
+    z ~ 'z'
+
+    :lexeme ~ <a> pause => after event => '"a"'
+    :lexeme ~ <b> pause => after event => '"b"'
+    :lexeme ~ <c> pause => after event => '"c"'
+    :lexeme ~ <real d> pause => after event => '"d"'
+    :lexeme ~ <insert d> pause => before event => 'insert d'
+    :lexeme ~ <real e> pause => after event => '"e"'
+    :lexeme ~ <f> pause => after event => '"f"'
+
+    event '^test' = predicted test
+    event 'test$' = completed test
+    event '^start1' = predicted start1
+    event 'start1$' = completed start1
+    event '^start2' = predicted start2
+    event 'start2$' = completed start2
+    event '^mid1' = predicted mid1
+    event 'mid1$' = completed mid1
+    event '^mid2' = predicted mid2
+    event 'mid2$' = completed mid2
+
+    event '^a' = predicted a
+    event '^b' = predicted b
+    event '^c' = predicted c
+    event 'd[]' = nulled d
+    event 'd$' = completed d
+    event '^d' = predicted d
+    event '^e' = predicted e
+    event 'e[]' = nulled e
+    event 'e$' = completed e
+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    END_OF_DSL
+
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+    my $slr = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar, semantics_package => 'My_Actions' } );
+    my $input = q{a b c "insert d here" e e f};
+    my $length = length $input;
+    my $pos    = $slr->read( \$input );
+
+    my $actual_events = q{};
+
+    READ: while (1) {
+
+        my @actual_events = ();
+
+        my $next_lexeme;
+        EVENT:
+        for my $event ( @{ $slr->events() } ) {
+            my ($name) = @{$event};
+            if ($name eq 'insert d') {
+               my (undef, $length) = $slr->pause_span();
+               $next_lexeme = ['real d', 'd', $length];
+            }
+            push @actual_events, $name;
+        }
+
+        if (@actual_events) {
+            $actual_events .= join q{ }, "Events at position $pos:", @actual_events;
+            $actual_events .= "\n";
+        }
+
+        if ($next_lexeme) {
+            $slr->lexeme_read(@{$next_lexeme});
+            $pos = $slr->pos();
+            next READ;
+        }
+        if ($pos < $length) {
+            $pos = $slr->resume();
+            next READ;
+        }
+        last READ;
+    } ## end READ: while (1)
+
+    my $expected_events = <<'=== EOS ===';
+    Events at position 0: ^test ^a
+    Events at position 1: "a" ^b ^start1 ^start2
+    Events at position 3: "b" start1$ ^c ^mid1
+    Events at position 5: "c" start2$ ^d ^mid2
+    Events at position 6: insert d
+    Events at position 21: d$ mid1$ mid2$ e[] ^e
+    Events at position 23: "e" e$ e[] ^e
+    Events at position 25: "e" e$
+    Events at position 27: "f" test$
+    === EOS ===
+
+=for Marpa::R2::Display::End
 
 =head1 Unnamed events
 
