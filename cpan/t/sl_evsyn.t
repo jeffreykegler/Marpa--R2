@@ -38,10 +38,15 @@ my $dsl = <<'END_OF_DSL';
 :default ::= action => [name,values]
 lexeme default = latm => 1
 
-test ::= a b c d e e f action => main::forty_two
+test ::= a b c d e e f g h action => main::forty_two
     | a ambig1 | a ambig2
 e ::= <real e> | <null e>
 <null e> ::=
+g ::= g1 | g3
+g1 ::= g2
+g2 ::= 
+g3 ::= g4
+g4 ::= 
 d ::= <real d> | <insert d>
 ambig1 ::= start1 mid1 z
 ambig2 ::= start2 mid2 z
@@ -53,6 +58,7 @@ a ~ 'a' b ~ 'b' c ~ 'c'
 <insert d> ~ ["] 'insert d here' ["]
 <real e> ~ 'e'
 f ~ 'f'
+h ~ 'h'
 z ~ 'z'
 
 :lexeme ~ <a> pause => after event => '"a"'
@@ -62,6 +68,7 @@ z ~ 'z'
 :lexeme ~ <insert d> pause => before event => 'insert d'
 :lexeme ~ <real e> pause => after event => '"e"'
 :lexeme ~ <f> pause => after event => '"f"'
+:lexeme ~ <h> pause => after event => '"h"'
 
 event '^test' = predicted test
 event 'test$' = completed test
@@ -83,6 +90,15 @@ event '^d' = predicted d
 event '^e' = predicted e
 event 'e[]' = nulled e
 event 'e$' = completed e
+event '^f' = predicted f
+event 'g[]' = nulled g
+event '^g' = predicted g
+event 'g$' = completed g
+event 'g1[]' = nulled g1
+event 'g2[]' = nulled g2
+event 'g3[]' = nulled g3
+event 'g4[]' = nulled g4
+event '^h' = predicted h
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -91,7 +107,7 @@ END_OF_DSL
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $slr = Marpa::R2::Scanless::R->new(
     { grammar => $grammar, semantics_package => 'My_Actions' } );
-my $input = q{a b c "insert d here" e e f};
+my $input = q{a b c "insert d here" e e f h};
 my $length = length $input;
 my $pos    = $slr->read( \$input );
 
@@ -135,10 +151,11 @@ Events at position 1: "a" ^b ^start1 ^start2
 Events at position 3: "b" start1$ ^c ^mid1
 Events at position 5: "c" start2$ ^d ^mid2
 Events at position 6: insert d
-Events at position 21: d$ mid1$ mid2$ e[] ^e
-Events at position 23: "e" e$ e[] ^e
-Events at position 25: "e" e$
-Events at position 27: "f" test$
+Events at position 21: d$ mid1$ mid2$ e[] ^e ^f
+Events at position 23: "e" e$ e[] ^e ^f
+Events at position 25: "e" e$ ^f
+Events at position 27: "f" g[] g1[] g3[] g2[] g4[] ^h
+Events at position 29: "h" test$
 === EOS ===
 
 # Marpa::R2::Display::End
@@ -146,7 +163,7 @@ Events at position 27: "f" test$
 my $value_ref = $slr->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-Test::More::is( $actual_events, $expected_events, 'SLIF parse event synopsis' );
+Marpa::R2::Test::is( $actual_events, $expected_events, 'SLIF parse event synopsis' );
 
 Test::More::is( $value, 42, 'SLIF parse event synopsis value' );
 
