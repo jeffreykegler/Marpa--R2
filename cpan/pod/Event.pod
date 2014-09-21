@@ -256,22 +256,11 @@ the location where the nulled symbol both begins and ends.
 
 Nulling SLIF parse events can be specifed for any
 symbol that is not a lexeme.
-Nulling events are non-lexeme events.
-
 Nulled symbols may derive other null symbols,
 and null derivations may be ambiguous.
-All nulling events for symbols in these derivations will
-trigger if they are declared.
-
-Nulling events and completion events are mutually exclusive.
-A nulled, or zero-length, symbol will never trigger a
-prediction event or a completion event.
-And any symbol recognized or predicted
-at greater than zero-length will never trigger
-a nulling event, so that
-no symbol instance which triggers either a prediction
-event or a completion event will also
-trigger a nulling event.
+All nulling events declarated
+for symbols in these derivations will
+trigger.
 
 =head2 Prediction events
 
@@ -297,37 +286,86 @@ would begin, if it actually does occur in the input.
 
 Prediction SLIF parse events may be defined for any symbol,
 whether it is a lexeme or not.
-But prediction events are always non-lexeme events,
+But prediction events are non-lexeme events,
+and B<not> lexeme events,
 even if their symbol is a lexeme.
 
-As a special case, a symbol which is only predicted as a
-zero-length symbol does B<not> trigger a prediction event.
-This is because
-there is no practical distinction between expecting
-a zero-length symbol, and actually seeing one.
-Zero-length symbols are always regarded as actually being
-recognized as soon as they are predicted, and
-they never generate prediction events,
-only nulling events.
+=head2 Post-lexeme events
 
-=head2 After-lexeme events
+=for Marpa::R2::Display
+name: SLIF predicted event statement synopsis
+partial: 1
+normalize-whitespace: 1
 
-An after-lexeme event is a lexeme event.
+    :lexeme ~ <a> pause => after event => '"a"'
 
-=head2 Before-lexeme events
+=for Marpa::R2::Display::End
 
-An before-lexeme event is a lexeme event.
-A before-lexeme event is B<not>
-the same as
-a prediction event of a symbol which is a lexeme,
-although the two may occur at once.
-A before-lexeme event does not occur unless that the lexeme is actually
+An post-lexeme event is a lexeme event.
+Its trigger location is the location where the lexeme ends.
+
+=head2 Pre-lexeme events
+
+=for Marpa::R2::Display
+name: SLIF predicted event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :lexeme ~ <insert d> pause => before event => 'insert d'
+
+=for Marpa::R2::Display::End
+
+An pre-lexeme event is a lexeme event.
+Its trigger location is the location where the lexeme starts.
+
+Pre-lexeme events trigger where the lexeme starts because
+one of their intended use cases is catching a lexeme which
+is about to be read, and giving it special treatment.
+For more on this, see
+L<below|"External scanning">.
+
+There is a lot of similarity
+between pre-lexeme events and predictions,
+and the two often occur together.
+but there are important differences.
+A pre-lexeme event does not occur unless that the lexeme is actually
 found in the input.
 A prediction event, on the other hand, is
-as the name suggests, only a prediction.
-The predicted symbol may or not actually be found in the input.
+as the name suggests, only a prediction -- the lexeme may not
+actually be found in the input.
 
 =head1 Techniques
+
+=head2 External scanning
+
+Switching to external scanning is an intended use case
+for all events,
+but the behavior of pre-lexeme events
+in particular is most intuitive when seen with
+external scanning in mind.
+
+In L<the example below|/"An example">,
+the symbol C<< <insert d> >> has a pre-lexeme event
+declared:
+
+=for Marpa::R2::Display
+name: SLIF predicted event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :lexeme ~ <insert d> pause => before event => 'insert d'
+
+=for Marpa::R2::Display::End
+
+When this triggers, the code in the example switches to
+external scanning:
+It reads a C<< <d> > symbol externally,
+skips over lexeme actually in the input,
+and resumes internal scanning.
+There is a very trivial example,
+one which an application would deal with in simpler ways.
+But it does serve as a small example of how external scanning
+is performed.
 
 =head2 Markers
 
@@ -545,6 +583,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The reason that prediction and completion events exclude
+nulled symbols,
+is that there is no practical distinction between expecting
+a zero-length symbol, and actually seeing one.
+This means the prediction and completion of a nulled symbol
+always occur together.
+This very special nature of nulled symbols motivates their
+separation into a special case.
+
 =head1 An example
 
 The SLIF DSL in this example
@@ -717,6 +764,22 @@ the L< the C<< $slr->pause_lexeme() >>
 method|Marpa::R2::Scanless::R/"pause_lexeme()">.
 and the L< the C<< $slr->pause_span() >>
 method|Marpa::R2::Scanless::R/"pause_span()">.
+
+=head1 Semi-triggered returns
+
+An important aspect of the event mechanism is that
+it always triggers a return from the event-triggering
+method at the trigger location.
+It may happen, however, that the method would return
+at that location in any case.
+When a method triggers an event, but
+would have returned in any case,
+
+A return from a method which
+
+In the case of the 
+L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
+L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()">
 
 =head1 Copyright and License
 
