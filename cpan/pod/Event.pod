@@ -348,6 +348,61 @@ events for both the symbols C<< <ambig1> >>
 and C<< <ambig2> >>, as well as all their
 derived symbols, trigger.
 
+=head1 Tentative events
+
+SLIF parse events are generated whenever the event occurs in a left-to-right
+scan.
+More precisely, a Marpa event is triggered if and only if
+there is a parse corresponding to the event
+for the actual input 
+up to the trigger location
+and some possible input after the trigger location.
+
+Because the possible input that the event depends on may not
+turn out to be the actual input,
+events are B<tentative>.
+There is no guarantee that a derivation
+corresponding to the event will wind up in the value of the parse,
+or even in any of the values of an ambiguous parse.
+
+In L<the example|/"An example">,
+prediction and completion
+events are reported for the symbols
+C<< <start1> >>,
+C<< <start2> >>,
+C<< <mid1> >> and
+C<< <mid2> >>
+but none of these symbols
+winds up in
+any of the parse values.
+This is because they are derived from
+C<< <ambig1> >> or
+C<< <ambig2> >>.
+But for
+C<< <ambig1> >> or
+C<< <ambig2> >> to be fully recognized,
+there must be a 
+C<< <z> >> symbol in the input and the
+input stream
+in the example does not contain a
+C<< <z> >> symbol.
+
+All SLIF parse events are tentative,
+not just completion events.
+In the example, the predictions
+for 
+C<< <mid1> >> and
+C<< <mid2> >> do not correspond to anything in
+the final parse tree,
+because the points where
+C<< <mid1> >> and
+C<< <mid2> >> would be predicted are not reached in
+those trees.
+For similar reasons, nulling events are tentative.
+And lexemes can be ambiguous, with not every lexeme
+being part of a final parse tree, so lexeme
+events are also tentative.
+
 =head1 Nulled forests
 
 When a symbol is nulled, any symbol which can be null-derived
