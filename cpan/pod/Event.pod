@@ -38,10 +38,14 @@ partial: 1
         EVENT:
         for my $event ( @{ $slr->events() } ) {
             my ($name) = @{$event};
-            if ($name eq 'insert d') {
-               my (undef, $length) = $slr->pause_span();
-               $next_lexeme = ['real d', 'd', $length];
-            }
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF events() method synopsis
+normalize-whitespace: 1
+partial: 1
+
             push @actual_events, $name;
         }
 
@@ -50,11 +54,13 @@ partial: 1
             $actual_events .= "\n";
         }
 
-        if ($next_lexeme) {
-            $slr->lexeme_read(@{$next_lexeme});
-            $pos = $slr->pos();
-            next READ;
-        }
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF events() method synopsis
+normalize-whitespace: 1
+partial: 1
+
         if ($pos < $length) {
             $pos = $slr->resume();
             next READ;
@@ -63,6 +69,9 @@ partial: 1
     } ## end READ: while (1)
 
 =for Marpa::R2::Display::End
+
+The synopsis is extracted from an example given in full
+L<below|/"An example">.
 
 =head1 About this document
 
