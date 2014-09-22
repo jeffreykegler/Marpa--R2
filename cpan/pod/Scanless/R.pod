@@ -720,13 +720,10 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<activate()> method allows the recognizer to deactivate and reactivate named
-events.
-Named events allow the recognizer to stop for external scanning at conveniently
-defined locations.
-Named events can be defined for the prediction and completion of non-zero-length symbols,
-and nulled events can be defined to trigger when zero-length symbols are
-recognized.
+The C<activate()> method allows the recognizer to deactivate and reactivate
+SLIF parse events.
+SLIF parse events are described in
+L<a separate document|Marpa::R2::Event>.
 
 The C<activate()> method takes two arguments.
 The first is the name of an event, and the second (optional) argument is
@@ -743,7 +740,7 @@ C<activate()>
 Location 0 events are triggered in the SLIF recognizer's 
 constructor,
 before the C<activate()> method can be called.
-This means that currently there is no way to deactivate
+Currently there is no way to deactivate
 location zero events.
 
 The overhead imposed by events

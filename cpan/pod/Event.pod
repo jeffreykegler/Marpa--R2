@@ -140,6 +140,27 @@ A symbol in a grammar is
 a B<nulling symbol> if,
 for all parses of all inputs,
 all of its instances are nulled symbol instances.
+A symbol is B<non-nulling> if it is not nulling.
+
+In the following, we say say that
+an input is consistent with
+the actual input up to location I<L>,
+or simply, B<actual to L>,
+if it is the actual input up to location I<L>,
+and any possible string after location I<L>.
+We say that an symbol is acceptable at
+a location I<L> if
+if
+there is a valid parse, according to the grammar,
+of some input actual to I<L>.
+We say that a symbol instance is recognized at
+a location I<L> if its end location is I<L>,
+and there is a valid parse, according to the grammar,
+of some input actual to I<L>.
+We say that a symbol is recognized at
+a location I<L> if its end location is I<L>,
+and there is a valid parse, according to the grammar,
+of some input actual to I<L>.
 
 =head1 The life cycle of events
 
@@ -151,7 +172,7 @@ Events are declared in the SLIF DSL.
 Parse events can be either a lexeme event
 or a non-lexeme event.
 Lexeme events are declared using
-L<a C<:lexeme> pseudo-rules|Marpa::R2::DSL/"Lexeme pseudo-rules">.
+L<C<:lexeme> pseudo-rules|Marpa::R2::DSL/"Lexeme pseudo-rules">.
 Non-lexeme events are declared using
 L<named event statements|Marpa::R2::DSL/"Named event statement">.
 The various kinds of parse events are described in detail below.
@@ -220,12 +241,16 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 A completion event triggers
-whenever a rule with its symbol on
-its LHS is fully recognized in the parse.
-(The idea is that "symbol completion" occurs when the
-rule, and therefore its LHS, is "complete".)
-The trigger location is the end location
-of the triggering symbol instance.
+whenever a non-nulled instance of symbol
+is recognized at the current location.
+(The event is called a "completion"
+because the symbol will be the LHS of some rule,
+and at the point the recognition of the rule,
+and therefore its LHS symbol,
+is "complete".)
+The trigger location is the current location,
+which will be the end location
+of the instance that triggered the event.
 
 Completion SLIF parse events can be specifed for any
 symbol that is not a lexeme.
@@ -249,10 +274,11 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-A nulling SLIF parse event occurs whenever a zero-length symbol instance
-of its symbol is recognized.
-The trigger location is the location of the triggering symbol instance --
-the location where the nulled symbol both begins and ends.
+A nulling SLIF parse event occurs whenever a nulled instance
+of its symbol is recognized at the current location.
+The trigger location is the current location,
+which will be the
+the location where the triggering instance both begins and ends.
 
 Nulling SLIF parse events can be specifed for any
 symbol that is not a lexeme.
@@ -277,12 +303,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-A prediction event occurs at any location where a non-zero-length
-instance of its
-symbol would be accepted by the recognizer.
-The trigger location is the location of the prediction --
-the location at which that instance of the triggering symbol
-would begin, if it actually does occur in the input.
+A prediction event triggers whenever
+a non-nulling symbol is acceptable at the current location.
+The trigger location is the current location.
+No symbol instance can start at a location unless a
+a prediction of the symbol is declared and activated,
+A prediction may not result in an actual instance of the symbol,
+but no actual instance can start at a location unless a prediction,
+if properly declared and activated,
+would triggered at that location.
 
 Prediction SLIF parse events may be defined for any symbol,
 whether it is a lexeme or not.
@@ -302,7 +331,9 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 An post-lexeme event is a lexeme event.
-Its trigger location is the location where the lexeme ends.
+It triggers if the lexeme is scanned at the current location.
+Its trigger location is the current location,
+which will also be the location where the lexeme ends.
 Post-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
 C<< $slr->lexeme_read() >> calls are discarded.
@@ -319,8 +350,12 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 An pre-lexeme event is a lexeme event.
+It triggers if the lexeme is scanned at the current location.
 Its trigger location is the location where the lexeme starts.
 
+For most events, the trigger location is the current location,
+but pre-lexeme events are the exception -- they can be said
+to "rewind" the scanner by the length of the lexeme.
 Pre-lexeme events trigger where the lexeme starts because
 one of their intended use cases is catching a lexeme which
 is about to be read, and giving it special treatment.
@@ -339,6 +374,90 @@ found in the input.
 A prediction event, on the other hand, is
 as the name suggests, only a prediction -- the lexeme may not
 actually be found in the input.
+
+=head1 Lexeme events
+
+The event mechanism groups into lexeme
+and non-lexeme events, based on their type.
+The lexeme events are the pre-lexeme event
+and post-lexeme event.
+
+A non-lexeme event will trigger at the current location
+if all of the following criteria,
+applied in order, are true:
+
+=over 4
+
+=item *
+
+It is declared in a
+L<C<:lexeme> pseudo-rules|Marpa::R2::DSL/"Lexeme pseudo-rules">.
+
+=item *
+
+It has been scanned by the L0 grammar at that location.
+
+=item *
+
+The G1 grammar would accept that lexeme at that location.
+
+=item *
+
+The event is activated.
+Deactivation and reactivation of events is
+done with the SLIF recognizer's
+L<activate() method|Marpa::R2::Scanless::R/"activate()">
+
+=item *
+
+Its lexeme priority is higher than, or equal to,
+that of any other lexeme
+remaining after the previous criteria
+have been applied.
+
+=item *
+
+If it is a post-lexeme event,
+none of other remaining events are pre-lexeme events.
+(In other words, a pre-lexeme event prevents any
+post-lexeme events from triggering at the same location.)
+
+=back
+
+Marpa allows ambiguous lexemes and,
+even after all the above criteria have been applied,
+there can be still be more than one lexeme event at a location.
+
+=head1 Non-lexeme events
+
+Prediction, completion and nulling events are non-lexeme events.
+
+The conditions for a non-lexeme event are simpler than those for
+a lexeme event, because they do not involve lexical processing.
+
+A non-lexeme event will trigger at the current location
+if all of the following are true:
+
+=over 4
+
+=item *
+
+It is declared in a
+L<named event statement|Marpa::R2::DSL/"Named event statement">.
+
+=item *
+
+The defining condition for its type is satisified:
+It is a prediction and its symbol is acceptable at the current location;
+or it is a completion or a nulling event and its symbol is recognized
+at the current location.
+
+=item *
+
+The event is
+L<activated|Marpa::R2::Scanless::R/"activate()">.
+
+=back
 
 =head1 Techniques
 

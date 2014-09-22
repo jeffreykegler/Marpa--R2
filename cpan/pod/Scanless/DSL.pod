@@ -902,16 +902,20 @@ normalize-whitespace: 1
 The C<event> adverb applies only to lexemes and
 is only allowed in 
 L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rules">.
-It turns a lexeme's pause into a named event,
-using the name specified as its value.
-Applications are encouraged to turn all lexeme
-pause's into named events,
-using the C<event> adverb.
-The allowed event names are as described
-for the L<named event statement|"Named event statement">.
-
+It names the event specified by
+the L<C<pause>|/"pause"> adverb.
 It is a fatal error to specify the C<event> adverb
 if the L<C<pause>|/"pause"> adverb is not also specified.
+
+When an event declared with the
+the L<C<pause>|/"pause"> adverb
+is not named using the C<event> adverb,
+an B<unnamed event> results.
+An unnamed event cannot be accessed by normal methods
+and the use of unnamed events is
+strongly discouraged.
+SLIF parse events are described in detail in
+L<a separate document|Marpa::R2::Event>.
 
 =head2 forgiving
 
@@ -1071,80 +1075,18 @@ normalize-whitespace: 1
 The C<pause> adverb applies only to lexemes and
 is only allowed in 
 L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule">.
-Pauses take effect during
-L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">
-and L<resume()|Marpa::R2::Scanless::R/"resume()"> methods.
-They cause internal scanning
-to be suspended, or "paused", before
-or after the specified lexeme.
-Internal scanning can be resumed with
-L<the Scanless recognizer's resume()
-method|Marpa::R2::Scanless::R/"resume()">.
+The C<pause> adverb declares a SLIF parse event.
+The L<event adverb|/"event"> names the SLIF parse event
+declared by
+the C<pause> adverb.
 
-Applications are encouraged to name every lexeme pause
-using the L<event adverb|/"event">.
-If this is done, lexeme pauses can be queried using the
-SLIF recognizer's
-L<events() method|Marpa::R2::Scanless::R/"events()">.
-Unnamed lexeme pauses must be queried using the
-SLIF recognizer's
-L<pause_lexeme() method|Marpa::R2::Scanless::R/"pause_lexeme()">.
-
-If the value of pause is C<before>,
-Marpa will "pause" internal scanning before
-that lexeme.
-No lexemes will be read at that position.
-
-If the value of pause is C<after>,
-all applicable lexemes at that position will
-be read by G1,
-and internal scanning will pause immediately
-afterwards.
-
-A lexeme pause event does not occur, and has no effect, if
-
-=over 4
-
-=item *
-
-It is deactivated.  Deactivation and reactivation of events is
-done with the SLIF recognizer's
-L<activate() method|Marpa::R2::Scanless::R/"activate()">
-
-=item *
-
-The G1 grammar would reject that lexeme at that location.
-
-=item *
-
-It has
-a lexeme priority lower than
-the highest lexeme priority.
-
-=item *
-
-At the same priority,
-it has a pause value of C<after>,
-when another lexeme pause occurs
-which has a 
-pause value of C<before>.
-In other words, pausing before a lexeme prevents Marpa
-from pausing
-after another lexeme at the same location.
-
-=back
-
-Even with the above restrictions,
-there can be more than one lexeme pause event at a location.
-The
-L<pause_lexeme() method|Marpa::R2::Scanless::R/"pause_lexeme()">
-will return only one of them, chosen arbitrarily, whereas
-the 
-L<events() method|Marpa::R2::Scanless::R/"events()">
-will return all of the named events.
-This is one of the reasons that applications
-are strongly encouraged to specify a name for every lexeme pause event
-using the C<event> adverb.
+When an event declared with the
+the L<C<pause>|/"pause"> adverb
+is not named using the C<event> adverb,
+an B<unnamed event> results.
+An unnamed event cannot be accessed by normal methods
+and the use of unnamed events is
+strongly discouraged.
 
 =head2 priority
 
