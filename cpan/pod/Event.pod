@@ -147,21 +147,24 @@ the actual input up to location I<L>,
 or simply, B<actual to L>,
 if it is the actual input up to location I<L>,
 and any possible string after location I<L>.
-We say that a symbol is B<acceptable> at
-a location I<L>
-if there is a valid parse,
+We say that a symbol I<S> is B<acceptable> at
+a location I<L>,
+if an instance of symbol I<S>
+starting at location I<L>
+is in a valid parse,
 according to the grammar,
 of some input actual to I<L>.
 We say that a symbol instance
 is B<recognized> at
-a location I<L> if its end location is I<L>,
-and there is a valid parse, according to the grammar,
+a location I<L>
+if its end location is I<L>,
+and it is in
+a valid parse, according to the grammar,
 of some input actual to I<L>.
 We say that a symbol
 is B<recognized> at
-a location I<L> if its end location is I<L>,
-and there is a valid parse, according to the grammar,
-of some input actual to I<L>.
+a location I<L> if it is the symbol of
+a symbol instance at location I<L>.
 
 =head1 The life cycle of events
 
@@ -185,7 +188,7 @@ L<named event statements|Marpa::R2::DSL/"Named event statement">.
 The various types of parse events are described in detail
 L<below|/"Types of parse event">.
 The description of
-each type of parse event,
+each type of parse event
 indicates whether it is a lexeme or a non-lexeme event.
 
 Once declared, events
@@ -261,7 +264,7 @@ normalize-whitespace: 1
 A nulling SLIF parse event occurs whenever a nulled instance
 of its symbol is recognized at the current location.
 The trigger location is the current location,
-which will be the
+which will be
 the location where the triggering instance both begins and ends.
 
 Nulling events are non-lexeme events.
@@ -271,7 +274,7 @@ Nulled symbols may derive other null symbols,
 producing nulled trees;
 and null derivations may be ambiguous,
 producing nulled forests.
-All nulling events declared
+All activated nulling events declared
 for symbols in nulled trees and forests will
 trigger.
 Nulled forests are described in more detail
@@ -299,7 +302,7 @@ The trigger location is the current location.
 A prediction may not result in an actual instance of the symbol,
 but no actual symbol instance can start at a location unless a prediction,
 if properly declared and activated,
-would triggered at that location.
+would trigger at that location.
 
 Prediction SLIF parse events may be defined for any symbol,
 whether it is a lexeme or not.
@@ -320,7 +323,11 @@ normalize-whitespace: 1
 
 An post-lexeme event is a lexeme event.
 It triggers if the lexeme is scanned at the current location.
-Its trigger location is the current location,
+The SLIF recognizer will have
+already read the lexeme
+when its post-lexeme event triggers.
+
+The trigger location of a post-lexeme event is the current location,
 which will also be the location where the lexeme ends.
 Post-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
@@ -340,13 +347,17 @@ normalize-whitespace: 1
 An pre-lexeme event is a lexeme event.
 It triggers if the lexeme is scanned at the current location.
 Its trigger location is the location where the lexeme starts.
+The SLIF recognizer will B<not> have
+read the lexeme
+when its pre-lexeme event triggers.
+In effect, it "rewinds" the scanning.
 
 For most events, the trigger location is the current location,
-but pre-lexeme events are the exception -- they can be said
-to "rewind" the scanner by the length of the lexeme.
-Pre-lexeme events trigger where the lexeme starts,
-because
-one of their intended use cases is catching a lexeme which
+but pre-lexeme events are the exception.
+Its setting of the trigger location to the start of the lexeme
+is consistent with its behavior as a "rewind".
+An intended use of pre-lexeme events
+is catching a lexeme which
 is about to be read, and giving it special treatment.
 For more on this, see
 L<below|"External scanning">.
@@ -517,7 +528,7 @@ rule.
 
 This section describes 
 some implications of the SLIF parse events mechanism
-that may be unexpected at first to some users.
+that may be unexpected at first.
 These implications are Marpa working as designed,
 and I hope the reader will usually come to agree,
 as is desirable.
@@ -687,7 +698,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The reason for this is that these events are
-for three different symbols instances, all of which
+for three different symbol instances, all of which
 share the same trigger location:
 
 =over 4
@@ -741,7 +752,7 @@ nulled symbols,
 because there is no practical distinction between predicting
 a nulled symbol, and actually seeing one.
 This means the prediction and completion of a nulled symbol
-always occur together.
+would always occur together.
 This very special nature of nulled symbols motivates their
 treatment as a special case.
 
@@ -762,9 +773,11 @@ As one example,
 the
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()"> and
 L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()">
-methods return at every lexeme at which a lexme is read, so
+methods return at every lexeme at which a lexeme is read, so
 all triggering in those methods is hidden triggering.
-The events at this location were all caused by hidden
+In L<the example code in this
+document|/"An example">,
+the events at this location were all caused by hidden
 triggering inside a call to C<< $slr->lexeme_complete() >>:
 
 =for Marpa::R2::Display
@@ -823,7 +836,7 @@ a behavior which is at best pointless.
 A post-lexeme event would be less dangerous,
 but it would be completely redundant --
 its presence or absence
-would only tell the application only what
+would tell the application only what
 the application already knows from the
 return of success of failure by the
 C<< $slr->lexeme_complete() >> or
@@ -836,7 +849,7 @@ is designed to
 include the unusual and "corner"
 cases described in this document.
 It is not like any grammar that you are likely
-to encounter in normal practive.
+to encounter in normal practice.
 
 =for Marpa::R2::Display
 name: SLIF events() method synopsis
