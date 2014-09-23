@@ -496,11 +496,10 @@ It reads a C<< <d> >> symbol externally,
 skips over lexeme actually in the input,
 and resumes internal scanning.
 L<This
-document's example|/"An example">
+document's example
+of external scanning|/"An example">
 is very trivial,
-and what it does could be done more simply,
-but it serves to illustrate the coding of external
-scanning.
+and what it does could be done more simply.
 
 =head2 Markers
 
