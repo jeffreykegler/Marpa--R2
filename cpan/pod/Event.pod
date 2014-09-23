@@ -199,9 +199,15 @@ L<C<read()>|Marpa::R2::Scanless::R/"read()">,
 L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
 L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
+
+The location at which an event triggers is the B<event location>.
 When an event triggers, it causes the event-triggering
 method to return immediately, with the current location
 at the B<trigger location>.
+The trigger location is the same as the event location,
+except in the case of
+L<pre-lexeme/"Pre-lexeme events">.
+
 Non-lexeme events may trigger during any of the event-triggering
 methods.
 Lexeme events will only trigger during calls of the
@@ -238,7 +244,10 @@ Completion events are non-lexeme events.
 A completion event triggers
 whenever a non-nulled instance of its symbol
 is recognized at the current location.
-The trigger location is the current location,
+
+When a completion event triggers,
+its trigger location and the event location
+are set to the current location,
 which will be the end location
 of the instance that triggered the event.
 The event is called a "completion"
@@ -263,7 +272,9 @@ normalize-whitespace: 1
 
 A nulling SLIF parse event occurs whenever a nulled instance
 of its symbol is recognized at the current location.
-The trigger location is the current location,
+When a completion event triggers,
+its trigger location and the event location
+are set to the current location,
 which will be
 the location where the triggering instance both begins and ends.
 
@@ -298,9 +309,12 @@ normalize-whitespace: 1
 
 A prediction event triggers whenever
 a non-nulling symbol is acceptable at the current location.
-The trigger location is the current location.
+When a prediction event triggers,
+its trigger location and the event location
+are set to the current location.
 A prediction may not result in an actual instance of the symbol,
-but no actual symbol instance can start at a location unless a prediction,
+but no actual symbol instance can start
+at the event location unless a prediction,
 if properly declared and activated,
 would trigger at that location.
 
@@ -327,7 +341,9 @@ The SLIF recognizer will have
 already read the lexeme
 when its post-lexeme event triggers.
 
-The trigger location of a post-lexeme event is the current location,
+When a post=lexeme event triggers,
+its trigger location and the event location
+are set to the current location,
 which will also be the location where the lexeme ends.
 Post-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
@@ -346,7 +362,12 @@ normalize-whitespace: 1
 
 An pre-lexeme event is a lexeme event.
 It triggers if the lexeme is scanned at the current location.
-Its trigger location is the location where the lexeme starts.
+When a pre-lexeme event triggers,
+the event location
+is set to the current location.
+Its trigger location is set to the location where the lexeme starts,
+which will be before the event location.
+
 The SLIF recognizer will B<not> have
 read the lexeme
 when its pre-lexeme event triggers.
@@ -546,28 +567,22 @@ derived symbols, trigger.
 =head2 Tentative events
 
 Marpa's events are left-eidetic but right-blind.
-As described above, the specifics vary by type of event,
-but all SLIF parse events trigger based on the input actual
-to a specific location.
-To the left of that location, Marpa's analysis of the grammar
-and the input is 100% accurate.
-
-But no lookahead is done, except in the case of pre-lexeme
-events,
-and even in that case the lookahead is minimal.
-To the right, an event occurs if there is any possible input
-which would produce a parse which matches that event.
+Left of the event location, Marpa's event are 100% accurate.
+Right of the event location, they are totally unaware of
+what the actual input will be --
+there is no "lookahead".
 Once the parse is complete,
-and the actual input to the right is taken into account,
+and the actual input to the right of the event
+location is taken into account,
 it is quite possible that it does not produce any parse
 which matches a triggered event.
 
-Because the possible input that the event depends on may not
-turn out to be the actual input,
+Because the input that the event depends on
+is the actual only up to the event location,
 events are B<tentative>.
 There is no guarantee that a derivation
-corresponding to the event will wind up in the value of the parse,
-or even in any of the values of an ambiguous parse.
+matching to the event will wind up in the value of the parse,
+or in any of the values of an ambiguous parse.
 
 In L<the example|/"An example">,
 prediction and completion
@@ -596,7 +611,7 @@ not just completion events.
 In the example, the predictions
 for 
 C<< <mid1> >> and
-C<< <mid2> >> do not correspond to anything in
+C<< <mid2> >> do not match anything in
 the final parse tree,
 because the locations where
 C<< <mid1> >> and
