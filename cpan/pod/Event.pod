@@ -141,7 +141,7 @@ in all parses of all inputs,
 all of its instances are nulled instances.
 A symbol is B<non-nulling> if it is not nulling.
 
-In the following, we say say that
+In the following, we say that
 an input is consistent with
 the actual input up to location I<L>,
 or simply, B<actual to L>,
