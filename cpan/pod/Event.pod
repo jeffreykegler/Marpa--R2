@@ -76,14 +76,12 @@ L<below|/"An example">.
 =head1 About this document
 
 This document is an overview of B<SLIF parse events>.
-The purpose of SLIF parse events is to interrupt SLIF
-internal parsing, or "B<trigger>", based on "B<events>" chosen
-by the application.
-The events available
-include things as the prediction or recognition
-of symbols.
+SLIF parse events
+B<trigger> based on conditions declared in the DSL.
+Typical events are the prediction or recognition
+of a symbol.
 
-SLIF parse events are often used to enable the application to
+SLIF parse events are often used to allow an application to
 switch over to its own custom procedural logic.
 Among other things,
 an application can do its own "external" scanning of lexemes.
@@ -100,6 +98,8 @@ Unnamed events are described
 L<below,
 in a section dedicated to them|/"Unnamed events">.
 
+=head1 Terminology
+
 SLIF parse events are called B<parse events>
 or simply B<events>,
 in contexts where the meaning is clear.
@@ -114,8 +114,6 @@ For historical reasons,
 some of the method names dealing with SLIF parse events
 still have the word "pause" as part of their name.
 
-=head1 Terminology
-
 In this document, an B<instance> of a symbol
 in a parse
 means an occurrence
@@ -123,8 +121,9 @@ of the symbol in that parse
 with a specific start location and length.
 An instance of a symbol is also called
 B<symbol instance>.
-A consequence of this definition is that every instance of a 
-symbol has exactly one end location.
+A consequence of this definition
+is that every symbol instance
+has exactly one end location.
 
 In a parse,
 a nulled symbol instance,
@@ -135,11 +134,11 @@ nulled.
 A symbol in a grammar is 
 a B<nullable symbol> if it has
 at least one nulled instance
-for at least one parse of at least one input.
+in at least one parse of at least one input.
 A symbol in a grammar is 
 a B<nulling symbol> if,
-for all parses of all inputs,
-all of its instances are nulled symbol instances.
+in all parses of all inputs,
+all of its instances are nulled instances.
 A symbol is B<non-nulling> if it is not nulling.
 
 In the following, we say say that
@@ -148,25 +147,33 @@ the actual input up to location I<L>,
 or simply, B<actual to L>,
 if it is the actual input up to location I<L>,
 and any possible string after location I<L>.
-We say that an symbol is acceptable at
-a location I<L> if
-if
-there is a valid parse, according to the grammar,
+We say that a symbol is B<acceptable> at
+a location I<L>
+if there is a valid parse,
+according to the grammar,
 of some input actual to I<L>.
-We say that a symbol instance is recognized at
+We say that a symbol instance
+is B<recognized> at
 a location I<L> if its end location is I<L>,
 and there is a valid parse, according to the grammar,
 of some input actual to I<L>.
-We say that a symbol is recognized at
+We say that a symbol
+is B<recognized> at
 a location I<L> if its end location is I<L>,
 and there is a valid parse, according to the grammar,
 of some input actual to I<L>.
 
 =head1 The life cycle of events
 
-Events are first B<declared>.
-A declared event may B<trigger>.
-Once an event triggers, it may be B<accessed>.
+=over 4
+
+=item * An SLIF parse event must be B<declared>.
+
+=item * A declared event may B<trigger>.
+
+=item * Once an event triggers, it may be B<accessed>.
+
+=back
 
 Events are declared in the SLIF DSL.
 Parse events can be either a lexeme event
@@ -175,30 +182,28 @@ Lexeme events are declared using
 L<C<:lexeme> pseudo-rules|Marpa::R2::DSL/"Lexeme pseudo-rules">.
 Non-lexeme events are declared using
 L<named event statements|Marpa::R2::DSL/"Named event statement">.
-The various kinds of parse events are described in detail below.
-For each type of parse event,
-its descriptions
-will indicate whether it is a lexeme or a non-lexeme event.
+The various types of parse events are described in detail
+L<below|/"Types of parse event">.
+The description of
+each type of parse event,
+indicates whether it is a lexeme or a non-lexeme event.
 
 Once declared, events
 may trigger during any event-triggering SLIF
 recognizer method.
-When an event triggers, it causes the event-triggering
-method to return immediately, with the current location
-at the B<trigger point>.
 The event-triggering SLIF recognizer methods are
 L<C<read()>|Marpa::R2::Scanless::R/"read()">,
 L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
 L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
+When an event triggers, it causes the event-triggering
+method to return immediately, with the current location
+at the B<trigger location>.
 Non-lexeme events may trigger during any of the event-triggering
 methods.
 Lexeme events will only trigger during calls of the
 C<< $slr->read() >> and C<< $slr->resume() >> methods.
 
-When an event triggers, it causes the method
-to return immediately, leaving the current location at the location
-at which the event triggered -- its B<trigger location>.
 Events may be accessed using
 L<the Scanless recognizer's events()
 method|/"events()">.
@@ -206,22 +211,6 @@ The beginning and end of the lexeme triggering a lexeme event
 may be found using
 L<the Scanless recognizer's pause_span()
 method|/"pause_span()">.
-
-Applications need to be aware of a special case:
-SLIF parse events may trigger at a location at which the method
-would return in any case.
-For example, the C<< $slr->read() >> method always returns
-at end of string.
-But an event may have triggered at the end of string as well.
-The code in the synopsis is carefully written to catch
-events which trigger at end of string.
-Normally, you end the read loop at end of string,
-and applications which do not use parse events may do this.
-But the code above, after an the end of string is reached,
-makes one additional
-pass through the 
-event-reading logic, in order to report any events which
-occurred at end of string.
 
 =head1 Types of parse event
 
@@ -240,24 +229,19 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Completion SLIF parse events can be specified for any
+symbol that is not a lexeme.
+Completion events are non-lexeme events.
 A completion event triggers
-whenever a non-nulled instance of symbol
+whenever a non-nulled instance of its symbol
 is recognized at the current location.
-(The event is called a "completion"
-because the symbol will be the LHS of some rule,
-and at the point the recognition of the rule,
-and therefore its LHS symbol,
-is "complete".)
 The trigger location is the current location,
 which will be the end location
 of the instance that triggered the event.
-
-Completion SLIF parse events can be specifed for any
-symbol that is not a lexeme.
-Completion events are non-lexeme events.
-As a special case,
-a completion event is not triggered by the recognition
-of a nulled, or zero-length, instance of a symbol.
+The event is called a "completion"
+because, at the trigger location,
+the recognition of its symbol
+is "complete".
 
 =head2 Nulling events
 
@@ -580,7 +564,7 @@ for
 C<< <mid1> >> and
 C<< <mid2> >> do not correspond to anything in
 the final parse tree,
-because the points where
+because the locations where
 C<< <mid1> >> and
 C<< <mid2> >> would be predicted are not reached in
 those trees.
