@@ -206,7 +206,7 @@ method to return immediately, with the current location
 at the B<trigger location>.
 The trigger location is the same as the event location,
 except in the case of
-L<pre-lexeme/"Pre-lexeme events">.
+L<pre-lexeme events|/"Pre-lexeme events">.
 
 Non-lexeme events may trigger during any of the event-triggering
 methods.
@@ -246,7 +246,7 @@ whenever a non-nulled instance of its symbol
 is recognized at the current location.
 
 When a completion event triggers,
-its trigger location and the event location
+its trigger location and its event location
 are set to the current location,
 which will be the end location
 of the instance that triggered the event.
@@ -273,7 +273,7 @@ normalize-whitespace: 1
 A nulling SLIF parse event occurs whenever a nulled instance
 of its symbol is recognized at the current location.
 When a completion event triggers,
-its trigger location and the event location
+its trigger location and its event location
 are set to the current location,
 which will be
 the location where the triggering instance both begins and ends.
@@ -310,7 +310,7 @@ normalize-whitespace: 1
 A prediction event triggers whenever
 a non-nulling symbol is acceptable at the current location.
 When a prediction event triggers,
-its trigger location and the event location
+its trigger location and its event location
 are set to the current location.
 A prediction may not result in an actual instance of the symbol,
 but no actual symbol instance can start
@@ -321,8 +321,7 @@ would trigger at that location.
 Prediction SLIF parse events may be defined for any symbol,
 whether it is a lexeme or not.
 But prediction events are non-lexeme events,
-and B<not> lexeme events,
-even if their symbol is a lexeme.
+even when their symbol is a lexeme.
 
 =head2 Post-lexeme events
 
@@ -342,7 +341,7 @@ already read the lexeme
 when its post-lexeme event triggers.
 
 When a post=lexeme event triggers,
-its trigger location and the event location
+its trigger location and its event location
 are set to the current location,
 which will also be the location where the lexeme ends.
 Post-lexeme events which trigger during
@@ -363,7 +362,7 @@ normalize-whitespace: 1
 An pre-lexeme event is a lexeme event.
 It triggers if the lexeme is scanned at the current location.
 When a pre-lexeme event triggers,
-the event location
+its event location
 is set to the current location.
 Its trigger location is set to the location where the lexeme starts,
 which will be before the event location.
@@ -376,7 +375,7 @@ In effect, it "rewinds" the scanning.
 For most events, the trigger location is the current location,
 but pre-lexeme events are the exception.
 Its setting of the trigger location to the start of the lexeme
-is consistent with its behavior as a "rewind".
+is consistent with the pre-lexeme event's behavior as a "rewind".
 An intended use of pre-lexeme events
 is catching a lexeme which
 is about to be read, and giving it special treatment.
@@ -418,11 +417,21 @@ L<C<:lexeme> pseudo-rule|Marpa::R2::DSL/"Lexeme pseudo-rules">.
 
 =item *
 
-It has been scanned by the L0 grammar at that location.
+Its lexeme has been scanned by the L0 grammar at that location.
 
 =item *
 
-The G1 grammar would accept that lexeme at that location.
+The G1 grammar would accept its lexeme at that location.
+
+=item *
+
+The lexmeme is not scanned externally,
+that is,
+by a call of the
+L<C<< $slr->lexeme_complete() >> method|Marpa::R2::Scanless::R/"lexeme_complete()">
+or of the
+L<C<< $slr->lexeme_read() >> method|Marpa::R2::Scanless::R/"lexeme_read()">
+method.
 
 =item *
 
@@ -451,12 +460,11 @@ post-lexeme events from triggering at the same location.)
 
 Marpa allows ambiguous lexemes and,
 even after all the above criteria have been applied,
-there may be still be more than one lexeme event at a location.
+there may be more than one lexeme event at a location.
 
 =head1 Non-lexeme events
 
 Prediction, completion and nulling events are non-lexeme events.
-
 The conditions for a non-lexeme event are simpler than those for
 a lexeme event, because they do not involve lexical processing.
 
@@ -498,8 +506,10 @@ the behavior of pre-lexeme events
 is most intuitive when thought about with
 external scanning in mind.
 
-In L<the example below|/"An example">,
-the symbol C<< <insert d> >> has a pre-lexeme event
+L<The example code for this document|/"An example">
+contains an artificially simple example of external
+scanning.
+The symbol C<< <insert d> >> has a pre-lexeme event
 declared:
 
 =for Marpa::R2::Display
@@ -516,11 +526,6 @@ external scanning:
 It reads a C<< <d> >> symbol externally,
 skips over lexeme actually in the input,
 and resumes internal scanning.
-L<This
-document's example
-of external scanning|/"An example">
-is very trivial,
-and what it does could be done more simply.
 
 =head2 Markers
 
@@ -536,7 +541,7 @@ the middle of rule.
 There are no events explicitly defined in terms of rules,
 but every rule event that is wanted can be achieved in
 one or more ways.
-The most flexible of these, and the best for most purposes,
+The most flexible of these, and the best for many purposes,
 is to use L<markers|/"Markers">.
 
 Another method is to use the LHS of a rule to track rule
@@ -567,22 +572,20 @@ derived symbols, trigger.
 =head2 Tentative events
 
 Marpa's events are left-eidetic but right-blind.
-Left of the event location, Marpa's event are 100% accurate.
+Left of the event location, Marpa's events are 100% accurate.
 Right of the event location, they are totally unaware of
 what the actual input will be --
 there is no "lookahead".
+Because events trigger based on input action
+only up to the event location,
+events are B<tentative>.
+
 Once the parse is complete,
 and the actual input to the right of the event
 location is taken into account,
-it is quite possible that it does not produce any parse
-which matches a triggered event.
-
-Because the input that the event depends on
-is the actual only up to the event location,
-events are B<tentative>.
-There is no guarantee that a derivation
-matching to the event will wind up in the value of the parse,
-or in any of the values of an ambiguous parse.
+it is quite possible that
+none of the parse trees
+will match a triggered event.
 
 In L<the example|/"An example">,
 prediction and completion
@@ -593,7 +596,7 @@ C<< <mid1> >> and
 C<< <mid2> >>,
 but none of these symbols
 winds up in
-any of the parse values.
+any of the parse tress.
 This is because they are derived from
 C<< <ambig1> >> or
 C<< <ambig2> >>.
@@ -618,15 +621,19 @@ C<< <mid1> >> and
 C<< <mid2> >> would be predicted are not reached in
 those trees.
 For similar reasons, nulling events are tentative.
-And lexemes can be ambiguous, with not every lexeme
-being part of a final parse tree, so lexeme
-events are also tentative.
+
+Lexemes can be ambiguous and
+when they are ambiguous
+one or more of the lexeme alternatives
+may not be used in any final parse tree.
+Because of this,
+lexeme events are also tentative.
 
 =head2 Nulled forests
 
 When a symbol is nulled, any symbol which can be null-derived
 from it
-is also considered to be nulled.
+is also nulled.
 In L<the example|/"An example">,
 when the 
 symbol C<< <g> >> is nulled,
@@ -666,7 +673,8 @@ nulled; and
 
 =item *
 
-a SLIF parse event is declared for I<Y>; and
+a nulling SLIF parse event
+is declared for I<Y> and activated; and
 
 =item *
 
@@ -687,7 +695,7 @@ and only non-nulled symbols generate prediction events
 and completion events.
 Since lexemes cannot be zero length, this means that,
 for a given symbol instance,
-nulling events, and all other events,
+nulling events and all other events,
 are mutually exclusive.
 In other words, if a nulling event occurs for an
 instance, no other event will trigger for that instance.
@@ -697,11 +705,14 @@ For example
 at position 23
 in the parse in
 L<the code below|/"An example">,
-we have a nulling event and
+we have four events
+of four different types,
+all for the symbol C<< <e> >>.
+In addition to
+a nulling event, there is
 a post-lexeme event,
 a prediction event
-and a completion event,
-all of which are for the symbol C<< <e> >>:
+and a completion event:
 
 =for Marpa::R2::Display
 name: SLIF events() method synopsis
@@ -746,7 +757,7 @@ normalize-whitespace: 1
 
 The second instance is length 1 and predicted at location
 23, but its completion is reported at location 25.
-This is because of whitespace.
+This is because whitespace delayed its start by one position.
 
 =for Marpa::R2::Display
 name: SLIF events() method synopsis
@@ -765,15 +776,15 @@ Prediction and completion events exclude
 nulled symbols,
 because there is no practical distinction between predicting
 a nulled symbol, and actually seeing one.
-This means the prediction and completion of a nulled symbol
+This means that the prediction and completion of a nulled symbol
 would always occur together.
-This very special nature of nulled symbols motivates their
+The very special nature of nulled symbols motivates their
 treatment as a special case.
 
 =head2 Hidden events
 
 An important aspect of the event mechanism is that
-it always triggers a return from the event-triggering
+it triggers a return from the event-triggering
 method at the trigger location.
 It may happen, however, that the method would return
 at that location in any case,
@@ -834,7 +845,7 @@ after an end of string is encountered.
 During external scanning, lexemes are read using the
 L<C<< $slr->lexeme_complete() >>|Marpa::R2::Scanless::R/"lexeme_complete()"> and
 L<C<< $slr->lexeme_read() >>|Marpa::R2::Scanless::R/"lexeme_read()"> methods.
-Non-lexeme events may trigger during this methods, as was discussed
+Non-lexeme events may trigger during these methods, as was discussed
 in L</"Hidden events">.
 However, lexeme events that would occur during the
 C<< $slr->lexeme_complete() >> and
@@ -852,7 +863,7 @@ but it would be completely redundant --
 its presence or absence
 would tell the application only what
 the application already knows from the
-return of success of failure by the
+return of success or failure by the
 C<< $slr->lexeme_complete() >> or
 C<< $slr->lexeme_read() >> methods.
 
