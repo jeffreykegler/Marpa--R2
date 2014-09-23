@@ -805,8 +805,8 @@ after an end of string is encountered.
 =head2 Lexeme events and external scanning
 
 During external scanning, lexemes are read using the
-L< C<< $slr->lexeme_complete() >>|Marpa::R2::Scanless::R/"lexeme_complete()"> and
-L< C<< $slr->lexeme_read() >>|Marpa::R2::Scanless::R/"lexeme_read()"> methods.
+L<C<< $slr->lexeme_complete() >>|Marpa::R2::Scanless::R/"lexeme_complete()"> and
+L<C<< $slr->lexeme_read() >>|Marpa::R2::Scanless::R/"lexeme_read()"> methods.
 Non-lexeme events may trigger during this methods, as was discussed
 in L</"Hidden events">.
 However, lexeme events that would occur during the
