@@ -90,19 +90,42 @@ external scanning to supplement internal
 scanning,
 or to replace the SLIF's internal scanner entirely.
 
-=head1 Locations
+=head1 Input stream locations
 
-=head2 Input stream locations
+The recognizer reads a virtual input stream,
+based on a physical input stream.
+The physical input stream is
+a Perl string passed as the first argument
+to the L< C<< $slr->read() >> method|/read()> method.
+By default, the virtual input stream is exactly the
+same as the physical input stream.
 
-An input stream location is the offset of a codepoint in the
-input stream.
-When the input stream is being treated as a string,
-input stream location corresponds to Perl's C<pos()> location.
+But the
+SLIF allows applications to move about in the input stream.
+An application may skip backward and forward.
+An application may also read sections of the physical input stream repeatedly.
+If an application uses these techniques,
+its virtual input stream will no longer
+be the same as the physical input stream.
+
+Virtual input streams
+are very useful for some applications,
+and absolutely necessary for others.
+For example, Perl's here-documents cannot be read correctly
+unless an application scan skip forward and backward in its
+input.
+Necessary as virtual input streams may be, their use
+makes the idea of location much more complex.
+
+Physical input stream location is simply Perl C<pos()> location
+in the Perl string.
 In this document, the word "location" refers
-to location in the input stream
+to physical input stream location,
 unless otherwise specified.
+Physical input stream location may be zero,
+but is never negative.
 
-=head2 Negative locations
+=head2 Input strings
 
 Several methods allow locations and lengths to be specified
 as negative numbers.
@@ -126,118 +149,6 @@ The span (C<-2, -1>) is the
 last two characters of the input stream.
 The span (C<-2, 1>) is the 
 second to last character of the input stream.
-
-=head2 G1 locations
-
-In addition to input stream location,
-the SLIF also tracks G1 location.
-G1 location starts at zero,
-and increases by exactly one as each lexeme is read.
-G1 location is usually not the same
-as input stream location.
-There is also a concept of G1 length,
-which is simply
-length calculated in terms of G1 locations.
-
-G1 location can be ignored most of the time,
-but it does become relevant to a small degree
-when dealing
-with ambiguous terminals,
-and to a greater degree when tracing the G1 grammar.
-(For those more familiar with Marpa's internals,
-the G1 location is the G1 Earley set index.)
-
-=head2 Current location
-
-The SLIF tracks
-the B<current location in the input stream>, more usually simply
-called the B<current location>.
-Locations are zero-based, so that location 0 is the start
-of the input stream.
-A location is said to B<point> to the character after it,
-if there is such a character.
-For example,
-location 0 points to the first character of the input stream,
-unless the stream is of zero length,
-in which case there is no first character.
-
-A current location equal to the length of the input stream
-indicates EOS (end of stream).
-In a zero length stream, location 0 is EOS.
-The EOS location never points to a character.
-
-In the SLIF, when the current input stream location
-moves, it does not necessarily advance -- it
-can skip forward,
-or can be positioned to an earlier location.
-The application can skip sections of the input stream.
-The application is also free to
-revisit spans of the input stream as often as it wants.
-
-Here are the guarantees:
-
-=over 4
-
-=item *
-
-Initially, the current location is 0.
-
-=item *
-
-The current location will never be negative.
-
-=item *
-
-The current location will never be greater than EOS.
-
-=back
-
-=head2 Literals and G1 spans
-
-Often it is useful to find the literal substring of the input which corresponds to a span
-of G1 locations.
-If an application reads the input monotonically within the G1 span
-this presents no complications.
-
-"Monotonically" here means that,
-for the G1 span C<$g1_start, $g1_length>,
-the application reads the G1 locations
-in sequence and one-by-one, starting at
-C<$g1_start> and ending at C<$g1_start+$g1_length>.
-This is the usual case.
-
-Reading the input monotonically is the default,
-and by far the most common
-case.
-But Marpa applications
-are free to skip forward in the stream,
-to jump backward,
-to reread the same input multiple times, etc., etc.
-It is entirely possible the final input stream location of a G1 span 
-will be before the start of the G1 span.
-
-In precise terms,
-the substring returned
-for a G1 span C<$g1_start, $g1_length>
-is determined as follows:
-The string
-will start at the first input stream location in the span for
-G1 location C<$g1_start+1>.
-The end of the string will be at
-the last input stream location in the span for
-G1 location C<$g1_start+$g1_length>.
-When an application moves backward in the input,
-the end of the string,
-as calculated above,
-may be before the start of the string.
-When the end of a string is before its start,
-the substring returned will be the zero-length string.
-
-Applications which do not read monotonically,
-but which also
-want to associate spans of G1 locations with the input stream,
-may need to reassemble the input based on their own ideas.
-The L</"literal()"> method can assist in this process.
 
 =head1 How internal scanning works
 
@@ -360,6 +271,116 @@ C<< $slr->read($input_string, 7) >>.
 Lexemes corresponding to the artificial preamble would be read
 using a method call similar to
 C<< $slr->lexeme_read($symbol_name, 0, 7, $value) >>.
+
+=head1 G1 locations
+
+In addition to input stream location,
+the SLIF also tracks G1 location.
+G1 location can be ignored most of the time,
+but it does become relevant to a small degree
+when dealing
+with ambiguous terminals,
+and to a greater degree when tracing the G1 grammar.
+(For those more familiar with Marpa's internals,
+the G1 location is the G1 Earley set index.)
+
+G1 location can be thought of
+as location in terms of lexemes,
+with the first set of lexemes.
+(I speak of lexemes being read in "sets",
+because lexemes may be ambiguous.
+Most "sets" of lexemes will contain exactly one lexeme.)
+
+As each new set of lexemes is read
+G1 location 
+increases by one.
+Most often,
+G1 location will not be the same
+as the physical input stream location.
+B<G1 length>
+is length calculated in terms of G1 locations.
+For example, if a span of G1 locations which begin at G1 location
+42 and has length 2, 
+it will contain a pair of G1 locations: G1 location 42 and G1 location 43.
+
+=head2 Literals and G1 spans
+
+It is sometimes
+useful to find the literal substring of the input which corresponds to a span
+of G1 locations.
+If an application reads the input monotonically within the G1 span
+this presents no complications.
+
+More precisely,
+let I<X> and I<Y> are a pair of G1 locations.
+Let I<Xs> be the first physical input stream location for I<X>
+and let I<Xe> be the last physical input stream location for I<X>.
+(The length of the G1 in physical input stream terms would then
+be I<Xs - Xe + 1>.)
+Also,
+let I<Ys> and I<Ye> be, respectively,
+the first and last physical input stream location for I<Y>.
+It will always be the case that
+It will always be the case that
+I<< Xs <= Xe >> and
+I<< Ys <= Ye >>.
+
+"Monotonically" here means that,
+if I<< X < Y >>,
+then I<< Xe < Ys >>.
+Reading the input monotonically is the default,
+and by far the most common,
+case.
+
+But it is also possible,
+using the notation of the preceding example,
+that I<< Ye < Xs >>,
+in which case the range of physical input stream locations,
+from the G1 location point of view,
+runs backwards.
+It is also possible
+that I<< Ys < Xe >>
+and I<< Xs < Ye >>
+in which case the physical input stream
+locations for
+G1 locations I<X> and I<Y> would overlap.
+
+When physical input stream locations run backwards
+or overlap,
+it present great difficult for those routines
+which try to translate G1 locations into literals.
+To describe how the SLIF turns a span of G1 locations
+into a literal,
+I will again use the notation above,
+and consider a G1 range from I<X> to I<Y>.
+In the more usual C<start, length> notation,
+this span would be I<X, Y-X+1>.
+
+=over 4
+
+=item *
+
+If I<< Xe < Ys >>,
+the literal returned is the range I<Xs, Ye>,
+which is the span I<Xs, Ye-Xs+1>.
+
+=item *
+
+If I<< Xe >= Ys >>,
+the zero-length string is returned.
+
+=back
+
+For
+applications which read monotonically,
+the above will be exactly what is wanted.
+For some
+applications which do not read monotonically,
+the above may be "close enough".
+Other non-monotonic applications
+may need to use custom logic to reassemble the input
+from the physical input stream.
+The L</"literal()"> method can assist in this process.
 
 =head1 Constructor
 
