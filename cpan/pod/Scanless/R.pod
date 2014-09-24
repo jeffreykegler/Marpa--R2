@@ -92,68 +92,93 @@ or to replace the SLIF's internal scanner entirely.
 
 =head1 Input stream locations
 
-The recognizer reads a virtual input stream,
-based on a physical input stream.
+The recognizer reads a virtual input stream.
+By default, this
+is identical to a physical input stream.
 The physical input stream is
 a Perl string passed as the first argument
 to the L< C<< $slr->read() >> method|/read()> method.
-By default, the virtual input stream is exactly the
-same as the physical input stream.
+Once set by the C<read()> method, the physical input
+stream cannot be changed.
 
-But the
-SLIF allows applications to move about in the input stream.
-An application may skip backward and forward.
-An application may also read sections of the physical input stream repeatedly.
-If an application uses these techniques,
-its virtual input stream will no longer
-be the same as the physical input stream.
-
-Virtual input streams
-are very useful for some applications,
-and absolutely necessary for others.
-For example, Perl's here-documents cannot be read correctly
-unless an application scan skip forward and backward in its
-input.
-Necessary as virtual input streams may be, their use
-makes the idea of location much more complex.
+Virtual input streams complicate the idea of parse
+location,
+but they are essential for some applications.
+The C language's pre-processor instructions requires
+either two passes, or
+a virtual approach to the input.
+And Perl here-documents cannot be parsed correctly
+by an application which insists on moving forward
+serially in the input.
+The
+SLIF allows applications to skip
+backward and forward in the input stream,
+as well as to
+read sections of the physical input stream repeatedly.
 
 Physical input stream location is simply Perl C<pos()> location
-in the Perl string.
-In this document, the word "location" refers
+in the physical input string.
+In this document,
+the phrase "input stream location" and
+the word "location" refer
 to physical input stream location,
 unless otherwise specified.
 Physical input stream location may be zero,
 but is never negative.
 
+=head2 Spans and ranges
+
+In this document, we will refer to ordered sets of
+contiguous locations as either B<ranges> or B<spans>.
+A range is an ordered set of contiguous locations
+specified by start location and end location:
+I<(S, E)>.
+A span is an ordered set of contiguous locations
+specified by start location and length:
+I<(S, L)>.
+The range corresponding to the span
+I<(S, L)> is I<(S, (S+L)-1)>.
+The span corresponding to the range
+I<(S, E)> is I<(S, (S-E)+1)>.
+In general, spans are more convenient for programming.
+But ranges allow the end location to be determined
+without mental arithmetic, which is convenient for
+discussions in which
+fenchpost issues are important.
+
+Negative numbers
+refer to a locations relative
+to the end of some larger set, so that
+-1 refers to the last location of the larger set,
+-2 refers to the second-to-last location of the larger set,
+etc.
+As examples, when talking about substrings of the
+physical input stream, the range C<(0, -1)>
+refers to the entire input stream;
+The range C<(0, -2)> refer to the entire input
+stream, except for the last character;
+The range C<(-1, -1)> refer to substring which consists
+only of the last character;
+The range C<(-3, -1)> refers to the last 3 characters:
+The range C<(-3, -3)> refers to a substring consisting
+of only the third-to-last character;
+and so forth.
+
 =head2 Input strings
 
-Several methods allow locations and lengths to be specified
-as negative numbers.
-A negative location is a location counted
-from the end, so that -1 means location before the
-last character of the string,
--2 the location before the second to last character of a string, etc.
-A negative length indicates a distance to a location
-counted from the end.
-A length of -1 indicates the distance to the end of the string,
--2 indicates the distance to the location just before
-the last character
-of the string,
-etc.
-
-For example, suppose that we are dealing with input stream locations.
-The span (C<0, -1>) is the entire input stream.
-The span (C<-1, -1>) is the
-last character of input stream.
-The span (C<-2, -1>) is the
-last two characters of the input stream.
-The span (C<-2, 1>) is the 
-second to last character of the input stream.
-
-=head1 How internal scanning works
+The virtual input stream is a series of input strings.
+An input string is a substring
+of the physical input stream.
+By default the virtual input stream consists of
+exactly one input string,
+one which begins at location 0 in the physical input stream
+and whose length is the length of the physical input stream.
 
 The SLIF always starts scanning using the L<C<read()>|/"read()">
-method.
+method, and
+the first input string is specified, implicitly or explicitly,
+by the L<C<read()>|/"read()"> method.
+
 Pedantically, this means scanning always begins with a phase
 of internal scanning.
 But that first phase may be of zero length,
