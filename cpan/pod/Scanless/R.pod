@@ -165,6 +165,9 @@ The range C<(-3, -1)> refers to the last 3 characters:
 The range C<(-3, -3)> refers to a substring consisting
 of only the third-to-last character;
 and so forth.
+A span with
+a negative length is interpreted as if it was the range
+with that same pair of values.
 
 =head1 Internal scanning
 
@@ -194,91 +197,35 @@ The L<C<read()>|/"read()"> method sets the input stream,
 and that input stream is the one used by all L<C<resume()>|/"resume()"> method calls
 for that recognizer.
 
-In what follows, the term "internal scanning method"
-refers to either the L<C<read()>|/"read()"> or the L<C<resume()>|/"resume()"> method.
-After an internal scanning method,
-the current location will indicate how far
-in the input stream the internal scanning method actually read.
-If the internal scanning method paused before EOS,
-the current
-location will be the one at which it paused.
-If the internal scanning method pauses at EOS,
-the current location will be EOS.
 The return value of the L<C<read()>|/"read()"> and the L<C<resume()>|/"resume()"> method is
 the current location.
 
-=head2 EOS
+=head1 External scanning
 
-The location of EOS depends on the
-C<$start> and C<$length> arguments
-to the last
-internal scanning method,
-and on the length of the input string.
+External scanning is usually performed by reading lexemes using the 
+L<C<< $slr->lexeme_read() >> method|/"lexeme_read()">, which
+allows the reading of unambiguous lexemes.
+If ambiguous lexemes are needed, then
+the L<C<< $slr->lexeme_alternative() >>|/"lexeme_alternative()"> and
+L<C<< $slr->lexeme_complete() >>|/"lexeme_complete()"> methods can be used.
 
-=over 4
+Scanning must always being with a 
+initial call to the L<C<read()>|/"read()"> method,
+so that, in a pedantic sense, scanning always begins with internal scanning.
+But the first input string may be zero length:
 
-=item *
+=for Marpa::R2::Display
+name: SLIF external read example
+partial: 1
+normalize-whitespace: 1
 
-If the C<$length> argument of the last internal scanning method was
-non-negative,
-EOS will be at C<$start+$length>.
+    $recce->read( \$string, 0, 0 );
 
-=item *
+=for Marpa::R2::Display::End
 
-If the C<$length> argument was negative,
-EOS will be at
-C<$length + 1 + length $input_string>.
+and there is no requirement that internal scanning ever be resumed.
 
-=item *
-
-The default length for the internal scanning methods is always -1,
-so that the default EOS is always at
-C<length $input_string>,
-the end of the input string.
-
-=back
-
-=head2 Pauses in internal scanning
-
-When a L<C<read()>|/"read()"> and the L<C<resume()>|/"resume()"> method pauses,
-one of more of the following occurred.
-
-=over 4
-
-=item * A named event
-
-One or more named events may have triggered.
-Named events are
-created by
-L<named event statements|Marpa::R2::Scanless::DSL/"Named event statement">.
-They can also be created by
-L<lexeme pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rules">.
-Named events may be queried using
-L<the events() method()|/"events()">.
-
-=item * A unnamed lexeme pause event
-
-A lexeme pause that is not a named event may have triggered.
-Lexeme pauses are created by
-L<lexeme pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rules">.
-Applications can always name lexeme pause events, using the
-L<event adverb|Marpa::R2::Scanless::DSL/"event">,
-and are strongly encouraged to do so.
-If all lexeme pauses are named,
-the check for unnamed events can be omitted.
-The presence or absence of an unnamed lexeme pause event
-may be checked for using
-L<the lexeme_pause() method|/"lexeme_pause()">.
-
-=item * EOS
-
-EOS may have been reached.
-This may be checked for by comparing the current location
-with the expected EOS.
-
-=back
-
-=head1 The input stream
+=head2 External lexemes and the input stream
 
 For error message and other purposes,
 even external lexemes are required to correspond to a span of the input stream.
