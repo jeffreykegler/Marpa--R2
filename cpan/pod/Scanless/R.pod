@@ -67,8 +67,6 @@ normalize-whitespace: 1
 This page is the reference document for the recognizer objects
 of Marpa's SLIF (Scanless interface).
 
-=head1 Internal and external scanning
-
 The Scanless interface is so-called because
 it does not require the application to supply a scanner (lexer).
 The SLIF contains its own lexer,
@@ -90,7 +88,7 @@ external scanning to supplement internal
 scanning,
 or to replace the SLIF's internal scanner entirely.
 
-=head1 Input stream locations
+=head1 The input stream
 
 The recognizer reads a virtual input stream.
 By default, this
@@ -100,6 +98,16 @@ a Perl string passed as the first argument
 to the L< C<< $slr->read() >> method|/read()> method.
 Once set by the C<read()> method, the physical input
 stream cannot be changed.
+
+Physical input stream location is simply Perl C<pos()> location
+in the physical input string.
+In this document,
+the phrase "input stream location" and
+the word "location" refer
+to physical input stream location,
+unless otherwise specified.
+Physical input stream location may be zero,
+but is never negative.
 
 Virtual input streams complicate the idea of parse
 location,
@@ -116,37 +124,31 @@ backward and forward in the input stream,
 as well as to
 read sections of the physical input stream repeatedly.
 
-Physical input stream location is simply Perl C<pos()> location
-in the physical input string.
-In this document,
-the phrase "input stream location" and
-the word "location" refer
-to physical input stream location,
-unless otherwise specified.
-Physical input stream location may be zero,
-but is never negative.
-
 =head2 Spans and ranges
 
-In this document, we will refer to ordered sets of
+Input stream locations are ordered sets,
+which can be represented as integers from 0 to I<N> for some
+I<N>.
+I<N+1> is the stream length.
+In this document, we will refer to ordered subsets of
 contiguous locations as either B<ranges> or B<spans>.
 A range is an ordered set of contiguous locations
 specified by start location and end location:
-I<(S, E)>.
+I<[S ... E]>.
 A span is an ordered set of contiguous locations
 specified by start location and length:
-I<(S, L)>.
+I<[S ... L]>.
 The range corresponding to the span
-I<(S, L)> is I<(S, (S+L)-1)>.
+I<[S ... L]> is I<[S ... (S+L)-1]>.
 The span corresponding to the range
-I<(S, E)> is I<(S, (S-E)+1)>.
+I<[S ... E]> is I<[S ... (S-E)+1]>.
 In general, spans are more convenient for programming.
 But ranges allow the end location to be determined
 without mental arithmetic, which is convenient for
 discussions in which
 fenchpost issues are important.
 
-Negative numbers
+Negative locations
 refer to a locations relative
 to the end of some larger set, so that
 -1 refers to the last location of the larger set,
@@ -164,7 +166,7 @@ The range C<(-3, -3)> refers to a substring consisting
 of only the third-to-last character;
 and so forth.
 
-=head2 Input strings
+=head1 Internal scanning
 
 The virtual input stream is a series of input strings.
 An input string is a substring
@@ -301,6 +303,11 @@ C<< $slr->lexeme_read($symbol_name, 0, 7, $value) >>.
 
 In addition to input stream location,
 the SLIF also tracks G1 location.
+G1 locations run from 0 to I<N> and the conventions
+and notation
+for numbering them and describing G1 spans and ranges
+are the same as for input stream locations.
+
 G1 location can be ignored most of the time,
 but it does become relevant to a small degree
 when dealing
@@ -333,72 +340,96 @@ it will contain a pair of G1 locations: G1 location 42 and G1 location 43.
 It is sometimes
 useful to find the literal substring of the input which corresponds to a span
 of G1 locations.
-If an application reads the input monotonically within the G1 span
+If an application reads the physical stream in sequence within the G1 span
 this presents no complications.
+For dealing with more complcated cases, the exact rules are described in
+this section.
 
-More precisely,
-let I<X> and I<Y> are a pair of G1 locations.
-Let I<Xs> be the first physical input stream location for I<X>
-and let I<Xe> be the last physical input stream location for I<X>.
-(The length of the G1 in physical input stream terms would then
-be I<Xs - Xe + 1>.)
-Also,
-let I<Ys> and I<Ye> be, respectively,
-the first and last physical input stream location for I<Y>.
+Except for G1 location zero,
+every G1 location I<X> corresponds to a range in the physical
+input stream.
+We'll call the physical input stream range that corresponds to
+G1 location I<X>, I<[s(X) ... e(X)]>.
+The length of the G1 span in physical input stream terms would then
+be I<(e(X) - s(X)) + 1>.
 It will always be the case that
-It will always be the case that
-I<< Xs <= Xe >> and
-I<< Ys <= Ye >>.
+I<< s(X) <= e(X) >>.
 
-"Monotonically" here means that,
-if I<< X < Y >>,
-then I<< Xe < Ys >>.
-Reading the input monotonically is the default,
-and by far the most common,
-case.
-
-But it is also possible,
-using the notation of the preceding example,
-that I<< Ye < Xs >>,
-in which case the range of physical input stream locations,
-from the G1 location point of view,
-runs backwards.
-It is also possible
-that I<< Ys < Xe >>
-and I<< Xs < Ye >>
-in which case the physical input stream
-locations for
-G1 locations I<X> and I<Y> would overlap.
-
-When physical input stream locations run backwards
-or overlap,
-it present great difficult for those routines
-which try to translate G1 locations into literals.
-To describe how the SLIF turns a span of G1 locations
-into a literal,
-I will again use the notation above,
-and consider a G1 range from I<X> to I<Y>.
-In the more usual C<start, length> notation,
-this span would be I<X, Y-X+1>.
+In mapping ranges of G1 locations to ranges of physical
+input stream locations, there are several complications:
 
 =over 4
 
 =item *
 
-If I<< Xe < Ys >>,
-the literal returned is the range I<Xs, Ye>,
-which is the span I<Xs, Ye-Xs+1>.
+There is a fencepost versus interval issue:
+Physical input stream locations correspond to characters,
+but G1 locations after locations before and after characters.
 
 =item *
 
-If I<< Xe >= Ys >>,
-the zero-length string is returned.
+Both kinds of locations are zero-based,
+but G1 location 0 does not corresponds to a range in
+the physical input stream.
+
+=item *
+
+Scanning is allowed to skip backward and forward,
+so the mapping of G1 location to physical stream locations
+is not necessarily monotonic.
+That is, if I<X> and I<Y> are G1 locations
+such that I<<X < Y>>
+it is still possible that
+I<< e(X) > s(Y) >> or,
+for that matter, that
+I<< s(X) > e(Y) >>.
+
+=item *
+
+Repeated scanning of the same physical input stream locations
+is allowed, as well as overlaps.
+For example, if I<X> and I<Y> are G1 locations,
+it is possible that
+I<< s(X) < s(Y) < e(X) < e(Y) >>.
+
+=item *
+
+Even when there is a monotonic function from G1 location to physical
+input stream span,
+there will usually be gaps.
+For example, applications usually discard whitespace.
+This means that if I<W> is the physical input stream location of
+a whitespace character,
+there will be no G1 location I<Z> such that
+I<s(Z) <= W <= e(Z)>.
 
 =back
 
-For
-applications which read monotonically,
-the above will be exactly what is wanted.
+To cope with these situations,
+the following rules are used when
+translating G1 locations into literal substrings
+of the physical input stream.
+
+=over 4
+
+=item *
+
+If I<[X ... Y]> is a G1 range,
+and
+I<< s(X) < e(Y) >>,
+the literal will be
+substring made of the characters in the
+physical input stream range I<[s(X) ... e(Y)]>.
+
+=item *
+
+If I<< s(X) >= e(Y) >>,
+the literal will be the empty string.
+
+=back
+
+For applications which read the physical input stream in lexical order,
+the above rules will work as expected.
 For some
 applications which do not read monotonically,
 the above may be "close enough".
