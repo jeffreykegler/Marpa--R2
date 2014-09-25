@@ -99,7 +99,8 @@ to the L< C<< $slr->read() >> method|/read()> method.
 Once set by the C<read()> method, the physical input
 stream cannot be changed.
 
-Physical input stream location is simply Perl C<pos()> location
+Physical input stream location is simply
+the Perl C<pos()> location
 in the physical input string.
 In this document,
 the phrase "input stream location" and
@@ -126,10 +127,10 @@ read sections of the physical input stream repeatedly.
 
 =head2 Spans and ranges
 
-Input stream locations are ordered sets,
-which can be represented as integers from 0 to I<N> for some
-I<N>.
-I<N+1> is the stream length.
+Input streams are ordered sets of characters,
+and the locations in them are
+represented as the integers from 0 to I<N>,
+where I<N> is the size of the set.
 In this document, we will refer to ordered subsets of
 contiguous locations as either B<ranges> or B<spans>.
 A range is an ordered set of contiguous locations
@@ -137,16 +138,16 @@ specified by start location and end location:
 I<[S ... E]>.
 A span is an ordered set of contiguous locations
 specified by start location and length:
-I<[S ... L]>.
+I<[S, L]>.
 The range corresponding to the span
-I<[S ... L]> is I<[S ... (S+L)-1]>.
+I<[S, L]> is I<[S ... (S+L)-1]>.
 The span corresponding to the range
-I<[S ... E]> is I<[S ... (S-E)+1]>.
+I<[S ... E]> is I<[S, (S-E)+1]>.
 In general, spans are more convenient for programming.
 But ranges allow the end location to be determined
-without mental arithmetic, which is convenient for
-discussions in which
-fenchpost issues are important.
+without mental arithmetic,
+a discussion in terms of ranges is easier to follow
+when fencepost issues are important.
 
 Negative locations
 refer to a locations relative
@@ -155,18 +156,19 @@ to the end of some larger set, so that
 -2 refers to the second-to-last location of the larger set,
 etc.
 As examples, when talking about substrings of the
-physical input stream, the range C<(0, -1)>
+physical input stream, the range C<[0 ... -1]>
 refers to the entire input stream;
-The range C<(0, -2)> refer to the entire input
+The range C[0 ... -2]> refer to the entire input
 stream, except for the last character;
-The range C<(-1, -1)> refer to substring which consists
+The range C<[-1 ... -1]> refer to substring which consists
 only of the last character;
-The range C<(-3, -1)> refers to the last 3 characters:
-The range C<(-3, -3)> refers to a substring consisting
+The range C<[-3 ... -1]> refers to the last 3 characters:
+The range C<[-3 ... -3]> refers to a substring consisting
 of only the third-to-last character;
 and so forth.
 A span with
-a negative length is interpreted as if it was the range
+a negative length
+is interpreted as if it was the range
 with that same pair of values.
 
 =head1 Internal scanning
@@ -183,22 +185,52 @@ The SLIF always starts scanning using the L<C<read()>|/"read()">
 method, and
 the first input string is specified, implicitly or explicitly,
 by the L<C<read()>|/"read()"> method.
+When not specified, the
+input string
+for C<read()> defaults to the range I<[0 ... -1]>.
 
-Pedantically, this means scanning always begins with a phase
-of internal scanning.
-But that first phase may be of zero length,
-and after that,
-internal scanning does not have to be resumed.
+L<C<read()>|/"read()"> will return success when it reaches the end of its
+input string, or when a SLIF parse event triggers.
+(Parse events are described in L<a separate
+document|Marpa::R2::Event>.)
+In many cases there are no parse events declared,
+or none trigger,
+so that,
+unless the parse fails.
+C<read()> will read to the end of string,
+leaving the recognizer ready to produce a parse value
+using the L<C<< $slr->value >> method|/"value()">.
 
-Internal scanning can be resumed with the L<C<resume()>|/"resume()"> method.
-Both the L<C<read()>|/"read()"> and L<C<resume()>|/"resume()"> methods require the application
-to specify a span in the input stream.
-The L<C<read()>|/"read()"> method sets the input stream,
-and that input stream is the one used by all L<C<resume()>|/"resume()"> method calls
-for that recognizer.
+The SLIF tracks a C<current location> in the physical input stream.
+On return from 
+the C<read()> method,
+current location will depend on the reason for the return.
+If an event triggered, the current location will be
+the trigger location;
+otherwise the current location will be at the end of the
+physical input stream.
 
-The return value of the L<C<read()>|/"read()"> and the L<C<resume()>|/"resume()"> method is
-the current location.
+The C<read()> method may only be called once for a recognizer,
+but internal scanning can be resumed with the L<C<resume()>|/"resume()"> method.
+The C<resume()> method will use the physical input stream specified
+to the C<read()> method, but uses an new input string,
+which may be specified explicitly or implicitly.
+By default, the new input string runs from the current location
+to the end of the physical input stream.
+
+On successful return from the 
+L<C<resume()>|/"resume()"> method,
+the current location is set in the same way as it for the
+L<C<read()>|/"read()"> method:
+The trigger location, if an event triggered;
+otherwise, the end of string.
+The L<C<resume()>|/"resume()"> method may be called repeatedly,
+until the application considers the virtual input stream 
+complete.
+More details are in the reference descriptions
+of the
+L<C<read()>|/"read()"> and
+L<C<resume()>|/"resume()"> methods, below.
 
 =head1 External scanning
 
