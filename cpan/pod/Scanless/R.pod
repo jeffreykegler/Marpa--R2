@@ -95,7 +95,7 @@ By default, this
 is identical to a physical input stream.
 The physical input stream is
 a Perl string passed as the first argument
-to the L< C<< $slr->read() >> method|/read()> method.
+to the L<C<< $slr->read() >> method|/read()> method.
 Once set by the C<read()> method, the physical input
 stream cannot be changed.
 
@@ -331,8 +331,21 @@ We'll call the physical input stream range that corresponds to
 G1 location I<X>, I<[s(X) ... e(X)]>.
 The length of the G1 span in physical input stream terms would then
 be I<(e(X) - s(X)) + 1>.
+
+Only two things are guaranteed about I<s(X)> and I<e(X)> as
+a function of I<X>:
+
+=over 4
+
+=item *
+
+I<s(X)> and I<e(X)> are not defined when I<X> is zero.
+
+=item *
 It will always be the case that
 I<< s(X) <= e(X) >>.
+
+=back
 
 In mapping ranges of G1 locations to ranges of physical
 input stream locations, there are several complications:
@@ -356,11 +369,9 @@ the physical input stream.
 Scanning is allowed to skip backward and forward,
 so the mapping of G1 location to physical stream locations
 is not necessarily monotonic.
-That is, if I<X> and I<Y> are G1 locations
+For example, if I<X> and I<Y> are G1 locations
 such that I<<X < Y>>
-it is still possible that
-I<< e(X) > s(Y) >> or,
-for that matter, that
+it is possible that
 I<< s(X) > e(Y) >>.
 
 =item *
@@ -376,11 +387,11 @@ I<< s(X) < s(Y) < e(X) < e(Y) >>.
 Even when there is a monotonic function from G1 location to physical
 input stream span,
 there will usually be gaps.
-For example, applications usually discard whitespace.
+For example, applications typically discard whitespace.
 This means that if I<W> is the physical input stream location of
 a whitespace character,
-there will be no G1 location I<Z> such that
-I<s(Z) <= W <= e(Z)>.
+there will be no G1 location I<X> such that
+I<< s(X) <= W <= e(X) >>.
 
 =back
 
