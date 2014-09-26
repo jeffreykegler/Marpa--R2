@@ -141,7 +141,7 @@ contiguous locations as either B<ranges> or B<spans>.
 
 A range is an ordered set of contiguous locations
 specified by start location and end location:
-I<[S ... E]>.
+[I<S ... E>].
 Negative locations
 refer to a locations relative
 to the end of some larger set, so that
@@ -166,11 +166,11 @@ and so forth.
 
 A span is an ordered set of contiguous locations
 specified by start location and length:
-I<[S, L]>.
+[I<S, L>].
 The range corresponding to the span
-I<[S, L]> is I<[S ... (S+L)-1]>.
+[I<S, L>] is [I<S ... (S+L)-1>].
 The span corresponding to the range
-I<[S ... E]> is I<[S, (S-E)+1]>.
+[I<S ... E>] is [I<S, (S-E)+1>].
 A span with
 a negative length
 is interpreted as if it was the range
@@ -232,7 +232,7 @@ the first input string is specified, implicitly or explicitly,
 by the L<C<read()>|/"read()"> method.
 When not specified, the
 input string
-for C<read()> defaults to the range I<[0 ... -1]>.
+for C<read()> defaults to the range [I<0 ... -1>].
 
 L<C<read()>|/"read()"> will return success when it reaches the end of its
 input string, or when a SLIF parse event triggers.
@@ -330,7 +330,14 @@ Form the physical input stream by prefixing these 7 character:
 "C<NO TEXT>".
 For example, if the natural text is "C<Hi! I am the real input>",
 then the physical input stream will be
-"C<NO TEXTHi! I am the real input>".
+
+=for Marpa::R2::Display
+ignore: 1
+
+    "NO TEXTHi! I am the real input"
+
+=for Marpa::R2::Display::End
+
 To read the natural text,
 the initial call to the L<C<read()>|/"read()"> method should be
 of the form
@@ -390,7 +397,7 @@ Except for G1 location zero,
 every G1 location I<X> corresponds to a range in the physical
 input stream.
 We'll call the physical input stream range that corresponds to
-G1 location I<X>, I<[s(X) ... e(X)]>.
+G1 location I<X>, [I<s(X) ... e(X)>].
 The length of the G1 span in physical input stream terms would then
 be I<(e(X) - s(X)) + 1>.
 
@@ -466,12 +473,12 @@ of the physical input stream.
 
 =item *
 
-If I<[X ... Y]> is a G1 range,
+If [I<X ... Y>] is a G1 range,
 and
 I<< s(X) < e(Y) >>,
 the literal will be
 substring made of the characters in the
-physical input stream range I<[s(X) ... e(Y)]>.
+physical input stream range [I<s(X) ... e(Y)>].
 
 =item *
 
