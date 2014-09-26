@@ -342,7 +342,7 @@ To read the natural text,
 the initial call to the L<C<read()>|/"read()"> method should be
 of the form
 C<< $slr->read($input_string, 7) >>.
-When externally reading a lexeme which has no real relationshipt
+When externally reading a lexeme which has no real relationship
 to the natural input,
 use a method call similar to
 C<< $slr->lexeme_read($symbol_name, 0, 7, $value) >>.
