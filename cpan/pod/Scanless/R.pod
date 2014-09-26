@@ -102,18 +102,24 @@ stream cannot be changed.
 Physical input stream location is simply
 the Perl C<pos()> location
 in the physical input string.
-In this document,
-the phrase "input stream location" and
-the word "location" refer
-to physical input stream location,
-unless otherwise specified.
 Physical input stream location may be zero,
 but is never negative.
+
+In this document,
+the phrase "input stream" and
+the word "stream",
+unless otherwise specified,
+refer to the physical input stream.
+The phrase "input stream location" and
+the word "location",
+unless otherwise specified,
+refer
+to physical input stream location,
 
 Virtual input streams complicate the idea of parse
 location,
 but they are essential for some applications.
-The C language's pre-processor instructions requires
+Implementing the C language's pre-processor directives require
 either two passes, or
 a virtual approach to the input.
 And Perl here-documents cannot be parsed correctly
@@ -121,11 +127,8 @@ by an application which insists on moving forward
 serially in the input.
 The
 SLIF allows applications to skip
-backward and forward in the input stream,
-as well as to
-read sections of the physical input stream repeatedly.
-
-=head2 Spans and ranges
+backward and forward in the physical input stream,
+and to read sections of the stream repeatedly.
 
 Input streams are ordered sets of characters,
 and the locations in them are
@@ -133,9 +136,34 @@ represented as the integers from 0 to I<N>,
 where I<N> is the size of the set.
 In this document, we will refer to ordered subsets of
 contiguous locations as either B<ranges> or B<spans>.
+
+=head1 Ranges
+
 A range is an ordered set of contiguous locations
 specified by start location and end location:
 I<[S ... E]>.
+Negative locations
+refer to a locations relative
+to the end of some larger set, so that
+-1 refers to the last location of the larger set,
+-2 refers to the second-to-last location of the larger set,
+etc.
+
+As examples, when talking about substrings of the
+physical input stream, the range C<[0 ... -1]>
+refers to the entire input stream;
+The range C<[0 ... -2]> refers to the entire input
+stream, except for the last character;
+the range C<[-1 ... -1]> refers to
+the substring which consists
+only of the last character;
+the range C<[-3 ... -1]> refers to the last 3 characters:
+the range C<[-3 ... -3]> refers to a substring consisting
+of only the third-to-last character;
+and so forth.
+
+=head1 Spans
+
 A span is an ordered set of contiguous locations
 specified by start location and length:
 I<[S, L]>.
@@ -143,33 +171,50 @@ The range corresponding to the span
 I<[S, L]> is I<[S ... (S+L)-1]>.
 The span corresponding to the range
 I<[S ... E]> is I<[S, (S-E)+1]>.
-In general, spans are more convenient for programming.
-But ranges allow the end location to be determined
-without mental arithmetic,
-a discussion in terms of ranges is easier to follow
-when fencepost issues are important.
-
-Negative locations
-refer to a locations relative
-to the end of some larger set, so that
--1 refers to the last location of the larger set,
--2 refers to the second-to-last location of the larger set,
-etc.
-As examples, when talking about substrings of the
-physical input stream, the range C<[0 ... -1]>
-refers to the entire input stream;
-The range C[0 ... -2]> refer to the entire input
-stream, except for the last character;
-The range C<[-1 ... -1]> refer to substring which consists
-only of the last character;
-The range C<[-3 ... -1]> refers to the last 3 characters:
-The range C<[-3 ... -3]> refers to a substring consisting
-of only the third-to-last character;
-and so forth.
 A span with
 a negative length
 is interpreted as if it was the range
 with that same pair of values.
+
+In general, spans are more convenient for programming.
+But when fence post issues are important,
+spans require a lot of mental arithmetic,
+and a discussion that uses ranges is easier to follow.
+
+As examples,
+
+=over
+
+=item *
+
+The entire input stream is the range C<[0 ... -1]>
+and the span C<[0, -1]>.
+
+=item *
+
+The entire input stream, except for the last character,
+is the range C<[0 ... -2]>
+and the span C<[0, -2]>.
+
+=item *
+
+The substring consisting only of the last character is
+the range C<[-1 ... -1]> and the span C<[-1, 1]>.
+
+=item *
+
+The substring which consists of the last 3 characters is
+the range C<[-3 ... -1]>
+and the span C<[-3,  3]>.
+
+=item *
+
+The substring which consists
+of only the third-to-last character
+is the range C<[-3 ... -3]>
+and the span C<[-3, 1]>.
+
+=back
 
 =head1 Internal scanning
 
@@ -194,10 +239,10 @@ input string, or when a SLIF parse event triggers.
 (Parse events are described in L<a separate
 document|Marpa::R2::Event>.)
 In many cases there are no parse events declared,
-or none trigger,
-so that,
-unless the parse fails.
-C<read()> will read to the end of string,
+or none trigger.
+If no parse event triggers
+and the parse does not fail,
+then C<read()> will read to the end of string,
 leaving the recognizer ready to produce a parse value
 using the L<C<< $slr->value >> method|/"value()">.
 
@@ -212,7 +257,7 @@ physical input stream.
 
 The C<read()> method may only be called once for a recognizer,
 but internal scanning can be resumed with the L<C<resume()>|/"resume()"> method.
-The C<resume()> method will use the physical input stream specified
+The C<resume()> method use the same physical input stream that was specified
 to the C<read()> method, but uses an new input string,
 which may be specified explicitly or implicitly.
 By default, the new input string runs from the current location
@@ -222,7 +267,7 @@ On successful return from the
 L<C<resume()>|/"resume()"> method,
 the current location is set in the same way as it for the
 L<C<read()>|/"read()"> method:
-The trigger location, if an event triggered;
+the trigger location, if an event triggered;
 otherwise, the end of string.
 The L<C<resume()>|/"resume()"> method may be called repeatedly,
 until the application considers the virtual input stream 
@@ -231,6 +276,17 @@ More details are in the reference descriptions
 of the
 L<C<read()>|/"read()"> and
 L<C<resume()>|/"resume()"> methods, below.
+
+When the application considers input complete,
+and is ready to produced a parse value,
+the L<C<< $slr->value >> method|/"value()"> method
+is used.
+In most cases, this is all that is needed,
+but Marpa also repeated passes over the same input
+with different settings.
+More details on the semantics are provided in
+L<a separate document|Marpa::R2::Semantics>.
+
 
 =head1 External scanning
 
@@ -265,17 +321,23 @@ An external scanner
 must set up a relationship to the input stream,
 even if that relationship is completely artificial.
 
-One way to do this is to put an artificial preamble in front of
-the input stream.
-For example, the first 7 characters of the input stream could be
-a preamble containing the characters "C<NO TEXT>".
-This preamble could be immediately followed by what is seen as the text
-from a more natural point of view.
-In this case, the initial call to the L<C<read()>|/"read()"> method
-could take the form
+Here is
+one very general way to deal with external lexemes
+which have no natural mapping into
+the physical input stream.
+Call what would ordinarily be the input string, the "natural input".
+Form the physical input stream by prefixing these 7 character:
+"C<NO TEXT>".
+For example, if the natural text is "C<Hi! I am the real input>",
+then the physical input stream will be
+"C<NO TEXTHi! I am the real input>".
+To read the natural text,
+the initial call to the L<C<read()>|/"read()"> method should be
+of the form
 C<< $slr->read($input_string, 7) >>.
-Lexemes corresponding to the artificial preamble would be read
-using a method call similar to
+When externally reading a lexeme which has no real relationshipt
+to the natural input,
+use a method call similar to
 C<< $slr->lexeme_read($symbol_name, 0, 7, $value) >>.
 
 =head1 G1 locations
