@@ -357,26 +357,23 @@ for numbering them and describing G1 spans and ranges
 are the same as for input stream locations.
 
 G1 location can be ignored most of the time,
-but it does become relevant to a small degree
-when dealing
-with ambiguous terminals,
-and to a greater degree when tracing the G1 grammar.
+but it does become relevant
+when tracing the G1 grammar,
+and when dealing with ambiguous terminals,
 (For those more familiar with Marpa's internals,
 the G1 location is the G1 Earley set index.)
 
+Because lexemes may be ambiguous,
+a set of lexemes is read at a single G1 location.
+If a lexeme is unambiguous,
+its set will contain exactly one lexeme.
 G1 location can be thought of
-as location in terms of lexemes,
-with the first set of lexemes.
-(I speak of lexemes being read in "sets",
-because lexemes may be ambiguous.
-Most "sets" of lexemes will contain exactly one lexeme.)
+as location in terms of sets of lexemes,
+with the first set of lexemes being at G1 location 1.
 
-As each new set of lexemes is read
+As each new set of lexemes is read,
 G1 location 
 increases by one.
-Most often,
-G1 location will not be the same
-as the physical input stream location.
 B<G1 length>
 is length calculated in terms of G1 locations.
 For example, if a span of G1 locations which begin at G1 location
@@ -386,11 +383,12 @@ it will contain a pair of G1 locations: G1 location 42 and G1 location 43.
 =head2 Literals and G1 spans
 
 It is sometimes
-useful to find the literal substring of the input which corresponds to a span
+useful to find the literal substring
+of the physical input stream which corresponds to a span
 of G1 locations.
 If an application reads the physical stream in sequence within the G1 span
 this presents no complications.
-For dealing with more complcated cases, the exact rules are described in
+For more complcated cases, the exact rules are described in
 this section.
 
 Except for G1 location zero,
@@ -424,8 +422,8 @@ input stream locations, there are several complications:
 =item *
 
 There is a fencepost versus interval issue:
-Physical input stream locations correspond to characters,
-but G1 locations after locations before and after characters.
+physical input stream locations correspond to characters,
+but G1 locations are locations before and after characters.
 
 =item *
 
@@ -439,7 +437,7 @@ Scanning is allowed to skip backward and forward,
 so the mapping of G1 location to physical stream locations
 is not necessarily monotonic.
 For example, if I<X> and I<Y> are G1 locations
-such that I<<X < Y>>
+such that I<< X < Y >>,
 it is possible that
 I<< s(X) > e(Y) >>.
 
@@ -488,12 +486,12 @@ the literal will be the empty string.
 =back
 
 For applications which read the physical input stream in lexical order,
+without skipping forward,
 the above rules will work as expected.
-For some
-applications which do not read monotonically,
+For other applications,
 the above may be "close enough".
-Other non-monotonic applications
-may need to use custom logic to reassemble the input
+But some applications
+may want to use custom logic to reassemble the input
 from the physical input stream.
 The L</"literal()"> method can assist in this process.
 
@@ -509,11 +507,24 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<new()> method is the constructor for SLIF recognizers.
-The C<new()> constructor accepts a hash of named arguments.
-The L<C<grammar>|/"grammar"> named argument is required.
+The C<new()> constructor accepts a hash of named arguments,
+which are recognizer settings.
+The L<C<grammar>|/"grammar"> recognizer setting is required.
+For more on recognizer settings,
+see
+L<the section describing them|/"Recognizer settings">.
 All other named arguments are optional.
 
-The following named arguments are allowed:
+=head1 Recognizer settings
+
+A B<recognizer setting> is a named argument.
+Recognizer settings are accepted as named arguments
+by the
+L<C<new()>|/"Constructor">,
+L<C<set()>|/"set()"> and
+L<C<series_restart()>|"series_restart()"> methods.
+Not every method accepts all recognizer settings.
+The details are given below, by setting.
 
 =head2 end
 
@@ -528,10 +539,14 @@ once a parse series has begun.
 
 =head2 grammar
 
-The C<new> method is required to have
-a C<grammar> named argument.  Its
-value must be
+The value of the C<grammar> setting must be
 an SLIF grammar object.
+The C<new()> method is required to have
+a C<grammar> named argument.
+The C<grammar> named argument is not allowed
+by any other method.
+Once the recognizer is created, the grammar cannot be
+changed.
 
 =head2 max_parses
 
