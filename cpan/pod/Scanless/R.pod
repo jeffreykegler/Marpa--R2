@@ -510,41 +510,43 @@ The C<new()> method is the constructor for SLIF recognizers.
 The C<new()> constructor accepts a hash of named arguments,
 which are recognizer settings.
 The L<C<grammar>|/"grammar"> recognizer setting is required.
+All other recognizer settings are optional.
 For more on recognizer settings,
 see
 L<the section describing them|/"Recognizer settings">.
-All other named arguments are optional.
 
 =head1 Recognizer settings
 
-A B<recognizer setting> is a named argument.
-Recognizer settings are accepted as named arguments
-by the
-L<C<new()>|/"Constructor">,
+The B<recognizer settings> are the named arguments
+accepted by
+The B<recognizer setting-aware methods>
+are
+the L<C<new()>|/"Constructor">,
 L<C<set()>|/"set()"> and
 L<C<series_restart()>|"series_restart()"> methods.
-Not every method accepts all recognizer settings.
+Not every recognizer setting-aware method accepts all of the settings.
 The details are given below, by setting.
 
 =head2 end
 
-Most users will want to ignore this argument.
-It is an advanced argument, mainly for use in testing.
-The L<C<end>|/"end"> named argument
+Most users will not need this setting.
+It is an advanced argument.
+The L<C<end>|/"end"> setting
 specifies the parse end, as a G1 location.
 The default is for the parse to end where the input did,
-so that the parse returned is of the entire input.
-The L<C<end>|/"end"> named argument is not allowed
-once a parse series has begun.
+so that the parse returned is of the entire virtual input stream.
+The L<C<end>|/"end"> setting is only allowed in
+the L<C<new()>|/"Constructor">,
+and L<C<series_restart()>|"series_restart()"> methods.
 
 =head2 grammar
 
 The value of the C<grammar> setting must be
 an SLIF grammar object.
 The C<new()> method is required to have
-a C<grammar> named argument.
-The C<grammar> named argument is not allowed
-by any other method.
+a C<grammar> setting.
+The C<grammar> setting is only allowed
+the L<C<new() method>|/"Constructor">.
 Once the recognizer is created, the grammar cannot be
 changed.
 
@@ -565,6 +567,8 @@ If it is zero, there will be no
 limit on the number of parse results returned.
 The default is for
 there to be no limit.
+The C<max_parses> setting is valid in all
+call of the recognizer setting-aware methods.
 
 =head2 ranking_method
 
@@ -575,8 +579,6 @@ or "C<high_rule_only>".
 When the value is "C<none>", Marpa returns the parse results
 in arbitrary order.
 This is the default.
-The C<ranking_method> named argument is not allowed
-once evaluation has begun.
 
 The "C<rule>"
 and "C<high_rule_only>" ranking methods
@@ -588,10 +590,24 @@ and to exclude some parse results from the parse series.
 For details, see L<the document
 on parse order|Marpa::R2::Semantics::Order>.
 
+The C<ranking_method> setting is not allowed
+once evaluation of the current parse series has begun.
+Specifically,
+The L<C<ranking_method>|/"ranking"> setting is always allowed in
+the L<C<new()>|/"Constructor">,
+and L<C<series_restart()>|"series_restart()"> methods,
+because they initialize a new parse series.
+And, in a parse series,
+the L<C<ranking_method>|/"ranking"> setting is allowed in
+calls of the
+L<C<< $slr->set() >>|"set()"> method,
+until the first call of the
+L<C<< $slr->value() >>|"value()"> method.
+
 =head2 semantics_package
 
 Sets the semantic package for the recognizer.
-The setting of this argument takes precedence
+This setting takes precedence
 over any package implied by the blessing of the per-parse arguments to
 the SLIF recognizer's C<value()> method.
 The semantics package is used when resolving action names to
@@ -600,9 +616,15 @@ For more details on the SLIF semantics,
 see the L<document on SLIF
 semantics|Marpa::R2::Semantics>.
 
+The L<C<semantics_package>|/"semantics_package"> setting is only allowed in
+when a new parse series is begin,
+That is, it is only allowed in calls
+of the L<C<new()>|/"Constructor">,
+and L<C<series_restart()>|"series_restart()"> methods.
+
 =head2 too_many_earley_items
 
-The C<too_many_earley_items> argument is optional,
+The C<too_many_earley_items> setting is optional,
 and very few applications will need it.
 If specified, it sets the B<Earley item warning threshold> to
 a value other than its default.
@@ -616,9 +638,6 @@ Marpa parses from any BNF,
 and can handle grammars and inputs which produce very large
 Earley sets.
 But parsing that involves very large Earley sets can be slow.
-Large Earley sets
-are something most applications can,
-and will wish to, avoid.
 
 By default, Marpa calculates
 an Earley item warning threshold
@@ -644,22 +663,30 @@ indicates a serious issue,
 and turning these warnings off will
 rarely be what an application wants.
 
+The C<too_many_earley_items> setting is allowed
+in any call of any of the recognizer setting-aware methods.
+
 =head2 trace_terminals
 
 If non-zero, traces the lexemes --
 those tokens passed from the L0 parser to
 the G1 parser.
-This named argument is the best way to follow
+This recognizer setting is the best way to follow
 what the L0 parser is doing,
 and it is also very helpful for tracing the G1 parser.
+The C<trace_terminals> setting is allowed
+in any call of any of the recognizer setting-aware methods.
 
 =head2 trace_values
 
-The trace_values named argument is a numeric trace level.  If the
+The value of the C<trace_values> setting is a numeric trace level.
+If the
 numeric trace level is 1, Marpa prints tracing information as values
 are computed in the evaluation stack.  A trace level of 0 turns
 value tracing off, which is the default. Traces are written to the
 trace file handle.
+The C<trace_values> setting is allowed
+in any call of any of the recognizer setting-aware methods.
 
 =head2 trace_file_handle
 
@@ -668,6 +695,8 @@ Trace output and warning messages
 go to the trace file handle.
 By default, the trace file handle is inherited from the
 grammar.
+The C<too_many_earley_items> setting is allowed
+in any call of any of the recognizer setting-aware methods.
 
 =head1 Basic mutators
 
