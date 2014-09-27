@@ -29,22 +29,22 @@ It contains a detailed discussion of parse exhaustion.
 At bottom, B<parse exhaustion> is a simple concept.
 The recognizer may reach a point where there is
 simply no way to continue successfully.
-Regardless of what comes it read next,
+Regardless of what it reads next,
 the parse will fail.
 When this happens, the parse is said to be B<exhausted>.
 
-Parse exhaustion has caused sopme confusion,
-which this document is intended to address.
+Parse exhaustion is sometimes confused with parse failure.
+But parse exhaustion is also sometimes confused with parse success.
+That is because,
+there can be a strong association either way,
+depending on the kind of application a user is most focused on.
 The problem is that there are two very different kinds of application:
-exhaustion-loving and exhaustion-hating,
-and both are very important.
-Many users are focused on one of these kinds and
-are either unaware of the the other kind,
-or see it as less relevant.
+exhaustion-loving and exhaustion-hating.
+B<Both> are very important.
 
 =head1 Hate and love
 
-In an exhaustion-hating application,
+In an B<exhaustion-hating> application,
 parse exhaustion is typically parse failure.
 C programs, Perl scripts and most programming languages
 are exhaustion-hating applications.
@@ -52,7 +52,7 @@ If a C program is well-formed,
 it is always possible to read more input.
 The same is true of a Perl program that does not have a C<__DATA__> section.
 
-In an exhaustion-loving applications
+In an B<exhaustion-loving> applications
 parse exhaustion comes with means parse success.
 An toy example of an exhaustion-loving
 application is the language consisting of balanced parentheses.
