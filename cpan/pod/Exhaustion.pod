@@ -35,7 +35,7 @@ When this happens, the parse is said to be B<exhausted>.
 
 Parse exhaustion is sometimes confused with parse failure.
 But parse exhaustion is also sometimes confused with parse success.
-That is because,
+That is because
 there can be a strong association either way,
 depending on the kind of application a user is most focused on.
 The problem is that there are two very different kinds of application:
@@ -81,9 +81,12 @@ and L<lexeme_read()|/"lexeme_read()">.
 These are also, and not by coincidence, the event-triggering methods.
 In this document, we will call them the B<reading methods>.
 
-These methods needs to treat exhaustion-hating and exhaustion-loving
+The reading methods needs
+to treat exhaustion-hating and exhaustion-loving
 languages equally.
-They also eed to handle the exhaustion-conflicted ones smoothly.
+They also need to handle the exhaustion-conflicted ones smoothly.
+
+=head1 What the SLIF does
 
 In this document, an B<exhaustion location> is
 a location at which parse exhaustion occurs.
@@ -109,36 +112,52 @@ and the return would be successful,
 parse exhaustion is ignored.
 The reading methods return successful when
 they trigger a L<SLIF parse event|/Marpa::R2::Event>,
-or when they are at the end of the current string.
+or when they are at the end of the current input string.
 
 =item *
 
-If the reading method fails for another reason,
+If parse exhaustion occurs at a location
+where the reading method fails for another reason,
 the parse exhaustion is treated as being of lesser
 importance,
 and the other failure overrides it.
 
 =back
 
-One consequence of this is that
+One consequence of this is that the two reading methods
+for external scannning,
 L<lexeme_complete()|/Marpa::R2::Scanless::R/"lexeme_complete()">,
-and L<lexeme_read()|/Marpa::R2::Scanless::R/"lexeme_read()">
+and L<lexeme_read()|/Marpa::R2::Scanless::R/"lexeme_read()">,
 always ignore
 parse exhaustion.
 This is because these methods
-never go on to read more input at
-a later location.
-For these methods,
-every exhaustion location is a return
+read input only at a single location,
+so that every exhaustion location is a return
 location.
+The reading methods for external scanning
+will never go on to read more input at
+a later location,
+which makes parse exhaustion inside them
+unproblematic.
 
 A second consequence is
 that in most cases it is not obvious whether parse
 exhaustion occurred or not.
 Below I will do a case-by-case analysis,
-showing that the parse exhaustion is usually either not 
-important,
-or about to become obvious in another way.
+showing that the parse exhaustion is usually
+
+=over 4
+
+=item *
+
+not important, or
+
+=item *
+
+about to become obvious in another way.
+
+=back
+
 Applications can directly query
 the parse exhaustion status
 with
@@ -166,7 +185,8 @@ It may happen that a application is exhaustion-hating but
 exhausts the parse at a return location.
 This will usually not be what was wanted,
 but the return value will give no indication of the problem.
-Typically, an application will get on and either try to evaluate the
+Typically, an application will continue processing,
+and either try to evaluate the
 parse,
 or to read more input.
 
@@ -185,28 +205,29 @@ L<check the exhaustion status explicitly|/"exhausted()">.
 
 =head2 Failures
 
-If
-the application is either exhaustion-loving or exhaustion-hating,
-and returns
-or throws a failure that occurs
+If an application
+returns or throws a failure that occurs
 at an exhaustion location,
 but for another reason,
 the other failure overrides.
+This is the case regardless of whether
+the application is exhaustion-loving or exhaustion-hating.
+
 A non-recoverable error
 makes parse exhaustion irrelevant.
 If the other error is recoverable,
 exhaustion status can be checked
 using the L<C<< $slr->exhausted() >> method|/"exhausted()">.
 
-=head2 Exhausted-hatin and continuing despite exhaustion
+=head2 Exhausted-hating and continuing despite exhaustion
 
 If the application is exhaustion-hating, but it is exhausted
 and the exhaustion location is not a return location,
 Marpa's SLIF throws a failure.
 Since the application would ordinarily
-go on read more input at a later location,
-something which is sure to fail,
-this is appropriate.
+go on to read more input at a later location,
+and that this is sure to fail,
+an exception is appropriate.
 
 =head2 Exhausted-loving and continuing despite exhaustion
 
@@ -223,17 +244,17 @@ do not know the length of their input in advance and
 as a specialized technique,
 try to use parse exhaustion to detect where the
 parse ends.
-see below on
+See below on
 L<exhaustion-sensitivity|/"Exhaustion-sensitive applications">.
-When it is desirable to use exhaustion as a signal
+When it is desirable to use exhaustion as a signal,
 the exception may be caught.
 
 =head1 Exhaustion-sensitve applications 
 
 Sometimes an application, rather than read
 an entire input,
-wants to find the longest occurrence starting from some point.
-(Lexers often work this way.)
+wants to find the longest occurrence starting at some location.
+(Lexers are typically applications of this kind.)
 Looking for exhaustion is one way to try to implement this
 kind of "longest acceptable input stream" search.
 
