@@ -53,24 +53,27 @@ it is always possible to read more input.
 The same is true of a Perl program that does not have a C<__DATA__> section.
 
 In an B<exhaustion-loving> applications
-parse exhaustion comes with means parse success.
+parse exhaustion means parse success.
 An toy example of an exhaustion-loving
 application is the language consisting of balanced parentheses.
 When the parentheses come into perfect balance the parse is exhausted,
 because any further input would unbalance the brackets.
 And the parse succeeds when the parentheses come into perfect balance.
-Any language which balances start and end indicators will be similar.
+Exhaustion means success.
+
+Any language which balances start and end indicators will be tend to
+be exhaustion-loving.
 HTML and XML, with their start and end tags, can be seen
 as exhaustion-loving languages.
-
-=head1 It's complicated
 
 For many languages, it's not strictly love or hate.
 I mentioned Perl's C<__DATA__> as a complication in a
 basically exhaustion-hating language.
 Most large practical languages will be some mix
 of exhaustion-loving and exhaustion-hating.
-We can call them exhaustion-conflicted.
+We can call them B<exhaustion-conflicted>.
+
+=head1 What the SLIF does
 
 The methods that may encounter parse exhaustion are the those
 that read input:
@@ -85,8 +88,6 @@ The reading methods needs
 to treat exhaustion-hating and exhaustion-loving
 languages equally.
 They also need to handle the exhaustion-conflicted ones smoothly.
-
-=head1 What the SLIF does
 
 In this document, an B<exhaustion location> is
 a location at which parse exhaustion occurs.
@@ -110,7 +111,7 @@ The failure is thrown as an exception.
 If parse exhaustion occurs at a return location,
 and the return would be successful,
 parse exhaustion is ignored.
-The reading methods return successful when
+The reading methods return success when
 they trigger a L<SLIF parse event|/Marpa::R2::Event>,
 or when they are at the end of the current input string.
 
@@ -118,7 +119,7 @@ or when they are at the end of the current input string.
 
 If parse exhaustion occurs at a location
 where the reading method fails for another reason,
-the parse exhaustion is treated as being of lesser
+the parse exhaustion is considered to be of lesser
 importance,
 and the other failure overrides it.
 
@@ -134,11 +135,6 @@ This is because these methods
 read input only at a single location,
 so that every exhaustion location is a return
 location.
-The reading methods for external scanning
-will never go on to read more input at
-a later location,
-which makes parse exhaustion inside them
-unproblematic.
 
 A second consequence is
 that in most cases it is not obvious whether parse
@@ -181,7 +177,7 @@ it can use the L<C<< $slr->exhausted() >> method|/"exhausted()">.
 
 =head2 Exhaustion-hating and successful
 
-It may happen that a application is exhaustion-hating but
+It may happen that an application is exhaustion-hating but
 exhausts the parse at a return location.
 This will usually not be what was wanted,
 but the return value will give no indication of the problem.
@@ -226,7 +222,7 @@ and the exhaustion location is not a return location,
 Marpa's SLIF throws a failure.
 Since the application would ordinarily
 go on to read more input at a later location,
-and that this is sure to fail,
+something which is certain to fail,
 an exception is appropriate.
 
 =head2 Exhausted-loving and continuing despite exhaustion
@@ -236,17 +232,20 @@ reading past the exhaustion location,
 Marpa throws an exception.
 Exhaustion-loving usually means that
 when exhaustion occurs,
-an application succeeds and is at the end of input,
-in which case throwing an exception is
+an application succeeds and is at the end of the parse.
+For attempts to read past the end of parse,
+throwing an exception is
 the right thing to do.
+
 But some exhaustion-loving applications
-do not know the length of their input in advance and
-as a specialized technique,
-try to use parse exhaustion to detect where the
+do not know where the end of parse is in advance.
+As a specialized technique,
+these applications
+may try to use parse exhaustion to detect where the
 parse ends.
 See below on
 L<exhaustion-sensitivity|/"Exhaustion-sensitive applications">.
-When it is desirable to use exhaustion as a signal,
+If it is desirable to use exhaustion to help find the end of parse,
 the exception may be caught.
 
 =head1 Exhaustion-sensitve applications 
@@ -264,6 +263,10 @@ to find the "longest parse".
 Exhaustion may not happen until after last successful parse --
 sometimes not until long after it.
 Completion parse events may be a cleaner way to deal with this.
+Applications which do want to use parse exhaustion as part of
+a strategy for finding the end of parse
+can catch the exception and
+L<check the exhaustion status explicitly|/"exhausted()">.
 
 =back
 
