@@ -297,7 +297,7 @@ If ambiguous lexemes are needed, then
 the L<C<< $slr->lexeme_alternative() >>|/"lexeme_alternative()"> and
 L<C<< $slr->lexeme_complete() >>|/"lexeme_complete()"> methods can be used.
 
-Scanning must always begin with an initial call 
+Scanning must always begin with a call 
 to the L<C<read()>|/"read()"> method,
 so that, in a pedantic sense, scanning always begins with internal scanning.
 But the first input string may be zero length:
