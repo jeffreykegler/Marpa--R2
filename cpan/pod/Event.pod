@@ -653,8 +653,8 @@ C<< <g2> >> are in one derivation,
 while C<< <g3> >> and
 C<< <g4> >> are in another,
 so that not just a parse tree,
-but a entire parse forest
-in nulled.
+but an entire parse forest
+is nulled.
 (This section usually speaks 
 of nulled forests because,
 pedantically, a nulled tree is a forest
