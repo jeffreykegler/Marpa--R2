@@ -12,3 +12,4 @@ nogit*
 *.exe
 cpan/pod/Event.pod~
 *.PL~
+*.pod~
