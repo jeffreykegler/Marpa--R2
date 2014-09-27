@@ -534,7 +534,7 @@ nulling symbols
 whose primary (or sole) purpose
 is to have nulling events declared for them.
 Markers are the only way to declare events that trigger in
-the middle of rule.
+the middle of a rule.
 
 =head2 Rules
 
