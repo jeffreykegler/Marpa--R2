@@ -334,7 +334,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-An post-lexeme event is a lexeme event.
+A post-lexeme event is a lexeme event.
 It triggers if the lexeme is scanned at the current location.
 The SLIF recognizer will have
 already read the lexeme
@@ -359,7 +359,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-An pre-lexeme event is a lexeme event.
+A pre-lexeme event is a lexeme event.
 It triggers if the lexeme is scanned at the current location.
 When a pre-lexeme event triggers,
 its event location
@@ -734,7 +734,7 @@ A nulled instance at location 23.
 
 =item 2
 
-An potential non-nulled instance, which may begin
+A potential non-nulled instance, which may begin
 at location 23.
 
 =item 3
