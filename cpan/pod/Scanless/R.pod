@@ -533,7 +533,7 @@ As I will show, Marpa will handle the needs of both kinds of users.
 
 The methods that may encounter parse exhaustion are the those
 that read input:
-L<read()|/"read()" >,
+L<read()|/"read()">,
 L<resume()|/"resume()">,
 L<lexeme_complete()|/"lexeme_complete()">,
 and L<lexeme_read()|/"lexeme_read()">.
