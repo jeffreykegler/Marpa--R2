@@ -213,33 +213,36 @@ this is appropriate.
 If the application is exhaustion-loving, but would continue
 reading past the exhaustion location,
 Marpa throws an exception.
-This is appropriate in most cases, because exhaustion-loving
-usually means that exhaustion should occur only at the
-end of input string.
-But, see below on
+Exhaustion-loving usually means that
+when exhaustion occurs,
+an application succeeds and is at the end of input,
+in which case throwing an exception is
+the right thing to do.
+But some exhaustion-loving applications
+do not know the length of their input in advance and
+as a specialized technique,
+try to use parse exhaustion to detect where the
+parse ends.
+see below on
 L<exhaustion-sensitivity|/"Exhaustion-sensitive applications">.
+When it is desirable to use exhaustion as a signal
+the exception may be caught.
 
 =head1 Exhaustion-sensitve applications 
 
-Exhaustion-loving usually means that an application
-succeeds and is at the end of input,
-when exhaustion occurs, so that this case does not arise.
-But there are exceptions.
 Sometimes an application, rather than read
 an entire input,
 wants to find the longest occurrence starting from some point.
 (Lexers often work this way.)
 Looking for exhaustion is one way to try to implement this
-kind of "longest acceptable input" search.
+kind of "longest acceptable input stream" search.
 
-Exhaustion-sensitivity is not necessarily the best way, or even
-a good way,
+Exhaustion-sensitivity is not necessarily the best way,
+or even a good way,
 to find the "longest parse".
-Exhaustion may not happen until after last successful parse,
-sometimes long after it.
+Exhaustion may not happen until after last successful parse --
+sometimes not until long after it.
 Completion parse events may be a cleaner way to deal with this.
-If it is desirable to use exhaustion to signal "end of parsing",
-the exception may be caught.
 
 =back
 
