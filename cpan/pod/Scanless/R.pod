@@ -744,55 +744,58 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Given a pointer to an input stream,
-C<read()> parses it according to the grammar.
+Given a pointer to a physical input stream and,
+optionally, a span specifying an input string within it,
+C<read()> parses input string according to the grammar.
+C<read()> returns successfully if it parses to the end
+of the input string,
+or if it triggers a SLIF parse event.
 Only a single call to C<read()>
 is allowed for a scanless
 recognizer.
 
+The first argument of C<read()> is a pointer to the physical
+input stream, which by default will also be the virtual input stream.
 C<read()> recognizes
-optional second and third arguments.
-The second argument is a location in the input stream
-at which internal scanning will start.
-The third argument is the length of the section
-of the input stream to be scanned before pausing.
+optional second and third arguments and treats them
+as a L<span/"Spans"> of the physical input stream.
+The second argument is the start location of the span,
+and the third argument is its length argument.
 The default start location is zero.
 The default length is -1.
-Negative locations and lengths have the standard
-interpretation, as L<described above|/"Negative locations">.
+Negative locations and lengths are 
+and intrepreted as L<described above|/"Spans">.
 
-Start location and length can both be zero.
-This pauses internal scanning immediately and can be
-used to hand complete control of scanning
-over to an external scanner.
-
-L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
-can occur during the C<read()> method.
-When a named event occurs, 
-the C<read()> method pauses.
-Named events can be queried using
-L<the Scanless recognizer's events()
-method|/"events()">.
-The C<read()> method also
-pauses as specified with the
-L<Scanless DSL's pause adverb|Marpa::R2::Scanless::DSL/"pause">.
+If a SLIF parse event occurs during the C<read()> method,
+the current location is set to the trigger location.
+SLIF parse events are described in detail in
+L<a separate document|Marpa::R2::Event>.
+If no SLIF parse event triggers,
+and the parse reaches the end of the input string without a
+failure,
+the current location is set to the end of the input string.
 
 A parse is said to be exhausted if, based on the input
 read so far, there is no way for it
 to continue successfully.
-Exhaustion is not a problem if that Marpa has read
-all the way to the end of the input,
-or if it is pausing for some other reason.
-Otherwise,
-C<read()> treats an exhausted parse as a failure.
+The read method will always terminate
+if the parse becomes exhausted during a C<read()> call.
+If the C<read()> method was about to return for other
+reasons, C<read()> will return as it normally would.
+This includes returns due to the end of the input string,
+and due to SLIF parse events.
+On the other hand, if the parse is exhausted at a G1
+location where the C<read()> method would not normally
+return, the exhaustion is treated as a failure
+and an exception is thrown.
 
-On failure, C<read()> throws an exception.
 The call is considered successful
-if it ended because a parse was found,
-or because internal scanning was paused.
-On success, C<read()> returns the location in the input
-stream at which internal scanning ended.
+if it reached the end of input string,
+or if a SLIF parse event triggered.
+On success, C<read()> returns the current
+physical input stream location.
 This value may be zero.
+On failure, C<read()> throws an exception.
 
 =head2 series_restart()
 
