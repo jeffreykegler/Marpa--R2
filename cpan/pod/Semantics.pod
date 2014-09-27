@@ -748,7 +748,7 @@ the first argument of a rule evaluation closure is the per-parse argument.
 Everything just said about rule nodes
 applies to nodes for
 L<quantified
-rules|Marpa::R2::Scanless::DSL/"Quanitified rules">.
+rules|Marpa::R2::Scanless::DSL/"Quantified rules">.
 But there is a difference between quantified rules
 and others, and it a big one if you are writing a rule
 evaluation closure.
