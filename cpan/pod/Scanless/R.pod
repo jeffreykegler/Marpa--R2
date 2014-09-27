@@ -495,25 +495,36 @@ may want to use custom logic to reassemble the input
 from the physical input stream.
 The L</"literal()"> method can assist in this process.
 
-=head1 Constructor
+=head1 Exhaustion
 
-=for Marpa::R2::Display
-name: Scanless recognizer synopsis
-partial: 1
-normalize-whitespace: 1
+At bottom, B<parse exhaustion> is a simple concept.
+The recognizer, when reading input, may reach a point where there is
+simply no way to continue successfully.
+Regardless of what comes next in the input stream,
+the parse will fail.
+When this happens, the parse is said to be B<exhausted>.
 
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+In some applications, parse exhaustion is always parse failure.
+C programs, Perl scripts and most programming languages
+are applications of this kind.
+For the most part, if a C program or a Perl program is well-formed,
+it is always possible to add more to it.
 
-=for Marpa::R2::Display::End
+But in others, the opposite is more true -- parse exhaustion indicates
+success.
+An example is an language consisting of balanced parentheses.
+When the parentheses come into perfect balance the parse is exhausted,
+because any further input would unbalance the brackets.
+And the parse succeeds when the parentheses come into perfect balance.
+So in the case of balanced parentheses, parse exhaustion means parse
+success.
+Any language which balances start and end indicators will be similar.
+HTML is another language which is roughly of this kind.
 
-The C<new()> method is the constructor for SLIF recognizers.
-The C<new()> constructor accepts a hash of named arguments,
-which are recognizer settings.
-The L<C<grammar>|/"grammar"> recognizer setting is required.
-All other recognizer settings are optional.
-For more on recognizer settings,
-see
-L<the section describing them|/"Recognizer settings">.
+Marpa must, of course, handle both kinds of language reasonably.
+Much confusion arises when users become used to thinking
+in terms of one kind of language or the other,
+and who therefore find Marpa's treatment of exhaustion strange.
 
 =head1 Recognizer settings
 
@@ -697,6 +708,26 @@ By default, the trace file handle is inherited from the
 grammar.
 The C<too_many_earley_items> setting is allowed
 in any call of any of the recognizer setting-aware methods.
+
+=head1 Constructor
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+=for Marpa::R2::Display::End
+
+The C<new()> method is the constructor for SLIF recognizers.
+The C<new()> constructor accepts a hash of named arguments,
+which are recognizer settings.
+The L<C<grammar>|/"grammar"> recognizer setting is required.
+All other recognizer settings are optional.
+For more on recognizer settings,
+see
+L<the section describing them|/"Recognizer settings">.
 
 =head1 Basic mutators
 
