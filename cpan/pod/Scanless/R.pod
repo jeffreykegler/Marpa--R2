@@ -764,7 +764,7 @@ and the third argument is its length argument.
 The default start location is zero.
 The default length is -1.
 Negative locations and lengths are 
-and intrepreted as L<described above|/"Spans">.
+and interpreted as L<described above|/"Spans">.
 
 If a SLIF parse event occurs during the C<read()> method,
 the current location is set to the trigger location.
@@ -774,20 +774,6 @@ If no SLIF parse event triggers,
 and the parse reaches the end of the input string without a
 failure,
 the current location is set to the end of the input string.
-
-A parse is said to be exhausted if, based on the input
-read so far, there is no way for it
-to continue successfully.
-The read method will always terminate
-if the parse becomes exhausted during a C<read()> call.
-If the C<read()> method was about to return for other
-reasons, C<read()> will return as it normally would.
-This includes returns due to the end of the input string,
-and due to SLIF parse events.
-On the other hand, if the parse is exhausted at a G1
-location where the C<read()> method would not normally
-return, the exhaustion is treated as a failure
-and an exception is thrown.
 
 The call is considered successful
 if it reached the end of input string,
@@ -996,10 +982,11 @@ Most applications will prefer the simpler C<lexeme_read()>.
 
 The C<lexeme_complete()> method
 requires two arguments,
-a input stream start location and a length.
-These are interpreted as described for the
-corresponding second and third
-arguments to L<C<lexeme_read()>|/"lexeme_read()">.
+which represent the start and length parameters of
+a span in the physical input stream.
+The span is interpreted as described for the
+L<the C<lexeme_read()> method|/"lexeme_read()">.
+
 The C<lexeme_complete()>
 method completes the reading of
 alternative tokens at the current G1 location,
@@ -1008,11 +995,10 @@ Current location in the input stream is moved
 to the location after the new lexeme,
 as indicated by the arguments.
 
-L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
-can occur during the C<lexeme_complete()> method.
-Named events can be queried using
-L<the Scanless recognizer's events()
-method|/"events()">.
+SLIF parse events may occur during
+the L<lexeme_complete()> method,
+as described for the
+L<the C<lexeme_read()> method|/"lexeme_read()">.
 
 B<Return value:>
 On success, C<lexeme_complete()>
@@ -1035,28 +1021,28 @@ normalize-whitespace: 1
 The C<lexeme_read()> method reads a single, unambiguous, lexeme.
 It takes four arguments, only the first of which is required.
 The first argument is the lexeme's symbol name.
-The second and third arguments specify the span in the input
-stream to be associated with the lexeme.
-The last argument indicates its value.
+The second and third arguments specify the span in
+the physical input stream
+The last argument specifies the value of the lexeme.
 
-The second and third arguments are, respectively,
-the start and length of a span in the input stream.
-The start defaults to the current location.
+In the span specified by
+the second and third arguments,
+the start location defaults to the current location.
 If the pause span is defined,
 and the start of the pause lexeme is
 the same as the current location,
 length defaults to the length of the pause span.
 Otherwise length defaults to -1.
-
 Negative values are allowed and are interpreted
-as L<described above|/"Negative locations">.
+as L<described above|/"Spans">.
+
 This span will be treated as the section of the input stream
 that corresponds to the tokens read at the current location.
 This correspondence may be artificial, but a span must
 always be specified.
 
-The fourth argument specifies the value of the lexeme.
-If the value argument is omitted,
+IF the fourth argument specifying the value of the lexeme
+is omitted,
 the token's value will be a string
 containing the corresponding substring
 of the input stream.
@@ -1082,19 +1068,22 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-Current location in the input stream is moved
-to the place where C<read()> paused or,
-if it never pauses,
+Non-lexeme
+SLIF parse events may trigger during the C<lexeme_read()> method.
+Lexeme SLIF parse events are ignored because they are designed
+to allow switching over to external scanning, and
+therefore make no sense when external scanning is already in progress.
+SLIF parse events are described in detail in
+L<a separate document|Marpa::R2::Event>.
+
+Current input stream location will be set
 to C<$start+$length>.
+If a SLIF parse event triggers, current input stream location
+will be set to the trigger location but currently this
+is always the same as
+C<$start+$length>.
 Current G1 location is advanced by one.
 
-L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
-can occur during the C<lexeme_read()> method.
-Named events can be queried using
-L<the Scanless recognizer's events()
-method|/"events()">.
-
-B<Return value>:
 On success, C<lexeme_read()> returns the new current location.
 This will never be location zero, because lexemes cannot be zero length.
 If the token was rejected, returns a Perl C<undef>.
@@ -1130,33 +1119,40 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<resume()> method takes two arguments,
-a start location and a length.
-The default start location is the current location.
-The default length is -1.
-Negative arguments are interpreted
-as L<described above|/"Negative locations">.
-
 The C<resume()> method resumes
 the SLIF's internal scanning,
 L<as described
-above|/"How internal scanning works">.
+above|/"Internal scanning">.
+A physcial input stream must already have
+been specified using the 
+L<C<< $slr->read() >> method|/"read()">.
 
-L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
-can occur during the C<resume()> method.
-When a named event occurs, 
-the C<resume()> method pauses.
-Named events can be queried using
-L<the Scanless recognizer's events()
-method|/"events()">.
-The C<resume()> method also
-pauses as specified with the
-L<Scanless DSL's pause adverb|Marpa::R2::Scanless::DSL/"pause">.
+The C<resume()> method takes two optional arguments,
+which represent the start and length parameters of
+a span.
+The default start location is the current location.
+The default length is -1.
+Negative arguments are interpreted
+as L<described above|/"Spans">.
 
+If a SLIF parse event occurs during the C<read()> method,
+the current location is set to the trigger location.
+SLIF parse events are described in detail in
+L<a separate document|Marpa::R2::Event>.
+If no SLIF parse event triggers,
+and the parse reaches the end of the input string without a
+failure,
+the current location is set to the end of the input string.
+
+The call is considered successful
+if it reached the end of input string,
+or if a SLIF parse event triggered.
 On success, C<resume()> moves
 the current location to where it paused,
 or to the EOS.
-The return value is the new current location.
+
+On success, C<resume()> returns
+the new current location.
 On unthrown failure,
 C<resume()> return a Perl C<undef>.
 
@@ -1263,11 +1259,11 @@ recognizer is
 exhausted, and a Perl false otherwise. Parsing is exhausted when the
 recognizer will not accept any further input.
 
-An attempt to read input into an
-exhausted parser causes an exception to be thrown.
-The exception is all that most applications require,
+Marpa usually "does what you mean" in case of parse exhaustion,
 but this method
 allows the recognizer's exhaustion status to be discovered directly.
+Parse exhaustion is discussion in detail in
+L<a separate document|Marpa::R2::Exhaustion>.
 
 =head2 g1_location_to_span()
 
