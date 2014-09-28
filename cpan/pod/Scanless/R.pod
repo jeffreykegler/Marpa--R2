@@ -918,7 +918,9 @@ activated,
 0 will probably be more common as the second argument to
 C<activate()>
 
-Location 0 events are triggered in the SLIF recognizer's 
+Though they are not reported until the call of the
+C<read()> method,
+location 0 events are triggered in the SLIF recognizer's 
 constructor,
 before the C<activate()> method can be called.
 Currently there is no way to deactivate
@@ -996,16 +998,11 @@ The C<lexeme_complete()> method
 requires two arguments,
 which represent the start and length parameters of
 a span in the physical input stream.
-The span is interpreted as described for the
+The span is interpreted,
+and G1 location and current input stream location
+are adjusted,
+as described for the
 L<the C<lexeme_read()> method|/"lexeme_read()">.
-
-The C<lexeme_complete()>
-method completes the reading of
-alternative tokens at the current G1 location,
-and advances the current G1 location by one.
-Current location in the input stream is moved
-to the location after the new lexeme,
-as indicated by the arguments.
 
 SLIF parse events may occur during
 the L<lexeme_complete()> method,
@@ -1094,7 +1091,14 @@ If a SLIF parse event triggers, current input stream location
 will be set to the trigger location but currently this
 is always the same as
 C<$start+$length>.
+
 Current G1 location is advanced by one.
+The token read by C<lexeme_read()>
+will start at the previous G1 location
+and end at the new current G1 location.
+Current location in the input stream is moved
+to the location after the new lexeme,
+as indicated by the arguments.
 
 On success, C<lexeme_read()> returns the new current location.
 This will never be location zero, because lexemes cannot be zero length.
