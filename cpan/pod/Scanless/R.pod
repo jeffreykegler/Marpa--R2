@@ -930,7 +930,7 @@ But making many calls to
 the C<activate()> method purely for efficiency
 purposes will be counter-productive.
 Also, deactivated events still impose
-some overhead, so if an event is never used
+some overhead, so if an event is never used,
 it should be commented out in the SLIF DSL.
 
 =head2 lexeme_alternative()
