@@ -84,7 +84,7 @@ and L<lexeme_read()|/"lexeme_read()">.
 These are also, and not by coincidence, the event-triggering methods.
 In this document, we will call them the B<reading methods>.
 
-The reading methods needs
+The reading methods need
 to treat exhaustion-hating and exhaustion-loving
 languages equally.
 They also need to handle the exhaustion-conflicted ones smoothly.
