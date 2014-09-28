@@ -54,7 +54,7 @@ The same is true of a Perl program that does not have a C<__DATA__> section.
 
 In an B<exhaustion-loving> applications
 parse exhaustion means parse success.
-An toy example of an exhaustion-loving
+A toy example of an exhaustion-loving
 application is the language consisting of balanced parentheses.
 When the parentheses come into perfect balance the parse is exhausted,
 because any further input would unbalance the brackets.
@@ -75,7 +75,7 @@ We can call them B<exhaustion-conflicted>.
 
 =head1 What the SLIF does
 
-The methods that may encounter parse exhaustion are the those
+The methods that may encounter parse exhaustion are those
 that read input:
 L<read()|/"read()">,
 L<resume()|/"resume()">,
