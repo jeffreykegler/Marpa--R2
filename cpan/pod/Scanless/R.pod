@@ -177,7 +177,7 @@ is interpreted as if it was the range
 with that same pair of values.
 
 In general, spans are more convenient for programming.
-But when fence post issues are important,
+But when fencepost issues are important,
 spans require a lot of mental arithmetic,
 and a discussion that uses ranges is easier to follow.
 
@@ -405,9 +405,6 @@ every G1 location I<X> corresponds to a range in the physical
 input stream.
 We'll call the physical input stream range that corresponds to
 G1 location I<X>, [I<s(X) ... e(X)>].
-The length of the G1 span in physical input stream terms would then
-be I<(e(X) - s(X)) + 1>.
-
 Only two things are guaranteed about I<s(X)> and I<e(X)> as
 a function of I<X>:
 
@@ -508,7 +505,7 @@ The L</"literal()"> method can assist in this process.
 
 The B<recognizer settings> are the named arguments
 accepted by
-The B<recognizer setting-aware methods>
+the B<recognizer setting-aware methods>
 are
 the L<C<new()>|/"Constructor">,
 L<C<set()>|/"set()"> and
@@ -557,7 +554,7 @@ limit on the number of parse results returned.
 The default is for
 there to be no limit.
 The C<max_parses> setting is valid in all
-call of the recognizer setting-aware methods.
+calls of the recognizer setting-aware methods.
 
 =head2 ranking_method
 
@@ -586,11 +583,11 @@ The L<C<ranking_method>|/"ranking"> setting is always allowed in
 the L<C<new()>|/"Constructor">,
 and L<C<series_restart()>|"series_restart()"> methods,
 because they initialize a new parse series.
-And, in a parse series,
+And, while a parse series is in progress,
 the L<C<ranking_method>|/"ranking"> setting is allowed in
 calls of the
 L<C<< $slr->set() >>|"set()"> method,
-until the first call of the
+up until the first call of the
 L<C<< $slr->value() >>|"value()"> method.
 
 =head2 semantics_package
@@ -606,9 +603,9 @@ see the L<document on SLIF
 semantics|Marpa::R2::Semantics>.
 
 The L<C<semantics_package>|/"semantics_package"> setting is only allowed in
-when a new parse series is begin,
+when a new parse series is begun.
 That is, it is only allowed in calls
-of the L<C<new()>|/"Constructor">,
+of the L<C<new()>|/"Constructor">
 and L<C<series_restart()>|"series_restart()"> methods.
 
 =head2 too_many_earley_items
@@ -699,8 +696,9 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<new()> method is the constructor for SLIF recognizers.
-The C<new()> constructor accepts a hash of named arguments,
-which are recognizer settings.
+The arguments to the
+the C<new()> constructor must be one or more hashes of named arguments,
+where each hash key is a recognizer setting.
 The L<C<grammar>|/"grammar"> recognizer setting is required.
 All other recognizer settings are optional.
 For more on recognizer settings,
@@ -767,9 +765,8 @@ The first argument of C<read()> is a pointer to the physical
 input stream, which by default will also be the virtual input stream.
 C<read()> recognizes
 optional second and third arguments and treats them
-as a L<span/"Spans"> of the physical input stream.
-The second argument is the start location of the span,
-and the third argument is its length argument.
+as the start and length
+of a L<span|/"Spans"> of the physical input stream.
 The default start location is zero.
 The default length is -1.
 Negative locations and lengths are 
@@ -830,12 +827,14 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-This method allows the named arguments to be changed after an SLIF
+This method allows the named arguments to be changed after a SLIF
 grammar is created.
-Currently, the arguments that may be changed are L<C<end>|/"end">,
-L<C<max_parses>|/"max_parses">,
-L<C<semantics_package>|/"semantics_package"> and
-L<C<trace_file_handle>|/"trace_file_handle">.
+The arguments to
+C<set()> must be one or more hashes of named arguments,
+where each hash key is a recognizer setting.
+For more on recognizer settings,
+see
+L<the section describing them|/"Recognizer settings">.
 
 =head2 value()
 
