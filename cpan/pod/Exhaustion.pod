@@ -61,7 +61,7 @@ because any further input would unbalance the brackets.
 And the parse succeeds when the parentheses come into perfect balance.
 Exhaustion means success.
 
-Any language which balances start and end indicators will be tend to
+Any language which balances start and end indicators will tend to
 be exhaustion-loving.
 HTML and XML, with their start and end tags, can be seen
 as exhaustion-loving languages.
