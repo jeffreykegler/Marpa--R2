@@ -142,11 +142,21 @@ contiguous locations as either B<ranges> or B<spans>.
 A range is an ordered set of contiguous locations
 specified by start location and end location:
 [I<S ... E>].
+A range is a subset of a "universe" --
+some larger ordered set of locations
+0 to I<N>,
+In this document the larger sets,
+or universes, will be physical input streams
+or L<G1 location streams|"G1 locations">.
+
+The start and end locations of the range
+refer to locations
+in its universe.
 Negative locations
 refer to a locations relative
-to the end of some larger set, so that
--1 refers to the last location of the larger set,
--2 refers to the second-to-last location of the larger set,
+to the end of the range's universe, so that
+-1 refers to the last location of the universe,
+-2 refers to the second-to-last location of the universe,
 etc.
 
 As examples, when talking about substrings of the
@@ -167,6 +177,9 @@ and so forth.
 A span is an ordered set of contiguous locations
 specified by start location and length:
 [I<S, L>].
+A span is a subset of a universe, as was
+described above for ranges.
+
 The range corresponding to the span
 [I<S, L>] is [I<S ... (S+L)-1>].
 The span corresponding to the range
