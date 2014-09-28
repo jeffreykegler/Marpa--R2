@@ -859,17 +859,20 @@ This series of zero or more parse trees is called a B<parse series>.
 There are zero parse trees if there was no valid parse
 of the input according to the grammar.
 
-The C<value()> method allows one, optional argument.
-This argument can be a Perl scalar of any kind, but the most useful
-possibilities are references (blessed or unblessed) to hashes or array.
-If provided, the argument of the C<value()> method
+The C<value()> method allows one optional argument.
+If provided, the argument
 explicitly specifies the per-parse argument for the
 parse tree.
+This per-parse argument can be a Perl scalar of any kind, but the most useful
+type for a per-parse argument is a reference
+(blessed or unblessed) to a hash or to an array.
 The per-parse argument will be the first argument of all 
-Perl semantics closures, and can be used to share data within
-the tree,
-when that data does not conveniently fit into the bottom-up
-flow of parse tree evaluation.
+Perl semantics closures.
+When data does not conveniently fit into the bottom-up
+flow of parse tree evaluation,
+the per-parse argument
+is useful for sharing it within
+the tree.
 Symbol tables are one example of the kind of data which parses often
 require, but which it is not convenient to accumulate bottom-up.
 
