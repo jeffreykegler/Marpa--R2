@@ -144,7 +144,7 @@ specified by start location and end location:
 [I<S ... E>].
 A range is a subset of a "universe" --
 some larger ordered set of locations
-0 to I<N>,
+0 to I<N>.
 In this document the larger sets,
 or universes, will be physical input streams
 or L<G1 location streams|"G1 locations">.
@@ -158,19 +158,6 @@ to the end of the range's universe, so that
 -1 refers to the last location of the universe,
 -2 refers to the second-to-last location of the universe,
 etc.
-
-As examples, when talking about substrings of the
-physical input stream, the range C<[0 ... -1]>
-refers to the entire input stream;
-The range C<[0 ... -2]> refers to the entire input
-stream, except for the last character;
-the range C<[-1 ... -1]> refers to
-the substring which consists
-only of the last character;
-the range C<[-3 ... -1]> refers to the last 3 characters:
-the range C<[-3 ... -3]> refers to a substring consisting
-of only the third-to-last character;
-and so forth.
 
 =head1 Spans
 
