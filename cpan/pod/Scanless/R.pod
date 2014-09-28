@@ -250,10 +250,12 @@ The SLIF tracks a C<current location> in the physical input stream.
 On return from 
 the C<read()> method,
 current location will depend on the reason for the return.
-If an event triggered, the current location will be
+If a
+L<SLIF parse event|Marpa::R2::Event>
+triggered, the current location will be
 the trigger location;
 otherwise the current location will be at the end of the
-physical input stream.
+input string.
 
 The C<read()> method may only be called once for a recognizer,
 but internal scanning can be resumed with the L<C<resume()>|/"resume()"> method.
@@ -281,8 +283,8 @@ When the application considers input complete,
 and is ready to produced a parse value,
 the L<C<< $slr->value >> method|/"value()"> method
 is used.
-In most cases, this is all that is needed,
-but Marpa also repeated passes over the same input
+In most cases, this is all that is needed.
+But Marpa also allows repeated passes over the same input
 with different settings.
 More details on the semantics are provided in
 L<a separate document|Marpa::R2::Semantics>.
@@ -368,8 +370,15 @@ a set of lexemes is read at a single G1 location.
 If a lexeme is unambiguous,
 its set will contain exactly one lexeme.
 G1 location can be thought of
-as location in terms of sets of lexemes,
-with the first set of lexemes being at G1 location 1.
+as location in terms of
+boundaries of sets of lexemes,
+so that the 
+the first set of lexemes starts at G1 location 0
+and ends at G1 location 1.
+When we speak of a set of lexemes B<at> G1 location I<L>,
+we refer to the set of lexemes ending at G1 location I<L>.
+That means that there is no set of lexemes at
+G1 location 0.
 
 As each new set of lexemes is read,
 G1 location 
