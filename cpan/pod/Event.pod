@@ -201,6 +201,7 @@ L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
 
 The location at which an event triggers is the B<event location>.
+An event may trigger at any location, including location 0.
 When an event triggers, it causes the event-triggering
 method to return immediately, with the current location
 at the B<trigger location>.
@@ -212,6 +213,11 @@ Non-lexeme events may trigger during any of the event-triggering
 methods.
 Lexeme events will only trigger during calls of the
 C<< $slr->read() >> and C<< $slr->resume() >> methods.
+
+The triggering of events may be controlled with
+the L<activate() method|Marpa::R2::Scanless::R/"activate()">.
+An event will only trigger if activated.
+All events are automatically activated when declared.
 
 Events may be accessed using
 L<the Scanless recognizer's events()
