@@ -863,7 +863,8 @@ The C<value()> method allows one optional argument.
 If provided, the argument
 explicitly specifies the per-parse argument for the
 parse tree.
-This per-parse argument can be a Perl scalar of any kind, but the most useful
+This per-parse argument can be a Perl scalar of any type,
+but the most useful
 type for a per-parse argument is a reference
 (blessed or unblessed) to a hash or to an array.
 The per-parse argument will be the first argument of all 
@@ -885,7 +886,8 @@ In this case, Marpa will regard the per-parse arguments of all
 calls in the same parse series as the source of the semantics package,
 and it will require that the calls be consistent --
 each call must have a per-parse argument,
-and that per-parse argument  must be blessed into the semantics package.
+and each per-parse argument
+must be blessed into the same semantics package.
 
 =head1 Mutators for external scanning
 
@@ -911,8 +913,7 @@ The first is the name of an event, and the second (optional) argument is
 If the argument is 0, the event is deactivated.
 If the argument is 1, the event is reactivated.
 An argument of 1 is the default.
-but,
-since an SLIF recognizer always starts with all defined events
+Since an SLIF recognizer always starts with all defined events
 activated,
 0 will probably be more common as the second argument to
 C<activate()>
@@ -925,7 +926,7 @@ location zero events.
 
 The overhead imposed by events
 can be reduced by using the C<activate()> method.
-But making many calls to the
+But making many calls to
 the C<activate()> method purely for efficiency
 purposes will be counter-productive.
 Also, deactivated events still impose
