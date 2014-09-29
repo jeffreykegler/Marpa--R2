@@ -1324,7 +1324,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<input_length()> method accepts no arguments,
-and returns the length of the input stream.
+and returns the length of the physical input stream.
 
 =head2 last_completed()
 
@@ -1354,7 +1354,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Given the name of a symbol,
-returns the start G1 location and
+C<last_completed()> returns the start G1 location and
 the length in G1 locations of the most recent match.
 If there was more than one most recent match, it returns
 the longest.
