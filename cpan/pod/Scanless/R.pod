@@ -512,7 +512,7 @@ virtual input stream.
 Each of these runs is called a B<parse series>.
 This is useful for parsing the same input with different settings.
 
-The recognizer is always in exactly one parse series.
+The recognizer is always dealing with exactly one parse series.
 The L<C<new()>|/"Constructor"> starts the first
 (and usually the only) parse series.
 To end the current parse series and start a new one,
@@ -540,7 +540,6 @@ The details are given below, by setting.
 =head2 end
 
 Most users will not need this setting.
-It is an advanced argument.
 The L<C<end>|/"end"> setting
 specifies the parse end, as a G1 location.
 The default is for the parse to end where the input did,
@@ -556,7 +555,7 @@ an SLIF grammar object.
 The C<new()> method is required to have
 a C<grammar> setting.
 The C<grammar> setting is only allowed
-the L<C<new() method>|/"Constructor">.
+by the L<C<new() method>|/"Constructor">.
 Once the recognizer is created, the grammar cannot be
 changed.
 
@@ -628,7 +627,7 @@ For more details on the SLIF semantics,
 see the L<document on SLIF
 semantics|Marpa::R2::Semantics>.
 
-The L<C<semantics_package>|/"semantics_package"> setting is only allowed in
+The L<C<semantics_package>|/"semantics_package"> setting is only allowed
 when a new parse series is begun.
 That is, it is only allowed in calls
 of the L<C<new()>|/"Constructor">
@@ -784,7 +783,7 @@ C<read()> returns successfully if it parses to the end
 of the input string,
 or if it triggers a SLIF parse event.
 Only a single call to C<read()>
-is allowed for a scanless
+is allowed for a SLIF
 recognizer.
 
 The first argument of C<read()> is a pointer to the physical
@@ -797,7 +796,7 @@ of a L<span|/"Spans"> of the physical input stream.
 The default start location is zero.
 The default length is -1.
 Negative locations and lengths are 
-and interpreted as L<described above|/"Spans">.
+interpreted as L<described above|/"Spans">.
 
 If a SLIF parse event occurs during the C<read()> method,
 the current location is set to the trigger location.
@@ -835,10 +834,11 @@ are L<recognizer settings|/"Recognizer settings">.
 
 The C<series_restart()> method
 cannot change the C<grammar> recognizer setting.
-It sets every other recognizer setting to its default.
-An application that wants a non-default recognizer setting to have effect
-in each of its parse
-series must respecify it at the beginning of each parse series.
+If any other recognizer setting is not specified explicitly,
+it is reset to its default.
+If an application that wants an explicit recognizer setting to persist
+into a new parse series,
+it must specify that setting explicitly in the new parse series.
 C<series_restart()> is particularly useful with
 the 
 C<end> and C<semantics_package> named arguments.
@@ -997,7 +997,8 @@ To complete reading at a G1 location,
 and advance the current G1 location to the next G1 location,
 use the L<C<lexeme_complete()>|/"lexeme_complete()"> method.
 
-On success, returns a non-negative number.
+On success, returns a non-negative number,
+which may be zero.
 Returns C<undef> if the token was rejected.
 Failures are thrown as exceptions.
 
@@ -1025,7 +1026,7 @@ a span in the physical input stream.
 The span is interpreted,
 and G1 location and current input stream location
 are adjusted,
-as described for the
+as described for
 L<the C<lexeme_read()> method|/"lexeme_read()">.
 
 SLIF parse events may occur during
@@ -1071,7 +1072,8 @@ Otherwise length defaults to -1.
 Negative values are allowed and are interpreted
 as L<described above|/"Spans">.
 
-The span will be interpreted as the section of the input stream
+The span will be interpreted as the section
+of the physical input stream
 that corresponds to the tokens read at the current G1 location.
 This correspondence between the span and the token
 may be artificial, but a span is defined for every token,
@@ -1197,7 +1199,7 @@ or if a SLIF parse event triggers.
 On success, C<resume()> returns
 the new current location.
 On unthrown failure,
-C<resume()> return a Perl C<undef>.
+C<resume()> returns a Perl C<undef>.
 
 =head1 Accessors
 
@@ -1214,8 +1216,8 @@ Succeeds and
 returns 1 if there is an unambiguous parse.
 Succeeds and
 returns 2 or greater if there is a ambiguous parse.
-Fails and returns 0 if called before parsing.
-Returns 0 or less than zero on other unthrown failure.
+Fails and returns zero if called before parsing.
+Returns zero or a negative number on other unthrown failure.
 
 =head2 current_g1_location()
 
@@ -1322,12 +1324,12 @@ location, but to a span of them.
 The C<g1_location_to_span()> method
 returns an B<array> of two elements, representing a
 L<span|/"Spans"> in the physical input stream.
-G1 location does not correspond to a input stream span so,
+G1 location 0 does not correspond to a input stream span so,
 as a special case,
 the input stream span for G1 location 0 is returned as (0,0).
 
 Sometimes it is convenient to think of
-G1 location as corresponding to a single input stream location.
+a G1 location as corresponding to a single input stream location.
 When this is the case,
 what is meant is the location
 at the end of physical input stream span:
@@ -1375,7 +1377,8 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Given the name of a symbol,
-C<last_completed()> returns the G1 location
+C<last_completed()> returns the 2-element array
+that is the G1 location
 L<span|/"Spans"> of the most recent match.
 If there was more than one most recent match, it returns
 the longest.
@@ -1490,7 +1493,7 @@ Use of this method is discouraged.
 New applications should avoid it.
 Instead a named event should be used,
 and the name of the event used to determine the name of
-the lexeme which triggered the lexeme event.
+the lexeme that triggers a lexeme event.
 SLIF parse events are described in detail in
 L<a separate document|Marpa::R2::Event>.
 
@@ -1563,7 +1566,7 @@ L<described above|/"Ranges">.
 The progress reports returned by
 the C<progress()> method
 identify rules by their G1 rule ID.
-G1 rules IDs can be converted to a list of the rule's
+G1 rule IDs can be converted to a list of the rule's
 symbols using the L<C<rule()> method
 of the SLIF grammar|Marpa::R2::Scanless::G/"rule()">.
 Details on progress reports can be found in
@@ -1646,7 +1649,6 @@ Returns a reference to a list of strings, where the strings are the
 names of the lexemes acceptable at the current location.
 The presence of a lexeme in this list means
 that lexeme will be acceptable in the next call of the L<C<resume()>|/"resume()"> method.
-
 This is highly useful for Ruby Slippers parsing.
 A more fine-tuned approach is to identify the lexemes of interest
 and create "predicted symbol" events for them.
@@ -1708,7 +1710,6 @@ the physical input stream in
 lexical order and
 without gaps
 except for whitespace and other normal discards.
-and other normal reasons.
 When that is not the case,
 C<range_to_string()> behaves in
 much the same way as described above
