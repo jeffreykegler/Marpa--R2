@@ -1559,7 +1559,6 @@ normalize-whitespace: 1
 Shows the progress of the G1 parse.
 For a description of its output,
 see L<Marpa::R2::Progress>.
-
 With no arguments,
 the string contains reports for
 the current location.
@@ -1569,12 +1568,12 @@ C<show_progress()>, as G1 locations.
 With a single integer argument I<N>,
 the string contains reports for G1 location I<N>.
 Two numeric arguments are interpreted as a
-L<span/"Spans"> of G1 locations,
+L<span|/"Spans"> of G1 locations,
 and the returned string contains
 reports for all locations in the span.
 Negative arguments are allowed and are
 interpreted as
-L<described above|"Spans">.
+L<described above|/"Spans">.
 The method call C<< $recce->show_progress(0, -1) >>
 will print progress reports for the entire parse.
 
