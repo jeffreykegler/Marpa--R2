@@ -1048,7 +1048,7 @@ Negative values are allowed and are interpreted
 as L<described above|/"Spans">.
 
 The span will be interpreted as the section of the input stream
-that corresponds to the tokens read at the current location.
+that corresponds to the tokens read at the current G1 location.
 This correspondence between the span and the token
 may be artificial, but there must be one.
 The span may be specified implicitly,
@@ -1094,16 +1094,17 @@ to C<$start+$length>.
 If a SLIF parse event triggers, current input stream location
 will be set to the trigger location.
 Currently the trigger location and
-C<$start+$length> wil always be the same,
+C<$start+$length> will always be the same,
 but that may change.
 
-Current G1 location is advanced by one.
+When successful,
+C<lexeme_read()> advances
+the current G1 location by one.
 The token read by C<lexeme_read()>
 will start at the previous G1 location
 and end at the new current G1 location.
 Current location in the input stream is moved
-to the location after the new lexeme,
-as indicated by the arguments.
+to the end location of the new lexeme.
 
 On success, C<lexeme_read()> returns the new current physical
 input stream location.
