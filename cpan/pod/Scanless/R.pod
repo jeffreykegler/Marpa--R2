@@ -1037,28 +1037,24 @@ The last argument specifies the value of the lexeme.
 In the span specified by
 the second and third arguments,
 the start location defaults to the current location.
-If the pause span is defined,
+If the
+L<pause span|Marpa::R2::Event/"Pause span and lexeme">
+is defined,
 and the start of the pause lexeme is
 the same as the current location,
 length defaults to the length of the pause span.
-Pause span and the pause lexeme are set when an event-triggering
-methods triggers a lexeme event.
-Pause span is
-initially undefined,
-and it is reset to undefined at the beginning
-of every
-L<C<< $slr->read() >>|/"read()">
-or L<C<< $slr->resume() >> method|/"resume()">.
 Otherwise length defaults to -1.
 Negative values are allowed and are interpreted
 as L<described above|/"Spans">.
 
-This span will be treated as the section of the input stream
+The span will be interpreted as the section of the input stream
 that corresponds to the tokens read at the current location.
-This correspondence may be artificial, but a span must
-always be specified.
+This correspondence between the span and the token
+may be artificial, but there must be one.
+The span may be specified implicitly,
+but it must be specified.
 
-IF the fourth argument specifying the value of the lexeme
+If the fourth argument specifying the value of the lexeme
 is omitted,
 the token's value will be a string
 containing the corresponding substring
@@ -1075,7 +1071,7 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-is the equivalent of
+is roughly equivalent to
 
 =for Marpa::R2::Display
 ignore: 1
@@ -1089,16 +1085,17 @@ Non-lexeme
 SLIF parse events may trigger during the C<lexeme_read()> method.
 Lexeme SLIF parse events are ignored because they are designed
 to allow switching over to external scanning, and
-therefore make no sense when external scanning is already in progress.
+make no sense when external scanning is already in progress.
 SLIF parse events are described in detail in
 L<a separate document|Marpa::R2::Event>.
 
 Current input stream location will be set
 to C<$start+$length>.
 If a SLIF parse event triggers, current input stream location
-will be set to the trigger location but currently this
-is always the same as
-C<$start+$length>.
+will be set to the trigger location.
+Currently the trigger location and
+C<$start+$length> wil always be the same,
+but that may change.
 
 Current G1 location is advanced by one.
 The token read by C<lexeme_read()>
@@ -1108,10 +1105,12 @@ Current location in the input stream is moved
 to the location after the new lexeme,
 as indicated by the arguments.
 
-On success, C<lexeme_read()> returns the new current location.
+On success, C<lexeme_read()> returns the new current physical
+input stream location.
 This will never be location zero, because lexemes cannot be zero length.
-If the token was rejected, returns a Perl C<undef>.
-On other unthrown failure, returns 0.
+If the token was rejected,
+C<lexeme_read()> returns a Perl C<undef>.
+On other unthrown failure, C<lexeme_read()> returns 0.
 
 =head2 resume()
 
