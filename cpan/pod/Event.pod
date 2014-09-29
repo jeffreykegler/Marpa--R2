@@ -261,6 +261,12 @@ because, at the trigger location,
 the recognition of its symbol
 is "complete".
 
+In the SLIF parse event descriptor returned
+by the 
+L<the C<< $slr->events() >>
+method|Marpa::R2::Scanless::R/"events()">,
+the name of completed event is the only element.
+
 =head2 Nulling events
 
 Nulling events are declared in the SLIF DSL
@@ -298,6 +304,12 @@ Nulled forests are described in more detail
 in L<a separate
 section|"Nulled forests">.
 
+In the SLIF parse event descriptor returned
+by the 
+L<the C<< $slr->events() >>
+method|Marpa::R2::Scanless::R/"events()">,
+the name of nulling event is the only element.
+
 =head2 Prediction events
 
 Prediction events are declared in the SLIF DSL
@@ -329,6 +341,12 @@ whether it is a lexeme or not.
 But prediction events are non-lexeme events,
 even when their symbol is a lexeme.
 
+In the SLIF parse event descriptor returned
+by the 
+L<the C<< $slr->events() >>
+method|Marpa::R2::Scanless::R/"events()">,
+the name of prediction event is the only element.
+
 =head2 Post-lexeme events
 
 =for Marpa::R2::Display
@@ -356,6 +374,12 @@ C<pause lexeme>|"Pause span and pause lexeme">.
 Post-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
 C<< $slr->lexeme_read() >> calls are discarded.
+
+In the SLIF parse event descriptor returned
+by the 
+L<the C<< $slr->events() >>
+method|Marpa::R2::Scanless::R/"events()">,
+the name of post-lexeme event is the only element.
 
 =head2 Pre-lexeme events
 
@@ -407,6 +431,12 @@ On the other hand,
 a prediction event is,
 as the name suggests, only a prediction -- the lexeme may not
 actually be found in the input.
+
+In the SLIF parse event descriptor returned
+by the 
+L<the C<< $slr->events() >>
+method|Marpa::R2::Scanless::R/"events()">,
+the name of pre-lexeme event is the only element.
 
 =head1 Lexeme events
 

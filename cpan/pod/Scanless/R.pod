@@ -1301,17 +1301,16 @@ returns an B<array> of two elements, representing a span in the input stream.
 The first element of the array is the input stream location
 where the span starts.
 The second element of the array is the length of the span.
-As a special case,
-the input stream span for G1 location 0 is always (0,0).
+G1 location does not correspond to a input stream span so,
+as a special case,
+the input stream span for G1 location 0 is returned as (0,0).
 
 Sometimes it is convenient to think of
 G1 location as corresponding to a single input stream location.
 When this is the case,
-what is usually intended is the last input stream location
-of the span.
-The last input stream location
-of the span
-will always be C<$span_start+$span_length>.
+what is usually intended is the location
+at the end of physical input stream span:
+C<$span_start+$span_length>.
 
 =head2 input_length()
 
