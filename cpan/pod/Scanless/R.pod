@@ -119,7 +119,7 @@ to physical input stream location,
 Virtual input streams complicate the idea of parse
 location,
 but they are essential for some applications.
-Implementing the C language's pre-processor directives require
+Implementing the C language's pre-processor directives requires
 either two passes, or
 a virtual approach to the input.
 And Perl here-documents cannot be parsed correctly
@@ -133,7 +133,7 @@ and to read sections of the stream repeatedly.
 Input streams are ordered sets of characters,
 and the locations in them are
 represented as the integers from 0 to I<N>,
-where I<N> is the size of the set.
+where I<N-1> is the size of the set.
 In this document, we will refer to ordered subsets of
 contiguous locations as either B<ranges> or B<spans>.
 
@@ -242,9 +242,7 @@ In many cases there are no parse events declared,
 or none trigger.
 If no parse event triggers
 and the parse does not fail,
-then C<read()> will read to the end of string,
-leaving the recognizer ready to produce a parse value
-using the L<C<< $slr->value >> method|/"value()">.
+then C<read()> will read to the end of string.
 
 The SLIF tracks a C<current location> in the physical input stream.
 On return from 
@@ -259,9 +257,10 @@ input string.
 
 The C<read()> method may only be called once for a recognizer,
 but internal scanning can be resumed with the L<C<resume()>|/"resume()"> method.
-The C<resume()> method use the same physical input stream that was specified
-to the C<read()> method, but uses an new input string,
-which may be specified explicitly or implicitly.
+The C<resume> method uses a new input string to scan
+the physical input stream that was specified
+to the C<read()> method.
+C<resume>'s input string may be specified explicitly or implicitly.
 By default, the new input string runs from the current location
 to the end of the physical input stream.
 
@@ -318,7 +317,8 @@ and there is no requirement that internal scanning ever be resumed.
 =head2 External lexemes and the input stream
 
 For error message and other purposes,
-even external lexemes are required to correspond to a span of the input stream.
+even externally scanned lexemes
+are required to correspond to a span of the input stream.
 An external scanner
 must set up a relationship to the input stream,
 even if that relationship is completely artificial.
@@ -330,7 +330,7 @@ the physical input stream.
 Call what would ordinarily be the input string, the "natural input".
 Form the physical input stream by prefixing these 7 character:
 "C<NO TEXT>".
-For example, if the natural text is "C<Hi! I am the real input>",
+For example, if the natural input is "C<Hi! I am the real input>",
 then the physical input stream will be
 
 =for Marpa::R2::Display
@@ -340,7 +340,7 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-To read the natural text,
+To read the natural input,
 the initial call to the L<C<read()>|/"read()"> method should be
 of the form
 C<< $slr->read($input_string, 7) >>.
@@ -353,9 +353,12 @@ C<< $slr->lexeme_read($symbol_name, 0, 7, $value) >>.
 
 In addition to input stream location,
 the SLIF also tracks G1 location.
-G1 locations run from 0 to I<N> and the conventions
+G1 locations run from 0 to I<N>,
+where I<N-1> is the length of the input stream.
+The conventions
 and notation
-for numbering them and describing G1 spans and ranges
+for numbering G1 locations
+and for describing G1 spans and ranges
 are the same as for input stream locations.
 
 G1 location can be ignored most of the time,
@@ -369,6 +372,7 @@ Because lexemes may be ambiguous,
 a set of lexemes is read at a single G1 location.
 If a lexeme is unambiguous,
 its set will contain exactly one lexeme.
+
 G1 location can be thought of
 as location in terms of
 boundaries of sets of lexemes,
@@ -395,9 +399,9 @@ It is sometimes
 useful to find the literal substring
 of the physical input stream which corresponds to a span
 of G1 locations.
-If an application reads the physical stream in sequence within the G1 span
-this presents no complications.
-For more complcated cases, the exact rules are described in
+If an application reads the physical stream in sequence within the G1 span,
+Marpa "does what you mean".
+For more complicated cases, the exact rules are described in
 this section.
 
 Except for G1 location zero,
@@ -501,13 +505,33 @@ may want to use custom logic to reassemble the input
 from the physical input stream.
 The L</"literal()"> method can assist in this process.
 
+=head1 Parse series
+
+The SLIF recognizer can be run several times on the same
+virtual input stream.
+Each of these runs is called a B<parse series>.
+This is useful for parsing the same input with different settings.
+
+The recognizer is always in exactly one parse series.
+The L<C<new()>|/"Constructor"> starts the first
+(and usually the only) parse series.
+To end the current parse series and start a new one,
+use the L<C<series_restart()>|"series_restart()"> method.
+
+A parse series may result in no parses or be ambiguous,
+so that each parse series has zero or more B<parse trees>,
+each with its own B<parse result>.
+More details about parse series and parse trees
+are in
+L<a separate document|Marpa::R2::Semantics::Phases>.
+
 =head1 Recognizer settings
 
 The B<recognizer settings> are the named arguments
 accepted by
-the B<recognizer setting-aware methods>
-are
-the L<C<new()>|/"Constructor">,
+the recognizer setting-aware methods.
+The B<recognizer setting-aware methods>
+are the L<C<new()>|/"Constructor">,
 L<C<set()>|/"set()"> and
 L<C<series_restart()>|"series_restart()"> methods.
 Not every recognizer setting-aware method accepts all of the settings.
@@ -579,16 +603,18 @@ on parse order|Marpa::R2::Semantics::Order>.
 The C<ranking_method> setting is not allowed
 once evaluation of the current parse series has begun.
 Specifically,
-The L<C<ranking_method>|/"ranking"> setting is always allowed in
+the L<C<ranking_method>|/"ranking"> setting is always allowed in
 the L<C<new()>|/"Constructor">,
 and L<C<series_restart()>|"series_restart()"> methods,
 because they initialize a new parse series.
 And, while a parse series is in progress,
 the L<C<ranking_method>|/"ranking"> setting is allowed in
 calls of the
-L<C<< $slr->set() >>|"set()"> method,
-up until the first call of the
-L<C<< $slr->value() >>|"value()"> method.
+L<C<< $slr->set() >>|"set()"> method
+if and only if they are made before
+the first call of the
+L<C<< $slr->value() >>|"value()"> method
+in that parse series.
 
 =head2 semantics_package
 
@@ -681,7 +707,7 @@ Trace output and warning messages
 go to the trace file handle.
 By default, the trace file handle is inherited from the
 grammar.
-The C<too_many_earley_items> setting is allowed
+The C<trace_file_handle> setting is allowed
 in any call of any of the recognizer setting-aware methods.
 
 =head1 Constructor
@@ -696,8 +722,8 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<new()> method is the constructor for SLIF recognizers.
-The arguments to the
-the C<new()> constructor must be one or more hashes of named arguments,
+The arguments
+to the C<new()> constructor must be one or more hashes of named arguments,
 where each hash key is a recognizer setting.
 The L<C<grammar>|/"grammar"> recognizer setting is required.
 All other recognizer settings are optional.
@@ -753,7 +779,7 @@ normalize-whitespace: 1
 
 Given a pointer to a physical input stream and,
 optionally, a span specifying an input string within it,
-C<read()> parses input string according to the grammar.
+C<read()> parses the input string according to the grammar.
 C<read()> returns successfully if it parses to the end
 of the input string,
 or if it triggers a SLIF parse event.
@@ -763,6 +789,7 @@ recognizer.
 
 The first argument of C<read()> is a pointer to the physical
 input stream, which by default will also be the virtual input stream.
+To specify the input string,
 C<read()> recognizes
 optional second and third arguments and treats them
 as the start and length
@@ -801,21 +828,20 @@ normalize-whitespace: 1
 
 The C<series_restart()> method ends the current parse series,
 and starts another.
-It allows, as optional arguments, hashes of named arguments
-for the SLIF recognizer.
-These named arguments can be any of those allowed by
-L<the C<set()> method|/"set()>.
+Parse series are described L<above|"Parse series">.
+The C<series_restart()> method allows,
+as optional arguments, hashes whose key-value pairs
+are L<recognizer settings|/"Recognizer settings">.
 
-C<series_restart()> resets all the named arguments to their defaults.
-An application that wants a non-default named argument to have effect
+The C<series_restart()> method
+cannot change the C<grammar> recognizer setting.
+It sets every other recognizer setting to its default.
+An application that wants a non-default recognizer setting to have effect
 in each of its parse
 series must respecify it at the beginning of each parse series.
-C<series_restart()> is particularly useful for
+C<series_restart()> is particularly useful with
 the 
-C<end> and C<semantics_package> named arguments,
-which cannot be changed once a parse series is underway.
-To change their values,
-an application must start a new parse series.
+C<end> and C<semantics_package> named arguments.
 
 =head2 set()
 
@@ -827,14 +853,13 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-This method allows the named arguments to be changed after a SLIF
+This method allows recognizer settings to be changed after a SLIF
 grammar is created.
 The arguments to
-C<set()> must be one or more hashes of named arguments,
-where each hash key is a recognizer setting.
-For more on recognizer settings,
-see
-L<the section describing them|/"Recognizer settings">.
+C<set()> must be one or more hashes whose key-value pairs
+are recognizer settings.
+The allowed recognizer settings are
+L<described above|/"Recognizer settings">.
 
 =head2 value()
 
@@ -852,12 +877,10 @@ in the parse series,
 and returns a reference to the parse result for that parse tree.
 If there are no more parse trees,
 the C<value> method returns C<undef>.
-
-Because Marpa parses ambiguous grammars, every parse
-is a series of zero or more parse trees.
-This series of zero or more parse trees is called a B<parse series>.
 There are zero parse trees if there was no valid parse
 of the input according to the grammar.
+There will be more than one parse tree if the parse
+was ambiguous.
 
 The C<value()> method allows one optional argument.
 If provided, the argument
@@ -877,7 +900,8 @@ the tree.
 Symbol tables are one example of the kind of data which parses often
 require, but which it is not convenient to accumulate bottom-up.
 
-If the L<C<semantics_package>|/"semantics_package"> named argument of the SLIF
+If the L<C<semantics_package>|/"semantics_package">
+setting of the SLIF
 recognizer was not specified,
 Marpa will use the package into which the per-parse argument was blessed
 as the semantics package --
@@ -911,7 +935,7 @@ The C<activate()> method takes two arguments.
 The first is the name of an event, and the second (optional) argument is
 0 or 1.
 If the argument is 0, the event is deactivated.
-If the argument is 1, the event is reactivated.
+If the argument is 1, the event is activated.
 An argument of 1 is the default.
 Since an SLIF recognizer always starts with all defined events
 activated,
@@ -1050,9 +1074,8 @@ as L<described above|/"Spans">.
 The span will be interpreted as the section of the input stream
 that corresponds to the tokens read at the current G1 location.
 This correspondence between the span and the token
-may be artificial, but there must be one.
-The span may be specified implicitly,
-but it must be specified.
+may be artificial, but a span is defined for every token,
+even if only by default.
 
 If the fourth argument specifying the value of the lexeme
 is omitted,
