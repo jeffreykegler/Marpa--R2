@@ -1468,31 +1468,16 @@ New applications should avoid it.
 Instead a named event should be used,
 and the name of the event used to determine the name of
 the lexeme which triggered the lexeme event.
+SLIF parse events are described in detail in
+L<a separate document|Marpa::R2::Event>.
 
 The C<pause_lexeme()> method accepts no arguments.
-It returns the name of the lexeme which triggered the most
-recent lexeme SLIF parse event.
-
-More than one lexeme may cause a pause.
-When this is the case,
-all the causal lexemes will be
-acceptable to the G1 grammar,
-and all the causal lexemes will have
-the same lexeme priority.
-When more than one lexeme causes a pause,
-the choice of pause
-lexeme is arbitrary.
-Applications may not rely on a particular choice,
-or on that choice being repeated,
-even when the choice is made
-in similar or identical circumstances.
-
-If the most recent call of
-an event-triggering method did not trigger
-a lexeme event,
-or if no event-triggering method has yet been called
-for the current parse series,
-the pause lexeme is undefined.
+It returns the current
+L<pause lexeme|Marpa::R2::Event/"Pause span and lexeme">.
+More than one lexeme may cause a pause,
+in which case the choice is arbitrary.
+This is one reason that the use of
+C<pause_lexeme()> is discouraged.
 C<pause_lexeme()> returns a Perl C<undef> when
 the pause lexeme is undefined.
 
