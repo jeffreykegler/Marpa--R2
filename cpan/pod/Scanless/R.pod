@@ -1170,7 +1170,7 @@ The C<resume()> method resumes
 the SLIF's internal scanning,
 L<as described
 above|/"Internal scanning">.
-A physcial input stream must already have
+A physical input stream must already have
 been specified using the 
 L<C<< $slr->read() >> method|/"read()">.
 
@@ -1320,10 +1320,8 @@ name: Scanless g1_location_to_span() synopsis
 G1 locations do not correspond to a single input stream
 location, but to a span of them.
 The C<g1_location_to_span()> method
-returns an B<array> of two elements, representing a span in the input stream.
-The first element of the array is the input stream location
-where the span starts.
-The second element of the array is the length of the span.
+returns an B<array> of two elements, representing a
+L<span|/"Spans"> in the physical input stream.
 G1 location does not correspond to a input stream span so,
 as a special case,
 the input stream span for G1 location 0 is returned as (0,0).
@@ -1331,7 +1329,7 @@ the input stream span for G1 location 0 is returned as (0,0).
 Sometimes it is convenient to think of
 G1 location as corresponding to a single input stream location.
 When this is the case,
-what is usually intended is the location
+what is meant is the location
 at the end of physical input stream span:
 C<$span_start+$span_length>.
 
@@ -1377,11 +1375,12 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Given the name of a symbol,
-C<last_completed()> returns the start G1 location and
-the length in G1 locations of the most recent match.
+C<last_completed()> returns the G1 location
+L<span|/"Spans"> of the most recent match.
 If there was more than one most recent match, it returns
 the longest.
-If there was no match, returns the empty array in array context
+If there was no match,
+C<last_completed()> returns the empty array in array context
 and a Perl false in scalar context.
 
 =head2 line_column()
@@ -1406,7 +1405,8 @@ and the second element is the column position.
 
 Numbering of lines and columns is 1-based,
 following UNIX editor tradition.
-Except at B<EOVS> (the end of the virtual input stream),
+Except at B<EOVS>
+(the B<end of the virtual input stream>),
 the line and column will be that of an
 actual character.
 At EOVS the line number
@@ -1414,7 +1414,7 @@ will be that of the last line,
 and the column number will be that of the last column
 plus one.
 Applications which want to treat EOVS as a special case
-can test it for using the L<C<pos()> method|/"pos()">
+can test for it using the L<C<pos()> method|/"pos()">
 and the L<C<input_length()> method|/"input_length()">.
 
 A line is considered to end with any newline sequence
@@ -1471,7 +1471,7 @@ normalize-whitespace: 1
 
 The C<literal()> method accepts two arguments,
 the start location and length of a span in the
-input stream.
+physical input stream.
 It returns the substring of the input stream
 corresponding to that span.
 
@@ -1497,8 +1497,9 @@ L<a separate document|Marpa::R2::Event>.
 The C<pause_lexeme()> method accepts no arguments.
 It returns the current
 L<pause lexeme|Marpa::R2::Event/"Pause span and lexeme">.
-More than one lexeme may cause a pause,
-in which case the choice is arbitrary.
+More than one lexeme may trigger at the same location,
+in which case the choice of pause lexeme
+is made arbitrarily.
 This is one reason that the use of
 C<pause_lexeme()> is discouraged.
 C<pause_lexeme()> returns a Perl C<undef> when
@@ -1537,7 +1538,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<pos()> method accepts no arguments,
-and returns the current input stream location.
+and returns the current physical input stream location.
 
 =head2 progress()
 
@@ -1587,7 +1588,7 @@ the string contains reports for
 the current location.
 
 Locations can be specified as arguments to
-C<show_progress()>, as G1 locations.
+C<show_progress()>.
 With a single integer argument I<N>,
 the string contains reports for G1 location I<N>.
 Two numeric arguments are interpreted as a
@@ -1597,14 +1598,15 @@ reports for all locations in the span.
 Negative arguments are allowed and are
 interpreted as
 L<described above|/"Spans">.
-The method call C<< $recce->show_progress(0, -1) >>
+For example,
+the method call C<< $recce->show_progress(0, -1) >>
 will print progress reports for the entire parse.
 
-Locations are G1 locations instead of string offsets,
-because physical input stream locations do not necessary
-represent a unique point in the parse.
-The SLIF recognizer
-may visit a physical input stream location many times.
+Locations are G1 locations instead of physical input stream locations,
+because G1 locations represent a unique point in the parse.
+By contrast,
+a single physical input stream location might be visited many times
+by a SLIF recognizer.
 
 =head2 substring()
 
@@ -1624,7 +1626,9 @@ stream.
 A G1 length of zero will produce the zero-length string.
 
 The substring of the input stream is determined on the assumption
-that the application reads the input in lexical order and without gaps.
+that the application reads the input in lexical order and
+without gaps
+except for whitespace and other normal discards.
 When this is not the case, the substring is determined as
 L<described above|/"Literals and G1 spans">.
 
@@ -1699,9 +1703,12 @@ returns the substring of the input
 stream that is between the two.
 The C<range_to_string()> method 
 assumes that
-the application read forward smoothly in the input stream,
-while reading
-the sequence of G1 locations.
+the application read
+the physical input stream in
+lexical order and
+without gaps
+except for whitespace and other normal discards.
+and other normal reasons.
 When that is not the case,
 C<range_to_string()> behaves in
 much the same way as described above
