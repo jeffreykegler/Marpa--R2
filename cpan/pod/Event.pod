@@ -353,19 +353,9 @@ which will also be the location where the lexeme ends.
 Post-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
 C<< $slr->lexeme_read() >> calls are discarded.
-
 A post-lexeme event also sets the
-B<pause span> to the start location
-and length of the triggering lexeme.
-The pause span may be accessed directly
-with the
-L<C<< $slr->pause_span() >>
-method|Marpa::R2::Scanless::R/"pause_span()">.
-The pause span is originally undefined.
-Every call to the
-the L<C<read()>|Marpa::R2::Scanless::R/"read()">
-or the L<C<resume()>|Marpa::R2::Scanless::R/"resume()">
-methods resets the pause span to undefined.
+L<C<pause span> and
+C<pause lexeme>|"Pause span and pause lexeme">.
 
 =head2 Pre-lexeme events
 
@@ -385,6 +375,9 @@ its event location
 is set to the current location.
 Its trigger location is set to the location where the lexeme starts,
 which will be before the event location.
+A post-lexeme event also sets the
+L<C<pause span> and
+C<pause lexeme>|"Pause span and pause lexeme">.
 
 The SLIF recognizer will B<not> have
 read the lexeme
@@ -403,19 +396,6 @@ L<below|"External scanning">.
 Pre-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
 C<< $slr->lexeme_read() >> calls are discarded.
-
-A pre-lexeme event also sets the
-B<pause span> to the start location
-and length of the triggering lexeme.
-The pause span may be accessed directly
-with the
-L<C<< $slr->pause_span() >>
-method|Marpa::R2::Scanless::R/"pause_span()">.
-The pause span is originally undefined.
-Every call to the
-the L<C<read()>|Marpa::R2::Scanless::R/"read()">
-or the L<C<resume()>|Marpa::R2::Scanless::R/"resume()">
-methods resets the pause span to undefined.
 
 There is a lot of similarity
 between pre-lexeme events and predictions,
@@ -493,6 +473,33 @@ post-lexeme events from triggering at the same location.)
 Marpa allows ambiguous lexemes and,
 even after all the above criteria have been applied,
 there may be more than one lexeme event at a location.
+
+=head2 Pause span and pause lexeme
+
+When a lexeme event triggers, it will set
+the B<pause lexeme> to the lexeme symbol.
+It will also
+B<pause span> with the start physical input stream location
+and length of the triggering lexeme.
+The pause span and pause lexeme are
+originally undefined.
+Every call to the
+the L<C<read()>|Marpa::R2::Scanless::R/"read()">
+or the L<C<resume()>|Marpa::R2::Scanless::R/"resume()">
+methods resets the pause span to undefined.
+
+The pause span may be accessed directly
+with the
+L<C<< $slr->pause_span() >>
+method|Marpa::R2::Scanless::R/"pause_span()">.
+L<Accessing the pause lexeme
+directly|Marpa::R2::Scanless::R/"pause_lexeme()">
+is discouraged,
+because multiple lexeme events may occur at the
+same G1 location,
+but only one pause lexeme, arbitrarily chosen, is recorded.
+This is not a problem with the pause span, because
+all pause spans at a G1 location will be identical.
 
 =head1 Non-lexeme events
 

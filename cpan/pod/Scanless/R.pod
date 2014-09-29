@@ -1041,6 +1041,14 @@ If the pause span is defined,
 and the start of the pause lexeme is
 the same as the current location,
 length defaults to the length of the pause span.
+Pause span and the pause lexeme are set when an event-triggering
+methods triggers a lexeme event.
+Pause span is
+initially undefined,
+and it is reset to undefined at the beginning
+of every
+L<C<< $slr->read() >>|/"read()">
+or L<C<< $slr->resume() >> method|/"resume()">.
 Otherwise length defaults to -1.
 Negative values are allowed and are interpreted
 as L<described above|/"Spans">.
