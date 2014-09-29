@@ -483,8 +483,8 @@ the B<pause span> to the start physical input stream location
 and length of the triggering lexeme.
 The pause span and pause lexeme are
 originally undefined.
-Every call to the
-the L<C<read()>|Marpa::R2::Scanless::R/"read()">
+Every call
+to the L<C<read()>|Marpa::R2::Scanless::R/"read()">
 or the L<C<resume()>|Marpa::R2::Scanless::R/"resume()">
 methods resets the pause span to undefined.
 
