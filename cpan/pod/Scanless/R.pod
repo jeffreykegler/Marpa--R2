@@ -1496,7 +1496,6 @@ The C<pause_span()> method accepts no arguments,
 and returns
 the pause span
 as a 2-element array: start and length.
-
 The "pause span" is
 described in detail
 L<in another document|Marpa::R2::Event/"Pause span and lexeme">.
@@ -1534,13 +1533,8 @@ the current location.
 If a G1 location is
 given as its argument,
 C<progress()> reports progress at that G1 location.
-The G1 location may be negative.
-An argument of I<-X>
-will be interpreted as location I<N+X+1>, where I<N> is
-the current G1 location.
-In other words, an argument of -1 indicates the current G1 location,
-an argument of -2 indicates the G1 location just before
-the current one, etc.
+Negative G1 locations are interpreted as
+L<described above|/"Ranges">.
 
 The progress reports returned by
 the C<progress()> method
