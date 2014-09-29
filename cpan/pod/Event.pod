@@ -20,11 +20,11 @@ Marpa::R2::Event - SLIF parse events
 =head1 Synopsis
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
 partial: 1
 
-    my $input = q{a b c "insert d here" e e f};
+    my $input = q{a b c "insert d here" e e f h};
     my $length = length $input;
     my $pos    = $slr->read( \$input );
 
@@ -42,7 +42,7 @@ partial: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
 partial: 1
 
@@ -57,7 +57,7 @@ partial: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
 partial: 1
 
@@ -350,7 +350,7 @@ the name of prediction event is the only element.
 =head2 Post-lexeme events
 
 =for Marpa::R2::Display
-name: SLIF predicted event statement synopsis
+name: SLIF Event synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -384,7 +384,7 @@ the name of post-lexeme event is the only element.
 =head2 Pre-lexeme events
 
 =for Marpa::R2::Display
-name: SLIF predicted event statement synopsis
+name: SLIF Event synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -582,7 +582,7 @@ The symbol C<< <insert d> >> has a pre-lexeme event
 declared:
 
 =for Marpa::R2::Display
-name: SLIF predicted event statement synopsis
+name: SLIF Event synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -784,8 +784,9 @@ a prediction event
 and a completion event:
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
+partial: 1
 
     Events at position 23: "e" e$ e[] ^e ^f
 
@@ -817,8 +818,9 @@ The prediction of the second instance is, in fact,
 fulfilled, as reported at location 25:
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
+partial: 1
 
     Events at position 25: "e" e$ ^f
 
@@ -829,8 +831,9 @@ The second instance is length 1 and predicted at location
 This is because whitespace delayed its start by one position.
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
+partial: 1
 
     Events at position 21: d$ mid1$ mid2$ e[] ^e ^f
 
@@ -875,7 +878,7 @@ the events at this location were all caused by hidden
 triggering inside a call to C<< $slr->lexeme_complete() >>:
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
 partial: 1
 
@@ -892,7 +895,7 @@ triggering inside C<< $slr->resume() >>
 at end of string:
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
 partial: 1
 
@@ -946,7 +949,7 @@ It is not like any grammar that you are likely
 to encounter in normal practice.
 
 =for Marpa::R2::Display
-name: SLIF events() method synopsis
+name: SLIF Event synopsis
 normalize-whitespace: 1
 
     sub forty_two { return 42; };
@@ -1026,6 +1029,7 @@ normalize-whitespace: 1
     my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
     my $slr = Marpa::R2::Scanless::R->new(
         { grammar => $grammar, semantics_package => 'My_Actions' } );
+
     my $input = q{a b c "insert d here" e e f h};
     my $length = length $input;
     my $pos    = $slr->read( \$input );

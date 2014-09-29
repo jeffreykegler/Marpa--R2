@@ -28,7 +28,7 @@ use Marpa::R2::Test;
 ## no critic (ErrorHandling::RequireCarping);
 
 # Marpa::R2::Display
-# name: Event synopsis
+# name: SLIF Event synopsis
 
 sub forty_two { return 42; };
 
@@ -107,6 +107,7 @@ END_OF_DSL
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $slr = Marpa::R2::Scanless::R->new(
     { grammar => $grammar, semantics_package => 'My_Actions' } );
+
 my $input = q{a b c "insert d here" e e f h};
 my $length = length $input;
 my $pos    = $slr->read( \$input );
