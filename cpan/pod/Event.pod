@@ -350,12 +350,12 @@ When a post-lexeme event triggers,
 its trigger location and its event location
 are set to the current location,
 which will also be the location where the lexeme ends.
-Post-lexeme events which trigger during
-C<< $slr->lexeme_complete() >> and
-C<< $slr->lexeme_read() >> calls are discarded.
 A post-lexeme event also sets the
 L<C<pause span> and
 C<pause lexeme>|"Pause span and pause lexeme">.
+Post-lexeme events which trigger during
+C<< $slr->lexeme_complete() >> and
+C<< $slr->lexeme_read() >> calls are discarded.
 
 =head2 Pre-lexeme events
 
@@ -375,7 +375,7 @@ its event location
 is set to the current location.
 Its trigger location is set to the location where the lexeme starts,
 which will be before the event location.
-A post-lexeme event also sets the
+A pre-lexeme event also sets the
 L<C<pause span> and
 C<pause lexeme>|"Pause span and pause lexeme">.
 
@@ -478,8 +478,8 @@ there may be more than one lexeme event at a location.
 
 When a lexeme event triggers, it will set
 the B<pause lexeme> to the lexeme symbol.
-It will also
-B<pause span> with the start physical input stream location
+It will also set
+B<pause span> to the start physical input stream location
 and length of the triggering lexeme.
 The pause span and pause lexeme are
 originally undefined.
