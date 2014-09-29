@@ -1187,9 +1187,11 @@ name: Scanless ambiguity_metric() synopsis
 
 =for Marpa::R2::Display::End
 
-Returns 1 if there is an unambiguous parse,
-and 2 or greater if there is a ambiguous parse.
-Returns 0 if called before parsing.
+Succeeds and 
+returns 1 if there is an unambiguous parse.
+Succeeds and
+returns 2 or greater if there is a ambiguous parse.
+Fails and returns 0 if called before parsing.
 Returns 0 or less than zero on other unthrown failure.
 
 =head2 current_g1_location()
