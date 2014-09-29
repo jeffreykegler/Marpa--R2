@@ -457,7 +457,7 @@ The G1 grammar would accept its lexeme at that location.
 
 =item *
 
-The lexmeme is not scanned externally,
+The lexeme is not scanned externally,
 that is,
 by a call of the
 L<C<< $slr->lexeme_complete() >> method|Marpa::R2::Scanless::R/"lexeme_complete()">
