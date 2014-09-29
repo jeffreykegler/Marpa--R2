@@ -346,13 +346,26 @@ The SLIF recognizer will have
 already read the lexeme
 when its post-lexeme event triggers.
 
-When a post=lexeme event triggers,
+When a post-lexeme event triggers,
 its trigger location and its event location
 are set to the current location,
 which will also be the location where the lexeme ends.
 Post-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
 C<< $slr->lexeme_read() >> calls are discarded.
+
+A post-lexeme event also sets the
+B<pause span> to the start location
+and length of the triggering lexeme.
+The pause span may be accessed directly
+with the
+L<C<< $slr->pause_span() >>
+method|Marpa::R2::Scanless::R/"pause_span()">.
+The pause span is originally undefined.
+Every call to the
+the L<C<read()>|Marpa::R2::Scanless::R/"read()">
+or the L<C<resume()>|Marpa::R2::Scanless::R/"resume()">
+methods resets the pause span to undefined.
 
 =head2 Pre-lexeme events
 
@@ -390,6 +403,19 @@ L<below|"External scanning">.
 Pre-lexeme events which trigger during
 C<< $slr->lexeme_complete() >> and
 C<< $slr->lexeme_read() >> calls are discarded.
+
+A pre-lexeme event also sets the
+B<pause span> to the start location
+and length of the triggering lexeme.
+The pause span may be accessed directly
+with the
+L<C<< $slr->pause_span() >>
+method|Marpa::R2::Scanless::R/"pause_span()">.
+The pause span is originally undefined.
+Every call to the
+the L<C<read()>|Marpa::R2::Scanless::R/"read()">
+or the L<C<resume()>|Marpa::R2::Scanless::R/"resume()">
+methods resets the pause span to undefined.
 
 There is a lot of similarity
 between pre-lexeme events and predictions,

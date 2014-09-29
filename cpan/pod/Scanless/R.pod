@@ -1006,7 +1006,7 @@ L<the C<lexeme_read()> method|/"lexeme_read()">.
 
 SLIF parse events may occur during
 the L<lexeme_complete()> method,
-as described for the
+as described for
 L<the C<lexeme_read()> method|/"lexeme_read()">.
 
 B<Return value:>
@@ -1031,7 +1031,7 @@ The C<lexeme_read()> method reads a single, unambiguous, lexeme.
 It takes four arguments, only the first of which is required.
 The first argument is the lexeme's symbol name.
 The second and third arguments specify the span in
-the physical input stream
+the physical input stream.
 The last argument specifies the value of the lexeme.
 
 In the span specified by
