@@ -1153,7 +1153,7 @@ L<C<< $slr->read() >> method|/"read()">.
 
 The C<resume()> method takes two optional arguments,
 which represent the start and length parameters of
-a span.
+a span in the physical input stream.
 The default start location is the current location.
 The default length is -1.
 Negative arguments are interpreted
@@ -1168,13 +1168,9 @@ and the parse reaches the end of the input string without a
 failure,
 the current location is set to the end of the input string.
 
-The call is considered successful
-if it reached the end of input string,
-or if a SLIF parse event triggered.
-On success, C<resume()> moves
-the current location to where it paused,
-or to the EOS.
-
+C<resume()> is considered successful
+if it reads input to the end of input string,
+or if a SLIF parse event triggers.
 On success, C<resume()> returns
 the new current location.
 On unthrown failure,
