@@ -1563,39 +1563,26 @@ see L<Marpa::R2::Progress>.
 With no arguments,
 the string contains reports for
 the current location.
-If locations are specified as arguments to
-C<show_progress()>, they need to be 
-G1 locations.
 
+Locations can be specified as arguments to
+C<show_progress()>, as G1 locations.
 With a single integer argument I<N>,
 the string contains reports for G1 location I<N>.
-With two numeric arguments, I<N> and I<M>, the arguments are interpreted
-as the start and end points of a range of G1 locations
+Two numeric arguments are interpreted as a
+L<span/"Spans"> of G1 locations,
 and the returned string contains
-reports for all locations in the range.
-
-If an argument is negative,
-I<-N>,
-it indicates
-the I<N>th location counting backward
-from the furthest location of the parse.
-For example, if 42 was the furthest G1 location,
--1 would be G1 location 42 and -2 would be location 41.
-For example, the method call
-C<< $recce->show_progress(-3, -1) >>
-returns reports for the last three G1 locations of the parse.
+reports for all locations in the span.
+Negative arguments are allowed and are
+interpreted as
+L<described above|"Spans">.
 The method call C<< $recce->show_progress(0, -1) >>
 will print progress reports for the entire parse.
 
 Locations are G1 locations instead of string offsets,
-for two reasons.
-First, G1 parse state is only defined at the start of parsing,
-and at the end of a non-discarded lexeme.
-Therefore many strings offsets will not have a G1 parse state.
-Second, SLIF recognizers using external scanning are allowed
-to rescan the same string repeatedly.
-Therefore, a single string offset may have many
-G1 parse states.
+because physical input stream locations do not necessary
+represent a unique point in the parse.
+The SLIF recognizer
+may visit a physical input stream location many times.
 
 =head2 substring()
 
