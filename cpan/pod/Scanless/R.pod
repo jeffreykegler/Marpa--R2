@@ -1221,51 +1221,48 @@ partial: 1
 =for Marpa::R2::Display::End
 
 The C<events()> method takes no arguments,
-and returns an array of event descriptors.
+and returns an array of SLIF parse event descriptors.
 It returns the empty array
 if there were no event.
 
-Each named event descriptor is a reference to an array of one,
-and potentially more, elements.
+SLIF parse events are described in detail in
+L<a separate
+document|Marpa::R2::Scanless::Event>.
+Each SLIF parse event descriptor is a reference to an array of one
+or more elements.
 The first element of every named event descriptor is a string
-containing the name of the event,
-and this is typically the only element.
-In certain cases, there could be
-other elements of a named event descriptor,
-which will be
-as described for the type of named event.
-Named events are
-L<described in the SLIF
-DSL|Marpa::R2::Scanless::DSL/"Named event statement">.
+containing the name of the event.
+Typically the name of the event is only element.
+Other elements
+will be as
+L<described for
+each type of parse event|
+document|Marpa::R2::Scanless::Event/"Types of parse event">.
 
-Events occur during the
-L<the Scanless recognizer's read()|/"read()">,
-L<resume()|/"resume()">,
-L<lexeme_complete()|/"lexeme_complete()">,
-and L<lexeme_read()|/"lexeme_read()">
-methods.
-Any subsequent call
-to an SLIF recognizer mutator may clear the list
-of triggered events,
-The assumption is that
+Any other SLIF recognizer mutator
+may clear the events.
+It is expected that
 an application interested in events
 will call
-the C<events()> method almost as soon as
-control is returned to it.
+the C<events()> method immediately after the
+event-triggering event.
 
-Named events are returned in order by type.
-Completion events are first.
-They are followed by the nulled events.
-These are in turn followed by prediction events.
+Named events are returned in order by type:
+
+=over 4
+
+=item * Lexeme events
+
+=item * Completion events
+
+=item * Nulling events
+
+=item * Prediction events
+
+=back
+
 Within each type,
 the order of events is arbitrary.
-
-Applications may find it convenient to
-turn specific events off,
-temporarily or permanently.
-Events may be activated or deactivated
-with the SLIF recognizer's
-L<activate() method|/"activate()">.
 
 =head2 exhausted()
 
