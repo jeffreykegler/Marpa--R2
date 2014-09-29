@@ -1493,20 +1493,13 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<pause_span()> method accepts no arguments,
-and returns the "pause span" as a 2-element array.
-The "pause span" is
-the start location and length of the lexeme which caused
-the most recent pause.
-The pause span is initially undefined
-and it is reset to undefined at the beginning of
-each call to the L<C<read()>|/"read()"> or L<C<resume()>|/"resume()"> methods.
+and returns
+the pause span
+as a 2-element array: start and length.
 
-A pause is not always caused by a lexeme -- internal
-scanning may be paused
-because of the length argument of an internal scanning method.
-When the most recent pause was not caused by a lexeme,
-no span can be associated with it,
-and the pause span is undefined.
+The "pause span" is
+described in detail
+L<in another document|Marpa::R2::Event/"Pause span and lexeme">.
 C<pause_span()> returns a Perl C<undef> if
 the pause span is undefined.
 
