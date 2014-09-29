@@ -399,7 +399,7 @@ C<< $slr->lexeme_read() >> calls are discarded.
 
 There is a lot of similarity
 between pre-lexeme events and predictions,
-and the two often occur together,
+and the two can trigger together,
 but there are important differences.
 A pre-lexeme event does not occur unless that the lexeme is actually
 found in the input.
@@ -479,7 +479,7 @@ there may be more than one lexeme event at a location.
 When a lexeme event triggers, it will set
 the B<pause lexeme> to the lexeme symbol.
 It will also set
-B<pause span> to the start physical input stream location
+the B<pause span> to the start physical input stream location
 and length of the triggering lexeme.
 The pause span and pause lexeme are
 originally undefined.
