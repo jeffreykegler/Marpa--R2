@@ -1601,7 +1601,7 @@ stream.
 A G1 length of zero will produce the zero-length string.
 
 The substring of the input stream is determined on the assumption
-that the application reads the input monotonically.
+that the application reads the input in lexical order and without gaps.
 When this is not the case, the substring is determined as
 L<described above|/"Literals and G1 spans">.
 
