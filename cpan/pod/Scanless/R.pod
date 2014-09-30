@@ -364,7 +364,7 @@ are the same as for input stream locations.
 G1 location can be ignored most of the time,
 but it does become relevant
 when tracing the G1 grammar,
-and when dealing with ambiguous terminals,
+and when dealing with ambiguous terminals.
 (For those more familiar with Marpa's internals,
 the G1 location is the G1 Earley set index.)
 
