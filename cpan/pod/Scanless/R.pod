@@ -279,7 +279,7 @@ L<C<read()>|/"read()"> and
 L<C<resume()>|/"resume()"> methods, below.
 
 When the application considers input complete,
-and is ready to produced a parse value,
+and is ready to produce a parse value,
 the L<C<< $slr->value >> method|/"value()"> method
 is used.
 In most cases, this is all that is needed.
