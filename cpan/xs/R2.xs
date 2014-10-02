@@ -91,6 +91,7 @@ typedef struct {
 struct symbol_g_properties {
      int priority;
      unsigned int latm:1;
+     unsigned int is_lexeme:1;
      unsigned int pause_before:1;
      unsigned int pause_after:1;
 };
@@ -4819,6 +4820,7 @@ PPCODE:
     for (symbol_id = 0; symbol_id < g1_symbol_count; symbol_id++) {
         slg->symbol_g_properties[symbol_id].priority = 0;
         slg->symbol_g_properties[symbol_id].latm = 0;
+        slg->symbol_g_properties[symbol_id].is_lexeme = 0;
         slg->symbol_g_properties[symbol_id].pause_before = 0;
         slg->symbol_g_properties[symbol_id].pause_after = 0;
     }
@@ -4963,8 +4965,11 @@ PPCODE:
   XSRETURN_YES;
 }
 
+ # Mark the symbol as a lexeme.
+ # A priority is required.
+ #
 void
-g1_lexeme_priority_set( slg, g1_lexeme, priority )
+g1_lexeme_set( slg, g1_lexeme, priority )
     Scanless_G *slg;
     Marpa_Symbol_ID g1_lexeme;
     int priority;
@@ -4995,6 +5000,7 @@ PPCODE:
          (long) g1_lexeme);
     }
   slg->symbol_g_properties[g1_lexeme].priority = priority;
+  slg->symbol_g_properties[g1_lexeme].is_lexeme = 1;
   XSRETURN_YES;
 }
 
