@@ -173,7 +173,10 @@ my $build = Marpa::R2::Build_Me->new(
             homepage => 'http://savage.net.au/Marpa.html',
             repository => 'git://github.com/jeffreykegler/Marpa--R2.git',
             IRC        => 'irc://irc.freenode.net/#marpa',
-            x_IRC      => 'irc://irc.freenode.net/#marpa',
+            x_IRC      => { 
+                irc => 'irc://irc.freenode.net/#marpa', 
+                web => 'http://webchat.freenode.net/?channels=%23marpa&uio=d4'
+            },
         },
     },
     pod_files     => \%pod_files,
