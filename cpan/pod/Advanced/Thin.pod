@@ -217,7 +217,8 @@ The Marpa thin interface handles this.
 =head1 The throw setting
 
 One of the most important functions of
-the Marpa thin interface to adapt Libmarpa's
+the Marpa thin interface
+is to adapt Libmarpa's
 error reporting to Perl.
 Perl allows two kinds of error reporting.
 Perl methods can communicate failure via their return values,
