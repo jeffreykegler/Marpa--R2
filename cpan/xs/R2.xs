@@ -97,6 +97,7 @@ struct symbol_g_properties {
 };
 
 struct symbol_r_properties {
+     int lexeme_priority;
      unsigned int pause_before_active:1;
      unsigned int pause_after_active:1;
 };
@@ -1964,6 +1965,7 @@ slr_alternatives (Scanless_R * slr)
       while (!end_of_earley_items)
 	{
 	  struct symbol_g_properties *symbol_g_properties;
+	  struct symbol_r_properties *symbol_r_properties;
 	  Marpa_Symbol_ID g1_lexeme;
 	  int this_lexeme_priority;
 	  int is_expected;
@@ -2007,6 +2009,7 @@ slr_alternatives (Scanless_R * slr)
 	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
 	  symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
+	  symbol_r_properties = slr->symbol_r_properties + g1_lexeme;
 	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	  if (!is_expected)
 	    {
@@ -2039,7 +2042,7 @@ slr_alternatives (Scanless_R * slr)
 	   * but we do not yet know about priority
 	   */
 
-	  this_lexeme_priority = symbol_g_properties->priority;
+	  this_lexeme_priority = symbol_r_properties->lexeme_priority;
 	  if (!is_priority_set || this_lexeme_priority > high_lexeme_priority)
 	    {
 	      high_lexeme_priority = this_lexeme_priority;
@@ -5220,6 +5223,8 @@ PPCODE:
       {
         const struct symbol_g_properties *g_properties =
           slg->symbol_g_properties + symbol_id;
+        slr->symbol_r_properties[symbol_id].lexeme_priority =
+          g_properties->priority;
         slr->symbol_r_properties[symbol_id].pause_before_active =
           g_properties->pause_before;
         slr->symbol_r_properties[symbol_id].pause_after_active =
