@@ -1646,91 +1646,95 @@ slr_discard (Scanless_R * slr)
       const int working_pos = slr->start_of_lexeme + earley_set;
       return_value = marpa_r_progress_report_start (r0, earley_set);
       if (return_value < 0)
-        {
-          croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
-                 (void *) r0, (unsigned long) earley_set,
-                 xs_g_error (slr->current_lexer->g_wrapper));
-        }
+	{
+	  croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
+		 (void *) r0, (unsigned long) earley_set,
+		 xs_g_error (slr->current_lexer->g_wrapper));
+	}
       while (1)
-        {
-          Marpa_Symbol_ID g1_lexeme;
-          int dot_position;
-          Marpa_Earley_Set_ID origin;
-          Marpa_Rule_ID rule_id =
-            marpa_r_progress_item (r0, &dot_position, &origin);
-          if (rule_id <= -2)
-            {
-              croak ("Problem in marpa_r_progress_item(): %s",
-                     xs_g_error (slr->current_lexer->g_wrapper));
-            }
-          if (rule_id == -1)
-            goto NO_MORE_REPORT_ITEMS;
-          if (origin != 0)
-            goto NEXT_REPORT_ITEM;
-          if (dot_position != -1)
-            goto NEXT_REPORT_ITEM;
-          g1_lexeme = slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
-          if (g1_lexeme == -1)
-            goto NEXT_REPORT_ITEM;
-          lexemes_found++;
-          slr->end_of_lexeme = working_pos;
+	{
+	  Marpa_Symbol_ID g1_lexeme;
+	  int dot_position;
+	  Marpa_Earley_Set_ID origin;
+	  Marpa_Rule_ID rule_id =
+	    marpa_r_progress_item (r0, &dot_position, &origin);
+	  if (rule_id <= -2)
+	    {
+	      croak ("Problem in marpa_r_progress_item(): %s",
+		     xs_g_error (slr->current_lexer->g_wrapper));
+	    }
+	  if (rule_id == -1)
+	    goto NO_MORE_REPORT_ITEMS;
+	  if (origin != 0)
+	    goto NEXT_REPORT_ITEM;
+	  if (dot_position != -1)
+	    goto NEXT_REPORT_ITEM;
+	  g1_lexeme = slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
+	  if (g1_lexeme == -1)
+	    goto NEXT_REPORT_ITEM;
+	  lexemes_found++;
+	  slr->end_of_lexeme = working_pos;
 
-          /* -2 means a discarded item */
-if (g1_lexeme <= -2)
-  {
-    lexemes_discarded++;
-    if (slr->trace_terminals)
-      {
-                        union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
-        MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
+	  /* -2 means a discarded item */
+	  if (g1_lexeme <= -2)
+	    {
+	      lexemes_discarded++;
+	      if (slr->trace_terminals)
+		{
+		  union marpa_slr_event_s *slr_event =
+		    marpa__slr_event_push (slr->gift);
+		  MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
 
-        /* We do not have the lexeme, but we have the 
-         * lexer rule.
-         * The upper level will have to figure things out.
-         */
-        slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
-        slr_event->t_trace_lexeme_discarded.t_start_of_lexeme =
-          slr->start_of_lexeme;
-        slr_event->t_trace_lexeme_discarded.t_end_of_lexeme =
-          slr->end_of_lexeme;
-        slr_event->t_trace_lexeme_discarded.t_current_lexer_ix =
-          slr->current_lexer->index;
+		  /* We do not have the lexeme, but we have the 
+		   * lexer rule.
+		   * The upper level will have to figure things out.
+		   */
+		  slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
+		  slr_event->t_trace_lexeme_discarded.t_start_of_lexeme =
+		    slr->start_of_lexeme;
+		  slr_event->t_trace_lexeme_discarded.t_end_of_lexeme =
+		    slr->end_of_lexeme;
+		  slr_event->t_trace_lexeme_discarded.t_current_lexer_ix =
+		    slr->current_lexer->index;
 
-      }
-    /* If there is discarded item, we are fine,
-     * and can return success.
-     */
-    slr->lexer_start_pos = slr->perl_pos = working_pos;
-    return 0;
-  }
+		}
+	      /* If there is discarded item, we are fine,
+	       * and can return success.
+	       */
+	      slr->lexer_start_pos = slr->perl_pos = working_pos;
+	      return 0;
+	    }
 
-          /*
-           * Ignore everything else.
-           * We don't try to read lexemes into an exhausted
-           * R1 -- we only are looking for discardable tokens.
-           */
-          if (slr->trace_terminals)
-            {
-                        union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
-MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_IGNORED;
+	  /*
+	   * Ignore everything else.
+	   * We don't try to read lexemes into an exhausted
+	   * R1 -- we only are looking for discardable tokens.
+	   */
+	  if (slr->trace_terminals)
+	    {
+	      union marpa_slr_event_s *slr_event =
+		marpa__slr_event_push (slr->gift);
+	      MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_IGNORED;
 
-              slr_event->t_trace_lexeme_ignored.t_lexeme = g1_lexeme;
-              slr_event->t_trace_lexeme_ignored.t_start_of_lexeme = slr->start_of_lexeme;
-              slr_event->t_trace_lexeme_ignored.t_end_of_lexeme = slr->end_of_lexeme;
-            }
-        NEXT_REPORT_ITEM:;
-        }
+	      slr_event->t_trace_lexeme_ignored.t_lexeme = g1_lexeme;
+	      slr_event->t_trace_lexeme_ignored.t_start_of_lexeme =
+		slr->start_of_lexeme;
+	      slr_event->t_trace_lexeme_ignored.t_end_of_lexeme =
+		slr->end_of_lexeme;
+	    }
+	NEXT_REPORT_ITEM:;
+	}
     NO_MORE_REPORT_ITEMS:;
       if (lexemes_found)
-        {
-          /* We found a lexeme at this location and we are not allowed
-           * to discard this input.
-           * Return failure.
-           */
-          slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
-            slr->start_of_lexeme;
-          return -4;
-        }
+	{
+	  /* We found a lexeme at this location and we are not allowed
+	   * to discard this input.
+	   * Return failure.
+	   */
+	  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
+	    slr->start_of_lexeme;
+	  return -4;
+	}
       earley_set--;
     }
 
