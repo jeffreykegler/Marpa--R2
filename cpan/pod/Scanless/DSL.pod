@@ -532,7 +532,7 @@ The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
 alternatives on each side of it have the same priority.
 Associativity is specified using adverbs, as described below.
 
-=head2 Discard pseudo-rules
+=head2 Discard pseudo-rule
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -557,7 +557,7 @@ it is not passed as a lexeme to the G1 parser, but is
 Discard pseudo-rules must be L0 rules.
 No adverbs are allowed.
 
-=head2 Default pseudo-rules
+=head2 Default pseudo-rule
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -595,7 +595,7 @@ set of defaults -- if an adverb is not specified,
 the default is reset to its implicit value,
 the value which it had prior to any explicit settings.
 
-=head2 Lexeme pseudo-rules
+=head2 Lexeme pseudo-rule
 
 =for Marpa::R2::Display
 name: SLIF lexeme rule synopsis
@@ -901,7 +901,7 @@ normalize-whitespace: 1
 
 The C<event> adverb applies only to lexemes and
 is only allowed in 
-L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rules">.
+L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule">.
 It names the event specified by
 the L<C<pause>|/"pause"> adverb.
 It is a fatal error to specify the C<event> adverb
@@ -944,7 +944,7 @@ normalize-whitespace: 1
 
 The C<latm> adverb applies only to lexemes and
 is only allowed in 
-L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rules"> and 
+L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule"> and 
 L<a C<lexeme default> statement|/"Lexeme default statement">.
 Its value is a boolean.
 If the boolean is set it indicates that a token

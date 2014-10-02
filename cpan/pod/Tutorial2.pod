@@ -220,14 +220,14 @@ The above code uses
 L<the recognizer's C<ambigous()>
 method|Marpa::R2::Scanless::R/"ambiguous()"> to spot ambiguous parses.
 The L<C<ambigous()>
-method|Marpa::R2::Scanless::R::ambiguous()> returns the empty string
+method|Marpa::R2::Scanless::R/"ambiguous()"> returns the empty string
 if there was exactly one parse.
 If there was no parse, 
 the L<C<ambigous()>
-method|Marpa::R2::Scanless::R::ambiguous()> returns a string stating that.
+method|Marpa::R2::Scanless::R/"ambiguous()"> returns a string stating that.
 If there were two or more parses,
 the L<C<ambigous()>
-method|Marpa::R2::Scanless::R::ambiguous()> returns a string describing
+method|Marpa::R2::Scanless::R/"ambiguous()"> returns a string describing
 the ambiguity.
 
 =head2 Marpa::R2::Scanless::R::value

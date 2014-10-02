@@ -288,7 +288,7 @@ An explicit action for a RHS alternative can be specified using
 L<the C<action> adverb|Marpa::R2::Scanless::DSL/"action">
 for the its RHS alternative.
 A default explicit action for RHS alternatives can be specified with a
-L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rules">.
+L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rule">.
 
 =head2 Nulled symbol actions
 

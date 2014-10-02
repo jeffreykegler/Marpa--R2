@@ -346,7 +346,7 @@ in a G1 rule, it still must be implemented at
 the L0 level.
 Marpa knows this and "does what you mean."
 
-=head2 Discard pseudo-rules
+=head2 Discard pseudo-rule
 
 A new type of rule is introduced:
 a "discard" pseudo-rule.

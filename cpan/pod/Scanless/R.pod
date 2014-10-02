@@ -1030,7 +1030,7 @@ as described for
 L<the C<lexeme_read()> method|/"lexeme_read()">.
 
 SLIF parse events may occur during
-the L<lexeme_complete()> method,
+the L<C<lexeme_complete()>|/"lexeme_complete()"> method,
 as described for
 L<the C<lexeme_read()> method|/"lexeme_read()">.
 
@@ -1252,7 +1252,7 @@ if there were no event.
 
 SLIF parse events are described in detail in
 L<a separate
-document|Marpa::R2::Scanless::Event>.
+document|Marpa::R2::Event>.
 Each SLIF parse event descriptor is a reference to an array of one
 or more elements.
 The first element of every named event descriptor is a string
@@ -1262,7 +1262,7 @@ Other elements
 will be as
 L<described for
 each type of parse event|
-document|Marpa::R2::Scanless::Event/"Types of parse event">.
+document|Marpa::R2::Event/"Types of parse event">.
 
 Any other SLIF recognizer mutator
 may clear the events.

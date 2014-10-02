@@ -112,7 +112,7 @@ and C<action_object> arguments together.
 Use of this argument is discouraged in favor of using the
 L<C<action> adverb|Marpa::R2::Scanless::DSL/"action">
 in a
-L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rules">.
+L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rule">.
 Specifies the C<default_action> named argument that
 will be used for the G1 grammar.
 For details, see L<Marpa::R2::NAIF::Grammar/"default_action">.
@@ -245,7 +245,7 @@ name: $slg->rule_name() example
 
 Given a rule ID, returns the rule name.
 A rule name is as defined by
-L<the C<name> adverb|Scanless::R/"name">.
+L<the C<name> adverb|Marpa::R2::Scanless::DSL/"name">.
 If no rule name was defined, the rule name is the name of
 the LHS symbol.
 

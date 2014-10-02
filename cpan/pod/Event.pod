@@ -182,9 +182,9 @@ Events are declared in the SLIF DSL.
 Parse events can be either a lexeme event
 or a non-lexeme event.
 Lexeme events are declared using
-L<C<:lexeme> pseudo-rules|Marpa::R2::DSL/"Lexeme pseudo-rules">.
+L<C<:lexeme> pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rule">.
 Non-lexeme events are declared using
-L<named event statements|Marpa::R2::DSL/"Named event statement">.
+L<named event statements|Marpa::R2::Scanless::DSL/"Named event statement">.
 The various types of parse events are described in detail
 L<below|/"Types of parse event">.
 The description of
@@ -233,7 +233,7 @@ method|/"pause_span()">.
 
 Completion events are declared in the SLIF DSL
 using the
-L<named event statement|Marpa::R2::DSL/"Named event statement">:
+L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">:
 
 =for Marpa::R2::Display
 name: SLIF completed event statement synopsis
@@ -271,7 +271,7 @@ the name of completed event is the only element.
 
 Nulling events are declared in the SLIF DSL
 using the
-L<named event statement|Marpa::R2::DSL/"Named event statement">:
+L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">:
 
 =for Marpa::R2::Display
 name: SLIF nulled event statement synopsis
@@ -314,7 +314,7 @@ the name of nulling event is the only element.
 
 Prediction events are declared in the SLIF DSL
 using the
-L<named event statement|Marpa::R2::DSL/"Named event statement">:
+L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">:
 
 =for Marpa::R2::Display
 name: SLIF predicted event statement synopsis
@@ -455,7 +455,7 @@ applied in order, are true:
 =item *
 
 It is declared in a
-L<C<:lexeme> pseudo-rule|Marpa::R2::DSL/"Lexeme pseudo-rules">.
+L<C<:lexeme> pseudo-rule|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rule">.
 
 =item *
 
@@ -545,7 +545,7 @@ if all of the following are true:
 =item *
 
 It is declared in a
-L<named event statement|Marpa::R2::DSL/"Named event statement">.
+L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">.
 
 =item *
 
@@ -1089,7 +1089,7 @@ Use of unnamed events is strongly discouraged.
 However, to support legacy code, unnamed events are still supported.
 
 Unnamed events are declared by
-L<C<:lexeme> pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rules">,
+L<C<:lexeme> pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rule">,
 when
 L<the C<pause> adverb|Marpa::R2::Scanless::DSL/"pause"> 
 is used without
