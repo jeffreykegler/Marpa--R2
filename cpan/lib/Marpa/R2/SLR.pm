@@ -1711,6 +1711,23 @@ sub Marpa::R2::Scanless::R::activate {
     return 1;
 } ## end sub Marpa::R2::Scanless::R::activate
 
+# To be documented
+
+sub Marpa::R2::Scanless::R::lexeme_priority_set {
+    my ($slr, $lexeme_name, $new_priority) = @_;
+    my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
+    my $thick_g1_grammar =
+        $slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce = $thick_g1_recce->thin();
+    my $g1_tracer       = $thick_g1_grammar->tracer();
+    my $lexeme_id       = $g1_tracer->symbol_by_name($lexeme_name);
+    Marpa::R2::exception("Bad symbol in lexeme_priority_set(): $lexeme_name")
+        if not defined $lexeme_id;
+    return $thin_g1_recce->lexeme_priority_set($lexeme_id, $new_priority);
+}
+
 # Internal methods, not to be documented
 
 sub Marpa::R2::Scanless::R::thick_g1_grammar {

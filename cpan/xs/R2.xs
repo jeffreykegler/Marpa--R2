@@ -6455,6 +6455,75 @@ PPCODE:
   XSRETURN_IV(slr->current_lexer->index);
 }
 
+  # Untested
+void
+lexeme_priority( slr, g1_lexeme )
+    Scanless_R *slr;
+    Marpa_Symbol_ID g1_lexeme;
+PPCODE:
+{
+  const Scanless_G *slg = slr->slg;
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+        ("Problem in slr->g1_lexeme_priority(%ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+         (long) g1_lexeme,
+         (long) g1_lexeme,
+         (long) highest_g1_symbol_id
+         );
+    }
+    if (g1_lexeme < 0) {
+      croak
+        ("Problem in slr->g1_lexeme_priority(%ld): symbol ID was %ld, a disallowed value",
+         (long) g1_lexeme,
+         (long) g1_lexeme);
+    }
+  if ( ! slg->symbol_g_properties[g1_lexeme].is_lexeme ) {
+      croak
+        ("Problem in slr->g1_lexeme_priority(%ld): symbol ID %ld is not a lexeme",
+         (long) g1_lexeme,
+         (long) g1_lexeme);
+  }
+  XSRETURN_IV( slr->symbol_r_properties[g1_lexeme].lexeme_priority);
+}
+
+void
+lexeme_priority_set( slr, g1_lexeme, new_priority )
+    Scanless_R *slr;
+    Marpa_Symbol_ID g1_lexeme;
+    int new_priority;
+PPCODE:
+{
+  int old_priority;
+  const Scanless_G *slg = slr->slg;
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+        ("Problem in slr->g1_lexeme_priority(%ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+         (long) g1_lexeme,
+         (long) g1_lexeme,
+         (long) highest_g1_symbol_id
+         );
+    }
+    if (g1_lexeme < 0) {
+      croak
+        ("Problem in slr->g1_lexeme_priority(%ld): symbol ID was %ld, a disallowed value",
+         (long) g1_lexeme,
+         (long) g1_lexeme);
+    }
+  if ( ! slg->symbol_g_properties[g1_lexeme].is_lexeme ) {
+      croak
+        ("Problem in slr->g1_lexeme_priority(%ld): symbol ID %ld is not a lexeme",
+         (long) g1_lexeme,
+         (long) g1_lexeme);
+  }
+  old_priority = slr->symbol_r_properties[g1_lexeme].lexeme_priority;
+  slr->symbol_r_properties[g1_lexeme].lexeme_priority = new_priority;
+  XSRETURN_IV( old_priority );
+}
+
 INCLUDE: general_pattern.xsh
 
 BOOT:
