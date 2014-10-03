@@ -16,6 +16,7 @@
 .PHONY: dummy all html_meta
 
 dummy:
+	@echo '!!!' The main target is '"all"' '!!!'
 
 all: ../lib/Marpa/R2/Internal.pm html_meta
 

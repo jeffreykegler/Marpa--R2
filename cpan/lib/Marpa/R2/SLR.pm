@@ -190,32 +190,35 @@ sub Marpa::R2::Scanless::R::rule_show {
 sub Marpa::R2::Scanless::R::new {
     my ( $class, @args ) = @_;
 
-    my $self = [];
-    bless $self, $class;
+    my $slr = [];
+    bless $slr, $class;
+
+    # Set SLIF (not NAIF) recognizer args to default
+    $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION] = 'fatal';
 
     my $g1_recce_args =
-        Marpa::R2::Internal::Scanless::R::set( $self, "new", @args );
+        Marpa::R2::Internal::Scanless::R::set( $slr, "new", @args );
     my $too_many_earley_items = $g1_recce_args->{too_many_earley_items};
 
-    my $slg = $self->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
+    my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
 
     my $thick_g1_grammar =
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
     $g1_recce_args->{grammar} = $thick_g1_grammar;
     my $thick_g1_recce =
-        $self->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE] =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new($g1_recce_args);
 
-    my $thin_self =
+    my $thin_slr =
         Marpa::R2::Thin::SLR->new( $slg->[Marpa::R2::Internal::Scanless::G::C],
         $thick_g1_recce->thin() );
-    $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
+    $thin_slr->earley_item_warning_threshold_set($too_many_earley_items)
         if defined $too_many_earley_items;
-    $self->[Marpa::R2::Internal::Scanless::R::C]      = $thin_self;
-    $self->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
-    Marpa::R2::Internal::Scanless::convert_libmarpa_events($self);
+    $slr->[Marpa::R2::Internal::Scanless::R::C]      = $thin_slr;
+    $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
+    Marpa::R2::Internal::Scanless::convert_libmarpa_events($slr);
 
-    return $self;
+    return $slr;
 } ## end sub Marpa::R2::Scanless::R::new
 
 sub Marpa::R2::Scanless::R::set {
@@ -244,16 +247,24 @@ sub Marpa::R2::Internal::Scanless::R::set {
             qw(end max_parses semantics_package too_many_earley_items
             trace_actions trace_file_handle trace_terminals trace_values)
     };
+    state $common_slif_recce_args =
+        { map { ( $_, 1 ); } qw(trace_lexers exhaustion) };
     state $set_method_args = {
-        map { ( $_, 1 ); } qw(trace_lexers),
-        keys %{$common_naif_recce_args}
+        map { ( $_, 1 ); } (
+            keys %{$common_slif_recce_args},
+            keys %{$common_naif_recce_args}
+        )
     };
     state $new_method_args = {
-        map { ( $_, 1 ); } qw(grammar ranking_method trace_lexers ),
+        map { ( $_, 1 ); } qw(grammar ranking_method),
         keys %{$set_method_args}
     };
-    state $series_restart_method_args =
-        { map { ( $_, 1 ); } qw(trace_lexers), keys %{$common_naif_recce_args} };
+    state $series_restart_method_args = {
+        map { ( $_, 1 ); } (
+            keys %{$common_slif_recce_args},
+            keys %{$common_naif_recce_args}
+        )
+    };
 
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
@@ -310,6 +321,22 @@ sub Marpa::R2::Internal::Scanless::R::set {
         $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR] = $slg;
 
     } ## end if ( $method eq 'new' )
+
+    # Special SLIF (not NAIF) recce arg processing goes here
+    if ( exists $flat_args{'exhaustion'} ) {
+
+        state $exhaustion_actions = { map { ( $_, 0 ) } qw(fatal event) };
+        my $value = $flat_args{'exhaustion'} // 'undefined';
+        Marpa::R2::exception(
+            qq{'exhaustion' named arg value is $value (should be one of },
+            (   join q{, },
+                map { q{'} . $_ . q{'} } keys %{$exhaustion_actions}
+            ),
+            ')'
+        ) if not exists $exhaustion_actions->{$value};
+        $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION] = $value;
+
+    } ## end if ( exists $flat_args{'exhaustion'} )
 
     # A bit hack-ish, but some named args are copies straight to an member of
     # the Scanless::R class, so this maps named args to the index of the array
@@ -1428,6 +1455,10 @@ sub Marpa::R2::Scanless::R::series_restart {
     my ( $slr , @args ) = @_;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+
+    # Reset SLIF (not NAIF) recognizer args to default
+    $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION] = 'fatal';
+
     $thick_g1_recce->reset_evaluation();
     my $g1_recce_args = Marpa::R2::Internal::Scanless::R::set($slr, "series_restart", @args );
     $thick_g1_recce->set( $g1_recce_args );

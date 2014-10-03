@@ -199,10 +199,11 @@ use constant C => 0;
 use constant GRAMMAR => 1;
 use constant THICK_G1_RECCE => 2;
 use constant P_INPUT_STRING => 3;
-use constant TRACE_FILE_HANDLE => 4;
-use constant TRACE_LEXERS => 5;
-use constant TRACE_TERMINALS => 6;
-use constant READ_STRING_ERROR => 7;
-use constant EVENTS => 8;
+use constant EXHAUSTION_ACTION => 4;
+use constant TRACE_FILE_HANDLE => 5;
+use constant TRACE_LEXERS => 6;
+use constant TRACE_TERMINALS => 7;
+use constant READ_STRING_ERROR => 8;
+use constant EVENTS => 9;
 
 1;
