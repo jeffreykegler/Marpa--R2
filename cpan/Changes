@@ -15,9 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.095_000 (libmarpa 7.0.3) Tue Sep 16 21:11:10 PDT 2014
+2.097_000 (libmarpa 7.0.3) Fri Oct  3 10:42:57 PDT 2014
 
    * New series of developer's releases.
+
+2.096000 (libmarpa 7.0.3) Fri Oct  3 09:05:22 PDT 2014
+
+   * Improve SLIF parse event documentation.
 
 2.094000 (libmarpa 7.0.3) Tue Sep 16 18:57:54 PDT 2014
 
