@@ -243,12 +243,15 @@ The value of the topmost glade (called the B<peak>) becomes the value
 of the traversal, and will be the value returned by
 L<the C<traverse()> method|/"traverse()">.
 
-The traverser is called at most once for each glade -- subsequent
-attempts to determine the value of a glade will return a memoized
-value.
-The traverser is always invoked for the peak, and for any glade whose
+The traverser is always invoked once for the peak.
+The traverser is also invoked once for any glade whose
 value is required.
 It may or may not be invoked for other glades.
+The traverser is never invoked twice for the same glade.
+If more than one attempt to made
+to retrieve the value of a glade,
+the traverser will only be invoked for the first one --
+all subsequent attempts will return a memoized value.
 
 The traverser is always invoked with two arguments.
 The first argument will be a B<glade object>.
@@ -258,8 +261,9 @@ the glade, and to move around in it.
 The second of the two arguments to a traverser is 
 the per-traversal object, which will be shared by all calls
 in the traversal.
-It may be used as a "scratch pad" for information
-which it is not convenient to pass via return values,
+The per-traversal object
+may be used as a "scratch pad" for information
+that it is not convenient to pass via return values,
 as a means of avoiding the use of globals.
 
 "Moving around" in a glade means visiting its B<parse alternatives>.
@@ -272,8 +276,8 @@ the L<C<next()>|/"next()"> glade method.
 
 Parse alternatives may be either token
 alternatives or rule alternatives.
-Whether or not the current alternative of the glade is a rule
-can be determined using the
+Rule and token alternatives may be distnguished
+with the
 the L<C<rule_id()>|/"rule_id()"> glade method,
 which returns C<undef> if and only if the glade is positioned at a token
 alternative.
@@ -290,7 +294,8 @@ the L<C<span()>|/"span()"> and
 the L<C<literal()>|/"literal()"> glade methods
 are of use.
 The L<C<symbol_id()>|/"symbol_d()"> glade method is
-also always of use although its meaning varies.
+also always of use,
+although its meaning varies.
 At token alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
 token symbol.
 At rule alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
@@ -302,7 +307,7 @@ the L<C<rh_value()>|/"rh_value()"> glade methods
 are of use.
 The C<rh_length()> method returns the length of the RHS,
 and the C<rh_value()> method returns the value of one of the
-RHS children, as determined using its traverser.
+RHS children, as determined using the traverser.
 
 At the peak of the ASF, the symbol will be named 'C<[:start]>'.
 This case often requires special treatment.
@@ -349,7 +354,7 @@ The second number will be its length.
 The glade span remains constant within a glade.
 The C<span()> method accepts no arguments.
 
-Then "end" character of the span, when defined, may be calculated as
+The "end" character of the span, when defined, may be calculated as
 its start plus its length, minus one.
 Applications should note that glades representing nulled symbols
 are special cases.
@@ -369,8 +374,7 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
-Returns the B<glade symbol>, which remains constant
-inside a glade.
+Returns the B<glade symbol>.
 For a token alternative, the glade symbol is the token
 symbol.
 For a rule alternative, the glade symbol is the LHS symbol of
@@ -426,7 +430,9 @@ partial: 1
 
 Requires exactly one argument, C<$rh_ix>, which must be the zero-based
 index of a RHS child of the current rule instance.
-Returns the value of the C<$rh_ix>'th child of the current rule instance.
+Returns the value of the child
+at index C<$rh_ix>
+of the current rule instance.
 For convenient iteration,
 returns C<undef> if the value of the C<$rh_ix> is greater than or equal to the RHS length.
 It is a fatal error to call C<rh_value()> for a glade
@@ -447,7 +453,8 @@ Points the glade at the next alternative.
 If there is no next alternative, returns C<undef>.
 On success, returns a defined value.
 One of the values returned on success may be
-the integer zero, so applications checking for failure
+the integer zero, so applications using
+this method to control an interation
 should be careful to check for a Perl defined value,
 and not for a Perl true value.
 
@@ -465,9 +472,10 @@ is used as the exit condition.
 =head1 Details
 
 This section contains additional explanations, not essential to understanding
-the topic of this document.
+the rest of this document.
 Often they are formal or mathematical.
-Some people find these helpful, but others do not, which is why
+While some people find these helpful, others find them distracting,
+which is why
 they are segregated here.
 
 =head2 Symches and factorings
@@ -482,7 +490,8 @@ A rule symch is a series of rule alternatives (factorings) which share the same 
 A glade's token alternative is a symch all by itself.
 The term B<symch> is shorthand for "symbolic choice".
 
-For each glade accessor, its value can be classified as
+The value that each glade accessor
+returns can be classified as
 
 =over
 
