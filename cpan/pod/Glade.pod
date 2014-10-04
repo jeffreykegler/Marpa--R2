@@ -255,18 +255,28 @@ The peak has no upglades.
 
 =head1 The glade hierarchy
 
-Every glade has the same internal structure, which is this hierarchy:
+The glade hierarchy is a recursive structure whose nodes
+are glades.
+Every glade has the same internal structure:
 
 =over 4
 
-=item * Glades contain symches.  A symch is either for a rule or for a token.
+=item *
 
-=item * Rule symches contain factorings.
+Glades contain symches.  A symch is either for a rule or for a token.
 
-=item * Factorings contain factors.
+=item *
 
-=item * A factor is the uphill end of a path which leads to a downglade.
-That downglade will contain a glade hierarchy of its own.
+Rule symches contain factorings.
+
+=item *
+
+Factorings contain factors.
+
+=item *
+
+A factor is the uphill end of a path which leads to a downglade.
+A downglade is another glade.
 
 =back
 
