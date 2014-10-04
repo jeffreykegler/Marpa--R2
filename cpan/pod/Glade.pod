@@ -653,12 +653,13 @@ And if two ambiguities in the ASF overlap, only the one closest to the peak is r
 
 =head2 Factoring reports
 
-A symch report is issued whenever, in a top-down traversal of the ASF,
-an sequence of symbols is found which has more than one factoring.
-Factoring reports are specific -- they identify not just rules,
-but the specific sequences within the RHS
-which are differently factored -- B<multifactored stretches>.
-Sequence rules especially have long stretches where the symbols are in sync
+A factoring report identifies
+a sequence of RHS symbols which has more than one factoring.
+Factoring reports identify not just a rule,
+but a specific subsequence within the RHS
+which which is multiply factored -- a B<multifactored stretch>.
+Marpa does this, because a RHS can be very long.
+Marpa's sequence rules especially have long stretches where the symbols are in sync
 with each other, broken by other stretches where they are out of sync.
 Marpa reports each of the ambiguous stretches.
 (A detailed definition of multifactored stretches is L<below|/"Multifactored stretches">.)
@@ -947,8 +948,8 @@ idea of multifactored stretches.
 The exact definition follows.
 First we will need a series of preliminary definitions.
 
-
 Consider the case of a arbitrary rule symch.
+We need a way of identifying specific factors within a set of factorings.
 Intuitively, a B<factoring position> is a location within the factors of one of the factorings
 of that symch.
 It can be seen as a duple C<E<lt>factoring_ix, factor_ixE<gt>> where 
