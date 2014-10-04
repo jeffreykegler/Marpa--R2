@@ -1,29 +1,29 @@
-commit 010fe4e01fefd8ef2a4c8120e3f19ff0b4bfea77
+commit e86ea1381a7ecf01c2b3d487213ac8f9b9aa4641
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Aug 8 19:45:09 2014 -0700
+Date:   Sat Oct 4 08:33:38 2014 -0700
 
-    Turn off debugging statements
+    Bump version to 7.2.0
 
-commit e159fb06fafc5ff437ce3e7a238dfd1068760aa0
+commit 6f23f0ce2a87f3b8e2508b11994f6e1e7219726a
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Aug 8 18:50:32 2014 -0700
+Date:   Sat Oct 4 08:32:50 2014 -0700
 
-    Bump version
+    Fix jeffreykegler/Marpa--R2#202
 
-commit cb34dcfaec1a898d5747424502e923c7efe1c656
+commit 354e35ff0593453b367f9a1e2a2f268b1180f0ff
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Aug 8 18:48:42 2014 -0700
+Date:   Mon Sep 22 22:42:01 2014 -0700
 
-    Fix bug found by Ion Toloaca
+    Fix doc -- negative token value is allowed
 
-commit 397233b353c15fa37e15084103aa069fb94ac307
+commit 9e36dc918af960cb7d6b4b2f417659575c311064
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Aug 7 21:11:54 2014 -0700
+Date:   Mon Sep 1 12:04:47 2014 -0700
 
-    Add AC_MAINTAINER_MODE
+    Work on timings
 
-commit 9e995e6c3cd3ff8bd33ce36195e9ab8b49e1e07d
+commit 6f80eb0ee13f9446434666a30bdbdb59c67e7cad
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Aug 7 20:46:49 2014 -0700
+Date:   Sat Aug 30 22:01:20 2014 -0700
 
-    Debugging
+    Work on json.c
