@@ -679,7 +679,7 @@ A factoring report takes the form
 =for Marpa::R2::Display
 ignore: 1
 
-    [ 'factoring', $glade, $symch_ix, $factor_ix1, $factoring_ix2, $factor_ix2 ];
+    [ 'factoring', $glade, $symch_ix, $rhs_ix1, $factoring_ix2, $rhs_ix2 ];
 
 =for Marpa::R2::Display::End
 
@@ -692,9 +692,9 @@ and therefore have the same input start location.
 They differ in length.
 
 The first of the two identifying factors has factoring index of 0,
-and its factor index is C<$factor_ix1>.
+and its factor index is C<$rhs_ix1>.
 The second identifying factor has a factoring index of C<$factoring_ix2>,
-and its factor index is C<$factor_ix2>.
+and its factor index is C<$rhs_ix2>.
 
 The identifying factors will usually be enough
 for error reporting, which is the usual application of these reports.
@@ -959,29 +959,42 @@ The exact definition follows.
 First we will need a series of preliminary definitions.
 
 Consider the case of a arbitrary rule symch.
-We need a way of identifying specific factors within a set of factorings.
-Intuitively, a B<factoring position> is a location within the factors of one of the factorings
+A rule symch is a set of factorings.
+We need a way of identifying specific RHS symbols, or factors,
+within that set of factorings.
+Intuitively, a B<factor position> is a location within the factors of one of the factorings
 of that symch.
-It can be seen as a duple C<E<lt>factoring_ix, factor_ixE<gt>> where 
-C<E<lt>factoring_ixE<gt>> is the index of a factoring within the symch,
+It can be seen as a duple C<E<lt>factoring_ix, rhs_ixE<gt>> where 
+C<E<lt>factoring_ixE<gt>> is the index of a factoring
+within the rule symch,
 and 
-C<E<lt>factor_ixE<gt>> is the index of one of the factors of the factoring.
+C<E<lt>rhs_ixE<gt>> is the index of one of the RHS symbols of the factoring.
+Both the factoring index and the RHS index are zero-based.
 
-Let C<SP> be a function that maps the symch's set of factoring indexes to the
-non-negative integers, such that for a factoring index C<i>
-and factor index C<j>, C<SP(i)=j>, C<j> is a valid factor index within the factoring C<i>.
-The function C<SP> can be called a B<symch position>.
+Let I<N> be the number of factors in a rule symch.
+A symch position is a set of I<N> factoring positions C<(factor_ix, rhs_ix)>,
+such that there is exactly one element in the set for every factor.
+More precisely,
+for every I<<0 <= j < N>,
+a symch position will have
+<< j = factor_ix >> is exactly one of the pairs.
+Alternatively, a symch position can be thought of as
+a function from the factor indexes to the RHS indexes.
 
 Every B<symch position> is equivalent to a set of factoring positions.
 The B<initial symch position> is the symch position all of whose factoring positions
-have a factor index of 0.
+have a RHS index of 0.
+That is, the initial symch position is the set of I<N> factoring positions.
+for every I<<0 <= j < N>,
+<< (j, 0) >> is one of the pairs.
 Equivalently, it is the constant function C<ISP>, where C<ISP(i)=0> for all factoring
 indexes C<i>.
 
-The factor with index C<factor_ix> in the factoring with index C<factoring_ix> is
-said to be the factor at factoring position C<E<lt>factoring_ix, factor_ixE<gt>>.
-A factor is one of the factors of a symch position if and only if it is a factor
-at one of its factoring positions.
+The RHS symbol instance with index C<rhs_ix> in the factor with index C<factoring_ix> is
+said to be the RHS symbol at factor position C<E<lt>factoring_ix, rhs_ixE<gt>>.
+A RHS symbol instance I<inst> is one of the B<instances>
+of a symch position if and only if there is some 
+is one factoring positions in that symch position.
 
 An B<aligned symch position> is a factoring position all of whose factors have
 the same start location.
