@@ -248,7 +248,7 @@ L<exhaustion-sensitivity|/"Exhaustion-sensitive applications">.
 If it is desirable to use exhaustion to help find the end of parse,
 the exception may be caught.
 
-=head1 Exhaustion-sensitve applications 
+=head1 Exhaustion-sensitive applications 
 
 Sometimes an application, rather than read
 an entire input,
@@ -267,8 +267,6 @@ Applications which do want to use parse exhaustion as part of
 a strategy for finding the end of parse
 can catch the exception and
 L<check the exhaustion status explicitly|/"exhausted()">.
-
-=back
 
 =head1 Copyright and License
 
