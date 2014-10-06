@@ -1,5 +1,5 @@
 
-A Kollos Roadmap
+A Kollos roadmap
 ================
 
 Step 1.  A Libmarpa wrapper
@@ -25,7 +25,7 @@ It could also be made part of the wrapper, but in Marpa I've kept them separate.
 Step 3.  A Lua parser
 ---------------------
 
-Write a Lua parser in Marpa.
+Write a Lua parser in Marpa.  No semantics, just create a tree and then serialize it back into Lua code.
 
 Step 4.  Benchmark the Marpa Lua parser against the native one
 --------------------------------------------------------------
@@ -42,11 +42,14 @@ Step 5.)  Extend the Lua language into the first version of the LUIF
 The LUIF is the Lua interface -- LUA extended with BNF statements.
 The LUIF works by
 
-1. Parsing the Lua into itself -- essentially just passing it through.
+1. Parsing the pure Lua statement back into themselves -- essentially just a pass-through.
 
-2. Parsing the BNF statements into Lua code, which creates Lua data structures.
-
-3. Adding a preamble and postamble to translated code, to make a Marpa interface.
+2. Parsing the BNF statements into Lua statements that create a Lua data structure containing rules, symbol and adverbs.
+3. 
+3. Adding a postamble.  Among other things, the postamble will take the Lua data structures that were created from the BNF statements, process them into a form ready for Libmarpa, and call the Libmarpa methods to actually create the grammar.
+4. 
+4. 
+4. Some sort of preamble will probably be needed as well.
 
 Initially, this interface will have far fewer features than the SLIF does.
 So the next steps are ...
