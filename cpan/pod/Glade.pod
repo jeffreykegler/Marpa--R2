@@ -239,7 +239,8 @@ remove-display-indent: 1
 
 =head1 The structure of a forest
 
-An ASF can be pictured as a forest on a mountain.
+The terminology I use for ASF's pictures
+an ASF as a forest on a mountain.
 This mountain forest has glades,
 and there are paths between the glades.
 The term "glade" comes from the idea of a glade as a distinct place in a forest that is
@@ -255,30 +256,32 @@ The peak has no upglades.
 
 =head1 The glade hierarchy
 
-The glade hierarchy is a recursive structure whose nodes
-are glades.
-Every glade has the same internal structure:
+The glade hierarchy is directed graph whose nodes are glades.
+Internally,
+glade nodes have an 3-level internal structure
+made up of
 
 =over 4
 
-=item *
+=item * one or more symches, which contain
 
-Glades contain symches.  A symch is either for a rule or for a token.
+=item * zero or more factorings, which contain
 
-=item *
-
-Rule symches contain factorings.
-
-=item *
-
-Factorings contain factors.
-
-=item *
-
-A factor is the uphill end of a path which leads to a downglade.
-A downglade is another glade.
+=item * one or more downglades.
 
 =back
+
+When discussing symches
+and factorings inside the internal structure of a glade I<G>,
+I<G> will be called the B<containing glade>.
+
+If I<G> is a glade,
+the downglades in the internal structure will be
+the child nodes of I<G> in the directed graph of
+glades.
+There may not be any downglades, in which
+case I<G> will be a terminal in
+the directed graph of glades.
 
 =head2 Glades
 
@@ -293,34 +296,79 @@ a span also specifies an end location in the input.
 
 Every glade contains one or more symches.
 If a glade has only one symch, that symch is said to be B<trivial>.
-A symch is either a token symch or a rule symch.
+A symch is either a B<token symch>
+or a B<rule symch>.
 For a token symch, the glade symbol is the token symbol.
 For a rule symch, the glade symbol is the LHS of the rule.
 
+=head2 Token symches
+
 At most one of the symches in a glade can be a token symch.
-There can, however, be many rule symches in a glade --
+Token symches have no children.
+In the internal structure of a glade, they are terminals.
+If a glade is trivial and has a token symch,
+then its only symch is a terminal
+and that glade will be a terminal in the glade hierarchy.
+
+=head2 Rule symches
+
+There can be many rule symches in a glade --
 one for every rule with the glade symbol on its LHS.
+As the name suggests, every rule symch has a rule
+associated with it.
+In every rule symch,
+the LHS of its rule will always be the same
+as the glade symbol
+of the glade that contains the rule symch.
 
 =head2 Factorings
 
-Each rule symch contains one or more factorings.
-A factoring is a way of dividing up the input span of the glade among its RHS symbols,
-which in this context are called B<factors>.
-If a rule symch has only one factoring, that factoring is said to be B<trivial>.
-A token symch contains no factorings, which means that
-token symches are the B<terminals> of an ASF.
+Every rule symch has one or more B<factorings>,
+or B<factors>, as children.
+A rule symch is said to B<contain>
+its child factorings.
+Each factoring is the RHS of the parent symch's
+rule, mapped to a unique set of G1 locations.
+The term "factoring" is traditional in the literature
+and is meant to suggest that
+a factoring is a way of
+"dividing up" the input span
+of the containing glade among its RHS symbols.
 
+If a rule symch has only one factoring, that factoring is said to be B<trivial>.
 Because the number of factorings can get out of hand,
 factorings may be omitted.
 A symch which omits factorings is said to be B<truncated>.
 By default, every symch is truncated down to its first 42 factorings.
 
-=head2 Factors
+=head2 Downglades
 
-Every factoring has one or more factors.
-Each "factor" corresponds to a symbol instance on the RHS of the rule.
-Each such RHS factor is also a downglade, one which contains its own
-symches.
+Every factoring has one or more downglades as children.
+The number of downglades will be I<L>,
+where I<L> is the length of the RHS
+of the parent symch's rule.
+(The parent symch will always be a rule symch.)
+Each of I<L> RHS symbols will be located at
+a specific G1 span,
+and will therefore be a B<symbol instance>.
+This symbol instance will be the symbol instance
+of a glade,
+and that glade will be the downglade.
+
+=back
+
+With a glade
+symches, factorings and downglades
+are tracked using zero-based indexes.
+Since the internal structure of a glade has
+a 3-level structure,
+within a given containing glade I<G>,
+any downglade can be uniquely
+identified as C<($symch_ix, $factor_ix, $downglade_ix)>,
+where 
+C<$symch_ix> is a zero-based symch index,
+C<$factor_ix> is a zero-based factoring index, and
+C<$downglade_ix> is a zero-based downglade index.
 
 =head1 The glade ID
 
