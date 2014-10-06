@@ -581,7 +581,7 @@ partial: 1
 
     my $downglades =
         $asf->factoring_downglades( $glade, $symch_ix,
-        $factoring_ix );
+        $factor_ix );
 
 =for Marpa::R2::Display::End
 
@@ -674,7 +674,9 @@ their own customized ambiguity handling.
 For those which do, it can be used
 as a fallback for handling those reports that the customized method does not recognize
 or that do not need special handling.
-The format of the returned string is subject to change.
+The format of the returned string
+and is subject to change,
+and is intended for reading by humans only.
 
 =head1 Ambiguity reports
 
@@ -684,7 +686,7 @@ are of two kinds: symch reports and factoring reports.
 =head2 Symch reports
 
 A symch report is issued whenever, in a top-down traversal of the ASF,
-an non-trivial symch is encountered.
+a non-trivial symch is encountered.
 A symch report takes the form
 
 =for Marpa::R2::Display
@@ -727,7 +729,7 @@ A factoring report takes the form
 =for Marpa::R2::Display
 ignore: 1
 
-    [ 'factoring', $glade, $symch_ix, $rhs_ix1, $factoring_ix2, $rhs_ix2 ];
+    [ 'factoring', $glade, $symch_ix, $rhs_ix1, $factor_ix2, $rhs_ix2 ];
 
 =for Marpa::R2::Display::End
 
@@ -741,7 +743,7 @@ They differ in length.
 
 The first of the two identifying factors has factoring index of 0,
 and its factor index is C<$rhs_ix1>.
-The second identifying factor has a factoring index of C<$factoring_ix2>,
+The second identifying factor has a factoring index of C<$factor_ix2>,
 and its factor index is C<$rhs_ix2>.
 
 The identifying factors will usually be enough
@@ -800,18 +802,18 @@ normalize-whitespace: 1
 
           my @factorings = ($symch_description);
           for (
-              my $factoring_ix = 0;
-              $factoring_ix < $factoring_count;
-              $factoring_ix++
+              my $factor_ix = 0;
+              $factor_ix < $factoring_count;
+              $factor_ix++
               )
           {
               my $downglades =
                   $asf->factoring_downglades( $glade, $symch_ix,
-                  $factoring_ix );
+                  $factor_ix );
               push @factorings,
                   bless [ map { glade_to_basic_tree( $asf, $_, $seen ) }
                       @{$downglades} ], 'My_Rule';
-          } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
+          } ## end for ( my $factor_ix = 0; $factor_ix < $factoring_count...)
           if ( $factoring_count > 1 ) {
               push @symches,
                   bless [
@@ -877,11 +879,16 @@ normalize-whitespace: 1
 
 =head1 Details
 
-This section contains some elaborations of the above,
-some of them in mathematical terms.
-These details are segregated because they are not essential to using this interface,
-and while some readers find them more helpful than distracting,
-for many others it is the reverse.
+This section contains details not essential to understanding
+the main topic of this document.
+Many of these details are restatements of what is said above
+in more formal terms,
+or formal statements of concepts that have been left to
+the intuition.
+Some find these details helpful,
+other find them distracting.
+Segregating them here serves the needs of both
+kind of reader.
 
 =head2 An alternative way of defining glade terminology
 
@@ -1012,8 +1019,8 @@ We need a way of identifying specific RHS symbols, or factors,
 within that set of factorings.
 Intuitively, a B<factor position> is a location within the factors of one of the factorings
 of that symch.
-It can be seen as a duple C<E<lt>factoring_ix, rhs_ixE<gt>> where 
-C<E<lt>factoring_ixE<gt>> is the index of a factoring
+It can be seen as a duple C<E<lt>factor_ix, rhs_ixE<gt>> where 
+C<E<lt>factor_ixE<gt>> is the index of a factoring
 within the rule symch,
 and 
 C<E<lt>rhs_ixE<gt>> is the index of one of the RHS symbols of the factoring.
@@ -1038,8 +1045,8 @@ for every I<<0 <= j < N>,
 Equivalently, it is the constant function C<ISP>, where C<ISP(i)=0> for all factoring
 indexes C<i>.
 
-The RHS symbol instance with index C<rhs_ix> in the factor with index C<factoring_ix> is
-said to be the RHS symbol at factor position C<E<lt>factoring_ix, rhs_ixE<gt>>.
+The RHS symbol instance with index C<rhs_ix> in the factor with index C<factor_ix> is
+said to be the RHS symbol at factor position C<E<lt>factor_ix, rhs_ixE<gt>>.
 A RHS symbol instance I<inst> is one of the B<instances>
 of a symch position if and only if there is some 
 is one factoring positions in that symch position.
