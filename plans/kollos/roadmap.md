@@ -45,10 +45,9 @@ The LUIF works by
 1. Parsing the pure Lua statement back into themselves -- essentially just a pass-through.
 
 2. Parsing the BNF statements into Lua statements that create a Lua data structure containing rules, symbol and adverbs.
-3. 
+
 3. Adding a postamble.  Among other things, the postamble will take the Lua data structures that were created from the BNF statements, process them into a form ready for Libmarpa, and call the Libmarpa methods to actually create the grammar.
-4. 
-4. 
+
 4. Some sort of preamble will probably be needed as well.
 
 Initially, this interface will have far fewer features than the SLIF does.
