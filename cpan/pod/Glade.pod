@@ -295,7 +295,7 @@ a span also specifies an end location in the input.
 =head2 Symches
 
 Every glade contains one or more symches.
-If a glade has only one symch, that symch is said to be B<trivial>.
+If a glade has only one symch, that symch is said to be B<unique>.
 A symch is either a B<token symch>
 or a B<rule symch>.
 For a token symch, the glade symbol is the token symbol.
@@ -306,9 +306,9 @@ For a rule symch, the glade symbol is the LHS of the rule.
 At most one of the symches in a glade can be a token symch.
 Token symches have no children.
 In the internal structure of a glade, they are terminals.
-If a glade is trivial and has a token symch,
-then its only symch is a terminal
-and that glade will be a terminal in the glade hierarchy.
+If a glade has a unique symch,
+and that symch is a token symch,
+that glade will be a terminal in the glade hierarchy.
 
 =head2 Rule symches
 
@@ -335,7 +335,7 @@ a factoring is a way of
 "dividing up" the input span
 of the containing glade among its RHS symbols.
 
-If a rule symch has only one factoring, that factoring is said to be B<trivial>.
+If a rule symch has only one factoring, that factoring is said to be B<unique>.
 Because the number of factorings can get out of hand,
 factorings may be omitted.
 A symch which omits factorings is said to be B<truncated>.
@@ -683,11 +683,29 @@ and is intended for reading by humans only.
 
 The ambiguity reports returned by the L<C<ambiguities()> method|/"ambiguities()">
 are of two kinds: symch reports and factoring reports.
+Only ambiguities uppermost on a path are reported --
+in other words, am ambiguity is not reported if it is downhill
+and does not have a higher altitude.
+(Because of cycles,
+a downhill glade can have a higher altitude.)
+Within glade, all of the factorings are 
+considered downhill from,
+and of equal altitude to the symches,
+so that if a glade has a symch ambiguity,
+there will be no factoring ambiguity reports for that glade.
+
+Typically, when there is more than one kind of ambiguity in an input span, only
+one is of real interest,
+and
+symch ambiguities are usually of more interest than factorings.
+And if one ambiguity is uphill from another, the downhill ambiguity is usually
+a side effect of the uphill one and
+of little interest.
 
 =head2 Symch reports
 
 A symch report is issued whenever, in a top-down traversal of the ASF,
-a non-trivial symch is encountered.
+a glade is encountered which has more than one symch.
 A symch report takes the form
 
 =for Marpa::R2::Display
@@ -700,17 +718,6 @@ ignore: 1
 where C<$glade> is the ID of the glade with the symch ambiguity.
 With this and the accessor methods in this document, an application can report full
 details of the symch ambiguity.
-
-Typically, when there is more than one kind of ambiguity in an input span, only
-one is of real interest.
-Symch ambiguities are usually of more interest than factorings.
-And if one ambiguity is uphill from another, the downhill ambiguity is usually
-a side effect of the uphill one and
-of little interest.
-
-Accordingly, if a glade has both a symch ambiguity and a factoring ambiguity,
-only the symch ambiguity is reported.
-And if two ambiguities in the ASF overlap, only the one closest to the peak is reported.
 
 =head2 Factoring reports
 
@@ -737,27 +744,22 @@ ignore: 1
 where C<$glade> is the ID of the glade with the factoring ambiguity,
 and C<$symch_ix> is the index of the symch involved.
 The multifactored stretch is described by
-two "identifying factors".
-Both factors are at the beginning of the stretch,
-and therefore have the same input start location.
-They differ in length.
+two "identifying downglades".
+Both downglades are at the beginning of the stretch,
+and both will have the same input start location.
+The two downglades will differ in length.
 
 The first of the two identifying factors has factoring index of 0,
-and its factor index is C<$rhs_ix1>.
+and its downglade index is C<$rhs_ix1>.
 The second identifying factor has a factoring index of C<$factor_ix2>,
-and its factor index is C<$rhs_ix2>.
+and its downglade index is C<$rhs_ix2>.
 
-The identifying factors will usually be enough
+The identifying downglades will usually be enough
 for error reporting, which is the usual application of these reports.
-Full details of the stretch are not given because they can be extremely large;
-are usually not of interest;
-and can be determined by following up on the information in the factoring report
+A multifactored stretch can be extremely large.
+Full details of it
+can be found by following up on the information in the factoring report
 using the accessor methods described in this document.
-
-Ambiguities in rules and symbols downhill from an ambiguously factored stretch
-are not reported.
-If a glade has both a symch ambiguity and a factoring ambiguity,
-only the symch ambiguity is reported.
 
 =head1 The code for the synopsis
 
@@ -882,14 +884,13 @@ normalize-whitespace: 1
 
 This section contains details not essential to understanding
 the main topic of this document.
-Many of these details are restatements of what is said above
+These details include restatements of what is said above
 in more formal terms,
-or formal statements of concepts that have been left to
+and formal statements of concepts that have been left to
 the intuition.
-Some find these details helpful,
-other find them distracting.
-Segregating them here serves the needs of both
-kind of reader.
+Some readers find these details helpful,
+while other find them distracting,
+and segregating them here serves the needs of both.
 
 =head2 An alternative way of defining glade terminology
 
@@ -909,9 +910,6 @@ if and only if the glade length from A to B is defined.
 
 A B<peak> of an ASF is a node without upglades.
 By construction of the ASF, there is only one peak.
-A glade with a token symch is B<trivial> if it has no rule symches.
-A glade without a token symch is B<trivial> if it has exactly one downglade.
-
 The B<distance-to-peak> of a glade C<A> is the glade length from the peak to glade C<A>.
 Glade C<A> is said to have a higher B<altitude> than glade C<B> if the distance-to-peak of glade C<A>
 is less than that of glade C<B>.
@@ -927,8 +925,8 @@ In the current SLIF implementation, a forest is a directed acyclic graph (DAG).
 in the present context.)
 The underlying Marpa algorithm allows parse trees with cycles,
 and someday the SLIF probably will as well.
-When that happens, ASF's will no longer be "acyclic" and therefore will no
-longer be DAG's.
+When that happens, ASF's will no longer be "acyclic" and therefore will be directed graphs
+(DG's) but not DAG's.
 This document talks about ASF's as if that day had already come --
 it assumes that the ASF's might
 contain cycles.
