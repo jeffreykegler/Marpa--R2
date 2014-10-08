@@ -590,7 +590,8 @@ the zero-based index of a symch
 and the zero-based index of a factoring.
 These specify a factoring.
 On success, returns a reference to an array.
-The array contains the glade IDs of the the downglades in
+The array contains the glade IDs of
+the downglades in
 the factoring specified.
 
 Returns a Perl undef, if the glade and symch exist, but the factoring index is too high.
