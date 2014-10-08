@@ -684,7 +684,7 @@ and is intended for reading by humans only.
 The ambiguity reports returned by the L<C<ambiguities()> method|/"ambiguities()">
 are of two kinds: symch reports and factoring reports.
 Only ambiguities uppermost on a path are reported --
-in other words, am ambiguity is not reported if it is downhill
+in other words, an ambiguity is not reported if it is downhill
 and does not have a higher altitude.
 (Because of cycles,
 a downhill glade can have a higher altitude.)
@@ -724,12 +724,12 @@ details of the symch ambiguity.
 A factoring report identifies
 a sequence of RHS symbols which has more than one factoring.
 Factoring reports identify not just a rule,
-but a specific subsequence within the RHS
-which which is multiply factored -- a B<multifactored stretch>.
-Marpa does this, because a RHS can be very long.
-Marpa's sequence rules especially have long stretches where the symbols are in sync
+but specific subsequences within the RHS
+which are multiply factored -- B<multifactored stretches>.
+Marpa goes down to the symbol level, because a Marpa RHS can be very long.
+Marpa's sequence rules, especially,
+can have long stretches where the symbols are in sync
 with each other, broken by other stretches where they are out of sync.
-Marpa reports each of the ambiguous stretches.
 (A detailed definition of multifactored stretches is L<below|/"Multifactored stretches">.)
 
 A factoring report takes the form
@@ -997,90 +997,127 @@ The maximum number of symches in a glade is C<r+1>.
 
 =head2 Multifactored stretches
 
-Marpa locates factoring ambiguities, not just by rule, but by RHS symbol.
-It finds B<multifactored stretches>, input spans where a sequence of symbols
-within the RHS of a rule have multiple factorings.
-A multifactored stretch will sometimes encompass the entire RHS of a rule.
-In other cases, the RHS of a single rule might contain many multifactored stretches.
-This is often the case with sequence rules.
+Marpa locates factoring ambiguities, not just by rule,
+but by subsequences of symbols within a RHS.
+It finds B<multifactored stretches>, input spans where the sequence of symbols
+can have multiple factorings.
 Sequence rules can have a very long RHS,
 and in those situations narrowing down factoring ambiguities to specific input spans is 
 necessary for precise error reporting.
+
+To make ambiguity reporting as precise as possible,
+Marpa tries to break up each ambiguously factored RHS
+into as many multifactored stretches
+as possible.
+Nonetheless,
+there will be cases in which
+a multifactored stretch encompasses the entire RHS of a rule.
 
 The main body of this document worked with an intuitive "know one when I see one"
 idea of multifactored stretches.
 The exact definition follows.
 First we will need a series of preliminary definitions.
 
-Consider the case of a arbitrary rule symch.
-A rule symch is a set of factorings.
-We need a way of identifying specific RHS symbols, or factors,
-within that set of factorings.
-Intuitively, a B<factor position> is a location within the factors of one of the factorings
-of that symch.
-It can be seen as a duple C<E<lt>factor_ix, rhs_ixE<gt>> where 
-C<E<lt>factor_ixE<gt>> is the index of a factoring
-within the rule symch,
-and 
-C<E<lt>rhs_ixE<gt>> is the index of one of the RHS symbols of the factoring.
-Both the factoring index and the RHS index are zero-based.
+Consider the case of a arbitrary, ambiguous rule symch.
+The ambiguous rule symch can be seen as a set of factorings.
+We need a way to identify individual downglades within
+each factoring of the set.
+Within a factoring,
+there is a one-to-one correspondence between
+downglade and locations in the string of symbols that
+is the RHS.
+Therefore downglades can be identified uniquely as
+C<glade_id, symch_ix, factor_ix, rhs_ix>,
+where C<glade_id> is a unique identifier of the glade,
+C<symch_ix> is a zero-based symch index,
+C<factor_ix> is a zero-based factoring index, and
+C<rhs_ix> is a zero-based index identifying a
+symbol location in the RHS string.
 
-Let I<N> be the number of factors in a rule symch.
-A symch position is a set of I<N> factoring positions C<(factor_ix, rhs_ix)>,
-such that there is exactly one element in the set for every factor.
-More precisely,
-for every I<<0 <= j < N>,
-a symch position will have
-<< j = factor_ix >> is exactly one of the pairs.
-Alternatively, a symch position can be thought of as
-a function from the factor indexes to the RHS indexes.
+In much of what follows,
+we will assume we are talking about a specific
+glade and rule symch, which is understood in context,
+so that we can take
+C<factor_ix, rhs_ix> as uniquely identifying a downglade.
+We will call
+C<factor_ix, rhs_ix> a downglade duple.
 
-Every B<symch position> is equivalent to a set of factoring positions.
-The B<initial symch position> is the symch position all of whose factoring positions
-have a RHS index of 0.
-That is, the initial symch position is the set of I<N> factoring positions.
-for every I<<0 <= j < N>,
-<< (j, 0) >> is one of the pairs.
-Equivalently, it is the constant function C<ISP>, where C<ISP(i)=0> for all factoring
-indexes C<i>.
+Let I<N> be the number of factorings in the rule symch of interest.
+Since we are dealing with a specific rule symch, we also
+have a specific rule that is of interest,
+so that, for each C<factor_ix>
+so that C<< 0 <= rhs_ix < rhs_length >>,
+where C<rhs_length> is the RHS length of the rule of interest.
 
-The RHS symbol instance with index C<rhs_ix> in the factor with index C<factor_ix> is
-said to be the RHS symbol at factor position C<E<lt>factor_ix, rhs_ixE<gt>>.
-A RHS symbol instance I<inst> is one of the B<instances>
-of a symch position if and only if there is some 
-is one factoring positions in that symch position.
+Each downglade C<factor_ix, rhs_ix>
+corresponds one-to-one to a G1 span,
+that is, there is a total function
+C<G1_start(factor_ix, rhs_ix)> from a downglade
+to a G1 start location;
+and there is a total function
+C<G1_length(factor_ix, rhs_ix)>
+from a downglade
+to a G1 length.
 
-An B<aligned symch position> is a factoring position all of whose factors have
-the same start location.
-The location of an aligned symch position is that start location.
-The B<initial symch position> is always an aligned factoring position.
-A B<synced symch position> is an aligned symch position all of whose factors have
-the same length and symbol ID.
-A B<unsynced symch position> is an aligned symch position that is not a synced symch position.
+A B<symch location set>
+is a set of I<N> downglade duples
+such there is exactly one element
+C<factor_ix, rhs_ix>
+in the set for each 
+C<< 0 <= factor_ix < N >>.
+In other words, a symch location set is
+a total function from the factor indexes
+to the RHS indexes.
 
-We are now in a position to define a B<multifactored stretch>.
-Intuitively, a multifactored stretch is a longest possible input span that contains at least one unsynced symch position,
-but no synced symch positions.
-More formally,
-a multifactored stretch of a symch is a span of start locations within that symch,
-such that:
+A B<symch alignment> is a symch location set
+whose elements shares a common G1 start location.
+A symch alignment is synced if its element share a common G1 length as well.
+A symch alignment is unsynched if it is not synced.
 
-=over 
+More formally, if we represent the symch location set
+function as C<SLS>,
+C<SLS> is a symch alignment if and only if
+there is some constant G1 location I<pos> such
+that, for all C<factor_ix>
+such that C<< 0 <= factor_ix < N >>,
+C<G1_start(factor_ix, SLS(factor_ix)) = pos>.
+We say the C<pos> is the location of the symch alignment.
+C<SLS> is a synced symch alignment if and only if
+it is a symch aligment and
+there is some constant number I<L> such
+C<G1_length(factor_ix, SLS(factor_ix)) = L>.
 
-=item * Its first location is the location of unsynced symch position.
+Of special interest is the B<initial symch alignment>.
+The initial symch alignment is the symch position all of whose RHS indexes
+are 0.
+Equivalently, it is the constant function C<ISP>, where C<ISP(factor_ix)=0>
+that, for all C<factor_ix>
+such that C<< 0 <= factor_ix < N >>.
+It initial symch alignment is always a symch alignment.
 
-=item * Its first location is the initial symch position, or the first symch positiion after a
-synched symch position.
+We are now in a position to define a B<multifactored stretch>
+for a specific rule symch.
+Call a G1 location an B<anchor> if it is the location
+of a symch alignment or,
+as a special case,
+if it is one past the last location of the G1 stream.
+We say that a G1 span is B<anchored> if it its start
+and end G1 locations are anchors.
+A B<multifactored stretch> is an anchored G1 span
+which contains only one anchored G1 location.
 
-=item * Its end location is the end location of the symch, or a synced symch position, whichever
-occurs first.
+As a consequence of its definition,
+its start location will always be an anchor,
+and the only anchored location in it
+will be its start location.
 
-=back
-
-Note that multifactored stretch are aligned in terms of input locations,
-but they do not have to be aligned in terms of factor indexes.
-The factoring positions of
-a multifactored stretch can have many different factor indexes.
+Note that,
+while multifactored stretch are aligned and anchored in terms of G1 locations,
+and therefore in terms of input locations as well,
+but they do not have to be aligned in terms of RHS indexes.
+Very often, the
+RHS indexes of
+a multifactored stretch will have many different values.
 This is true of all rules, but it is particularly likely for
 a sequence rule,
 where the RHS consists of repetitions of a single symbol.
