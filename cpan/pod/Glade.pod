@@ -1071,8 +1071,8 @@ to the RHS indexes.
 
 A B<symch alignment> is a symch location set
 whose elements shares a common G1 start location.
-A symch alignment is synced if its element share a common G1 length as well.
-A symch alignment is unsynched if it is not synced.
+A symch alignment is synced if its elements share a common G1 length as well.
+A symch alignment is unsynced if it is not synced.
 
 More formally, if we represent the symch location set
 function as C<SLS>,
@@ -1087,18 +1087,19 @@ it is a symch aligment and
 there is some constant number I<L> such
 C<G1_length(factor_ix, SLS(factor_ix)) = L>.
 
-Of special interest is the B<initial symch alignment>.
-The initial symch alignment is the symch position all of whose RHS indexes
+Of special interest is the B<initial symch location set>.
+The initial symch location set is the symch position all of whose RHS indexes
 are 0.
-Equivalently, it is the constant function C<ISP>, where C<ISP(factor_ix)=0>
-that, for all C<factor_ix>
+Equivalently, it is the constant function C<ISLS>
+where C<ISLS(factor_ix)=0> for all C<factor_ix>
 such that C<< 0 <= factor_ix < N >>.
-It initial symch alignment is always a symch alignment.
+The initial symch location set is always a symch alignment,
+and is called B<initial symch alignment>.
 
 We are now in a position to define a B<multifactored stretch>
 for a specific rule symch.
 Call a G1 location an B<anchor> if it is the location
-of a symch alignment or,
+of a synced symch alignment or,
 as a special case,
 if it is one past the last location of the G1 stream.
 We say that a G1 span is B<anchored> if it its start
@@ -1107,20 +1108,21 @@ A B<multifactored stretch> is an anchored G1 span
 which contains only one anchored G1 location.
 
 As a consequence of its definition,
-its start location will always be an anchor,
-and the only anchored location in it
-will be its start location.
+the start location of a multifactored stretch
+will always be an anchor,
+and the only anchored location in the multifactored
+stretch will be its start location.
 
-Note that,
-while multifactored stretch are aligned and anchored in terms of G1 locations,
-and therefore in terms of input locations as well,
-but they do not have to be aligned in terms of RHS indexes.
-Very often, the
-RHS indexes of
-a multifactored stretch will have many different values.
-This is true of all rules, but it is particularly likely for
-a sequence rule,
-where the RHS consists of repetitions of a single symbol.
+Multifactored stretches
+are aligned and anchored in terms of G1 locations,
+and therefore in terms of input locations as well.
+But they do not have to be aligned or anchored
+in terms of RHS indexes,
+and frequently they will not be.
+Non-aligned RHS indexes are particularly likely for
+long sequence rules,
+where the RHS is a long string containing
+many repetitions of a single symbol.
 
 =head1 Copyright and License
 
