@@ -264,20 +264,20 @@ in the traversal.
 The per-traversal object
 may be used as a "scratch pad" for information
 that it is not convenient to pass via return values.
-Prefer the pre-traversal object to the use of globals.
+Prefer the per-traversal object to the use of globals.
 
 "Moving around" in a glade means visiting its B<parse alternatives>.
 (Parse alternatives are usually called B<alternatives>,
 when the meaning is clear.)
 If a glade has exactly one alternative, it is called a B<trivial glade>.
 When invoked, the traverser points at the first alternative.
-Alternatives after the first may be visited using the
+Alternatives after the first may be visited using
 the L<C<next()>|/"next()"> glade method.
 
 Parse alternatives may be either token
 alternatives or rule alternatives.
 Rule and token alternatives may be distnguished
-with the
+with
 the L<C<rule_id()>|/"rule_id()"> glade method,
 which returns C<undef> if and only if the glade is positioned at a token
 alternative.
@@ -469,9 +469,8 @@ the L<C<next()> method|/"next()"> may
 change the current symch, 
 L<C<rule_id()> method|/"rule_id()">
 must always be called to obtain the current rule ID 
-in a C<while> loop where 
-L<C<next()> method|/"next()"> 
-is used as the exit condition. 
+in a C<while> loop that is controlled by
+the L<C<next()> method|/"next()">.
 
 =head1 Details
 
