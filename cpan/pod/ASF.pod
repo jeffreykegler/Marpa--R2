@@ -263,8 +263,8 @@ the per-traversal object, which will be shared by all calls
 in the traversal.
 The per-traversal object
 may be used as a "scratch pad" for information
-that it is not convenient to pass via return values,
-as a means of avoiding the use of globals.
+that it is not convenient to pass via return values.
+Prefer the pre-traversal object to the use of globals.
 
 "Moving around" in a glade means visiting its B<parse alternatives>.
 (Parse alternatives are usually called B<alternatives>,
@@ -293,12 +293,12 @@ At all alternatives,
 the L<C<span()>|/"span()"> and
 the L<C<literal()>|/"literal()"> glade methods
 are of use.
-The L<C<symbol_id()>|/"symbol_d()"> glade method is
+The L<C<symbol_id()>|/"symbol_id()"> glade method is
 also always of use,
 although its meaning varies.
-At token alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
+At token alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
 token symbol.
-At rule alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
+At rule alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
 ID of the LHS of the rule.
 
 At rule alternatives,
@@ -395,7 +395,11 @@ partial: 1
 
 Returns the ID of the rule for the current
 alternative.
-The ID will be non-negative, but it may be zero.
+The ID will be a non-negative number,
+or C<undef>.
+(Note that,
+for symches, both zero and
+C<undef> are considered valid rule IDs.)
 Returns C<undef> if and only if the current
 alternative is a token alternative.
 The C<rule_id()> method accepts no arguments.
@@ -510,7 +514,7 @@ L<C<symbol_id()>|/"symbol_id()"> methods
 remain constant inside each glade.
 The L<C<rule_id()> method|/"rule_id()"> remains constant within a symch --
 in fact, the rule ID and the glade define a symch.
-(Recall that for this purpose, the token alternative's
+(Recall that for symches,
 C<undef> is considered a rule ID.)
 The values of the
 L<C<rh_length()> method|/"rh_length()">
