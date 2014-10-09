@@ -357,7 +357,7 @@ and that glade will be the downglade.
 
 =back
 
-With a glade
+Within a glade,
 symches, factorings and downglades
 are tracked using zero-based indexes.
 Since the internal structure of a glade has
@@ -402,7 +402,7 @@ and one which is extremely fast even for large inputs.
 Repeated subtraversals happen when two glades share the same downglades,
 something that occurs frequently in ASF's.
 Additionally, some day the SLIF may allow cycles.
-Memoization will prevent a cycle form causing an infinite loop.
+Memoization will prevent a cycle from causing an infinite loop.
 
 The example in this POD includes a memoization scheme which is very simple,
 but adequate for most purposes.
@@ -462,7 +462,10 @@ On failure, throws an exception.
 
 The literal is determined by the range.
 This works as expected if your application reads the input characters 
-one-by-one in order.
+one-by-one, in order
+and without gaps except for characters
+that are normally discarded,
+such as whitespace.
 (We will call applications which read in this fashion, B<monotonic>.)
 Most applications are monotonic,
 and yours is, unless you've taken special pains to make it otherwise.
@@ -643,8 +646,9 @@ or not ambiguities exist, it is the more expensive way to do it.
 The L<$slr-E<gt>ambiguity_metric() method|Marpa::R2::Scanless::R/"ambiguity_metric()">
 tests an already-existing boolean and is therefore extremely fast.
 If you are simply testing for ambiguity,
-or if you can save time when you know that a parse is unambiguous,
-you will usually want to test for ambiguity with the C<ambiguity_metric()> method
+use the C<ambiguity_metric()> method instead.
+If you can save time when you know that a parse is unambiguous,
+you may want to test for ambiguity with the C<ambiguity_metric()> method
 before calling the C<ambiguities()> method.
 
 =head2 ambiguities_show()
@@ -684,10 +688,11 @@ and is intended for reading by humans only.
 The ambiguity reports returned by the L<C<ambiguities()> method|/"ambiguities()">
 are of two kinds: symch reports and factoring reports.
 Only ambiguities uppermost on a path are reported --
-in other words, an ambiguity is not reported if it is downhill
+in other words, an ambiguity
+is not reported if it is downhill
 and does not have a higher altitude.
 (Because of cycles,
-a downhill glade can have a higher altitude.)
+it is possible for a downhill glade to be at a higher altitude.)
 Within glade, all of the factorings are 
 considered downhill from,
 and of equal altitude to the symches,
@@ -747,9 +752,9 @@ The multifactored stretch is described by
 two "identifying downglades".
 Both downglades are at the beginning of the stretch,
 and both will have the same input start location.
-The two downglades will differ in length.
+The identifying downglades will differ in length.
 
-The first of the two identifying factors has factoring index of 0,
+The first of the two identifying factors has a factoring index of 0,
 and its downglade index is C<$rhs_ix1>.
 The second identifying factor has a factoring index of C<$factor_ix2>,
 and its downglade index is C<$rhs_ix2>.
