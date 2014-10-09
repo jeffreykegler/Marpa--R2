@@ -398,7 +398,7 @@ alternative.
 The ID will be a non-negative number,
 or C<undef>.
 (Note that,
-for symches, both zero and
+for alternatives in this interface, both zero and
 C<undef> are considered valid rule IDs.)
 Returns C<undef> if and only if the current
 alternative is a token alternative.
@@ -514,7 +514,7 @@ L<C<symbol_id()>|/"symbol_id()"> methods
 remain constant inside each glade.
 The L<C<rule_id()> method|/"rule_id()"> remains constant within a symch --
 in fact, the rule ID and the glade define a symch.
-(Recall that for symches,
+(Recall that for alternatives in the ASF interface,
 C<undef> is considered a rule ID.)
 The values of the
 L<C<rh_length()> method|/"rh_length()">
