@@ -1128,10 +1128,31 @@ contained in the stretch.)
 
 Multifactored stretches
 are aligned and anchored in terms of G1 locations,
-and therefore in terms of input locations as well.
-But they do not have to be aligned or anchored
-in terms of RHS indexes,
-and frequently they will not be.
+and B<not> in terms of input stream locations or RHS indexes.
+It may be useful, however, to look at syncing and alignment
+from other points of view.
+This is done in the next two sections.
+
+=head3 Alignment and input stream locations
+
+Because G1 spans map to input stream spans,
+symch location sets that are aligned or synced in
+G1 terms will be aligned or synced from
+the input stream point of view as well.
+But, if the input is not monotonic,
+the opposite is not necessarily the case.
+Because several G1 locations
+can share an input stream location, symch location sets that seem
+aligned or synced from the input stream point of view
+may not be considered aligned or synced from the G1 location
+point.
+
+=head3 Alignment and RHS indexes
+
+Symch location sets that are aligned
+from the G1 location point will typically not be
+aligned from the point of
+the RHS indexes.
 Non-aligned RHS indexes are particularly likely for
 long sequence rules,
 where the RHS is a long string containing
