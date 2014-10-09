@@ -124,18 +124,18 @@ sub glade_to_basic_tree {
 
         my @factorings = ($symch_description);
         for (
-            my $factoring_ix = 0;
-            $factoring_ix < $factoring_count;
-            $factoring_ix++
+            my $factor_ix = 0;
+            $factor_ix < $factoring_count;
+            $factor_ix++
             )
         {
             my $downglades =
                 $asf->factoring_downglades( $glade, $symch_ix,
-                $factoring_ix );
+                $factor_ix );
             push @factorings,
                 bless [ map { glade_to_basic_tree( $asf, $_, $seen ) }
                     @{$downglades} ], 'My_Rule';
-        } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
+        } ## end for ( my $factor_ix = 0; $factor_ix < $factoring_count...)
         if ( $factoring_count > 1 ) {
             push @symches,
                 bless [
