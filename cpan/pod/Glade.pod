@@ -894,8 +894,8 @@ in more formal terms,
 and formal statements of concepts that have been left to
 the intuition.
 Some readers find these details helpful,
-while other find them distracting,
-and segregating them here serves the needs of both.
+while others find them distracting.
+Segregating these details here serves the needs of both.
 
 =head2 An alternative way of defining glade terminology
 
@@ -1006,11 +1006,12 @@ Marpa locates factoring ambiguities, not just by rule,
 but by subsequences of symbols within a RHS.
 It finds B<multifactored stretches>, input spans where the sequence of symbols
 can have multiple factorings.
-Sequence rules can have a very long RHS,
-and in those situations narrowing down factoring ambiguities to specific input spans is 
-necessary for precise error reporting.
+Sequence rules can have a very long RHS.
+If ambiguity reporting is to be precise,
+it is necessary
+to narrow down factoring ambiguities to the specific input spans
+where they occur.
 
-To make ambiguity reporting as precise as possible,
 Marpa tries to break up each ambiguously factored RHS
 into as many multifactored stretches
 as possible.
@@ -1049,17 +1050,18 @@ C<factor_ix, rhs_ix> a downglade duple.
 
 Let I<N> be the number of factorings in the rule symch of interest.
 Since we are dealing with a specific rule symch, we also
-have a specific rule that is of interest,
-so that, for each C<factor_ix>
-so that C<< 0 <= rhs_ix < rhs_length >>,
-where C<rhs_length> is the RHS length of the rule of interest.
+have a specific rule that is of interest.
+Call the length of the RHS of that rule, C<rhs_length>.
+For every C<factor_ix>, the values of C<rhs_ix>
+will be in the range C<0 ... rhs_length-1>.
 
 Each downglade C<factor_ix, rhs_ix>
-corresponds one-to-one to a G1 span,
-that is, there is a total function
+corresponds one-to-one to a G1 span.
+This means that
+there is a total function
 C<G1_start(factor_ix, rhs_ix)> from a downglade
 to a G1 start location;
-and there is a total function
+and that there is a total function
 C<G1_length(factor_ix, rhs_ix)>
 from a downglade
 to a G1 length.
@@ -1099,7 +1101,7 @@ Equivalently, it is the constant function C<ISLS>
 where C<ISLS(factor_ix)=0> for all C<factor_ix>
 such that C<< 0 <= factor_ix < N >>.
 The initial symch location set is always a symch alignment,
-and is called B<initial symch alignment>.
+and is called the B<initial symch alignment>.
 
 We are now in a position to define a B<multifactored stretch>
 for a specific rule symch.
@@ -1107,16 +1109,22 @@ Call a G1 location an B<anchor> if it is the location
 of a synced symch alignment or,
 as a special case,
 if it is one past the last location of the G1 stream.
-We say that a G1 span is B<anchored> if it its start
+We say that a G1 span is B<anchored> if its start
 and end G1 locations are anchors.
 A B<multifactored stretch> is an anchored G1 span
 which contains only one anchored G1 location.
+(Recall that, by the definition of a span,
+the end location of a span 
+is not contained in the span.)
 
 As a consequence of its definition,
 the start location of a multifactored stretch
 will always be an anchor,
 and the only anchored location in the multifactored
 stretch will be its start location.
+(Again, by definition,
+the end location of the stretch is not
+contained in the stretch.)
 
 Multifactored stretches
 are aligned and anchored in terms of G1 locations,
