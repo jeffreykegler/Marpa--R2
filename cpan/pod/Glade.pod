@@ -357,7 +357,7 @@ and that glade will be the downglade.
 
 =back
 
-With a glade
+Within a glade,
 symches, factorings and downglades
 are tracked using zero-based indexes.
 Since the internal structure of a glade has
@@ -402,7 +402,7 @@ and one which is extremely fast even for large inputs.
 Repeated subtraversals happen when two glades share the same downglades,
 something that occurs frequently in ASF's.
 Additionally, some day the SLIF may allow cycles.
-Memoization will prevent a cycle form causing an infinite loop.
+Memoization will prevent a cycle from causing an infinite loop.
 
 The example in this POD includes a memoization scheme which is very simple,
 but adequate for most purposes.
@@ -462,7 +462,10 @@ On failure, throws an exception.
 
 The literal is determined by the range.
 This works as expected if your application reads the input characters 
-one-by-one in order.
+one-by-one, in order
+and without gaps except for characters
+that are normally discarded,
+such as whitespace.
 (We will call applications which read in this fashion, B<monotonic>.)
 Most applications are monotonic,
 and yours is, unless you've taken special pains to make it otherwise.
@@ -643,8 +646,9 @@ or not ambiguities exist, it is the more expensive way to do it.
 The L<$slr-E<gt>ambiguity_metric() method|Marpa::R2::Scanless::R/"ambiguity_metric()">
 tests an already-existing boolean and is therefore extremely fast.
 If you are simply testing for ambiguity,
-or if you can save time when you know that a parse is unambiguous,
-you will usually want to test for ambiguity with the C<ambiguity_metric()> method
+use the C<ambiguity_metric()> method instead.
+If you can save time when you know that a parse is unambiguous,
+you may want to test for ambiguity with the C<ambiguity_metric()> method
 before calling the C<ambiguities()> method.
 
 =head2 ambiguities_show()
@@ -684,10 +688,11 @@ and is intended for reading by humans only.
 The ambiguity reports returned by the L<C<ambiguities()> method|/"ambiguities()">
 are of two kinds: symch reports and factoring reports.
 Only ambiguities uppermost on a path are reported --
-in other words, an ambiguity is not reported if it is downhill
+in other words, an ambiguity
+is not reported if it is downhill
 and does not have a higher altitude.
 (Because of cycles,
-a downhill glade can have a higher altitude.)
+it is possible for a downhill glade to be at a higher altitude.)
 Within glade, all of the factorings are 
 considered downhill from,
 and of equal altitude to the symches,
@@ -747,9 +752,9 @@ The multifactored stretch is described by
 two "identifying downglades".
 Both downglades are at the beginning of the stretch,
 and both will have the same input start location.
-The two downglades will differ in length.
+The identifying downglades will differ in length.
 
-The first of the two identifying factors has factoring index of 0,
+The first of the two identifying factors has a factoring index of 0,
 and its downglade index is C<$rhs_ix1>.
 The second identifying factor has a factoring index of C<$factor_ix2>,
 and its downglade index is C<$rhs_ix2>.
@@ -889,8 +894,8 @@ in more formal terms,
 and formal statements of concepts that have been left to
 the intuition.
 Some readers find these details helpful,
-while other find them distracting,
-and segregating them here serves the needs of both.
+while others find them distracting.
+Segregating these details here serves the needs of both.
 
 =head2 An alternative way of defining glade terminology
 
@@ -1001,11 +1006,12 @@ Marpa locates factoring ambiguities, not just by rule,
 but by subsequences of symbols within a RHS.
 It finds B<multifactored stretches>, input spans where the sequence of symbols
 can have multiple factorings.
-Sequence rules can have a very long RHS,
-and in those situations narrowing down factoring ambiguities to specific input spans is 
-necessary for precise error reporting.
+Sequence rules can have a very long RHS.
+If ambiguity reporting is to be precise,
+it is necessary
+to narrow down factoring ambiguities to the specific input spans
+where they occur.
 
-To make ambiguity reporting as precise as possible,
 Marpa tries to break up each ambiguously factored RHS
 into as many multifactored stretches
 as possible.
@@ -1044,17 +1050,18 @@ C<factor_ix, rhs_ix> a downglade duple.
 
 Let I<N> be the number of factorings in the rule symch of interest.
 Since we are dealing with a specific rule symch, we also
-have a specific rule that is of interest,
-so that, for each C<factor_ix>
-so that C<< 0 <= rhs_ix < rhs_length >>,
-where C<rhs_length> is the RHS length of the rule of interest.
+have a specific rule that is of interest.
+Call the length of the RHS of that rule, C<rhs_length>.
+For every C<factor_ix>, the values of C<rhs_ix>
+will be in the range C<0 ... rhs_length-1>.
 
 Each downglade C<factor_ix, rhs_ix>
-corresponds one-to-one to a G1 span,
-that is, there is a total function
+corresponds one-to-one to a G1 span.
+This means that
+there is a total function
 C<G1_start(factor_ix, rhs_ix)> from a downglade
 to a G1 start location;
-and there is a total function
+and that there is a total function
 C<G1_length(factor_ix, rhs_ix)>
 from a downglade
 to a G1 length.
@@ -1094,7 +1101,7 @@ Equivalently, it is the constant function C<ISLS>
 where C<ISLS(factor_ix)=0> for all C<factor_ix>
 such that C<< 0 <= factor_ix < N >>.
 The initial symch location set is always a symch alignment,
-and is called B<initial symch alignment>.
+and is called the B<initial symch alignment>.
 
 We are now in a position to define a B<multifactored stretch>
 for a specific rule symch.
@@ -1102,23 +1109,50 @@ Call a G1 location an B<anchor> if it is the location
 of a synced symch alignment or,
 as a special case,
 if it is one past the last location of the G1 stream.
-We say that a G1 span is B<anchored> if it its start
+We say that a G1 span is B<anchored> if its start
 and end G1 locations are anchors.
 A B<multifactored stretch> is an anchored G1 span
 which contains only one anchored G1 location.
+(Recall that, by the definition of a span,
+the end location of a span 
+is not contained in the span.)
 
 As a consequence of its definition,
 the start location of a multifactored stretch
 will always be an anchor,
 and the only anchored location in the multifactored
 stretch will be its start location.
+(Again, by definition,
+the end location of the stretch is not
+contained in the stretch.)
 
 Multifactored stretches
 are aligned and anchored in terms of G1 locations,
-and therefore in terms of input locations as well.
-But they do not have to be aligned or anchored
-in terms of RHS indexes,
-and frequently they will not be.
+and B<not> in terms of input stream locations or RHS indexes.
+It may be useful, however, to look at syncing and alignment
+from other points of view.
+This is done in the next two sections.
+
+=head3 Alignment and input stream locations
+
+Because G1 spans map to input stream spans,
+symch location sets that are aligned or synced in
+G1 terms will be aligned or synced from
+the input stream point of view as well.
+But, if the input is not monotonic,
+the opposite is not necessarily the case.
+Because several G1 locations
+can share an input stream location, symch location sets that seem
+aligned or synced from the input stream point of view
+may not be considered aligned or synced from the G1 location
+point.
+
+=head3 Alignment and RHS indexes
+
+Symch location sets that are aligned
+from the G1 location point will typically not be
+aligned from the point of
+the RHS indexes.
 Non-aligned RHS indexes are particularly likely for
 long sequence rules,
 where the RHS is a long string containing

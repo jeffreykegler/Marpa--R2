@@ -263,21 +263,21 @@ the per-traversal object, which will be shared by all calls
 in the traversal.
 The per-traversal object
 may be used as a "scratch pad" for information
-that it is not convenient to pass via return values,
-as a means of avoiding the use of globals.
+that it is not convenient to pass via return values.
+Prefer the per-traversal object to the use of globals.
 
 "Moving around" in a glade means visiting its B<parse alternatives>.
 (Parse alternatives are usually called B<alternatives>,
 when the meaning is clear.)
 If a glade has exactly one alternative, it is called a B<trivial glade>.
 When invoked, the traverser points at the first alternative.
-Alternatives after the first may be visited using the
+Alternatives after the first may be visited using
 the L<C<next()>|/"next()"> glade method.
 
 Parse alternatives may be either token
 alternatives or rule alternatives.
 Rule and token alternatives may be distnguished
-with the
+with
 the L<C<rule_id()>|/"rule_id()"> glade method,
 which returns C<undef> if and only if the glade is positioned at a token
 alternative.
@@ -293,12 +293,12 @@ At all alternatives,
 the L<C<span()>|/"span()"> and
 the L<C<literal()>|/"literal()"> glade methods
 are of use.
-The L<C<symbol_id()>|/"symbol_d()"> glade method is
+The L<C<symbol_id()>|/"symbol_id()"> glade method is
 also always of use,
 although its meaning varies.
-At token alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
+At token alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
 token symbol.
-At rule alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
+At rule alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
 ID of the LHS of the rule.
 
 At rule alternatives,
@@ -395,7 +395,11 @@ partial: 1
 
 Returns the ID of the rule for the current
 alternative.
-The ID will be non-negative, but it may be zero.
+The ID will be a non-negative number,
+or C<undef>.
+(Note that,
+for alternatives in this interface, both zero and
+C<undef> are considered valid rule IDs.)
 Returns C<undef> if and only if the current
 alternative is a token alternative.
 The C<rule_id()> method accepts no arguments.
@@ -465,9 +469,8 @@ the L<C<next()> method|/"next()"> may
 change the current symch, 
 L<C<rule_id()> method|/"rule_id()">
 must always be called to obtain the current rule ID 
-in a C<while> loop where 
-L<C<next()> method|/"next()"> 
-is used as the exit condition. 
+in a C<while> loop that is controlled by
+the L<C<next()> method|/"next()">.
 
 =head1 Details
 
@@ -510,7 +513,7 @@ L<C<symbol_id()>|/"symbol_id()"> methods
 remain constant inside each glade.
 The L<C<rule_id()> method|/"rule_id()"> remains constant within a symch --
 in fact, the rule ID and the glade define a symch.
-(Recall that for this purpose, the token alternative's
+(Recall that for alternatives in the ASF interface,
 C<undef> is considered a rule ID.)
 The values of the
 L<C<rh_length()> method|/"rh_length()">
