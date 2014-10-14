@@ -253,6 +253,7 @@ t/sl_advent.t
 t/sl_ah2.t
 t/sl_ambig.t
 t/sl_amon.t
+t/sl_asf.t
 t/sl_ast.t
 t/sl_astsyn.t
 t/sl_calc.t
