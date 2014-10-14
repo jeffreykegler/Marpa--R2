@@ -175,7 +175,7 @@ that are not necessarily failures,
 and which therefore are not thrown.
 These are Marpa's SLIF parse events.
 SLIF parse events are an advanced feature, and are described
-L<elsewhere|Marpa::R2::Scanless::Event>.
+L<elsewhere|Marpa::R2::Event>.
 In this example,
 any premature ending caused by
 the triggering of a SLIF parse event will be caused
