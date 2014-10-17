@@ -931,10 +931,9 @@ sub Marpa::R2::Scanless::R::resume {
             eq 'event' )
         {
             push @{ $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] },
-                q{'exhausted};
+                [q{'exhausted}];
             last OUTER_READ;
         } ## end if ( $problem_code eq 'R1 exhausted before end' and ...)
-
 
         if ( $problem_code eq 'invalid char' ) {
             my $codepoint = $thin_slr->codepoint();

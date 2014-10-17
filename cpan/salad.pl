@@ -66,6 +66,7 @@ my $g = Marpa::R2::Scanless::G->new({
 
 my $recce      = Marpa::R2::Scanless::R->new({
 		grammar => $g,
+		exhaustion => 'event',
 		trace_terminals => 1,
 		trace_values => 1
 		});
