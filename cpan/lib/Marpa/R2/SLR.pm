@@ -919,6 +919,23 @@ sub Marpa::R2::Scanless::R::resume {
         next OUTER_READ if $problem_code eq 'event';
         next OUTER_READ if $problem_code eq 'trace';
 
+        # The event on exhaustion only occurs if needed to provide a reason
+        # to return -- if an exhausted reader would return anyway, there is
+        # no exhaustion event.  For a reliable way to detect exhaustion,
+        # use the $slr->exhausted() method.
+        # The name of the exhausted event begins with a single quote, so
+        # that it will not conflict with any user-defined event name.
+
+        if (    $problem_code eq 'R1 exhausted before end'
+            and $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION]
+            eq 'event' )
+        {
+            push @{ $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] },
+                q{'exhausted};
+            last OUTER_READ;
+        } ## end if ( $problem_code eq 'R1 exhausted before end' and ...)
+
+
         if ( $problem_code eq 'invalid char' ) {
             my $codepoint = $thin_slr->codepoint();
             my $lexer_id  = $thin_slr->current_lexer();
