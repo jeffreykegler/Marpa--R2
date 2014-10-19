@@ -23,6 +23,7 @@
 ^code[.]errs$
 ^dist[.]errs$
 ^modulo_AHFA[.]out$
+^salad.pl$
 
 # Permanent
 
