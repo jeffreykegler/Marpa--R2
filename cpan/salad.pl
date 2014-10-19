@@ -6,6 +6,15 @@ use warnings;
 use Marpa::R2 2.097_002;
 use Data::Dumper;
 
+# This example searches for recursively nested braces --
+# curly, square and round -- in a "salad" of other things.
+# It's to show general BNF search -- sort of a grep or an ack,
+# but for general BNF, instead of regexes.  The term
+# "salad" I picked up from Michael Roberts, to suggest
+# that the targets occur in a sort of "lexeme salad".
+# In the literature, this is called a supersequence
+# search.
+
 # New (as yet undocumented) features:
 # 
 # 1.) The $recce->last_completed_span($symbol) method
