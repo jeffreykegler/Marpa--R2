@@ -62,12 +62,13 @@ rsquare ~ <deep rsquare>
 
 my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
-my $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
+# my $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
+my $recce_debug_args = {};
 
 sub test {
     my ($string) = @_;
     my @found = ();
-    say STDERR "Input: $string";
+    # say STDERR "Input: $string";
     my $input_length = length $string;
     my $target_start = 0;
 
@@ -86,8 +87,8 @@ sub test {
             my ($name) = @{$event};
             if ( $name eq 'target' ) {
                 @shortest_span = $recce->last_completed_span('target');
-                say STDERR "Preliminary target at $pos: ",
-                    $recce->literal(@shortest_span);
+                # say STDERR "Preliminary target at $pos: ",
+                    # $recce->literal(@shortest_span);
                 next EVENT;
             } ## end if ( $name eq 'target' )
                 # Not all exhaustion has an exhaustion event,
@@ -99,8 +100,8 @@ sub test {
         last TARGET if not scalar @shortest_span;
 
         # We end the prefix here
-        say STDERR join q{ }, @shortest_span;
-        my $prefix_end = $shortest_span[0] + $shortest_span[1];
+        # say STDERR join q{ }, @shortest_span;
+        my $prefix_end = $shortest_span[0];
         $recce = Marpa::R2::Scanless::R->new(
             {   grammar    => $g,
                 exhaustion => 'event',
@@ -114,7 +115,7 @@ sub test {
         $pos = $recce->resume($prefix_end);
 
         my @longest_span = $recce->last_completed_span('target');
-        say STDERR "Actual target at $pos: ", $recce->literal(@longest_span);
+        # say STDERR "Actual target at $pos: ", $recce->literal(@longest_span);
 
         last TARGET if not scalar @longest_span;
         push @found, $recce->literal(@longest_span);
@@ -129,6 +130,7 @@ sub test {
 #             012345678901234567890
 my @strings = ( 'z}ab)({[]})))(([]))zz',
 '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[',
+'([]([])([]([]',
 );
 
 for my $string (@strings) {
