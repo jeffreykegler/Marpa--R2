@@ -73,14 +73,15 @@ Test::More::ok( ( $r->ambiguity_metric() > 1 ), 'ambiguity_metric()');
     $r->series_restart();
     my $asf = Marpa::R2::ASF->new( { slr => $r } );
     my $full_result = $asf->traverse( {}, \&full_traverser );
-    my @expected = (
-'(Expr (Expr (Expr (2)) (**) (Expr (Expr (7)) (-) (Expr (3)))) (**) (Expr (10)))',
-'(Expr (Expr (Expr (Expr (2)) (**) (Expr (7))) (-) (Expr (3))) (**) (Expr (10)))',
-'(Expr (Expr (2)) (**) (Expr (Expr (Expr (7)) (-) (Expr (3))) (**) (Expr (10))))',
-'(Expr (Expr (2)) (**) (Expr (Expr (7)) (-) (Expr (Expr (3)) (**) (Expr (10)))))',
-'(Expr (Expr (Expr (2)) (**) (Expr (7))) (-) (Expr (Expr (3)) (**) (Expr (10))))',
-);
-    Marpa::R2::Test::is( $full_result, \@expected, 'Result of ASF traversal' );
+    my $actual = join "\n", @{$full_result}, q{};
+    my $expected = <<'EOS';
+(Expr (Expr (Expr (2)) (**) (Expr (Expr (7)) (-) (Expr (3)))) (**) (Expr (10)))
+(Expr (Expr (Expr (Expr (2)) (**) (Expr (7))) (-) (Expr (3))) (**) (Expr (10)))
+(Expr (Expr (2)) (**) (Expr (Expr (Expr (7)) (-) (Expr (3))) (**) (Expr (10))))
+(Expr (Expr (2)) (**) (Expr (Expr (7)) (-) (Expr (Expr (3)) (**) (Expr (10)))))
+(Expr (Expr (Expr (2)) (**) (Expr (7))) (-) (Expr (Expr (3)) (**) (Expr (10))))
+EOS
+    Marpa::R2::Test::is( $actual, $expected, 'Result of ASF traversal' );
 }
 
 sub full_traverser {
