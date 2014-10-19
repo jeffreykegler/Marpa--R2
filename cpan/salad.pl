@@ -7,7 +7,7 @@ use Marpa::R2;
 use File::Slurp 'read_file';
 use Data::Dumper;
 
-$Data::Dumper::Deepcopy = 1; # for better dumps
+$Data::Dumper::Deepcopy = 1;    # for better dumps
 
 my $grammar = << '=== GRAMMAR ===';
 :default ::= action => [ name, value ]
@@ -24,7 +24,8 @@ balanced ::=
   | lcurly contents rcurly
   | lsquare contents rsquare
 
-contents ::= balanced | filler | empty
+contents ::= <content item>*
+<content item> ::= balanced | filler
 empty ::=
 
 <prefix lexeme> ~ <deep filler>
@@ -59,25 +60,26 @@ rsquare ~ <deep rsquare>
 
 === GRAMMAR ===
 
-my $g = Marpa::R2::Scanless::G->new({
-		source         => \( $grammar )
-});
-
+my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
 my $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
 
-#             012345678901234567890
-my $string = 'z}ab)({[]})))(([]))zz';
-say STDERR "Input: $string";
-my $input_length = length $string;
-my $target_start = 0;
+sub test {
+    my ($string) = @_;
+    my @found = ();
+    say STDERR "Input: $string";
+    my $input_length = length $string;
+    my $target_start = 0;
 
-TARGET: while ($target_start < $input_length) {
-    my @shortest_span = ();
-    my $recce      = Marpa::R2::Scanless::R->new({
-		grammar => $g,
-		exhaustion => 'event'}, $recce_debug_args);
-    my $pos = $recce->read(\$string, $target_start);
+    TARGET: while ( $target_start < $input_length ) {
+        my @shortest_span = ();
+        my $recce         = Marpa::R2::Scanless::R->new(
+            {   grammar    => $g,
+                exhaustion => 'event',
+            },
+            $recce_debug_args
+        );
+        my $pos = $recce->read( \$string, $target_start );
 
         EVENT:
         for my $event ( @{ $recce->events() } ) {
@@ -86,7 +88,7 @@ TARGET: while ($target_start < $input_length) {
                 @shortest_span = $recce->last_completed_span('target');
                 say STDERR "Preliminary target at $pos: ",
                     $recce->literal(@shortest_span);
-		    next EVENT;
+                next EVENT;
             } ## end if ( $name eq 'target' )
                 # Not all exhaustion has an exhaustion event,
                 # so we look for exhaustion explicitly below.
@@ -94,28 +96,48 @@ TARGET: while ($target_start < $input_length) {
             die join q{ }, "Spurious event at position $pos: '$name'";
         } ## end EVENT: for my $event ( @{ $recce->events() } )
 
+        last TARGET if not scalar @shortest_span;
 
-    last TARGET if not scalar @shortest_span;
+        # We end the prefix here
+        say STDERR join q{ }, @shortest_span;
+        my $prefix_end = $shortest_span[0] + $shortest_span[1];
+        $recce = Marpa::R2::Scanless::R->new(
+            {   grammar    => $g,
+                exhaustion => 'event',
+                rejection => 'event',
+            },
+            $recce_debug_args
+        );
+        $recce->activate( 'target', 0 );
+        $recce->read( \$string, $target_start, $prefix_end - $target_start );
+        $recce->lexeme_priority_set( 'prefix lexeme', -1 );
+        $pos = $recce->resume($prefix_end);
 
-    # We end the prefix here
-    say STDERR join q{ }, @shortest_span;
-    my $prefix_end = $shortest_span[0] + $shortest_span[1];
-    $recce      = Marpa::R2::Scanless::R->new({
-		grammar => $g,
-		exhaustion => 'event'}, $recce_debug_args);
-    $recce->activate('target', 0);
-    $recce->read(\$string, $target_start, $prefix_end - $target_start);
-    $recce->lexeme_priority_set('prefix lexeme', -1);
-    $pos = $recce->resume($prefix_end);
+        my @longest_span = $recce->last_completed_span('target');
+        say STDERR "Actual target at $pos: ", $recce->literal(@longest_span);
 
-    my @longest_span =  $recce->last_completed_span('target');
-    say STDERR "Actual target at $pos: ", $recce->literal(@longest_span);
+        last TARGET if not scalar @longest_span;
+        push @found, $recce->literal(@longest_span);
+        say "Found target at $pos: ", $recce->literal(@longest_span);
 
-    last TARGET if not scalar @longest_span;
-    say "Found target at $pos: ", $recce->literal(@longest_span);
-    $target_start = $longest_span[0] + $longest_span[1];
+        $target_start = $longest_span[0] + $longest_span[1];
 
-} ## end TARGET: while (1)
+    } ## end TARGET: while ( $target_start < $input_length )
+    return \@found;
+} ## end sub test
+
+#             012345678901234567890
+my @strings = ( 'z}ab)({[]})))(([]))zz',
+'9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[',
+);
+
+for my $string (@strings) {
+    my $finds = test($string);
+    say "Input: $string";
+    for ( my $i = 0; $i < scalar @{$finds}; $i++ ) {
+        say join " ", "Find", ( $i + 1 . ":" ), $finds->[$i];
+    }
+} ## end for my $string (@strings)
 
 # my $ref_value = $recce->value();
 # die "No parse" if not $ref_value;

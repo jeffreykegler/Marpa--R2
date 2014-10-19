@@ -203,6 +203,7 @@ sub Marpa::R2::Scanless::R::new {
 
     # Set SLIF (not NAIF) recognizer args to default
     $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION] = 'fatal';
+    $slr->[Marpa::R2::Internal::Scanless::R::REJECTION_ACTION] = 'fatal';
 
     my $g1_recce_args =
         Marpa::R2::Internal::Scanless::R::set( $slr, "new", @args );
@@ -256,7 +257,7 @@ sub Marpa::R2::Internal::Scanless::R::set {
             trace_actions trace_file_handle trace_terminals trace_values)
     };
     state $common_slif_recce_args =
-        { map { ( $_, 1 ); } qw(trace_lexers exhaustion) };
+        { map { ( $_, 1 ); } qw(trace_lexers rejection exhaustion) };
     state $set_method_args = {
         map { ( $_, 1 ); } (
             keys %{$common_slif_recce_args},
@@ -345,6 +346,22 @@ sub Marpa::R2::Internal::Scanless::R::set {
         $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION] = $value;
 
     } ## end if ( exists $flat_args{'exhaustion'} )
+
+    # Special SLIF (not NAIF) recce arg processing goes here
+    if ( exists $flat_args{'rejection'} ) {
+
+        state $rejection_actions = { map { ( $_, 0 ) } qw(fatal event) };
+        my $value = $flat_args{'rejection'} // 'undefined';
+        Marpa::R2::exception(
+            qq{'rejection' named arg value is $value (should be one of },
+            (   join q{, },
+                map { q{'} . $_ . q{'} } keys %{$rejection_actions}
+            ),
+            ')'
+        ) if not exists $rejection_actions->{$value};
+        $slr->[Marpa::R2::Internal::Scanless::R::REJECTION_ACTION] = $value;
+
+    } ## end if ( exists $flat_args{'rejection'} )
 
     # A bit hack-ish, but some named args are copies straight to an member of
     # the Scanless::R class, so this maps named args to the index of the array
@@ -943,6 +960,15 @@ sub Marpa::R2::Scanless::R::resume {
             last OUTER_READ;
         } ## end if ( $problem_code eq 'R1 exhausted before end' and ...)
 
+        if (    $problem_code eq 'no lexeme'
+            and $slr->[Marpa::R2::Internal::Scanless::R::REJECTION_ACTION]
+            eq 'event' )
+        {
+            push @{ $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] },
+                [q{'rejected}];
+            last OUTER_READ;
+        }
+
         if ( $problem_code eq 'invalid char' ) {
             my $codepoint = $thin_slr->codepoint();
             my $lexer_id  = $thin_slr->current_lexer();
@@ -1075,15 +1101,16 @@ sub Marpa::R2::Scanless::R::read_problem {
             $problem_pos = $thin_slr->problem_pos();
             my ( $line, $column ) = $slr->line_column($problem_pos);
             my $lexer_name;
-            my @details = ();
+            my @details    = ();
             my %rejections = ();
-            my @events = $thin_slr->events() ;
-            if (scalar @events > 100) {
-               my $omitted = scalar @events - 100;
-               push @details, "  [there were $omitted events -- only the first 100 were examined]";
-               $#events = 99;
-            }
-            EVENT: for my $event ( @events ) {
+            my @events     = $thin_slr->events();
+            if ( scalar @events > 100 ) {
+                my $omitted = scalar @events - 100;
+                push @details,
+                    "  [there were $omitted events -- only the first 100 were examined]";
+                $#events = 99;
+            } ## end if ( scalar @events > 100 )
+            EVENT: for my $event (@events) {
                 my ( $event_type, $trace_event_type, $lexeme_start_pos,
                     $lexeme_end_pos, $g1_lexeme, $lexer_id )
                     = @{$event};
@@ -1095,7 +1122,8 @@ sub Marpa::R2::Scanless::R::read_problem {
                     $thin_slr->substring( $lexeme_start_pos,
                     $lexeme_end_pos - $lexeme_start_pos );
                 my $trace_file_handle =
-                    $slr->[Marpa::R2::Internal::Scanless::R::TRACE_FILE_HANDLE];
+                    $slr
+                    ->[Marpa::R2::Internal::Scanless::R::TRACE_FILE_HANDLE];
                 my $thick_g1_recce =
                     $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
                 my $thick_g1_grammar = $thick_g1_recce->grammar();
@@ -1110,34 +1138,37 @@ sub Marpa::R2::Scanless::R::read_problem {
                 # reports are not repeated, even when they have different causes
                 # internally.
 
-                $rejections{qq{Lexer "} . $lexer_name . q{"; }
-                    . $thick_g1_grammar->symbol_in_display_form($g1_lexeme)
-                    . qq{; value="$raw_token_value"; length = }
-                    . ( $lexeme_end_pos - $lexeme_start_pos )} = 1;
-            } ## end EVENT: for my $event ( $thin_slr->events() )
-            my @problem = ();
+                $rejections{ qq{Lexer "}
+                        . $lexer_name . q{"; }
+                        . $thick_g1_grammar->symbol_in_display_form(
+                        $g1_lexeme)
+                        . qq{; value="$raw_token_value"; length = }
+                        . ( $lexeme_end_pos - $lexeme_start_pos ) } = 1;
+            } ## end EVENT: for my $event (@events)
+            my @problem    = ();
             my @rejections = keys %rejections;
-            if (scalar @rejections) {
+            if ( scalar @rejections ) {
                 my $rejection_count = scalar @rejections;
                 push @problem,
                     "No lexemes accepted at line $line, column $column";
-                REJECTION: for my $i (0 .. 5) {
+                REJECTION: for my $i ( 0 .. 5 ) {
                     my $rejection = $rejections[$i];
                     last REJECTION if not defined $rejection;
                     push @problem, qq{  Rejected lexeme #$i: $rejection};
                 }
-                if ($rejection_count > 5) {
-                   push @problem, "  [there were $rejection_count rejection messages -- only the first 5 are shown]";
+                if ( $rejection_count > 5 ) {
+                    push @problem,
+                        "  [there were $rejection_count rejection messages -- only the first 5 are shown]";
                 }
                 push @problem, @details;
-            } ## end if ($rejected_count)
+            } ## end if ( scalar @rejections )
             else {
                 push @problem,
                     "No lexeme found at line $line, column $column";
             }
             $problem = join "\n", @problem;
             last CODE_TO_PROBLEM;
-        } ## end if ( $problem_code eq 'no lexemes accepted' )
+        } ## end if ( $problem_code eq 'no lexeme' )
         $problem = 'Unrecognized problem code: ' . $problem_code;
     } ## end CODE_TO_PROBLEM:
 
@@ -1432,7 +1463,7 @@ sub Marpa::R2::Scanless::G::parse {
 sub Marpa::R2::Scanless::R::rule_closure {
 
     my ( $slr, $rule_id ) = @_;
-    
+
     my $recce = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
 
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
@@ -1450,7 +1481,7 @@ sub Marpa::R2::Scanless::R::rule_closure {
         Marpa::R2::Internal::Value::registration_init( $recce, $per_parse_arg );
 
     } ## end if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS...])
-    
+
     my $rule_closure = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID]->[$rule_id];
     if (defined $rule_closure){
         my $ref_rule_closure = ref $rule_closure;
@@ -1464,7 +1495,7 @@ sub Marpa::R2::Scanless::R::rule_closure {
     else{
         return
     }
-    
+
 } ## end sub Marpa::R2::Scanless::R::rule_closure
 
 sub Marpa::R2::Scanless::R::value {
@@ -1482,6 +1513,7 @@ sub Marpa::R2::Scanless::R::series_restart {
 
     # Reset SLIF (not NAIF) recognizer args to default
     $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION] = 'fatal';
+    $slr->[Marpa::R2::Internal::Scanless::R::REJECTION_ACTION] = 'fatal';
 
     $thick_g1_recce->reset_evaluation();
     my $g1_recce_args = Marpa::R2::Internal::Scanless::R::set($slr, "series_restart", @args );

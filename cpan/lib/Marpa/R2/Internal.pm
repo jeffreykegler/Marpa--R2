@@ -200,10 +200,11 @@ use constant GRAMMAR => 1;
 use constant THICK_G1_RECCE => 2;
 use constant P_INPUT_STRING => 3;
 use constant EXHAUSTION_ACTION => 4;
-use constant TRACE_FILE_HANDLE => 5;
-use constant TRACE_LEXERS => 6;
-use constant TRACE_TERMINALS => 7;
-use constant READ_STRING_ERROR => 8;
-use constant EVENTS => 9;
+use constant REJECTION_ACTION => 5;
+use constant TRACE_FILE_HANDLE => 6;
+use constant TRACE_LEXERS => 7;
+use constant TRACE_TERMINALS => 8;
+use constant READ_STRING_ERROR => 9;
+use constant EVENTS => 10;
 
 1;
