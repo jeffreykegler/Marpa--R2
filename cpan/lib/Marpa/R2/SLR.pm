@@ -98,6 +98,14 @@ sub Marpa::R2::Scanless::R::last_completed {
     return ( $first_origin, ( $earley_set - $first_origin ) );
 } ## end sub Marpa::R2::Scanless::R::last_completed
 
+sub Marpa::R2::Scanless::R::last_completed_span {
+    my ( $slr, $symbol_name ) = @_;
+    my ($g1_origin, $g1_span) = $slr->last_completed( $symbol_name );
+    my ($start_input_location) = $slr->g1_location_to_span($g1_origin + 1);
+    my @end_span = $slr->g1_location_to_span($g1_origin + $g1_span);
+    return ($start_input_location, ($end_span[0]+$end_span[1])-$start_input_location);
+}
+
 # In terms of earley sets.
 # Kept for backward compatibiity
 sub Marpa::R2::Scanless::R::range_to_string {

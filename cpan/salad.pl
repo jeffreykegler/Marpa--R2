@@ -64,73 +64,57 @@ my $g = Marpa::R2::Scanless::G->new({
 });
 
 
-my $recce      = Marpa::R2::Scanless::R->new({
-		grammar => $g,
-		exhaustion => 'event',
-		trace_terminals => 1,
-		trace_values => 1
-		});
+my $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
 
+#             012345678901234567890
 my $string = 'z}ab)({[]})))(([]))zz';
-my $length = length $string;
-my $pos = $recce->read(\$string);
-my $target_search_start = $pos;
+say STDERR "Input: $string";
+my $input_length = length $string;
+my $target_start = 0;
 
-TARGET: while ($target_search_start < $length) {
-    my @first_end_span = ();
-    $recce->lexeme_priority_set('prefix lexeme', 0);
-    FIND_FIRST_END_SPAN: while (1) {
-        my @actual_events = ();
+TARGET: while ($target_start < $input_length) {
+    my @shortest_span = ();
+    my $recce      = Marpa::R2::Scanless::R->new({
+		grammar => $g,
+		exhaustion => 'event'}, $recce_debug_args);
+    my $pos = $recce->read(\$string, $target_start);
 
-        my $next_lexeme;
         EVENT:
         for my $event ( @{ $recce->events() } ) {
             my ($name) = @{$event};
             if ( $name eq 'target' ) {
-                @first_end_span = $recce->last_completed('target');
+                @shortest_span = $recce->last_completed_span('target');
                 say STDERR "Preliminary target at $pos: ",
-                    $recce->substring(@first_end_span);
-                last FIND_FIRST_END_SPAN;
+                    $recce->literal(@shortest_span);
+		    next EVENT;
             } ## end if ( $name eq 'target' )
+                # Not all exhaustion has an exhaustion event,
+                # so we look for exhaustion explicitly below.
+            next EVENT if $name eq q('exhausted);
             die join q{ }, "Spurious event at position $pos: '$name'";
         } ## end EVENT: for my $event ( @{ $recce->events() } )
 
-        if ( $pos < $length ) {
-            $pos = $recce->resume();
-            next FIND_FIRST_END_SPAN;
-        }
-        last TARGET;
-    } ## end FIND_FIRST_END_SPAN: while (1)
+
+    last TARGET if not scalar @shortest_span;
 
     # We end the prefix here
-    my ($prefix_end) = $recce->g1_location_to_span($first_end_span[0]);
-    $pos = $recce->resume($target_search_start, $prefix_end - $target_search_start);
+    say STDERR join q{ }, @shortest_span;
+    my $prefix_end = $shortest_span[0] + $shortest_span[1];
+    $recce      = Marpa::R2::Scanless::R->new({
+		grammar => $g,
+		exhaustion => 'event'}, $recce_debug_args);
+    $recce->activate('target', 0);
+    $recce->read(\$string, $target_start, $prefix_end - $target_start);
     $recce->lexeme_priority_set('prefix lexeme', -1);
     $pos = $recce->resume($prefix_end);
-    FIND_FIRST_START_SPAN: while (1) {
-        my @actual_events = ();
 
-        my $next_lexeme;
-        EVENT:
-        for my $event ( @{ $recce->events() } ) {
-            my ($name) = @{$event};
-            if ( $name eq 'target' ) {
-                @first_end_span = $recce->last_completed('target');
-                say STDERR "Actual target at $pos: ",
-                    $recce->substring(@first_end_span);
-                next EVENT;
-            } ## end if ( $name eq 'target' )
-            die join q{ }, "Spurious event at position $pos: '$name'";
-        } ## end EVENT: for my $event ( @{ $recce->events() } )
+    my @longest_span =  $recce->last_completed_span('target');
+    say STDERR "Actual target at $pos: ", $recce->literal(@longest_span);
 
-        if ( $pos < $length ) {
-            $pos = $recce->resume();
-            next FIND_FIRST_START_SPAN;
-        }
-        last TARGET;
-    } ## end FIND_FIRST_START_SPAN: while (1)
+    last TARGET if not scalar @longest_span;
+    say "Found target at $pos: ", $recce->literal(@longest_span);
+    $target_start = $longest_span[0] + $longest_span[1];
 
-    exit 0;
 } ## end TARGET: while (1)
 
 # my $ref_value = $recce->value();
