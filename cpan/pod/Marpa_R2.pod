@@ -186,8 +186,8 @@ explicitly|Marpa::R2::Scanless::DSL/"Start rule">.)
 Structural rules are the kinds of rules typically seen in BNF --
 they describe the symbols which provide the structure of the grammar,
 but leave out details of whitespace.
-The SLIF also handles the lexical details in this example,
-but it does it via L0 rules,
+The SLIF also handles the lexical details in this example.
+It does this via L0 rules,
 which we will see shortly.
 
 =for Marpa::R2::Display
@@ -240,16 +240,28 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    Expression ::=
-        Expression '+' Term action => do_add
-        | Term action => ::first
+    Term ::=
+        Term '*' Factor action => do_multiply
+        | Factor action => ::first
+
 
 =for Marpa::R2::Display::End
 
-This rule says that an C<Expression> may be one of two
+This rule says that an C<Term> may be one of two
 alternatives:
-either a C<Term> and a C<Factor> separated by an addition operator,
-or a C<Factor>.
+
+=over 4
+
+=item *
+
+A C<Term> and a C<Factor> separated by an addition operator; or
+
+=item * 
+
+a C<Factor>.
+
+=back
+
 Immediately following is another G1 rule defining
 a C<Term>.  It is very similar in form
 to the one for C<Expression>.
@@ -259,9 +271,9 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    Term ::=
-        Term '*' Factor action => do_multiply
-        | Factor action => ::first
+    Expression ::=
+        Expression '+' Term action => do_add
+        | Term action => ::first
 
 =for Marpa::R2::Display::End
 
