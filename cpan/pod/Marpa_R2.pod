@@ -29,13 +29,15 @@ normalize-whitespace: 1
     :default ::= action => [name,values]
     lexeme default = latm => 1
 
-    Expression ::= Term action => ::first
+    Calculator ::= Expression action => ::first
+
+    Factor ::= Number action => ::first
     Term ::=
-          Factor action => ::first
-        | Term '+' Term action => do_add
-    Factor ::=
-          Number action => ::first
-        | Factor '*' Factor action => do_multiply
+        Term '*' Factor action => do_multiply
+        | Factor action => ::first
+    Expression ::=
+        Expression '+' Term action => do_add
+        | Term action => ::first
     Number ~ digits
     digits ~ [\d]+
     :discard ~ whitespace
@@ -97,13 +99,15 @@ normalize-whitespace: 1
     :default ::= action => [name,values]
     lexeme default = latm => 1
     
-    Expression ::= Term action => ::first
+    Calculator ::= Expression action => ::first
+
+    Factor ::= Number action => ::first
     Term ::=
-          Factor action => ::first
-        | Term '+' Term action => do_add
-    Factor ::=
-          Number action => ::first
-        | Factor '*' Factor action => do_multiply
+        Term '*' Factor action => do_multiply
+        | Factor action => ::first
+    Expression ::=
+        Expression '+' Term action => do_add
+        | Term action => ::first
     Number ~ digits
     digits ~ [\d]+
     :discard ~ whitespace
@@ -172,6 +176,13 @@ almost always start with this line.
 =head2 A G1 rule
 
 Next follows a G1, or structural rule.
+The first G1 rule in a script
+will usually be the start rule of the
+grammar.
+(It is also possible to
+L<specify the start rule
+explicitly|Marpa::R2::Scanless::DSL/"Start rule">.)
+
 Structural rules are the kinds of rules typically seen in BNF --
 they describe the symbols which provide the structure of the grammar,
 but leave out details of whitespace.
@@ -184,12 +195,12 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    Expression ::= Term action => ::first
+    Calculator ::= Expression action => ::first
 
 =for Marpa::R2::Display::End
 
-As is normal for BNF rules, this rule consists of 
-a left hand side symbol ("C<Expression>"),
+As is normal for BNF rules, the first rule consists of 
+a left hand side symbol ("C<Calculator>"),
 the BNF operator ("C<::=>")
 and a series of right hand side (RHS) symbols.
 There is always exactly one left hand side (LHS)
@@ -198,7 +209,7 @@ There may be any number of RHS symbols.
 In the case of an empty rule,
 the number of RHS symbols would be zero.
 In this rule, there is one RHS
-symbol, "C<Term>".
+symbol, "C<Expression>".
 
 The BNF operator ("C<::=>") is what makes this rule
 a G1 (structural) rule.
@@ -211,6 +222,17 @@ We'll explain the purpose of the C<action>
 adverbs when we discuss
 L<semantics|/"Semantics">
 
+The second rule is very similar to the first:
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+    Factor ::= Number action => ::first
+
+=for Marpa::R2::Display::End
+
 =head2 More complicated G1 rules
 
 =for Marpa::R2::Display
@@ -218,27 +240,28 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    Term ::=
-          Factor action => ::first
-        | Term '+' Term action => do_add
+    Expression ::=
+        Expression '+' Term action => do_add
+        | Term action => ::first
 
 =for Marpa::R2::Display::End
 
-This rule says that a C<Term> may be one of two
-alternatives: either a C<Factor>
-or two C<Term>'s separated by an addition operator.
+This rule says that an C<Expression> may be one of two
+alternatives:
+either a C<Term> and a C<Factor> separated by an addition operator,
+or a C<Factor>.
 Immediately following is another G1 rule defining
-a C<Factor>.  It is very similar in form
-to the one for C<Term>.
+a C<Term>.  It is very similar in form
+to the one for C<Expression>.
 
 =for Marpa::R2::Display
 name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    Factor ::=
-          Number action => ::first
-        | Factor '*' Factor action => do_multiply
+    Term ::=
+        Term '*' Factor action => do_multiply
+        | Factor action => ::first
 
 =for Marpa::R2::Display::End
 
@@ -311,14 +334,14 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    Term ::=
-          Factor action => ::first
-        | Term '+' Term action => do_add
+    Expression ::=
+        Expression '+' Term action => do_add
+        | Term action => ::first
 
 =for Marpa::R2::Display::End
 
 In the above rule, the single-quoted string C<'+'> implicitly defines a L0 lexeme.
-Something similar happens with the C<'*'> string in the rule for a C<Factor>.
+Something similar happens with the C<'*'> string in the rule for a C<Term>.
 
 The SLIF's lexer mostly "does what you mean".
 While the input is being read, it looks for all lexemes defined in the DSL.
@@ -503,11 +526,11 @@ partial: 1
 normalize-whitespace: 1
 
     Term ::=
-          Factor action => ::first
-        | Term '+' Term action => do_add
-    Factor ::=
-          Number action => ::first
-        | Factor '*' Factor action => do_multiply
+        Term '*' Factor action => do_multiply
+        | Factor action => ::first
+    Expression ::=
+        Expression '+' Term action => do_add
+        | Term action => ::first
 
 =for Marpa::R2::Display::End
 
@@ -517,8 +540,8 @@ that is, the value corresponding to the first symbol of the rule's RHS.
 (In the case of an empty rule, the value would be a Perl C<undef>).
 (The initial double colon indicates a reserved action.)
 
-The action for the second RHS alternative defining C<Term> is C<do_add>,
-and the action for the second RHS alternative defining C<Factor> is C<do_multiply>.
+The action for the first RHS alternative defining C<Expression> is C<do_add>,
+and the action for the first RHS alternative defining C<Term> is C<do_multiply>.
 To implement these actions, we need to "resolve" their names --
 map the action names into 
 the Perl closures which actually carry out the semantics.
