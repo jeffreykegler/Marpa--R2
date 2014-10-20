@@ -59,6 +59,7 @@ die "Read ended after $length_read of ", length $input, " characters"
     if $length_read != length $input;
 
 if ( my $ambiguous_status = $recce->ambiguous() ) {
+    chomp $ambiguous_status;
     die "Parse is ambiguous\n", $ambiguous_status;
 }
 
