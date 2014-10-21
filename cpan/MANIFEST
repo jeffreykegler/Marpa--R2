@@ -286,6 +286,7 @@ t/sl_panda1.t
 t/sl_pascal.t
 t/sl_prefix.t
 t/sl_rank.t
+t/sl_ruby.t
 t/sl_syn.t
 t/sl_taint.t
 t/sl_timeflies.t
