@@ -15,41 +15,6 @@ use Data::Dumper;
 # In the literature, this is called a supersequence
 # search.
 
-# New (as yet undocumented) features:
-# 
-# 1.) The $recce->last_completed_span($symbol) method
-# returns the location of the most recent completion
-# of $symbol.  Locations are in input stream terms.
-# It works similarly to the documented method,
-# $recce->last_completed($symbol).
-#
-# 2.) A scanless recognizer setting: 'exhaustion'
-# If its value is "fatal",
-# when the SLIF tries to continue
-# reading input after exhaustion, it throws an
-# exception.  If "event", it returns an event
-# named "'exhausted".  Note the initial single quote,
-# which marks it as a reserved event.
-#
-# The 'exhaustion event only occurs when needed to
-# make the $recce->read() or $recce->resume() method
-# return.  Applications which want to check for exhaustion
-# should ignore the event and
-# use the $recce->exhausted() method.
-#
-# 3.) A new scanless recognizer setting: 'rejection'
-# It determines what happens when
-# all alternatives at a location are rejected.
-# If its value is 'fatal', an exception is thrown.
-# If its value is 'event', a "'rejection" event
-# occurs.  Note the initial single quote,
-# which marks it as a reserved event.
-#
-# 4.) Lexeme priorities can now be changed on the
-# fly, using the
-# $recce->lexeme_priority_set( $lexeme_name, $priority )
-# call.
-
 my $grammar = << '=== GRAMMAR ===';
 :default ::= action => [ name, value ]
 lexeme default = action => [ name, value ] latm => 1 # to add token names to ast
