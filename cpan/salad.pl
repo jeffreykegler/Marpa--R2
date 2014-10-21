@@ -1,10 +1,18 @@
 #!/usr/bin/env perl
-
-use 5.010;
-use strict;
-use warnings;
-use Marpa::R2 2.097_002;
-use Data::Dumper;
+# Copyright 2014 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
 
 # This example searches for recursively nested braces --
 # curly, square and round -- in a "salad" of other things.
@@ -14,6 +22,17 @@ use Data::Dumper;
 # that the targets occur in a sort of "lexeme salad".
 # In the literature, this is called a supersequence
 # search.
+
+use 5.010;
+use strict;
+use warnings;
+use Marpa::R2 2.097_002;
+use Data::Dumper;
+use Test::More tests => 3;
+use Getopt::Long ();
+
+my $verbose;
+die if not Getopt::Long::GetOptions( verbose => \$verbose );
 
 my $grammar = << '=== GRAMMAR ===';
 :default ::= action => [ name, value ]
@@ -67,25 +86,26 @@ rsquare ~ <deep rsquare>
 
 my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
-# Test strings go here
-#             012345678901234567890
-my @strings = ( 'z}ab)({[]})))(([]))zz',
-'9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[',
-'([]([])([]([]',
+my @tests = (
+    [ 'z}ab)({[]})))(([]))zz', ( join "\n", '({[]})', '(([]))', '' ) ],
+    [   '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[',
+        join "\n", '[]', '[]', '[9]', '[]', '[]', '{[]\{}{}09[]}', ''
+    ],
+    [ '([]([])([]([]', join "\n", '[]', '([])', '[]', '[]', '' ],
 );
 
-for my $string (@strings) {
-    my $finds = test($g, $string);
-    say "Input: $string";
-    for ( my $i = 0; $i < scalar @{$finds}; $i++ ) {
-        say join " ", "Find", ( $i + 1 . ":" ), $finds->[$i];
-    }
-} ## end for my $string (@strings)
+for my $test (@tests) {
+    my ( $string, $expected_result ) = @{$test};
+    my $actual_result = test( $g, $string );
+    diag("Input: $string") if $verbose;
+    Test::More::is( $actual_result, $expected_result,
+        qq{Result of "$string"} );
+} ## end for my $test (@tests)
 
 sub test {
     my ($g, $string) = @_;
     my @found = ();
-    # say STDERR "Input: $string";
+    diag( "Input: $string" ) if $verbose;
     my $input_length = length $string;
     my $target_start = 0;
 
@@ -115,8 +135,10 @@ sub test {
             my ($name) = @{$event};
             if ( $name eq 'target' ) {
                 @shortest_span = $recce->last_completed_span('target');
-                # say STDERR "Preliminary target at $pos: ",
-                    # $recce->literal(@shortest_span);
+                diag(
+                    "Preliminary target at $pos: ",
+                    $recce->literal(@shortest_span)
+                ) if $verbose;
                 next EVENT;
             } ## end if ( $name eq 'target' )
                 # Not all exhaustion has an exhaustion event,
@@ -134,7 +156,7 @@ sub test {
         # We just run until exhausted, the  look for the last
         # completed <target>.  This will be our longest match.
 
-        # say STDERR join q{ }, @shortest_span;
+        diag( join q{ }, @shortest_span ) if $verbose;
         my $prefix_end = $shortest_span[0];
         $recce = Marpa::R2::Scanless::R->new(
             {   grammar    => $g,
@@ -149,11 +171,11 @@ sub test {
         $pos = $recce->resume($prefix_end);
 
         my @longest_span = $recce->last_completed_span('target');
-        # say STDERR "Actual target at $pos: ", $recce->literal(@longest_span);
+        diag( "Actual target at $pos: ", $recce->literal(@longest_span) ) if $verbose;
 
         last TARGET if not scalar @longest_span;
         push @found, $recce->literal(@longest_span);
-        # say "Found target at $pos: ", $recce->literal(@longest_span);
+        diag( "Found target at $pos: ", $recce->literal(@longest_span) ) if $verbose;
 
         # Move the search location forward,
         # in preparation for looking for the next target
@@ -161,7 +183,7 @@ sub test {
         $target_start = $longest_span[0] + $longest_span[1];
 
     } ## end TARGET: while ( $target_start < $input_length )
-    return \@found;
+    return join "\n", @found, q{};
 } ## end sub test
 
 # vim: expandtab shiftwidth=4:
