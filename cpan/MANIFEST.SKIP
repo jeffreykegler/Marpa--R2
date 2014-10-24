@@ -16,14 +16,12 @@
 # Temporary
 ^ada[.]before$
 ^sl_ada[.]t$
-^sl_product[.]t$
 ^meta_to_asf[.]pl$
 ^marpa-problem[.]pl$
-^product2[.]t$
 ^code[.]errs$
 ^dist[.]errs$
 ^modulo_AHFA[.]out$
-^salad.pl$
+^bracket.t$
 
 # Permanent
 
