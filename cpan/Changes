@@ -15,6 +15,7 @@
 
 Revision history for Marpa::R2
 
+2.097_003 (libmarpa 7.2.0) Thu Oct 23 20:33:11 PDT 2014
 2.097_002 (libmarpa 7.2.0) Sat Oct 18 20:20:37 PDT 2014
 
    * Exhaustion, rejection events; on-the-fly reprioritization
