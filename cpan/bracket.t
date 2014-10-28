@@ -22,11 +22,13 @@ use strict;
 use warnings;
 use Marpa::R2 2.097_002;
 use Data::Dumper;
+use English qw( -no_match_vars );
 use Test::More tests => 3;
 use Getopt::Long ();
 
 my $verbose;
-die if not Getopt::Long::GetOptions( verbose => \$verbose );
+my $utility;
+die if not Getopt::Long::GetOptions( verbose => \$verbose, 'utility=s' => \$utility );
 
 my $grammar = << '=== GRAMMAR ===';
 :default ::= action => [ name, value ]
@@ -74,13 +76,22 @@ my %token_by_name = (
 
 my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
-my @tests = (
+my @tests = ();
+
+if (defined $utility) {
+    open my $fh, q{<}, $utility;
+    local $RS = undef;
+    my $input = <$fh>;
+    @tests = ([ $input, q{} ]);
+} else {
+@tests = (
     [ 'z}ab)({[]})))(([]))zz', q{} ],
     [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
     [ '([]([])([]([]', q{}, ],
     [ '([([([([', q{}, ],
     [ '({]-[(}-[{)', q{}, ],
 );
+}
 
 for my $test (@tests) {
     my ( $string, $expected_result ) = @{$test};
