@@ -85,9 +85,10 @@ sub test {
 
     my %tokens = ();
     my %matching = ();
-    for my $char (split //xms, '(){}[]') {
-        $tokens{$char} = [ ( length $string ), 1 ];
-        $string .= $char;
+    my $suffix = '(){}[]';
+    for my $ix (0 .. (length $suffix) - 1) {
+        my $char = substr $suffix, $ix, 1;
+        $tokens{$char} = [ $ix, 1 ];
     }
     for my $pair (qw% () [] {} %) {
         my ($left, $right) = split //xms, $pair;
@@ -99,6 +100,8 @@ sub test {
         rsquare => $tokens{']'},
         rparen  => $tokens{')'},
     );
+
+    $string .= $suffix;
 
     state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
     # state $recce_debug_args = {};
@@ -144,10 +147,12 @@ sub test {
             die "Rejection at pos $pos: ", substr( $string, $pos, 10 )
                 if not defined $token;
 
-            say STDERR "Ruby slippers token: ", (substr $string, $token->[0], $token->[1]);
 
-            my $result = $recce->resume( @{$token} );
-            next READ if $result == $token->[0] + 1;
+            my ($token_start, $token_length) = @{$token};
+            $token_start += $input_length;
+            say STDERR "Ruby slippers token: ", (substr $string, $token_start, $token_length);
+            my $result = $recce->resume( $token_start, $token_length );
+            next READ if $result == $token_start + $token_length;
             die "Read of Ruby slippers token failed";
         } ## end if ($rejection)
 
