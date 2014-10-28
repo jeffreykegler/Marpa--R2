@@ -75,10 +75,10 @@ my %token_by_name = (
 my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
 my @tests = (
-    # [ 'z}ab)({[]})))(([]))zz', q{} ],
-    # [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
-    # [ '([]([])([]([]', q{}, ],
-    # [ '([([([([', q{}, ],
+    [ 'z}ab)({[]})))(([]))zz', q{} ],
+    [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
+    [ '([]([])([]([]', q{}, ],
+    [ '([([([([', q{}, ],
     [ '({]-[(}-[{)', q{}, ],
 );
 
@@ -103,9 +103,8 @@ sub test {
 
     $string .= $suffix;
 
-    state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
-
-    # state $recce_debug_args = {};
+    # state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
+    state $recce_debug_args = {};
 
     # One pass through this loop for every target found,
     # until we reach end of string without finding a target
@@ -120,8 +119,6 @@ sub test {
 
     READ: while ( $pos < $input_length ) {
 
-        say STDERR join " ", __LINE__, "pos=$pos";
-
         my $rejection = 0;
         EVENT:
         for my $event ( @{ $recce->events() } ) {
@@ -135,12 +132,10 @@ sub test {
 
         if ( not $rejection ) {
             $pos = $recce->resume( $pos, $input_length - $pos );
-            say STDERR join " ", __LINE__, "pos=$pos";
             next READ;
 
         } ## end if ( not $rejection )
         my @expected = @{ $recce->terminals_expected() };
-        say STDERR "terminals expected: ", join " ", @expected;
 
         my ($token) =
             grep {defined}
@@ -157,7 +152,6 @@ sub test {
         my ( $token_start, $token_length ) = @{$token};
         $token_start += $input_length;
         my $token_literal = substr $string, $token_start, $token_length;
-        say STDERR "Ruby slippers token: $token_literal";
         my $result = $recce->resume( $token_start, $token_length );
         die "Read of Ruby slippers token failed"
             if $result != $token_start + $token_length;
