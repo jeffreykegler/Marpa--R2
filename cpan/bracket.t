@@ -57,10 +57,10 @@ rsquare ~ ']'
 my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
 my @tests = (
-    [ 'z}ab)({[]})))(([]))zz', q{} ],
+    # [ 'z}ab)({[]})))(([]))zz', q{} ],
     [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
-    [ '([]([])([]([]', q{}, ],
-    [ '([([([([', q{}, ],
+    # [ '([]([])([]([]', q{}, ],
+    # [ '([([([([', q{}, ],
 );
 
 for my $test (@tests) {
@@ -76,6 +76,9 @@ sub test {
     $DB::single = 1;
     my @found = ();
     diag("Input: $string") if $verbose;
+
+    say STDERR "Input: $string";
+
     my $input_length = length $string;
     my $pos          = 0;
 
@@ -90,6 +93,11 @@ sub test {
         $matching{$left} = $tokens{$right};
         $matching{$right} = $tokens{$left};
     }
+    my %token_by_name = (
+        rcurly  => $tokens{'}'},
+        rsquare => $tokens{']'},
+        rparen  => $tokens{')'},
+    );
 
     state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
     # state $recce_debug_args = {};
@@ -109,21 +117,38 @@ sub test {
 
         say STDERR join " ", __LINE__, "pos=$pos";
 
+        my $rejection = 0;
         EVENT:
         for my $event ( @{ $recce->events() } ) {
             my ($name) = @{$event};
             if ( $name eq q{'rejected} ) {
-                my $nextchar = substr $string, $pos, 1;
-                my $token = $matching{$nextchar};
-                die "Rejection at pos $pos: ", substr( $string, $pos, 10 )
-                    if not defined $token;
-                my $result = $recce->resume( @{$token} );
-                die "Read of Ruby slippers token failed"
-                    if $result != $token->[0] + 1;
+                $rejection = 1;
                 next EVENT;
             } ## end if ( $name eq q{'rejected} )
             die join q{ }, "Spurious event at position $pos: '$name'";
         } ## end EVENT: for my $event ( @{ $recce->events() } )
+
+        if ($rejection) {
+            my @expected = @{$recce->terminals_expected()};
+            say STDERR "terminals expected: ", join " ", @expected;
+
+            my ($token) =
+                grep {defined}
+                map  { $token_by_name{$_} } @{ $recce->terminals_expected() };
+
+            if (not defined $token) {
+                my $nextchar = substr $string, $pos, 1;
+                $token = $matching{$nextchar};
+            }
+            die "Rejection at pos $pos: ", substr( $string, $pos, 10 )
+                if not defined $token;
+
+            say STDERR "Ruby slippers token: ", (substr $string, $token->[0], $token->[1]);
+
+            my $result = $recce->resume( @{$token} );
+            next READ if $result == $token->[0] + 1;
+            die "Read of Ruby slippers token failed";
+        } ## end if ($rejection)
 
         $pos = $recce->resume( $pos, $input_length - $pos );
         say STDERR join " ", __LINE__, "pos=$pos";
