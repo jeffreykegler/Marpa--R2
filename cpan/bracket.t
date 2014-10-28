@@ -146,7 +146,8 @@ sub test {
             grep {defined}
             map  { $token_by_name{$_} } @{ $recce->terminals_expected() };
 
-        if ( not defined $token ) {
+        my $opening = not defined $token;
+        if ( $opening ) {
             my $nextchar = substr $string, $pos, 1;
             $token = $matching{$nextchar};
         }
@@ -155,11 +156,17 @@ sub test {
 
         my ( $token_start, $token_length ) = @{$token};
         $token_start += $input_length;
-        say STDERR "Ruby slippers token: ",
-            ( substr $string, $token_start, $token_length );
+        my $token_literal = substr $string, $token_start, $token_length ;
+        say STDERR "Ruby slippers token: $token_literal";
         my $result = $recce->resume( $token_start, $token_length );
-        next READ if $result == $token_start + $token_length;
-        die "Read of Ruby slippers token failed";
+        die "Read of Ruby slippers token failed"
+            if $result != $token_start + $token_length;
+
+        if (not $opening) {
+            my ($opening_bracket) = $recce->last_completed_span('balanced');
+            say STDERR
+                    "Problem at $pos: possible missing close $token_literal for opening bracket at $opening_bracket";
+        }
 
     } ## end READ: while ( $pos < $input_length )
 
