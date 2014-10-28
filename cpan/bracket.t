@@ -162,15 +162,18 @@ sub test {
         die "Read of Ruby slippers token failed"
             if $result != $token_start + $token_length;
 
+        my ($line, $column);
         if ($opening) {
+            ($line, $column) = $recce->line_column($pos);
             say STDERR
-                "Pos $pos: Possible missing open $token_literal";
+                "Line $line, column $column: Possible missing open $token_literal";
             next READ;
         }
 
         my ($opening_bracket) = $recce->last_completed_span('balanced');
+        ($line, $column) = $recce->line_column($opening_bracket);
         say STDERR
-            "Pos $opening_bracket: missing close $token_literal, problem detected at $opening_bracket";
+            "Line $line, column $column: missing close $token_literal, problem detected at $opening_bracket";
 
     } ## end READ: while ( $pos < $input_length )
 
