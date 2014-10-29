@@ -179,10 +179,10 @@ sub test {
         my $problem;
         if ($opening) {
             $problem =
-                "Line $pos_line, column $pos_column: Possible missing open $token_literal";
+                "Line $pos_line, column $pos_column: Missing open $token_literal";
             push @problems, [ $pos_line, $pos_column, $problem ];
             diagnostic( $testing,
-                "Line $pos_line, column $pos_column: Possible missing open $token_literal"
+                "Line $pos_line, column $pos_column: Missing open $token_literal"
             ) if $verbose;
             next READ;
         } ## end if ($opening)
@@ -193,17 +193,13 @@ sub test {
             "problem detected at line $pos_line, column $pos_column";
         push @problems, [ $line, $column, $problem ];
         diagnostic($testing,
-            "Line $line, column $column: missing close $token_literal, ",
+            "Line $line, column $column: Missing close $token_literal, ",
             "problem detected at line $pos_line, column $pos_column") if $verbose;
 
     } ## end READ: while ( $pos < $input_length )
 
     my @sorted_problems = sort { $a->[0] <=> $b->[0] or $a->[1] <=> $b->[1] } @problems;
-    my $result = q{};
-    for my $report (@sorted_problems) {
-        my ($line, $column, $problem) = @{$report};
-        $result .= "Line $line, column $column: $problem\n";
-    }
+    my $result = join "\n", (map { $_->[-1] } @sorted_problems), q{};
     return $result;
 
 } ## end sub test
