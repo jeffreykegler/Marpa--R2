@@ -110,6 +110,24 @@ for my $test (@tests) {
     Test::More::is( $actual_result, $expected_result, $description );
 } ## end for my $test (@tests)
 
+sub marked_line {
+    my ($p_string, $pos, $line, $column1, $column2) = @_;
+    my $max_line_length = 60;
+    $max_line_length = $column1 if $column1 > $max_line_length;
+    $max_line_length = $column2 if defined $column2 and $column2 > $max_line_length;
+    # $pos_column is 1-based
+    my $output_line = substr ${$p_string}, ($pos-$column1), $max_line_length;
+    my $nl_pos = index $output_line, "\n";
+    $output_line = substr $output_line, 0, $nl_pos;
+    my $pointer_line = (q{ } x $column1) . q{^};
+    if (defined $column2)
+    {
+       my $further_offset = $column2 - $column1;
+        $pointer_line .= (q{ } x ($further_offset-1)) . q{^};
+    }
+    return join "\n", $output_line, $pointer_line;
+}
+
 sub test {
     my ( $g, $string ) = @_;
     my @problems = ();
@@ -178,8 +196,9 @@ sub test {
         my ( $pos_line, $pos_column ) = $recce->line_column($pos);
         my $problem;
         if ($opening) {
-            $problem =
-                "Line $pos_line, column $pos_column: Missing open $token_literal";
+            $problem = join "\n",
+                "Line $pos_line, column $pos_column: Missing open $token_literal",
+                marked_line(\$string, $pos, $pos_line, $pos_column-1);
             push @problems, [ $pos_line, $pos_column, $problem ];
             diagnostic( $testing,
                 "Line $pos_line, column $pos_column: Missing open $token_literal"
@@ -189,8 +208,8 @@ sub test {
 
         my ($opening_bracket) = $recce->last_completed_span('balanced');
         my ( $line, $column ) = $recce->line_column($opening_bracket);
-        $problem = "Line $line, column $column: missing close $token_literal, " .
-            "problem detected at line $pos_line, column $pos_column";
+        $problem = "Line $line, column $column: Missing close $token_literal, "
+            . "problem detected at line $pos_line, column $pos_column";
         push @problems, [ $line, $column, $problem ];
         diagnostic($testing,
             "Line $line, column $column: Missing close $token_literal, ",
