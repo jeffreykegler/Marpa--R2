@@ -111,12 +111,12 @@ for my $test (@tests) {
 } ## end for my $test (@tests)
 
 sub marked_line {
-    my ($p_string, $pos, $line, $column1, $column2) = @_;
+    my ($p_string, $column0_pos, $column1, $column2) = @_;
     my $max_line_length = 60;
     $max_line_length = $column1 if $column1 > $max_line_length;
     $max_line_length = $column2 if defined $column2 and $column2 > $max_line_length;
-    # $pos_column is 1-based
-    my $output_line = substr ${$p_string}, ($pos-$column1), $max_line_length;
+    # $pos_column is always the last of the two columns
+    my $output_line = substr ${$p_string}, $column0_pos, $max_line_length;
     my $nl_pos = index $output_line, "\n";
     $output_line = substr $output_line, 0, $nl_pos;
     my $pointer_line = (q{ } x $column1) . q{^};
@@ -198,7 +198,7 @@ sub test {
         if ($opening) {
             $problem = join "\n",
                 "Line $pos_line, column $pos_column: Missing open $token_literal",
-                marked_line(\$string, $pos, $pos_line, $pos_column-1);
+                marked_line(\$string, $pos - ($pos_column-1), $pos_column-1);
             push @problems, [ $pos_line, $pos_column, $problem ];
             diagnostic( $testing,
                 "Line $pos_line, column $pos_column: Missing open $token_literal"
@@ -208,8 +208,24 @@ sub test {
 
         my ($opening_bracket) = $recce->last_completed_span('balanced');
         my ( $line, $column ) = $recce->line_column($opening_bracket);
-        $problem = "Line $line, column $column: Missing close $token_literal, "
-            . "problem detected at line $pos_line, column $pos_column";
+        if ( $line == $pos_line ) {
+            $problem = join "\n",
+                "Line $line, column $column: Missing close $token_literal, "
+                . "problem detected at line $pos_line, column $pos_column",
+                marked_line(
+                \$string, $pos - ($pos_column-1),
+                $column -1,
+                $pos_column - 1
+                );
+        } ## end if ( $line == $pos_line )
+        else {
+            die "Not yet implemented";
+            $problem = join "\n",
+                "Line $line, column $column: Missing close $token_literal, "
+                . "problem detected at line $pos_line, column $pos_column",
+                marked_line( \$string, $pos - ($pos_column-1),     $column - 1 ),
+                marked_line( \$string, $pos, $pos_line, $pos_column - 1 );
+        } ## end else [ if ( $line == $pos_line ) ]
         push @problems, [ $line, $column, $problem ];
         diagnostic($testing,
             "Line $line, column $column: Missing close $token_literal, ",
