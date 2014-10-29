@@ -23,12 +23,15 @@ use warnings;
 use Marpa::R2 2.097_002;
 use Data::Dumper;
 use English qw( -no_match_vars );
-use Test::More tests => 3;
 use Getopt::Long ();
+use Test::More;
 
-my $verbose;
-my $testing;
+my $testing = 0;
+my $verbose = 0;
 die if not Getopt::Long::GetOptions( verbose => \$verbose, test => \$testing );
+
+Test::More::plan tests => 5 if $testing;
+our $TESTING = $testing;
 
 my $grammar = << '=== GRAMMAR ===';
 :default ::= action => [ name, value ]
@@ -82,7 +85,7 @@ my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
 my @tests = ();
 
-if ( defined $testing ) {
+if ( $TESTING ) {
     @tests = (
         [ 'z}ab)({[]})))(([]))zz',                   q{} ],
         [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
@@ -90,19 +93,18 @@ if ( defined $testing ) {
         [ '([([([([',                                q{}, ],
         [ '({]-[(}-[{)',                             q{}, ],
     );
-} ## end if ( defined $testing )
+}
 else {
     local $RS = undef;
     my $input = <>;
     @tests = ( [ $input, q{} ] );
-} ## end else [ if ( defined $testing ) ]
+}
 
 sub diagnostic {
-   my ($testing, @args) = @_;
-   if ($testing) {
-       Test::More::diag(@args);
+   if ($TESTING) {
+       Test::More::diag(@_);
    } else {
-       say {*STDERR} @args;
+       say {*STDERR} @_;
    }
 }
 
@@ -111,7 +113,11 @@ for my $test (@tests) {
     my $actual_result = test( $g, $string );
     diagnostic("Input: ", substr($string, 0, 60)) if $verbose;
     my $description = qq{Result of "} . ( substr $string, 0, 60 );
-    Test::More::is( $actual_result, $expected_result, $description );
+    if ($TESTING) {
+        Test::More::is( $actual_result, $expected_result, $description ) ;
+    } else {
+        print $actual_result;
+    }
 } ## end for my $test (@tests)
 
 sub marked_line {
@@ -135,8 +141,7 @@ sub marked_line {
 sub test {
     my ( $g, $string ) = @_;
     my @problems = ();
-    diagnostic("Input: ", substr($string, 0, 60)) if $verbose;
-    diagnostic("Input: ", substr($string, 0, 60));
+    diagnostic("Input: ", substr($string, 0, 60)) if $verbose or $TESTING;
 
     my $input_length = length $string;
     my $pos          = 0;
@@ -206,7 +211,7 @@ sub test {
                 $pos_column - 1
                 );
             push @problems, [ $pos_line, $pos_column, $problem ];
-            diagnostic( $testing,
+            diagnostic( 
                 "Line $pos_line, column $pos_column: Missing open $token_literal"
             ) if $verbose;
             next READ;
@@ -251,7 +256,7 @@ sub test {
                 );
         } ## end else [ if ( $line == $pos_line ) ]
         push @problems, [ $line, $column, $problem ];
-        diagnostic($testing,
+        diagnostic(
             "Line $line, column $column: Missing close $token_literal, ",
             "problem detected at line $pos_line, column $pos_column") if $verbose;
 
