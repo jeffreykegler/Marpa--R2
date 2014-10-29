@@ -109,7 +109,7 @@ sub diagnostic {
 for my $test (@tests) {
     my ( $string, $expected_result ) = @{$test};
     my $actual_result = test( $g, $string );
-    diagnostic("Input: $string") if $verbose;
+    diagnostic("Input: ", substr($string, 0, 60)) if $verbose;
     my $description = qq{Result of "} . ( substr $string, 0, 60 );
     Test::More::is( $actual_result, $expected_result, $description );
 } ## end for my $test (@tests)
@@ -135,9 +135,8 @@ sub marked_line {
 sub test {
     my ( $g, $string ) = @_;
     my @problems = ();
-    diagnostic("Input: $string") if $verbose;
-
-    diagnostic($testing, "Input: $string");
+    diagnostic("Input: ", substr($string, 0, 60)) if $verbose;
+    diagnostic("Input: ", substr($string, 0, 60));
 
     my $input_length = length $string;
     my $pos          = 0;
