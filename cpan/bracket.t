@@ -84,11 +84,12 @@ my @tests = ();
 
 if ( defined $testing ) {
     @tests = (
-        [ 'z}ab)({[]})))(([]))zz',                   q{} ],
-        [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
-        [ '([]([])([]([]',                           q{}, ],
+        # [ 'z}ab)({[]})))(([]))zz',                   q{} ],
+        # [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
+        # [ '([]([])([]([]',                           q{}, ],
         [ '([([([([',                                q{}, ],
-        [ '({]-[(}-[{)',                             q{}, ],
+        # [ '([',                                q{}, ],
+        # [ '({]-[(}-[{)',                             q{}, ],
     );
 } ## end if ( defined $testing )
 else {
@@ -115,12 +116,12 @@ for my $test (@tests) {
 } ## end for my $test (@tests)
 
 sub marked_line {
-    my ($p_string, $column0_pos, $column1, $column2) = @_;
+    my ($string, $column1, $column2) = @_;
     my $max_line_length = 60;
     $max_line_length = $column1 if $column1 > $max_line_length;
     $max_line_length = $column2 if defined $column2 and $column2 > $max_line_length;
     # $pos_column is always the last of the two columns
-    my $output_line = substr ${$p_string}, $column0_pos, $max_line_length;
+    my $output_line = substr $string, 0, $max_line_length;
     my $nl_pos = index $output_line, "\n";
     $output_line = substr $output_line, 0, $nl_pos;
     my $pointer_line = (q{ } x $column1) . q{^};
@@ -144,8 +145,8 @@ sub test {
 
     $string .= $suffix;
 
-    # state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
-    state $recce_debug_args = {};
+    state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
+    # state $recce_debug_args = {};
 
     my $recce = Marpa::R2::Scanless::R->new(
         {   grammar   => $g,
@@ -199,7 +200,7 @@ sub test {
         if ($opening) {
             $problem = join "\n",
                 "Line $pos_line, column $pos_column: Missing open $token_literal",
-                marked_line(\$string, $pos - ($pos_column-1), $pos_column-1);
+                marked_line($string, $pos - ($pos_column-1), $pos_column-1);
             push @problems, [ $pos_line, $pos_column, $problem ];
             diagnostic( $testing,
                 "Line $pos_line, column $pos_column: Missing open $token_literal"
@@ -214,7 +215,7 @@ sub test {
                 "Line $line, column $column: Missing close $token_literal, "
                 . "problem detected at line $pos_line, column $pos_column",
                 marked_line(
-                \$string, $pos - ($pos_column-1),
+                $string, $pos - ($pos_column-1),
                 $column -1,
                 $pos_column - 1
                 );
@@ -224,8 +225,8 @@ sub test {
             $problem = join "\n",
                 "Line $line, column $column: Missing close $token_literal, "
                 . "problem detected at line $pos_line, column $pos_column",
-                marked_line( \$string, $pos - ($pos_column-1),     $column - 1 ),
-                marked_line( \$string, $pos, $pos_line, $pos_column - 1 );
+                marked_line( $string, $pos - ($pos_column-1),     $column - 1 ),
+                marked_line( $string, $pos, $pos_line, $pos_column - 1 );
         } ## end else [ if ( $line == $pos_line ) ]
         push @problems, [ $line, $column, $problem ];
         diagnostic($testing,
@@ -250,6 +251,7 @@ sub test {
         die "Rejection at end of string" if  $rejection ;
 
         my @expected = @{ $recce->terminals_expected() };
+        say STDERR join " ", "terminals expected:", @expected;
 
         my ($token) =
             grep {defined}
@@ -271,7 +273,7 @@ sub test {
               "Line $line, column $column: Opening "
             . q{'} . $literal_match{$token_literal}
             . q{' never closed, problem detected at end of string},
-            marked_line( \$string, $opening_column0, $column - 1 );
+            marked_line( substr($string, $opening_column0, -(length $suffix)+1), $column - 1 );
         push @problems, [ $line, $column, $problem ];
 
     } ## end READ: while ( $pos < $input_length )
