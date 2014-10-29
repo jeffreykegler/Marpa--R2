@@ -84,12 +84,11 @@ my @tests = ();
 
 if ( defined $testing ) {
     @tests = (
-        # [ 'z}ab)({[]})))(([]))zz',                   q{} ],
-        # [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
-        # [ '([]([])([]([]',                           q{}, ],
+        [ 'z}ab)({[]})))(([]))zz',                   q{} ],
+        [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
+        [ '([]([])([]([]',                           q{}, ],
         [ '([([([([',                                q{}, ],
-        # [ '([',                                q{}, ],
-        # [ '({]-[(}-[{)',                             q{}, ],
+        [ '({]-[(}-[{)',                             q{}, ],
     );
 } ## end if ( defined $testing )
 else {
@@ -145,8 +144,8 @@ sub test {
 
     $string .= $suffix;
 
-    state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
-    # state $recce_debug_args = {};
+    # state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
+    state $recce_debug_args = {};
 
     my $recce = Marpa::R2::Scanless::R->new(
         {   grammar   => $g,
@@ -200,7 +199,13 @@ sub test {
         if ($opening) {
             $problem = join "\n",
                 "Line $pos_line, column $pos_column: Missing open $token_literal",
-                marked_line($string, $pos - ($pos_column-1), $pos_column-1);
+                marked_line(
+                (   substr $string,
+                    $pos - ( $pos_column - 1 ),
+                    -( length $suffix ) + 1
+                ),
+                $pos_column - 1
+                );
             push @problems, [ $pos_line, $pos_column, $problem ];
             diagnostic( $testing,
                 "Line $pos_line, column $pos_column: Missing open $token_literal"
@@ -210,23 +215,41 @@ sub test {
 
         my ($opening_bracket) = $recce->last_completed_span('balanced');
         my ( $line, $column ) = $recce->line_column($opening_bracket);
+        my $opening_column0 = $opening_bracket - ( $column - 1 );
         if ( $line == $pos_line ) {
             $problem = join "\n",
                 "Line $line, column $column: Missing close $token_literal, "
                 . "problem detected at line $pos_line, column $pos_column",
                 marked_line(
-                $string, $pos - ($pos_column-1),
-                $column -1,
+                substr(
+                    $string,
+                    $pos - ( $pos_column - 1 ),
+                    -( length $suffix ) + 1
+                ),
+                $column - 1,
                 $pos_column - 1
                 );
         } ## end if ( $line == $pos_line )
-        else {
-            die "Not yet implemented";
+        else
+        {
             $problem = join "\n",
-                "Line $line, column $column: Missing close $token_literal, "
-                . "problem detected at line $pos_line, column $pos_column",
-                marked_line( $string, $pos - ($pos_column-1),     $column - 1 ),
-                marked_line( $string, $pos, $pos_line, $pos_column - 1 );
+                "===",
+                "* Line $line, column $column: No matching bracket for "
+                . q{'}
+                . $literal_match{$token_literal} . q{', },
+                marked_line(
+                substr( $string, $opening_column0, -( length $suffix ) + 1 ),
+                $column - 1
+                ),
+                , "*   Problem detected at line $pos_line, column $pos_column:",
+                marked_line(
+                substr(
+                    $string,
+                    $pos - ( $pos_column - 1 ),
+                    -( length $suffix ) + 1
+                ),
+                $pos_column - 1
+                );
         } ## end else [ if ( $line == $pos_line ) ]
         push @problems, [ $line, $column, $problem ];
         diagnostic($testing,
@@ -251,7 +274,7 @@ sub test {
         die "Rejection at end of string" if  $rejection ;
 
         my @expected = @{ $recce->terminals_expected() };
-        say STDERR join " ", "terminals expected:", @expected;
+        # say STDERR join " ", "terminals expected:", @expected;
 
         my ($token) =
             grep {defined}
