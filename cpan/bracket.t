@@ -62,11 +62,15 @@ for my $ix ( 0 .. ( length $suffix ) - 1 ) {
     my $char = substr $suffix, $ix, 1;
     $tokens{$char} = [ $ix, 1 ];
 }
+
 my %matching = ();
+my %literal_match = ();
 for my $pair (qw% () [] {} %) {
     my ( $left, $right ) = split //xms, $pair;
     $matching{$left}  = $tokens{$right};
+    $literal_match{$left}  = $right;
     $matching{$right} = $tokens{$left};
+    $literal_match{$right}  = $left;
 }
 my %token_by_name = (
     rcurly  => $tokens{'}'},
@@ -142,9 +146,6 @@ sub test {
 
     # state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
     state $recce_debug_args = {};
-
-    # One pass through this loop for every target found,
-    # until we reach end of string without finding a target
 
     my $recce = Marpa::R2::Scanless::R->new(
         {   grammar   => $g,
@@ -230,6 +231,48 @@ sub test {
         diagnostic($testing,
             "Line $line, column $column: Missing close $token_literal, ",
             "problem detected at line $pos_line, column $pos_column") if $verbose;
+
+    } ## end READ: while ( $pos < $input_length )
+
+    TRAILER: while ( 1 ) {
+
+        my $rejection = 0;
+        EVENT:
+        for my $event ( @{ $recce->events() } ) {
+            my ($name) = @{$event};
+            if ( $name eq q{'rejected} ) {
+                $rejection = 1;
+                next EVENT;
+            }
+            die join q{ }, "Spurious event at position $pos: '$name'";
+        } ## end EVENT: for my $event ( @{ $recce->events() } )
+
+        die "Rejection at end of string" if  $rejection ;
+
+        my @expected = @{ $recce->terminals_expected() };
+
+        my ($token) =
+            grep {defined}
+            map  { $token_by_name{$_} } @{ $recce->terminals_expected() };
+
+        last TRAILER if not defined $token;
+
+        my ( $token_start, $token_length ) = @{$token};
+        $token_start += $input_length;
+        my $token_literal = substr $string, $token_start, $token_length;
+        my $result = $recce->resume( $token_start, $token_length );
+        die "Read of Ruby slippers token failed"
+            if $result != $token_start + $token_length;
+
+        my ($opening_bracket) = $recce->last_completed_span('balanced');
+        my ( $line, $column ) = $recce->line_column($opening_bracket);
+        my $opening_column0 = $opening_bracket - ( $column - 1 );
+        my $problem = join "\n",
+              "Line $line, column $column: Opening "
+            . q{'} . $literal_match{$token_literal}
+            . q{' never closed, problem detected at end of string},
+            marked_line( \$string, $opening_column0, $column - 1 );
+        push @problems, [ $line, $column, $problem ];
 
     } ## end READ: while ( $pos < $input_length )
 
