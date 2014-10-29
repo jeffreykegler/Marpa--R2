@@ -27,8 +27,8 @@ use Test::More tests => 3;
 use Getopt::Long ();
 
 my $verbose;
-my $utility;
-die if not Getopt::Long::GetOptions( verbose => \$verbose, 'utility=s' => \$utility );
+my $testing;
+die if not Getopt::Long::GetOptions( verbose => \$verbose, test => \$testing );
 
 my $grammar = << '=== GRAMMAR ===';
 :default ::= action => [ name, value ]
@@ -78,36 +78,44 @@ my $g = Marpa::R2::Scanless::G->new( { source => \($grammar) } );
 
 my @tests = ();
 
-if (defined $utility) {
-    open my $fh, q{<}, $utility;
+if ( defined $testing ) {
+    @tests = (
+        [ 'z}ab)({[]})))(([]))zz',                   q{} ],
+        [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
+        [ '([]([])([]([]',                           q{}, ],
+        [ '([([([([',                                q{}, ],
+        [ '({]-[(}-[{)',                             q{}, ],
+    );
+} ## end if ( defined $testing )
+else {
     local $RS = undef;
-    my $input = <$fh>;
-    @tests = ([ $input, q{} ]);
-} else {
-@tests = (
-    [ 'z}ab)({[]})))(([]))zz', q{} ],
-    [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
-    [ '([]([])([]([]', q{}, ],
-    [ '([([([([', q{}, ],
-    [ '({]-[(}-[{)', q{}, ],
-);
+    my $input = <>;
+    @tests = ( [ $input, q{} ] );
+} ## end else [ if ( defined $testing ) ]
+
+sub diagnostic {
+   my ($testing, @args) = @_;
+   if ($testing) {
+       Test::More::diag(@args);
+   } else {
+       say {*STDERR} @args;
+   }
 }
 
 for my $test (@tests) {
     my ( $string, $expected_result ) = @{$test};
     my $actual_result = test( $g, $string );
-    diag("Input: $string") if $verbose;
-    Test::More::is( $actual_result, $expected_result,
-        qq{Result of "$string"} );
+    diagnostic("Input: $string") if $verbose;
+    my $description = qq{Result of "} . ( substr $string, 0, 60 );
+    Test::More::is( $actual_result, $expected_result, $description );
 } ## end for my $test (@tests)
 
 sub test {
     my ( $g, $string ) = @_;
-    $DB::single = 1;
-    my @found = ();
-    diag("Input: $string") if $verbose;
+    my @problems = ();
+    diagnostic("Input: $string") if $verbose;
 
-    say STDERR "Input: $string";
+    diagnostic($testing, "Input: $string");
 
     my $input_length = length $string;
     my $pos          = 0;
@@ -168,19 +176,35 @@ sub test {
             if $result != $token_start + $token_length;
 
         my ( $pos_line, $pos_column ) = $recce->line_column($pos);
+        my $problem;
         if ($opening) {
-            say STDERR
+            $problem =
                 "Line $pos_line, column $pos_column: Possible missing open $token_literal";
+            push @problems, [ $pos_line, $pos_column, $problem ];
+            diagnostic( $testing,
+                "Line $pos_line, column $pos_column: Possible missing open $token_literal"
+            ) if $verbose;
             next READ;
-        }
+        } ## end if ($opening)
 
         my ($opening_bracket) = $recce->last_completed_span('balanced');
         my ( $line, $column ) = $recce->line_column($opening_bracket);
-        say STDERR
-            "Line $line, column $column: missing close $token_literal, ",
+        $problem = "Line $line, column $column: missing close $token_literal, " .
             "problem detected at line $pos_line, column $pos_column";
+        push @problems, [ $line, $column, $problem ];
+        diagnostic($testing,
+            "Line $line, column $column: missing close $token_literal, ",
+            "problem detected at line $pos_line, column $pos_column") if $verbose;
 
     } ## end READ: while ( $pos < $input_length )
+
+    my @sorted_problems = sort { $a->[0] <=> $b->[0] or $a->[1] <=> $b->[1] } @problems;
+    my $result = q{};
+    for my $report (@sorted_problems) {
+        my ($line, $column, $problem) = @{$report};
+        $result .= "Line $line, column $column: $problem\n";
+    }
+    return $result;
 
 } ## end sub test
 
