@@ -14,23 +14,29 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# This example searches for mismatched braces --
+# This utility searches for mismatched braces --
 # curly, square and round.
 
 use 5.010;
 use strict;
 use warnings;
-use Marpa::R2 2.097_002;
+use Marpa::R2 2.098000;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Getopt::Long ();
 use Test::More;
 
+sub usage {
+    die "Usage: $PROGRAM_NAME < file\n",
+    "For testing: $PROGRAM_NAME --test\n"
+}
+
 my $testing = 0;
 my $verbose = 0;
-die
+usage()
     if
     not Getopt::Long::GetOptions( verbose => \$verbose, test => \$testing );
+usage() if @ARGV;
 
 Test::More::plan tests => 5 if $testing;
 our $TESTING = $testing;
