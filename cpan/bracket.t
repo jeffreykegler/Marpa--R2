@@ -97,7 +97,8 @@ if ($TESTING) {
     );
     for my $test (@tests) {
         my ( $string, $expected_result ) = @{$test};
-        my $actual_result = test( $g, $string );
+        my $actual_results = test( $g, $string );
+        my $actual_result = join "\n", @{$actual_results}, q{};
         diagnostic( "Input: ", substr( $string, 0, 60 ) ) if $verbose;
         my $description = qq{Result of "} . ( substr $string, 0, 60 );
         Test::More::is( $actual_result, $expected_result, $description );
