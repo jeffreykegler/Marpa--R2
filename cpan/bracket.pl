@@ -218,8 +218,8 @@ sub test {
             grep {defined}
             map  { $token_by_name{$_} } @{ $recce->terminals_expected() };
 
-        # If there is no expected closing bracket, then what we need to
-        # continue with a new opening bracket.  Find out which one.
+        # If there is no expected closing bracket, then what we need A
+        # a new opening bracket in order to continue.  Find out which one.
         my $opening = not defined $token;
         if ($opening) {
             my $nextchar = substr $string, $pos, 1;
