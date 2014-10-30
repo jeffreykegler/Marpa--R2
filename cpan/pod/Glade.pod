@@ -355,8 +355,6 @@ This symbol instance will be the symbol instance
 of a glade,
 and that glade will be the downglade.
 
-=back
-
 Within a glade,
 symches, factorings and downglades
 are tracked using zero-based indexes.
