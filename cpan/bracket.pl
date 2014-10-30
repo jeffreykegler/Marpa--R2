@@ -226,9 +226,11 @@ sub test {
             $token = $matching{$nextchar};
         }
 
-        # If it the case that we do we not expect a closing bracket,
-        # and an opening bracket won't fix the problem either?
-        # That should not happen.  All we can do is abend.
+        # If $token is not defined, we rejected the last set of tokens;
+        # we do we not expect a closing bracket;
+        # and an opening bracket won't fix the problem either.
+        # This is something that should not happen.
+        # All we can do is abend.
         die "Rejection at pos $pos: ", substr( $string, $pos, 10 )
             if not defined $token;
 
