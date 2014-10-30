@@ -28,7 +28,7 @@ use Test::More;
 
 sub usage {
     die "Usage: $PROGRAM_NAME < file\n",
-    "For testing: $PROGRAM_NAME --test\n"
+        "For testing: $PROGRAM_NAME --test\n";
 }
 
 my $testing = 0;
@@ -154,27 +154,39 @@ sub marked_line {
 sub test {
     my ( $g, $string, $fixes ) = @_;
     my @problems = ();
-    my @fixes = ();
+    my @fixes    = ();
     diagnostic( "Input: ", substr( $string, 0, 60 ) ) if $verbose or $TESTING;
 
+    # Record the length of the "real input"
     my $input_length = length $string;
     my $pos          = 0;
 
+    # For Ruby Slippers, put a set of matching brackets into a suffix
+    # of the input.
+    # We wil carefully set our lengths when reading,
+    # so that we don't treat to accidentally read this, while reading
+    # the "real input".
     $string .= $suffix;
 
     # state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
     state $recce_debug_args = {};
 
     my $recce = Marpa::R2::Scanless::R->new(
-        {   grammar   => $g,
+        {   grammar => $g,
+            ## Ask Marpa to generate an event on rejection
             rejection => 'event',
         },
         $recce_debug_args
     );
+
+    # Note that we make sure only to read the "real input"
     $pos = $recce->read( \$string, $pos, $input_length );
 
+    # For the entire input string ...
     READ: while ( $pos < $input_length ) {
 
+        # Check if we stopped due to a rejection event.
+        # Any other event is an error.
         my $rejection = 0;
         EVENT:
         for my $event ( @{ $recce->events() } ) {
@@ -186,35 +198,60 @@ sub test {
             die join q{ }, "Spurious event at position $pos: '$name'";
         } ## end EVENT: for my $event ( @{ $recce->events() } )
 
+        # No rejection event?
+        # Then just start up again
         if ( not $rejection ) {
+
+            # Note that we make sure we don't try to read the suffix
             $pos = $recce->resume( $pos, $input_length - $pos );
             next READ;
 
-        }
+        } ## end if ( not $rejection )
+
+        # If here, we rejected the next input token
+
+        # What terminals do we expect?
         my @expected = @{ $recce->terminals_expected() };
 
+        # Find, at random, one of these tokens that is a closing bracket.
         my ($token) =
             grep {defined}
             map  { $token_by_name{$_} } @{ $recce->terminals_expected() };
 
+        # If there is no expected closing bracket, then what we need to
+        # continue with a new opening bracket.  Find out which one.
         my $opening = not defined $token;
         if ($opening) {
             my $nextchar = substr $string, $pos, 1;
             $token = $matching{$nextchar};
         }
+
+        # If it the case that we do we not expect a closing bracket,
+        # and an opening bracket won't fix the problem either?
+        # That should not happen.  All we can do is abend.
         die "Rejection at pos $pos: ", substr( $string, $pos, 10 )
             if not defined $token;
 
+        # Concoct a "Ruby Slippers token" and read it from the
+        # suffix
         my ( $token_start, $token_length ) = @{$token};
         $token_start += $input_length;
         my $token_literal = substr $string, $token_start, $token_length;
         my $result = $recce->resume( $token_start, $token_length );
-        push @fixes, "$pos$token_literal";
         die "Read of Ruby slippers token failed"
             if $result != $token_start + $token_length;
 
+        # Used for testing
+        push @fixes, "$pos$token_literal" if $fixes;
+
+        # We've done the Ruby Slippers thing, and are ready to
+        # continue reading.
+        # But first we want to report the error.
+
         my ( $pos_line, $pos_column ) = $recce->line_column($pos);
         my $problem;
+
+        # Report the error if it was a case of a missing open bracket.
         if ($opening) {
             $problem = join "\n",
                 "* Line $pos_line, column $pos_column: Missing open $token_literal",
@@ -232,10 +269,19 @@ sub test {
             next READ;
         } ## end if ($opening)
 
+        # Report the error if it was a case of a missing close bracket.
+
+        # We've created a properly bracketed span of the input, using
+        # the Ruby Slippers token.  Use Marpa's tables to find its
+        # beginning.
         my ($opening_bracket) = $recce->last_completed_span('balanced');
         my ( $line, $column ) = $recce->line_column($opening_bracket);
         my $opening_column0 = $opening_bracket - ( $column - 1 );
+
         if ( $line == $pos_line ) {
+
+            # Report a missing close bracket for cases contained in
+            # a single text line
             $problem = join "\n",
                 "* Line $line, column $column: Missing close $token_literal, "
                 . "problem detected at line $pos_line, column $pos_column",
@@ -250,6 +296,8 @@ sub test {
                 );
         } ## end if ( $line == $pos_line )
         else {
+            # Report a missing close bracket for cases that span
+            # two or more text lines
             $problem = join "\n",
                   "* Line $line, column $column: No matching bracket for "
                 . q{'}
@@ -268,6 +316,8 @@ sub test {
                 $pos_column - 1
                 );
         } ## end else [ if ( $line == $pos_line ) ]
+
+        # Add our report to the list of problems.
         push @problems, [ $line, $column, $problem ];
         diagnostic(
             "* Line $line, column $column: Missing close $token_literal, ",
@@ -276,7 +326,21 @@ sub test {
 
     } ## end READ: while ( $pos < $input_length )
 
+    # At this point we have finished the input.
+    # Now we must deal with opening brackets which
+    # were never closed.
+    # The logic here is a simplified version of that of the main
+    # reading loop.
+
     TRAILER: while (1) {
+
+        # Programming note: this is so similar to the code of the
+        # main reading loop, it is tempting to combine them and use
+        # a flag.
+        # But there are quite a few small differences,
+        # so that would be much less readable.
+        # And for efficiency purposes, this is a kind of "hand-unrolling"
+        # of a loop, with optimization of the code.
 
         my $rejection = 0;
         EVENT:
@@ -305,9 +369,11 @@ sub test {
         $token_start += $input_length;
         my $token_literal = substr $string, $token_start, $token_length;
         my $result = $recce->resume( $token_start, $token_length );
-        push @fixes, "$pos$token_literal";
         die "Read of Ruby slippers token failed"
             if $result != $token_start + $token_length;
+
+        # Used for testing
+        push @fixes, "$pos$token_literal" if $fixes;
 
         my ($opening_bracket) = $recce->last_completed_span('balanced');
         my ( $line, $column ) = $recce->line_column($opening_bracket);
@@ -323,11 +389,13 @@ sub test {
 
     } ## end TRAILER: while (1)
 
-       $DB::single = 1;
-    if (ref $fixes) {
-       ${$fixes} = join " ", @fixes;
+    # For testing
+    if ( ref $fixes ) {
+        ${$fixes} = join " ", @fixes;
     }
 
+    # The problems do not necessarily occur in lexical order.
+    # Sort them so that they can be reported that way.
     my @sorted_problems =
         sort { $a->[0] <=> $b->[0] or $a->[1] <=> $b->[1] } @problems;
     my @result = map { $_->[-1] } @sorted_problems;
