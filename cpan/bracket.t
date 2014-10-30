@@ -89,7 +89,7 @@ my @tests = ();
 
 if ($TESTING) {
     @tests = (
-        [ 'z}ab)({[]})))(([]))zz',                   q{} ],
+        [ 'z}ab)({[]})))(([]))zz',                   '1{ 4( 11( 12(' ],
         [ '9\090]{[][][9]89]8[][]90]{[]\{}{}09[]}[', q{} ],
         [ '([]([])([]([]',                           q{}, ],
         [ '([([([([',                                q{}, ],
@@ -97,11 +97,11 @@ if ($TESTING) {
     );
     for my $test (@tests) {
         my ( $string, $expected_result ) = @{$test};
-        my $actual_results = test( $g, $string );
-        my $actual_result = join "\n", @{$actual_results}, q{};
+        my $fixes = q{};
+        test( $g, $string, \$fixes );
         diagnostic( "Input: ", substr( $string, 0, 60 ) ) if $verbose;
         my $description = qq{Result of "} . ( substr $string, 0, 60 );
-        Test::More::is( $actual_result, $expected_result, $description );
+        Test::More::is( $fixes, $expected_result, $description );
     } ## end for my $test (@tests)
 } ## end if ($TESTING)
 else {
@@ -146,8 +146,9 @@ sub marked_line {
 } ## end sub marked_line
 
 sub test {
-    my ( $g, $string ) = @_;
+    my ( $g, $string, $fixes ) = @_;
     my @problems = ();
+    my @fixes = ();
     diagnostic( "Input: ", substr( $string, 0, 60 ) ) if $verbose or $TESTING;
 
     my $input_length = length $string;
@@ -202,6 +203,7 @@ sub test {
         $token_start += $input_length;
         my $token_literal = substr $string, $token_start, $token_length;
         my $result = $recce->resume( $token_start, $token_length );
+        push @fixes, "$pos$token_literal";
         die "Read of Ruby slippers token failed"
             if $result != $token_start + $token_length;
 
@@ -297,6 +299,7 @@ sub test {
         $token_start += $input_length;
         my $token_literal = substr $string, $token_start, $token_length;
         my $result = $recce->resume( $token_start, $token_length );
+        push @fixes, "$pos$token_literal";
         die "Read of Ruby slippers token failed"
             if $result != $token_start + $token_length;
 
@@ -313,6 +316,11 @@ sub test {
         push @problems, [ $line, $column, $problem ];
 
     } ## end TRAILER: while (1)
+
+       $DB::single = 1;
+    if (ref $fixes) {
+       ${$fixes} = join " ", @fixes;
+    }
 
     my @sorted_problems =
         sort { $a->[0] <=> $b->[0] or $a->[1] <=> $b->[1] } @problems;
