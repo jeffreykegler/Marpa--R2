@@ -106,7 +106,7 @@ if ($TESTING) {
         my $fixes = q{};
         test( $g, $string, \$fixes );
         diagnostic( "Input: ", substr( $string, 0, 60 ) ) if $verbose;
-        my $description = qq{Result of "} . ( substr $string, 0, 60 );
+        my $description = qq{Result of "} . ( substr $string, 0, 60 ) . q{"};
         Test::More::is( $fixes, $expected_result, $description );
     } ## end for my $test (@tests)
 } ## end if ($TESTING)
