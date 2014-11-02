@@ -17,6 +17,17 @@
 # This utility searches for mismatched braces --
 # curly, square and round.
 
+# Two not yet documented (but supported) features of Marpa::R2 are used.
+#
+# The 'rejection' recognizer setting causes an event to occur when all
+# alternatives are rejected at a location.  (The default is for this to
+# be a fatal error.)
+#
+# The $recce->last_completed_span($symbol) method takes one argument:
+# the name of a symbol.  It returns the input stream span of the most
+# recent instance of that symbol.  If more than one begins at the most
+# recent location, it returns the longest.
+
 use 5.010;
 use strict;
 use warnings;
