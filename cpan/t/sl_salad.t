@@ -121,6 +121,9 @@ sub test {
         # This tells us where the prefix should end.
         # No prefix should go beyond the first location of the shortest span.
 
+# Marpa::R2::Display
+# name: SLIF exhaustion recognizer setting synopsis
+
         my @shortest_span = ();
         my $recce         = Marpa::R2::Scanless::R->new(
             {   grammar    => $g,
@@ -146,6 +149,8 @@ sub test {
             next EVENT if $name eq q('exhausted);
             die join q{ }, "Spurious event at position $pos: '$name'";
         } ## end EVENT: for my $event ( @{ $recce->events() } )
+
+# Marpa::R2::Display::End
 
         last TARGET if not scalar @shortest_span;
 

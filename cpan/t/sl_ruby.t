@@ -72,6 +72,9 @@ sub test {
     # state $recce_debug_args = { trace_terminals => 1, trace_values => 1 };
     state $recce_debug_args = {};
 
+# Marpa::R2::Display
+# name: SLIF rejection recognizer setting synopsis
+
     my $recce = Marpa::R2::Scanless::R->new(
         {   grammar   => $g,
             rejection => 'event',
@@ -101,6 +104,8 @@ sub test {
         diag("I fixed it for you.  Now you owe me.") if $verbose;
         $recce->resume( $pos, $original_length - $pos );
     } ## end READ_LOOP: while (1)
+
+# Marpa::R2::Display::End
 
     my $ref_value = $recce->value();
     return 'No parse' if not $ref_value;
