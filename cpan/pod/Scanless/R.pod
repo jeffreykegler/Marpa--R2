@@ -1220,6 +1220,14 @@ returns 2 or greater if there is a ambiguous parse.
 Fails and returns zero if called before parsing.
 Returns zero or a negative number on other unthrown failure.
 
+When the return value is 2 or greater,
+an applications should not rely on the exact value, which is subject to change.
+In the future, return values of 2 or greater may represent a "metric" which
+estimates the degree of ambiguity in some useful way,
+but is cheap to compute.
+(The best metric is, of course, the exact parse count,
+but determining that can be very expensive.)
+
 =head2 current_g1_location()
 
 =for Marpa::R2::Display
