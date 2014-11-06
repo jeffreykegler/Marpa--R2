@@ -323,7 +323,7 @@ the name of nulling event is the only element.
 
 =head2 Prediction events
 
-Prediction events are declared in the SLIF DSL
+A prediction event is declared in the SLIF DSL
 using the
 L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">:
 
