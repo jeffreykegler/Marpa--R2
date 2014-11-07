@@ -265,7 +265,11 @@ sometimes not until long after it.
 Completion parse events may be a cleaner way to deal with this.
 Applications which do want to use parse exhaustion as part of
 a strategy for finding the end of parse
-can catch the exception and
+can set the
+L<SLIF's C<<exhaustion>> recognizer setting|Marpa::R2::Scanless::R/"exhausted">
+to "C<event>", so that a parse event occurs at parse exhaustion.
+When the event-triggering method returns, the application
+can then
 L<check the exhaustion status explicitly|/"exhausted()">.
 
 =head1 Copyright and License
