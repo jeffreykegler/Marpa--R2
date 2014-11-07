@@ -449,6 +449,144 @@ L<the C<< $slr->events() >>
 method|Marpa::R2::Scanless::R/"events()">,
 the name of pre-lexeme event is the only element.
 
+=head2 Exhaustion events
+
+=for Marpa::R2::Display
+name: SLIF exhaustion recognizer setting synopsis
+partial: 1
+normalize-whitespace: 1
+
+        my @shortest_span = ();
+        my $recce         = Marpa::R2::Scanless::R->new(
+            {   grammar    => $g,
+                exhaustion => 'event',
+            },
+            $recce_debug_args
+        );
+        my $pos = $recce->read( \$string, $target_start );
+
+        EVENT:
+        for my $event ( @{ $recce->events() } ) {
+            my ($name) = @{$event};
+            if ( $name eq 'target' ) {
+                @shortest_span = $recce->last_completed_span('target');
+                diag(
+                    "Preliminary target at $pos: ",
+                    $recce->literal(@shortest_span)
+                ) if $verbose;
+                next EVENT;
+            } ## end if ( $name eq 'target' )
+                # Not all exhaustion has an exhaustion event,
+                # so we look for exhaustion explicitly below.
+            next EVENT if $name eq q('exhausted);
+            die join q{ }, "Spurious event at position $pos: '$name'";
+        } ## end EVENT: for my $event ( @{ $recce->events() } )
+
+=for Marpa::R2::Display::End
+
+An exhaustion parse event triggers on asynchronous parse exhaustion,
+if the recognizer's C<exhaustion> setting is "C<event>".
+The name of the event is
+"C<'exhausted">
+(The initial single quote is part of the events name,
+and indicates it is a reserved name,
+which will not conflict with any user-named event.)
+
+Intuitively, exhaustion parse events are only created when needed
+for control to return to the application.
+More precisely,
+we say that parse exhaustion is B<synchronous>
+if it occurs at a point when control
+would normally return from SLIF to the application,
+due to either
+
+=over 4
+
+=item * 
+
+the parse reaching end of string, or
+
+=item *
+
+some event, other than an exhaustion event,
+occurring.
+
+=back
+
+If parse exhaustion is not synchronous,
+we say that it is B<asynchronous>.
+
+The name of the exhaustion parse event will
+always be "C<'exhausted>".
+(The initial single quote is part of the event's name,
+and indicates it is a reserved name,
+which will not conflict with any user-named event.)
+
+Often an exhaustion event is used
+only to make sure control returns to the application
+-- the event itself is discarded,
+and instead the L<C<$recce->exhausted()> method|/"exhausted()">
+is used to check for parse exhaustion.
+This is because an application usually
+does not care whether
+exhaustion is synchronous or asynchronous.
+The L<C<exhausted()> method|/"exhausted()">
+will report both asynchronous and synchronous
+parse exhaustion,
+while an exhaustion event only triggers for
+asynchronous exhaustion.
+Exhaustion is discussed further in
+L<a separate document|Marpa::R2::Exhaustion>.
+
+=head2 Rejection events
+
+=for Marpa::R2::Display
+name: SLIF rejection recognizer setting synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new(
+        {   grammar   => $g,
+            rejection => 'event',
+        },
+        $recce_debug_args
+    );
+    my $pos = $recce->read( \$suffixed_string, 0, $original_length );
+
+    READ_LOOP: while (1) {
+        my $rejection = 0;
+        my $pos       = $recce->pos();
+        EVENT:
+        for my $event ( @{ $recce->events() } ) {
+            my ($name) = @{$event};
+            if ( $name eq q('rejected) ) {
+                $rejection = 1;
+                diag("You fool! you forget the semi-colon at location $pos!")
+                    if $verbose;
+                next EVENT;
+
+            } ## end if ( $name eq q('rejected) )
+            die join q{ }, "Spurious event at position $pos: '$name'";
+        } ## end EVENT: for my $event ( @{ $recce->events() } )
+
+        last READ_LOOP if not $rejection;
+
+        $recce->resume( $original_length, 1 );
+        diag("I fixed it for you.  Now you owe me.") if $verbose;
+        $recce->resume( $pos, $original_length - $pos );
+    } ## end READ_LOOP: while (1)
+
+=for Marpa::R2::Display::End
+
+A rejection event triggers if
+all lexemes at a G1 location are rejected,
+and the recognizer's C<rejection> setting is "C<event>".
+The name of the event is
+"C<'rejected">
+(The initial single quote is part of the events name,
+and indicates it is a reserved name,
+which will not conflict with any user-named event.)
+
 =head1 Lexeme events
 
 SLIF parse events are divided
