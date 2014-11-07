@@ -1162,7 +1162,7 @@ On success, C<lexeme_complete()>
 returns the new current location.
 This will never be location zero, because a succesful
 call of C<lexeme_complete()> always advances the location.
-On unthrown failure, C<lexeme_complete()> returns 0.
+Failure is thrown as an exception.
 
 =head2 lexeme_read()
 
@@ -1259,7 +1259,7 @@ input stream location.
 This will never be location zero, because lexemes cannot be zero length.
 If the token was rejected,
 C<lexeme_read()> returns a Perl C<undef>.
-On other unthrown failure, C<lexeme_read()> returns 0.
+Failure is thrown as an exception.
 
 =head2 resume()
 

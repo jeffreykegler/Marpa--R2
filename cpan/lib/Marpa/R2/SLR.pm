@@ -1726,6 +1726,7 @@ sub Marpa::R2::Scanless::R::lexeme_complete {
     $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
     my $return_value = $thin_slr->g1_lexeme_complete( $start, $length );
     Marpa::R2::Internal::Scanless::convert_libmarpa_events($slr);
+    die q{} . $thin_slr->g1()->error() if $return_value == 0;
     return $return_value;
 } ## end sub Marpa::R2::Scanless::R::lexeme_complete
 
