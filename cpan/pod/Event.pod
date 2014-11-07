@@ -120,7 +120,7 @@ means an occurrence
 of the symbol in that parse
 with a specific start location and length.
 An instance of a symbol is also called
-B<symbol instance>.
+a B<symbol instance>.
 A consequence of this definition
 is that every symbol instance
 has exactly one end location.
@@ -178,20 +178,20 @@ a symbol instance at location I<L>.
 
 =back
 
-Events are declared in the SLIF DSL.
-Parse events can be either a lexeme event
+Parse events are declared in the SLIF DSL.
+A parse events is either a lexeme event
 or a non-lexeme event.
-Lexeme events are declared using
+A lexeme event is declared using a
 L<C<:lexeme> pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rule">.
-Non-lexeme events are declared using
-L<named event statements|Marpa::R2::Scanless::DSL/"Named event statement">.
+A non-lexeme events is declared using a
+L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">.
 The various types of parse events are described in detail
 L<below|/"Types of parse event">.
 The description of
 each type of parse event
 indicates whether it is a lexeme or a non-lexeme event.
 
-Once declared, events
+Once declared, a parse event
 may trigger during any event-triggering SLIF
 recognizer method.
 The event-triggering SLIF recognizer methods are
@@ -200,7 +200,7 @@ L<C<resume()>|Marpa::R2::Scanless::R/"resume()">,
 L<C<lexeme_read()>|Marpa::R2::Scanless::R/"lexeme_read()"> and
 L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">.
 
-The location at which an event triggers is the B<event location>.
+The location at which a parse event triggers is the B<event location>.
 An event may trigger at any location, including location 0.
 When an event triggers, it causes the event-triggering
 method to return immediately, with the current location
@@ -209,9 +209,9 @@ The trigger location is the same as the event location,
 except in the case of
 L<pre-lexeme events|/"Pre-lexeme events">.
 
-Non-lexeme events may trigger during any of the event-triggering
+A non-lexeme events may trigger during any of the event-triggering
 methods.
-Lexeme events will only trigger during calls of the
+A lexeme events will only trigger during calls of the
 C<< $slr->read() >> and C<< $slr->resume() >> methods.
 
 The triggering of events may be controlled with
@@ -244,7 +244,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Completion SLIF parse events can be specified for any
+A completion SLIF parse event can be specified for any
 symbol that is not a lexeme.
 Completion events are non-lexeme events.
 A completion event triggers
@@ -269,7 +269,7 @@ the name of completed event is the only element.
 
 =head2 Nulling events
 
-Nulling events are declared in the SLIF DSL
+A nulling event is declared in the SLIF DSL
 using the
 L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">:
 
@@ -290,16 +290,27 @@ are set to the current location,
 which will be
 the location where the triggering instance both begins and ends.
 
-Nulling events are non-lexeme events.
-Nulling SLIF parse events can be specifed for any
+A nulling event is a non-lexeme event.
+A nulling SLIF parse events can be specifed for any
 symbol that is not a lexeme.
-Nulled symbols may derive other null symbols,
-producing nulled trees;
-and null derivations may be ambiguous,
-producing nulled forests.
-All activated nulling events declared
-for symbols in nulled trees and forests will
-trigger.
+A nulled symbol may derive other null symbols,
+producing one or more nulled trees;
+because a null derivation may be ambiguous,
+a nulled symbol may derive more than one nulled
+tree.
+A set of one or more nulled trees
+is called a nulled forest.
+
+When a nulling event triggers for a symbol instance,
+all activated nulling events declared
+for symbols derived
+from the triggered symbol instance will
+also trigger.
+The triggering of nulling events is recursive,
+so that when a nulled symbol instance
+triggers an event, it triggers all the events
+in the nulled forest derived
+from the triggering symbol instance.
 Nulled forests are described in more detail
 in L<a separate
 section|"Nulled forests">.
@@ -312,7 +323,7 @@ the name of nulling event is the only element.
 
 =head2 Prediction events
 
-Prediction events are declared in the SLIF DSL
+A prediction event is declared in the SLIF DSL
 using the
 L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">:
 
