@@ -163,7 +163,7 @@ boolean ~ [01]
   | 'name' | 'lhs' | 'symbol' | 'rule' 
   | 'value' | 'values'
 
-# In single quotes strings and character classes
+# In single quoted strings and character classes
 # no escaping or internal newlines, and disallow empty string
 
 <single quoted string> ~ ['] <string without single quote or vertical space> ['] <character class modifiers>
