@@ -77,6 +77,10 @@ The package is used
 for blessing node values into a Perl class,
 in conjunction with the
 L<C<bless> adverb|Marpa::R2::Scanless::DSL/"bless">.
+C<bless_package> should not be confused with the 
+L<SLIF's
+C<semantics_package> recognizer setting|Marpa::R2::Scanless::R/"semantics_package">.
+The two are not closely related.
 
 =head2 source
 

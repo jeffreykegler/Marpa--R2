@@ -673,6 +673,10 @@ when a new parse series is begun.
 That is, it is only allowed in calls
 of the L<C<new()>|/"Constructor">
 and L<C<series_restart()>|"series_restart()"> methods.
+C<semantics_package> should not be confused with the 
+L<SLIF's
+C<bless_package> grammar setting|Marpa::R2::Scanless::G/"bless_package">.
+The two are not closely related.
 
 =head2 too_many_earley_items
 
