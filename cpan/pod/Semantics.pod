@@ -280,6 +280,9 @@ The implicit action for a lexeme is to return
 its literal value in the input stream, as a string.
 An explicit default action name for lexemes may be set using the
 L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statement">.
+A lexeme action cannot be a Perl closure action --
+it must be one of the built-in actions that are
+appropriate for lexemes.
 
 =head2 Rule actions
 
@@ -452,7 +455,11 @@ There are four kinds of explicit action names:
 
 =back
 
-These are detailed in the sections that follow.
+An explicit action is either a built-in action
+or a Perl closure action.
+Array descriptors and reserved action names
+are B<built-in actions>.
+The other actions are B<Perl closure actions>.
 
 =head1 Array descriptor actions
 
