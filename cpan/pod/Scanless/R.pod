@@ -263,10 +263,10 @@ input string.
 
 The C<read()> method may only be called once for a recognizer,
 but internal scanning can be resumed with the L<C<resume()>|/"resume()"> method.
-The C<resume> method uses a new input string to scan
+The C<resume()> method uses a new input string to scan
 the physical input stream that was specified
 to the C<read()> method.
-C<resume>'s input string may be specified explicitly or implicitly.
+C<resume()>'s input string may be specified explicitly or implicitly.
 By default, the new input string runs from the current location
 to the end of the physical input stream.
 
@@ -286,7 +286,7 @@ L<C<resume()>|/"resume()"> methods, below.
 
 When the application considers input complete,
 and is ready to produce a parse value,
-the L<C<< $slr->value >> method|/"value()"> method
+the L<C<< $slr->value() >> method|/"value()"> method
 is used.
 In most cases, this is all that is needed.
 But Marpa also allows repeated passes over the same input
@@ -334,7 +334,7 @@ one very general way to deal with external lexemes
 which have no natural mapping into
 the physical input stream.
 Call what would ordinarily be the input string, the "natural input".
-Form the physical input stream by prefixing these 7 character:
+Form the physical input stream by appending these 7 character:
 "C<NO TEXT>".
 For example, if the natural input is "C<Hi! I am the real input>",
 then the physical input stream will be
@@ -342,18 +342,18 @@ then the physical input stream will be
 =for Marpa::R2::Display
 ignore: 1
 
-    "NO TEXTHi! I am the real input"
+    "Hi! I am the real inputNO TEXT"
 
 =for Marpa::R2::Display::End
 
 To read the natural input,
 the initial call to the L<C<read()>|/"read()"> method should be
 of the form
-C<< $slr->read($input_string, 7) >>.
+C<< $slr->read($input_string, -8) >>.
 When externally reading a lexeme which has no real relationship
 to the natural input,
 use a method call similar to
-C<< $slr->lexeme_read($symbol_name, 0, 7, $value) >>.
+C<< $slr->lexeme_read($symbol_name, -7, -1, $value) >>.
 
 =head1 G1 locations
 
