@@ -114,7 +114,7 @@ The phrase "input stream location" and
 the word "location",
 unless otherwise specified,
 refer
-to physical input stream location,
+to physical input stream location.
 
 Virtual input streams complicate the idea of parse
 location,
@@ -133,7 +133,7 @@ and to read sections of the stream repeatedly.
 Input streams are ordered sets of characters,
 and the locations in them are
 represented as the integers from 0 to I<N>,
-where I<N-1> is the size of the set.
+where I<N+1> is the size of the set.
 In this document, we will refer to ordered subsets of
 contiguous locations as either B<ranges> or B<spans>.
 
@@ -146,7 +146,8 @@ A range is a subset of a "universe" --
 some larger ordered set of locations
 0 to I<N>.
 In this document the larger sets,
-or universes, will be physical input streams
+or universes, will be
+either physical input streams
 or L<G1 location streams|"G1 locations">.
 
 The start and end locations of the range
@@ -189,6 +190,11 @@ As examples,
 
 The entire input stream is the range C<[0 ... -1]>
 and the span C<[0, -1]>.
+
+=item *
+
+The first 42 characters of the input stream are the range C<[0 ... 41]>
+and the span C<[0, 42]>.
 
 =item *
 
