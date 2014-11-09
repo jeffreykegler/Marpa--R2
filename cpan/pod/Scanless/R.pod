@@ -360,7 +360,7 @@ C<< $slr->lexeme_read($symbol_name, -7, -1, $value) >>.
 In addition to input stream location,
 the SLIF also tracks G1 location.
 G1 locations run from 0 to I<N>,
-where I<N-1> is the length of the input stream.
+where I<N+1> is the length of the input stream.
 The conventions
 and notation
 for numbering G1 locations
@@ -375,22 +375,26 @@ and when dealing with ambiguous terminals.
 the G1 location is the G1 Earley set index.)
 
 Because lexemes may be ambiguous,
-a set of lexemes is read at a single G1 location.
+more than one lexeme may be read 
+at a single G1 location.
+We can think of the lexemes read at a single
+G1 location as a set -- call it the B<G1 lexeme set>,
+or, for brevity, the B<G1 set>.
 If a lexeme is unambiguous,
-its set will contain exactly one lexeme.
+its G1 set will contain exactly one lexeme.
 
 G1 location can be thought of
 as location in terms of
-boundaries of sets of lexemes,
+boundaries of G1 sets,
 so that the 
-the first set of lexemes starts at G1 location 0
+the first G1 set starts at G1 location 0
 and ends at G1 location 1.
-When we speak of a set of lexemes B<at> G1 location I<L>,
-we refer to the set of lexemes ending at G1 location I<L>.
-That means that there is no set of lexemes at
+When we speak of a G1 set B<at> G1 location I<L>,
+we refer to the G1 set ending at G1 location I<L>.
+That means that there is no G1 set at
 G1 location 0.
 
-As each new set of lexemes is read,
+As each G1 set is read,
 G1 location 
 increases by one.
 B<G1 length>
