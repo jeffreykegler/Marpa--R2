@@ -957,7 +957,9 @@ This per-parse argument can be a Perl scalar of any type,
 but the most useful
 type for a per-parse argument is a reference
 (blessed or unblessed) to a hash or to an array.
-The per-parse argument will be the first argument of all 
+The per-parse argument,
+if provided,
+will be the first argument of all 
 Perl semantics closures.
 When data does not conveniently fit into the bottom-up
 flow of parse tree evaluation,
@@ -971,14 +973,15 @@ If the L<C<semantics_package>|/"semantics_package">
 setting of the SLIF
 recognizer was not specified,
 Marpa will use the package into which the per-parse argument was blessed
-as the semantics package --
-the package in which to look for the parse's Perl semantic closures.
+as the semantics package.
+(As a reminder, the semantics package is the package
+in which Marpa looks for the parse's Perl semantic closures.)
 In this case, Marpa will regard the per-parse arguments of all
-calls in the same parse series as the source of the semantics package,
-and it will require that the calls be consistent --
-each call must have a per-parse argument,
+calls in the same parse series as the source of the semantics package.
+It will be a fatal error if these calls are not consistent --
+each call will have to have a per-parse argument,
 and each per-parse argument
-must be blessed into the same semantics package.
+will have to be blessed into the same semantics package.
 
 =head1 Mutators for external scanning
 
