@@ -980,7 +980,9 @@ in which Marpa looks for the parse's Perl semantic closures.)
 When the per-parse argument of the value() method is the
 source of the semantics package,
 all calls to the C<value()> method in the same
-parse series must be consistent.
+parse series must have a per-parse
+argument that
+specifies the same semantics package.
 More precisely,
 if the per-parse argument of the first
 call of the C<value()> method
