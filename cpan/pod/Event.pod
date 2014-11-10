@@ -195,17 +195,17 @@ a symbol instance recognized at location I<L>.
 =back
 
 Parse events are declared in the SLIF DSL.
-A parse events is either a lexeme event
+A parse event is either a lexeme event
 or a non-lexeme event.
 A lexeme event is declared using a
-L<C<:lexeme> pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rule">.
-A non-lexeme events is declared using a
+L<C<:lexeme> pseudo-rule|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rule">.
+A non-lexeme event is declared using a
 L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">.
 The various types of parse events are described in detail
 L<below|/"Types of parse event">.
 The description of
 each type of parse event
-indicates whether it is a lexeme or a non-lexeme event.
+will state whether it is a lexeme or a non-lexeme event.
 
 Once declared, a parse event
 may trigger during any event-triggering SLIF
