@@ -125,6 +125,10 @@ A consequence of this definition
 is that every symbol instance
 has exactly one end location.
 
+For some string and grammar,
+we say that a parse is B<valid>
+if the parse of the string
+is valid according to the grammar.
 In a parse,
 a nulled symbol instance,
 or B<nulled symbol>, is a symbol instance with a length of zero.
@@ -134,22 +138,18 @@ nulled.
 A symbol in a grammar is 
 a B<nullable symbol> if it has
 at least one nulled instance
-in at least one parse of at least one input.
+in at least one valid parse of at least one string.
 A symbol in a grammar is 
 a B<nulling symbol> if,
-in all parses of all inputs,
-all of its instances are nulled instances.
+for all strings,
+all of its instances in valid parses are nulled instances.
 A symbol is B<non-nulling> if it is not nulling.
 
-For some input and grammar,
-we say that a parse is B<valid>
-if the parse of the input
-is valid according to the grammar.
 If a string's prefix of length I<L> is equal
-to the prefix of the actual input of length I<L>,
+to the prefix of the actual string of length I<L>,
 we say that
 the string is B<consistent with
-the actual input up to location L>.
+the actual string up to location L>.
 For brevity,
 we will often say
 that the string is B<actual to L>.
