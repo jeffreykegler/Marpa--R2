@@ -1689,7 +1689,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Shows the progress of the G1 parse.
+Returns a string showing
+the progress of the G1 parse.
 For a description of its output,
 see L<Marpa::R2::Progress>.
 With no arguments,
@@ -1711,11 +1712,15 @@ For example,
 the method call C<< $recce->show_progress(0, -1) >>
 will print progress reports for the entire parse.
 
-Locations are G1 locations instead of physical input stream locations,
+The arguments are G1 locations instead of physical input stream locations,
 because G1 locations represent a unique point in the parse.
 By contrast,
 a single physical input stream location might be visited many times
 by a SLIF recognizer.
+
+The output is intended only for reading by humans.
+The exact format is subject to change
+and should not be relied on by applications.
 
 =head2 substring()
 
