@@ -225,9 +225,9 @@ The trigger location is the same as the event location,
 except in the case of
 L<pre-lexeme events|/"Pre-lexeme events">.
 
-A non-lexeme events may trigger during any of the event-triggering
+A non-lexeme event may trigger during any of the event-triggering
 methods.
-A lexeme events will only trigger during calls of the
+A lexeme event will only trigger during calls of the
 C<< $slr->read() >> and C<< $slr->resume() >> methods.
 
 The triggering of events may be controlled with
