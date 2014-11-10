@@ -307,7 +307,7 @@ which will be
 the location where the triggering instance both begins and ends.
 
 A nulling event is a non-lexeme event.
-A nulling SLIF parse events can be specifed for any
+A nulling SLIF parse event can be specifed for any
 symbol that is not a lexeme.
 A nulled symbol may derive other null symbols,
 producing one or more nulled trees;
