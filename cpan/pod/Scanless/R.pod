@@ -976,12 +976,19 @@ Marpa will use the package into which the per-parse argument was blessed
 as the semantics package.
 (As a reminder, the semantics package is the package
 in which Marpa looks for the parse's Perl semantic closures.)
-In this case, Marpa will regard the per-parse arguments of all
-calls in the same parse series as the source of the semantics package.
-It will be a fatal error if these calls are not consistent --
-each call will have to have a per-parse argument,
-and each per-parse argument
-will have to be blessed into the same semantics package.
+If the per-parse argument of the first
+call of the C<value()> method is
+the source of the semantics package,
+the SLIF will require the per-parse argument
+of all subsequent calls to specify the same
+semantics package.
+Specifically,
+it will be a fatal error if any subsequent
+C<value()> call does 
+have a per-parse argument;
+if that per-parse argument
+is not blessed;
+or if that per-parse argument is blessed into a different package.
 
 =head1 Mutators for external scanning
 
