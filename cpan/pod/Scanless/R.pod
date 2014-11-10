@@ -677,7 +677,8 @@ Sets the semantic package for the recognizer.
 This setting takes precedence
 over any package implied by the blessing of the per-parse arguments to
 the SLIF recognizer's C<value()> method.
-The semantics package is used when resolving action names to
+The C<semantics_package> recognizer setting
+is used when resolving action names to
 fully qualified Perl names.
 For more details on the SLIF semantics,
 see the L<document on SLIF
@@ -688,7 +689,8 @@ when a new parse series is begun.
 That is, it is only allowed in calls
 of the L<C<new()>|/"Constructor">
 and L<C<series_restart()>|"series_restart()"> methods.
-C<semantics_package> should not be confused with the 
+The C<semantics_package> recognizer setting
+should not be confused with the 
 L<SLIF's
 C<bless_package> grammar setting|Marpa::R2::Scanless::G/"bless_package">.
 The two are not closely related.
