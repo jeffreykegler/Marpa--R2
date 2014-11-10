@@ -145,14 +145,22 @@ for all strings,
 all of its instances in valid parses are nulled instances.
 A symbol is B<non-nulling> if it is not nulling.
 
-If a string's prefix of length I<L> is equal
-to the prefix of the actual string of length I<L>,
-we say that
-the string is B<consistent with
-the actual string up to location L>.
+Intuitively, a string is actual to I<L> if we
+know the actual input as far as I<L>,
+and the string is consistent with the input.
+More formally,
+let C<A> be the actual input to a parse.
+Let C<S> be an arbitrary string in the same alphabet.
+Let C<prefix(A, L)> be the prefix of length I<L>
+that is of length C<L>,
+and let C<prefix(S, L)> be defined in the same way.
+If C<prefix(A, L) = prefix(S, L)>,
+then we say that
+string C<S> is B<consistent with
+the actual input up to location L>.
 For brevity,
 we will often say
-that the string is B<actual to L>.
+that C<S> is B<actual to L>.
 
 If an instance of symbol I<S>
 that starts at location I<L> is in a valid parse
