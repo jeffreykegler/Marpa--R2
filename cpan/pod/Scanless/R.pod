@@ -851,7 +851,9 @@ is allowed for a SLIF
 recognizer.
 
 The first argument of C<read()> is a pointer to the physical
-input stream, which by default will be
+input stream which,
+by default,
+will be
 exactly the same as the virtual input stream.
 To specify the input string,
 C<read()> recognizes
@@ -872,12 +874,12 @@ and the parse reaches the end of the input string without a
 failure,
 the current location is set to the end of the input string.
 
-The call is considered successful
-if it reached the end of input string,
-or if a SLIF parse event triggered.
 On success, C<read()> returns the current
 physical input stream location.
 This value may be zero.
+The call is considered successful
+if it reaches the end of input string,
+or if a SLIF parse event triggers.
 On failure, C<read()> throws an exception.
 
 =head2 series_restart()
