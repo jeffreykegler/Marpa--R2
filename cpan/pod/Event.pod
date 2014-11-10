@@ -142,25 +142,25 @@ all of its instances are nulled instances.
 A symbol is B<non-nulling> if it is not nulling.
 
 In the following, we say that
-an input is consistent with
+an string is consistent with
 the actual input up to location I<L>,
 or simply, B<actual to L>,
-if it is the actual input up to location I<L>,
-and any possible string after location I<L>.
+if the string's prefix of length I<L> is equal
+to the prefix of the actual input of length I<L>.
 We say that a symbol I<S> is B<acceptable> at
 a location I<L>,
 if an instance of symbol I<S>
 starting at location I<L>
 is in a valid parse,
 according to the grammar,
-of some input actual to I<L>.
+of some string actual to I<L>.
 We say that a symbol instance
 is B<recognized> at
 a location I<L>
 if its end location is I<L>,
 and it is in
 a valid parse, according to the grammar,
-of some input actual to I<L>.
+of some string actual to I<L>.
 We say that a symbol
 is B<recognized> at
 a location I<L> if it is the symbol of
