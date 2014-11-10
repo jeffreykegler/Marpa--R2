@@ -843,7 +843,7 @@ normalize-whitespace: 1
 Given a pointer to a physical input stream and,
 optionally, a span specifying an input string within it,
 C<read()> parses the input string according to the grammar.
-C<read()> returns successfully if it parses to the end
+C<read()> returns success if it parses to the end
 of the input string,
 or if it triggers a SLIF parse event.
 Only a single call to C<read()>
@@ -851,7 +851,8 @@ is allowed for a SLIF
 recognizer.
 
 The first argument of C<read()> is a pointer to the physical
-input stream, which by default will also be the virtual input stream.
+input stream, which by default will be
+exactly the same as the virtual input stream.
 To specify the input string,
 C<read()> recognizes
 optional second and third arguments and treats them
