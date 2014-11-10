@@ -1225,8 +1225,8 @@ the current G1 location by one.
 The token read by C<lexeme_read()>
 will start at the previous G1 location
 and end at the new current G1 location.
-Current location in the input stream is moved
-to the end location of the new lexeme.
+The new current location in the input stream will
+be at the end location of the new lexeme.
 
 On success, C<lexeme_read()> returns the new current physical
 input stream location.
@@ -1297,6 +1297,7 @@ On success, C<resume()> returns
 the new current location.
 On unthrown failure,
 C<resume()> returns a Perl C<undef>.
+Currently, all failures are thrown.
 
 =head1 Accessors
 
