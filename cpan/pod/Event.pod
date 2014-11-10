@@ -141,33 +141,38 @@ in all parses of all inputs,
 all of its instances are nulled instances.
 A symbol is B<non-nulling> if it is not nulling.
 
-In the following, we say that
-a string is consistent with
-the actual input up to location I<L>
-if the string's prefix of length I<L> is equal
-to the prefix of the actual input of length I<L>.
+For some input and grammar,
+we say that a parse is B<valid>
+if the parse of the input
+is valid according to the grammar.
+If a string's prefix of length I<L> is equal
+to the prefix of the actual input of length I<L>,
+we say that
+the string is B<consistent with
+the actual input up to location L>.
 For brevity,
-If a string is consistent with the actual input
-up to location I<L>,
-we will often say the string is B<actual to L>.
-We say that a symbol I<S> is B<acceptable> at
-a location I<L>,
-if an instance of symbol I<S>
-starting at location I<L>
-is in a valid parse,
-according to the grammar,
-of some string actual to I<L>.
-We say that a symbol instance
-is B<recognized> at
-a location I<L>
-if its end location is I<L>,
-and it is in
-a valid parse, according to the grammar,
-of some string actual to I<L>.
+we will often say
+that the string is B<actual to L>.
+
+If an instance of symbol I<S>
+that starts at location I<L> is in a valid parse
+of some string actual to I<L>,
+we say that a symbol I<S> is B<acceptable> at
+a location I<L>.
+We say that a symbol
+is B<acceptable> at
+a location I<L> if it is the symbol of
+a symbol instance acceptable at location I<L>.
+
+If an instance of symbol I<S>
+that ends at location I<L> is in a valid parse
+of some string actual to I<L>,
+we say that a symbol I<S> is B<recognized> at
+a location I<L>.
 We say that a symbol
 is B<recognized> at
 a location I<L> if it is the symbol of
-a symbol instance at location I<L>.
+a symbol instance recognized at location I<L>.
 
 =head1 The life cycle of events
 
