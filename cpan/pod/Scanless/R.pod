@@ -734,7 +734,8 @@ warnings about large Earley sets are turned off.
 An Earley item threshold warning almost always
 indicates a serious issue,
 and turning these warnings off will
-rarely be what an application wants.
+rarely be something
+that an application wants to do.
 
 The C<too_many_earley_items> setting is allowed
 in any call of any of the recognizer setting-aware methods.
