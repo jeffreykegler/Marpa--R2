@@ -294,7 +294,6 @@ with different settings.
 More details on the semantics are provided in
 L<a separate document|Marpa::R2::Semantics>.
 
-
 =head1 External scanning
 
 External scanning is usually performed by reading lexemes using the 
@@ -535,6 +534,14 @@ More details about parse series and parse trees
 are in
 L<a separate document|Marpa::R2::Semantics::Phases>.
 
+=head2 Evaluation time
+
+A recognizer is in B<evaluation time> after the
+first call of the C<< $recce->value() >> method
+for the current parse series.
+B<Evaluation time> ends when the recognizer is
+destroyed, or when the parse series ends.
+
 =head1 Recognizer settings
 
 The B<recognizer settings> are the named arguments
@@ -585,7 +592,7 @@ L<section on exhaustion parse events|Marpa::R2::Event/"Exhaustion events">.
 =head2 grammar
 
 The value of the C<grammar> setting must be
-an SLIF grammar object.
+a SLIF grammar object.
 The C<new()> method is required to have
 a C<grammar> setting.
 The C<grammar> setting is only allowed
@@ -633,21 +640,15 @@ and to exclude some parse results from the parse series.
 For details, see L<the document
 on parse order|Marpa::R2::Semantics::Order>.
 
-The C<ranking_method> setting is not allowed
-once evaluation of the current parse series has begun.
-Specifically,
-the L<C<ranking_method>|/"ranking"> setting is always allowed in
+The C<ranking_method>
+is always allowed in
 the L<C<new()>|/"Constructor">,
-and L<C<series_restart()>|"series_restart()"> methods,
-because they initialize a new parse series.
-And, while a parse series is in progress,
-the L<C<ranking_method>|/"ranking"> setting is allowed in
-calls of the
-L<C<< $slr->set() >>|"set()"> method
-if and only if they are made before
-the first call of the
-L<C<< $slr->value() >>|"value()"> method
-in that parse series.
+and L<C<series_restart()>|"series_restart()"> methods.
+The C<ranking_method> setting is also allowed
+in calls of the
+L<C<< $slr->set() >>|"set()"> method,
+except for those made
+at L<evaluation time|/"Evaluation time">.
 
 =head2 rejection
 
