@@ -985,7 +985,7 @@ semantics package.
 Specifically,
 it will be a fatal error if any subsequent
 C<value()> call does 
-have a per-parse argument;
+not have a per-parse argument;
 if that per-parse argument
 is not blessed;
 or if that per-parse argument is blessed into a different package.
