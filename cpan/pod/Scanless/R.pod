@@ -572,6 +572,8 @@ determines what happens when asynchronous parse exhaustion occurs.
 Intuitively, "asynchronous" parse exhaustion is parse
 exhaustion at a point when control would not normally
 return to the application.
+The C<too_many_earley_items> setting is allowed
+in any call of any of the recognizer setting-aware methods.
 For details
 see the
 L<description of exhaustion parse events|Marpa::R2::Event/"Exhaustion events">.
@@ -642,19 +644,21 @@ on parse order|Marpa::R2::Semantics::Order>.
 
 The C<ranking_method>
 is always allowed in
-the L<C<new()>|/"Constructor">,
-and L<C<series_restart()>|"series_restart()"> methods.
+calls of the L<C<new()>|/"Constructor">,
+and of the L<C<series_restart()>|"series_restart()"> methods.
 The C<ranking_method> setting is also allowed
-in calls of the
-L<C<< $slr->set() >>|"set()"> method,
-except for those made
-at L<evaluation time|/"Evaluation time">.
+in those calls of the
+L<C<< $slr->set() >>|"set()"> method
+that are not made during
+L<evaluation time|/"Evaluation time">.
 
 =head2 rejection
 
 The C<rejection> recognizer setting
 determines what happens when all tokens are rejected by the
 G1 parser.
+The C<too_many_earley_items> setting is allowed
+in any call of any of the recognizer setting-aware methods.
 The value must be either "C<fatal>"
 or "C<event>".
 "C<fatal>" is the default.
