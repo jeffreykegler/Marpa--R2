@@ -512,8 +512,7 @@ which will not conflict with
 the name of any user-named event.)
 
 Intuitively, parse exhaustion events are created only when
-needed to
-for control to return to the application.
+needed for control to return to the application.
 More precisely,
 a parse exhaustion event is called B<synchronous> if it
 occurs at a G1 location where control would return to the application

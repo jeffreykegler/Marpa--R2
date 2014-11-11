@@ -76,7 +76,7 @@ exhaustion-loving at some points
 and exhaustion-hating at others.
 We can call those languages B<exhaustion-conflicted>.
 
-=head1 What the SLIF does
+=head1 Reading methods
 
 The methods that may encounter parse exhaustion are those
 that read input:
@@ -87,13 +87,11 @@ and L<lexeme_read()|/"lexeme_read()">.
 These are also, and not by coincidence, the event-triggering methods.
 In this document, we will call them the B<reading methods>.
 
-The reading methods need
-to treat exhaustion-hating and exhaustion-loving
-languages equally.
-They also need to handle the exhaustion-conflicted ones smoothly.
+=head1 Synchronous and asynchronous parse exhaustion
 
-Intuitively, exhaustion parse events are only created when needed
-for control to return to the application.
+Intuitively, parse exhaustion is B<synchonous> if it
+occurs at a location where control would return to
+the user anyway, and asynchronous otherwise.
 More precisely,
 we say that parse exhaustion is B<synchronous>
 if it occurs at a point when control
@@ -113,92 +111,58 @@ a parse event other than an exhaustion event.
 
 =back
 
-If parse exhaustion is not synchronous,
-we say that it is B<asynchronous>.
-
-The L<C<< $recce->exhausted() >> method|/"exhausted()">
-is usually used to check for parse exhaustion
-in preference to checking the exhaustion event.
-The exhaustion event itself is often simply discarded
-by the application logic,
-and is declared only
-to make sure control returns to the application
-when parse exhaustion occurs.
-An application typically
-does not care whether
-exhaustion is synchronous or asynchronous.
-The L<C<exhausted()> method|/"exhausted()">
-will report both asynchronous and synchronous
-parse exhaustion,
-while an exhaustion event only triggers for
+Marpa can be set up so that an event occurs on
 asynchronous exhaustion.
-Exhaustion is discussed further in
-L<a separate document|Marpa::R2::Exhaustion>.
+Note that in The definition above
+the occurrence of an exhaustion event
+does not makes the parse exhaustion synchronous.
+This wording is chosen to avoid a paradox.
+If a parse exhaustion event could made exhaustion synchronous,
+then it B<should not> occur, because parse exhaustion events
+only occur on asynchronous parse exhaustion.
+But if the parse exhaustion event did not occur,
+then the parse exhaustion would be asynchronous, so that
+then a parse exhaustion event B<should> occur.
 
 In this document, an B<exhaustion location> is
 a location at which parse exhaustion occurs.
-The B<return location> is a location at which
-the current reading method returns.
-A B<non-return location> is a location that is
-not a return location.
 
-=over 4
+=head1 Handling parse exhaustion
 
-=item *
+How parse exhaustion is handled depends on the setting
+of the
+L<SLIF's C<exhaustion> recognizer setting|
+Marpa::R2::Scanless::R/"exhaustion">.
+The value of this may be "C<fatal>" or
+"C<event>".
+("C<fatal>" is the default.)
 
-If parse exhaustion occurs at a non-return location,
-it is considered a failure,
-because the reading method would go on to attempt
-to read more input at later locations.
-The failure is thrown as an exception.
+Synchronous parse exhaustion is always ignored,
+regardless of the recognizer setting.
+No exhaustion event is triggered by synchronous
+parse exhaustion.
 
-=item *
+If the C<exhaustion> setting is "C<fatal>",
+asynchronous parse exhaustion is thrown
+as a fatal error.
+If the C<exhaustion> setting is "C<event>",
+then an
+L<exhaustion event|Marpa::R2::Event/"Exhaustion events">
+is triggered, returning control to the application.
+This is treated by the
+triggering method as a successful return.
 
-If parse exhaustion occurs at a return location,
-and the return would be successful,
-parse exhaustion is ignored.
-The reading methods return success when
-they trigger a L<SLIF parse event|/Marpa::R2::Event>,
-or when they are at the end of the current input string.
-
-=item *
-
-If parse exhaustion occurs at a location
-where the reading method fails for another reason,
-the parse exhaustion is considered to be of lesser
-importance,
-and the other failure overrides it.
-
-=back
-
-One consequence of this is that the two reading methods
-for external scannning,
+Note that the
 L<lexeme_complete()|/Marpa::R2::Scanless::R/"lexeme_complete()">,
 and L<lexeme_read()|/Marpa::R2::Scanless::R/"lexeme_read()">,
 always ignore
-parse exhaustion.
+parse exhaustion,
+regardless of the C<exhaustion> recognizer setting.
 This is because these methods
 read input only at a single location,
-so that every exhaustion location is a return
-location.
+so that every parse exhaustion is synchronous.
 
-A second consequence is
-that in most cases it is not obvious whether parse
-exhaustion occurred or not.
-Below I will do a case-by-case analysis,
-showing that the parse exhaustion is usually
-
-=over 4
-
-=item *
-
-not important, or
-
-=item *
-
-about to become obvious in another way.
-
-=back
+=head Querying parse exhaustion
 
 Applications can directly query
 the parse exhaustion status
@@ -261,7 +225,7 @@ If the other error is recoverable,
 exhaustion status can be checked
 using the L<C<< $slr->exhausted() >> method|/"exhausted()">.
 
-=head2 Exhausted-hating and continuing despite exhaustion
+=head2 Exhausted-hating and asynchronous parse exhaustion
 
 If the application is exhaustion-hating, but it is exhausted
 and the exhaustion location is not a return location,
@@ -271,7 +235,7 @@ go on to read more input at a later location,
 something which is certain to fail,
 an exception is appropriate.
 
-=head2 Exhausted-loving and continuing despite exhaustion
+=head2 Exhausted-loving and asynchronous parse exhaustion
 
 If the application is exhaustion-loving, but would continue
 reading past the exhaustion location,
