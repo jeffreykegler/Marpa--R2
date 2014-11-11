@@ -845,7 +845,8 @@ and the actual input to the right of the event
 location is taken into account,
 it is quite possible that
 none of the parse trees
-will match a triggered event.
+will actually contain the symbol instance
+that triggered an event.
 
 In L<the example|/"An example">,
 prediction and completion
@@ -859,18 +860,22 @@ winds up in
 any of the parse tress.
 This is because they are derived from
 C<< <ambig1> >> or
-C<< <ambig2> >>.
-But for
-C<< <ambig1> >> or
-C<< <ambig2> >> to be fully recognized,
-there must be a 
+C<< <ambig2> >>,
+and C<< <ambig1> >> or
+C<< <ambig2> >> will never be fully recognized
+in any of the parse trees.
+The reason that 
+C<< <ambig1> >> and
+C<< <ambig2> >> will not be fully recognized
+is that their full recognition requires
+that there be a 
 C<< <z> >> symbol in the input and the
-input stream
-in the example does not contain a
+input stream in the example does not contain a
 C<< <z> >> symbol.
 
-All SLIF parse events are tentative,
-not just completion events.
+Exhaustion events are not tentative.
+All other SLIF parse events are tentative.
+
 In the example, the predictions
 for 
 C<< <mid1> >> and
@@ -888,6 +893,18 @@ one or more of the lexeme alternatives
 may not be used in any final parse tree.
 Because of this,
 lexeme events are also tentative.
+
+After rejection events,
+input can be,
+and typically is,
+retried at the same G1 location.
+This is what happens when the Ruby Slippers technique
+is used.
+Often, on the second or later attempt, one or
+more lexemes are found that are acceptable
+to the grammar.
+For this reason,
+rejection events are tentative.
 
 =head2 Nulled forests
 
