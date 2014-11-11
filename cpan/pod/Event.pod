@@ -750,7 +750,7 @@ An event is activated by default when it
 is declared.
 Deactivation and reactivation of events is
 done with the SLIF recognizer's
-L<activate() method|Marpa::R2::Scanless::R/"activate()">
+L<activate() method|Marpa::R2::Scanless::R/"activate()">.
 
 =back
 
@@ -759,7 +759,7 @@ L<activate() method|Marpa::R2::Scanless::R/"activate()">
 =head2 External scanning
 
 Switching to external scanning is an intended use case
-for all events.
+for all events, other than exhaustion events.
 In particular,
 the behavior of pre-lexeme events
 is most intuitive when thought about with
@@ -783,7 +783,8 @@ normalize-whitespace: 1
 When this triggers, the code in the example switches to
 external scanning:
 It reads a C<< <d> >> symbol externally,
-skips over lexeme actually in the input,
+skips over the lexeme actually found
+in the physical input,
 and resumes internal scanning.
 
 =head2 Markers
