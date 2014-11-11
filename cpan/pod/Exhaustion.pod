@@ -71,9 +71,10 @@ as exhaustion-loving languages.
 For many languages, it's not strictly love or hate.
 I mentioned Perl's C<__DATA__> as a complication in a
 basically exhaustion-hating language.
-Most large practical languages will be some mix
-of exhaustion-loving and exhaustion-hating.
-We can call them B<exhaustion-conflicted>.
+It is possible for a language to be
+exhaustion-loving at some points
+and exhaustion-hating at others.
+We can call those languages B<exhaustion-conflicted>.
 
 =head1 What the SLIF does
 
