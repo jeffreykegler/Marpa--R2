@@ -635,6 +635,7 @@ The G1 grammar would accept its lexeme at that location.
 
 The lexeme is not scanned externally,
 that is,
+it is not scanned
 by a call of the
 L<C<< $slr->lexeme_complete() >> method|Marpa::R2::Scanless::R/"lexeme_complete()">
 or of the
@@ -648,7 +649,7 @@ An event is activated by default when it
 is declared.
 Deactivation and reactivation of events is
 done with the SLIF recognizer's
-L<activate() method|Marpa::R2::Scanless::R/"activate()">
+L<activate() method|Marpa::R2::Scanless::R/"activate()">.
 
 =item *
 
@@ -661,14 +662,14 @@ have been applied.
 
 If it is a post-lexeme event,
 none of other remaining events are pre-lexeme events.
-(In other words, a pre-lexeme event prevents any
+(In other words, a pre-lexeme event prevents
 post-lexeme events from triggering at the same location.)
 
 =back
 
 Marpa allows ambiguous lexemes and,
 even after all the above criteria have been applied,
-there may be more than one lexeme event at a location.
+there may be more than one lexeme event at a G1 location.
 
 =head2 Pause span and pause lexeme
 
