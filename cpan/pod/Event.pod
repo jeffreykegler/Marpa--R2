@@ -506,7 +506,7 @@ An exhaustion parse event triggers on asynchronous parse exhaustion,
 if the recognizer's C<exhaustion> setting is "C<event>".
 The name of the event is
 "C<'exhausted>"
-(The initial single quote is part of the events name,
+(The initial single quote is part of the event's name,
 and indicates it is a reserved name,
 which will not conflict with
 the name of any user-named event.)
@@ -535,7 +535,7 @@ a parse event other than an exhaustion event.
 If parse exhaustion is not synchronous,
 we say that it is B<asynchronous>.
 
-The L<C<$recce->exhausted()> method|/"exhausted()">
+The L<C<< $recce->exhausted() >> method|/"exhausted()">
 is usually used to check for parse exhaustion
 instead of the exhaustion event.
 The exhaustion event itself is often simply discarded
@@ -543,9 +543,7 @@ by the application logic,
 and is declared only
 to make sure control returns to the application
 when parse exhaustion occurs.
-The L<C<$recce->exhausted()> method|/"exhausted()">
-is usually preferred,
-because an application typically
+An application typically
 does not care whether
 exhaustion is synchronous or asynchronous.
 The L<C<exhausted()> method|/"exhausted()">
