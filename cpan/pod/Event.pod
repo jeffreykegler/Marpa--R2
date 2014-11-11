@@ -683,7 +683,8 @@ originally undefined.
 Every call
 to the L<C<read()>|Marpa::R2::Scanless::R/"read()">
 or the L<C<resume()>|Marpa::R2::Scanless::R/"resume()">
-methods resets the pause span to undefined.
+methods resets the pause lexeme
+and the pause span to undefined.
 
 The pause span may be accessed directly
 with the
