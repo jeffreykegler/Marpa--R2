@@ -92,6 +92,49 @@ to treat exhaustion-hating and exhaustion-loving
 languages equally.
 They also need to handle the exhaustion-conflicted ones smoothly.
 
+Intuitively, exhaustion parse events are only created when needed
+for control to return to the application.
+More precisely,
+we say that parse exhaustion is B<synchronous>
+if it occurs at a point when control
+would normally return from SLIF to the application,
+due to either
+
+=over 4
+
+=item * 
+
+the parse reaching end of string, or
+
+=item *
+
+the occurrence of
+a parse event other than an exhaustion event.
+
+=back
+
+If parse exhaustion is not synchronous,
+we say that it is B<asynchronous>.
+
+The L<C<< $recce->exhausted() >> method|/"exhausted()">
+is usually used to check for parse exhaustion
+in preference to checking the exhaustion event.
+The exhaustion event itself is often simply discarded
+by the application logic,
+and is declared only
+to make sure control returns to the application
+when parse exhaustion occurs.
+An application typically
+does not care whether
+exhaustion is synchronous or asynchronous.
+The L<C<exhausted()> method|/"exhausted()">
+will report both asynchronous and synchronous
+parse exhaustion,
+while an exhaustion event only triggers for
+asynchronous exhaustion.
+Exhaustion is discussed further in
+L<a separate document|Marpa::R2::Exhaustion>.
+
 In this document, an B<exhaustion location> is
 a location at which parse exhaustion occurs.
 The B<return location> is a location at which
