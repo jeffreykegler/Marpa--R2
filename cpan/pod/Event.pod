@@ -932,9 +932,7 @@ C<< <g4> >> are in another,
 so that not just a parse tree,
 but an entire parse forest
 is nulled.
-(This section usually speaks 
-of nulled forests because,
-pedantically, a nulled tree is a forest
+(Pedantically, a nulled tree is a forest
 of a single tree.)
 
 More precisely,
@@ -1058,7 +1056,7 @@ because there is no practical distinction between predicting
 a nulled symbol, and actually seeing one.
 This means that the prediction and completion of a nulled symbol
 would always occur together.
-The very special nature of nulled symbols motivates their
+This very special nature of nulled symbols motivates their
 treatment as a special case.
 
 =head2 Hidden events
