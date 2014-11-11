@@ -537,7 +537,7 @@ we say that it is B<asynchronous>.
 
 The L<C<< $recce->exhausted() >> method|/"exhausted()">
 is usually used to check for parse exhaustion
-instead of the exhaustion event.
+in preference to checking the exhaustion event.
 The exhaustion event itself is often simply discarded
 by the application logic,
 and is declared only
