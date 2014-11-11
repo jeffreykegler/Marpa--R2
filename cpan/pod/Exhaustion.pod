@@ -33,14 +33,16 @@ Regardless of what it reads next,
 the parse will fail.
 When this happens, the parse is said to be B<exhausted>.
 
-Parse exhaustion is sometimes confused with parse failure.
-But parse exhaustion is also sometimes confused with parse success.
-That is because
-there can be a strong association either way,
-depending on the kind of application a user is most focused on.
-The problem is that there are two very different kinds of application:
-exhaustion-loving and exhaustion-hating.
-B<Both> are very important.
+Some users have confused parse exhaustion with parse failure.
+But other users have confused parse exhaustion with parse success.
+That is because,
+for a particular grammar,
+there can be a strong association between parse exhaustion
+and parse success,
+but the strong association can go either way.
+Grammars can be either exhaustion-loving or exhaustion-hating.
+B<Both> kinds of grammar are very common in
+practical application.
 
 =head1 Hate and love
 
