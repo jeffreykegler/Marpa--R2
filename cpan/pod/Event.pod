@@ -814,8 +814,8 @@ rule.
 This section describes 
 some implications of the SLIF parse events mechanism
 that may be unexpected at first.
-These implications are Marpa working as designed,
-and I hope the reader will usually come to agree,
+These implications are Marpa working as designed and,
+I hope the reader will agree,
 as is desirable.
 
 =head2 Ambiguity
