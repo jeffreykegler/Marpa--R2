@@ -717,9 +717,31 @@ L<named event statement|Marpa::R2::Scanless::DSL/"Named event statement">.
 
 =item *
 
-It is a prediction and its symbol is acceptable at the current location;
-or it is a completion or a nulling event and its symbol is recognized
+Its B<triggering condition> is true.  Specifically,
+
+=over 4
+
+=item *
+
+It is a prediction and its symbol is acceptable at the current location; or
+
+=item *
+
+it is a completion or a nulling event and its symbol is recognized
+at the current location; or
+
+=item *
+
+it is an exhaustion event, and asynchronous parse exhausted,
+L<as defined above|/"Exhaustion event"> occurs at the current
+location.
+
+=item *
+
+it is an rejection event, and all lexeme alternatives are rejected
 at the current location.
+
+=back
 
 =item *
 
