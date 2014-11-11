@@ -266,17 +266,17 @@ wants to find the longest occurrence starting at some location.
 (Lexers are typically applications of this kind.)
 Looking for exhaustion is one way to try to implement this
 kind of "longest acceptable input stream" search.
-
 Exhaustion-sensitivity is not necessarily the best way,
 or even a good way,
 to find the "longest parse".
 Exhaustion may not happen until after last successful parse --
 sometimes not until long after it.
 Completion parse events may be a cleaner way to deal with this.
+
 Applications which do want to use parse exhaustion as part of
 a strategy for finding the end of parse
 can set the
-L<SLIF's C<<exhaustion>> recognizer setting|Marpa::R2::Scanless::R/"exhausted">
+L<SLIF's C<exhaustion> recognizer setting|Marpa::R2::Scanless::R/"exhaustion">
 to "C<event>", so that a parse event occurs at parse exhaustion.
 When the event-triggering method returns, the application
 can then
