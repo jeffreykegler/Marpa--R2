@@ -599,9 +599,10 @@ all lexemes at a G1 location are rejected,
 and the recognizer's C<rejection> setting is "C<event>".
 The name of the event is
 "C<'rejected">
-(The initial single quote is part of the events name,
+(The initial single quote is part of the event's name,
 and indicates it is a reserved name,
-which will not conflict with any user-named event.)
+which will not conflict with the name
+of any user-named event.)
 
 =head1 Lexeme events
 
