@@ -733,8 +733,8 @@ at the current location; or
 =item *
 
 it is an exhaustion event, and asynchronous parse exhausted,
-L<as defined above|/"Exhaustion event"> occurs at the current
-location.
+L<as defined above|/"Exhaustion event">,
+occurs at the current location; or
 
 =item *
 
