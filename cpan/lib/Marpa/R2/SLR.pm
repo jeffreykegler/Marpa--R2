@@ -98,9 +98,15 @@ sub Marpa::R2::Scanless::R::last_completed {
     return ( $first_origin, ( $earley_set - $first_origin ) );
 } ## end sub Marpa::R2::Scanless::R::last_completed
 
+# Returns most input stream span for symbol.
+# If more than one ends at the same location,
+# returns the longest.
+# Returns under if there is no such span.
+# Other failure is thrown.
 sub Marpa::R2::Scanless::R::last_completed_span {
     my ( $slr, $symbol_name ) = @_;
     my ($g1_origin, $g1_span) = $slr->last_completed( $symbol_name );
+    return if not defined $g1_origin;
     my ($start_input_location) = $slr->g1_location_to_span($g1_origin + 1);
     my @end_span = $slr->g1_location_to_span($g1_origin + $g1_span);
     return ($start_input_location, ($end_span[0]+$end_span[1])-$start_input_location);
@@ -1799,8 +1805,8 @@ sub Marpa::R2::Scanless::R::activate {
     return 1;
 } ## end sub Marpa::R2::Scanless::R::activate
 
-# To be documented
-
+# On success, returns the old priority value.
+# Failures are thrown.
 sub Marpa::R2::Scanless::R::lexeme_priority_set {
     my ($slr, $lexeme_name, $new_priority) = @_;
     my $thin_slr = $slr->[Marpa::R2::Internal::Scanless::R::C];

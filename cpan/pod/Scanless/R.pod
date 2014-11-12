@@ -1136,6 +1136,30 @@ This will never be location zero, because a succesful
 call of C<lexeme_complete()> always advances the location.
 Failure is thrown as an exception.
 
+=head2 lexeme_priority_set()
+
+=for Marpa::R2::Display
+name: SLIF recognizer lexeme_priority_set() synopsis
+normalize-whitespace: 1
+
+        $recce->lexeme_priority_set( 'prefix lexeme', -1 );
+
+=for Marpa::R2::Display::End
+
+Takes as its first argument the name of a lexeme
+and changes the priority of that lexeme to the value
+of its second argument.
+Both arguments are required.
+
+Changing the lexeme priority is a very flexible
+technique.
+It can, in effect, allow an application
+to switch lexers.
+
+On success, returns the old priority value
+is returned.
+Failure is thrown.
+
 =head2 lexeme_read()
 
 =for Marpa::R2::Display
@@ -1491,6 +1515,30 @@ the longest.
 If there was no match,
 C<last_completed()> returns the empty array in array context
 and a Perl false in scalar context.
+
+=head2 last_completed_span()
+
+=for Marpa::R2::Display
+name: SLIF recognizer last_completed_span() synopsis
+normalize-whitespace: 1
+
+        my @longest_span = $recce->last_completed_span('target');
+        diag( "Actual target at $pos: ", $recce->literal(@longest_span) ) if $verbose;
+        
+=for Marpa::R2::Display::End
+
+Returns the most recent input stream span for the symbol
+that is its first and only argument.
+That argument is required.
+For details on how the input stream span is determined,
+see L<"Literals and G1 spans">.
+
+If more than one instance of the symbol
+ends at the same location,
+C<last_completed_span()> returns the longest span.
+If there is no symbol instance for the argument symbol,
+C<last_completed_span()> returns the empty array.
+Other failures are thrown.
 
 =head2 line_column()
 

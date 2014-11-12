@@ -172,11 +172,23 @@ sub test {
         );
         $recce->activate( 'target', 0 );
         $recce->read( \$string, $target_start, $prefix_end - $target_start );
+
+# Marpa::R2::Display
+# name: SLIF recognizer lexeme_priority_set() synopsis
+
         $recce->lexeme_priority_set( 'prefix lexeme', -1 );
+
+# Marpa::R2::Display::End
+
         $pos = $recce->resume($prefix_end);
+
+# Marpa::R2::Display
+# name: SLIF recognizer last_completed_span() synopsis
 
         my @longest_span = $recce->last_completed_span('target');
         diag( "Actual target at $pos: ", $recce->literal(@longest_span) ) if $verbose;
+
+# Marpa::R2::Display::End
 
         last TARGET if not scalar @longest_span;
         push @found, $recce->literal(@longest_span);
