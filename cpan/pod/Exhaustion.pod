@@ -102,7 +102,7 @@ due to either
 
 =item * 
 
-the parse reaching end of string, or
+the parse reaching end of string (EOS), or
 
 =item *
 
@@ -172,7 +172,7 @@ from the the context whether the parse is exhausted,
 or you will not care.
 But what if you do not know and do care?
 
-Those applications which want to know whether
+Those applications that want to know whether
 a parse is exhausted or not
 can directly query
 parse exhaustion status
@@ -188,25 +188,31 @@ Exhaustion events only trigger in cases of asynchronous parse exhaustion.
 
 Exhaustion-conflicted applications are those which cannot be
 called exhaustion-loving or exhaustion-hating.
-This may be because their behavior is a combination of the two,
-but it may also be because the application's behavior is not known.
-For example, while developing an application, it's convenient
-to treat it as exhaustion-conflicted.
-By default, the SLIF assumes that
-applications are exhausted-conflicted,
-as a "lowest common denominator".
-This default behavior usually fits well enough
-to not need changing.
+This may be because their behavior is a combination of the two.
+But it may also be because the application's behavior is not known --
+for example, while developing an application, it's convenient
+to assume that it is exhaustion-conflicted.
 
-For a typical application without events, end of parse is end of string.
-In this case exhaustion before end of string is a fatal error,
+The SLIF behavior for exhaustion-conflicted applications has to be aimed
+at a "lowest common denominator".
+Since it is also a good idea for a default to be a lowest common
+denomiator,
+the SLIF's default behaviors assumes that an application
+is exhausted-conflicted,
+Lowest common denominator or not,
+the default behavior usually works well enough
+that it does not need customizing.
+
+For a typical application without events, end of parse (EOP)
+is end of string (EOS).
+In this case exhaustion before EOS is a fatal error,
 which is usually what is desired.
-On end of string,
+On EOS,
 unless the application checks,
 it will not know whether exhaustion occurred, but typically
 it does not care.
 
-If the application uses events to signal end of parse,
+If the application uses events to signal EOP,
 the case is much the same.
 The application will not know if exhaustion occurred,
 but typically
@@ -229,11 +235,11 @@ For an exhaustion-loving application,
 what was said for exhaustion-conflicted applications
 applies without change.
 Applications that consider it important to confirm
-that exhaustion *did* occur at end of parse
+that exhaustion *did* occur at EOP
 may check for exhaustion explicitly.
 
 Some applications go beyond being exhaustion-loving,
-and want to use exhaustion to signal the end of parse.
+and want to use exhaustion to signal the EOP.
 These exhaustion-sensing applications are
 L<discussed below|Exhaustion-sensing>.
 
@@ -244,8 +250,8 @@ by the default behavior.
 Aynchronous exhaustion will be a fatal error.
 Synchronous exhaustion
 will cause failure at the next read,
-unless it happens at end of parse.
-By default, exhaustion at end of parse will go unreported
+unless it happens at EOP.
+By default, exhaustion at EOP will go unreported
 but in a genuinely exhaustion-hating application, the
 problem will the parse will fail,
 and this will show up during evaluation.
@@ -276,7 +282,7 @@ sometimes not until long after it.
 Completion parse events may be a cleaner way to deal with this.
 
 Applications which do want to use parse exhaustion as part of
-a strategy for finding the end of parse
+a strategy for finding the EOP
 can set the
 L<SLIF's C<exhaustion> recognizer setting|Marpa::R2::Scanless::R/"exhaustion">
 to "C<event>", so that a parse event occurs at parse exhaustion.
