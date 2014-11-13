@@ -214,7 +214,7 @@ unless the application checks,
 it will not know whether exhaustion occurred, but usually
 it does not care.
 If the application does care, it can
-L<check for exhaustion explicitly|Detecting parse exhaustion>.
+L<check for exhaustion explicitly|/"Detecting parse exhaustion">.
 
 If the application uses events to signal EOP,
 the case is much the same.
@@ -223,7 +223,7 @@ the application will not know if exhaustion occurred,
 but usually
 it will not care.
 If the application does care, it can
-L<check for exhaustion explicitly|Detecting parse exhaustion>.
+L<check for exhaustion explicitly|/"Detecting parse exhaustion">.
 
 If the application uses events for other purposes,
 an event may "hide" exhaustion, so that it is not
@@ -235,7 +235,7 @@ error.
 An application which wants to know about exhaustion immediately,
 either to "fast fail" or for other reasons,
 can
-L<check for exhaustion explicitly|Detecting parse exhaustion>
+L<check for exhaustion explicitly|/"Detecting parse exhaustion">
 every time an event triggers.
 
 =head2 Exhaustion-loving
@@ -245,7 +245,7 @@ what was said for exhaustion-conflicted applications
 applies without change.
 Applications that consider it important to confirm
 that exhaustion did occur at EOP can
-L<check for exhaustion explicitly|Detecting parse exhaustion>
+L<check for exhaustion explicitly|/"Detecting parse exhaustion">
 
 Some applications go beyond being exhaustion-loving,
 and want to use exhaustion to signal the EOP.
