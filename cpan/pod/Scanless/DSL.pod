@@ -720,8 +720,8 @@ the method will return immediately,
 with the current location at the trigger location.
 Once triggered,
 named events may be queried using
-L<the Scanless recognizer's event()
-method|Marpa::R2::Scanless::R/"event()">.
+L<the Scanless recognizer's events()
+method|Marpa::R2::Scanless::R/"events()">.
 For details, see
 L<the document on SLIF parse
 events|Marpa::R2::Event>.
