@@ -284,7 +284,7 @@ wants to find the longest occurrence starting at some location.
 (Lexers are typically applications of this kind.)
 Looking for exhaustion is one way to try to implement this
 kind of "longest acceptable input stream" search.
-Exhaustion-sensitivity is not necessarily the best way,
+But exhaustion-sensing is not necessarily the best way,
 or even a good way,
 to find the "longest parse".
 Exhaustion may not happen until after last successful parse --
