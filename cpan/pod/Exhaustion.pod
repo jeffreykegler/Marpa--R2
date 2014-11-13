@@ -162,7 +162,7 @@ This is because these methods
 read input only at a single location,
 so that every parse exhaustion is synchronous.
 
-=head Querying parse exhaustion
+=head1 Detecting parse exhaustion
 
 In the detailed cases discussed next, in many cases
 it will not be clear, based on the return from
