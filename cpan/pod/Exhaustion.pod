@@ -228,7 +228,7 @@ L<check for exhaustion explicitly|Detecting parse exhaustion>.
 If the application uses events for other purposes,
 an event may "hide" exhaustion, so that it is not
 thrown as an error.
-Typically, an application will soon attempts to continue
+Typically, an application will soon attempt to continue
 the reading of input,
 and when it does there will be a fatal
 error.
@@ -244,8 +244,8 @@ For an exhaustion-loving application,
 what was said for exhaustion-conflicted applications
 applies without change.
 Applications that consider it important to confirm
-that exhaustion *did* occur at EOP
-may check for exhaustion explicitly.
+that exhaustion did occur at EOP
+L<check for exhaustion explicitly|Detecting parse exhaustion>
 
 Some applications go beyond being exhaustion-loving,
 and want to use exhaustion to signal the EOP.
