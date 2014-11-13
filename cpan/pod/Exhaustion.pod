@@ -164,11 +164,13 @@ so that every parse exhaustion is synchronous.
 
 =head1 Detecting parse exhaustion
 
-In the detailed cases discussed next, in many cases
-it will not be clear, based on the return from
-a reading method, whether exhaustion occurred or not.
-In most of these cases, you will not care.
-But what if you do?
+The return value of
+a reading method
+does not indicate whether exhaustion occurred or not.
+In most cases, you will either know
+from the the context whether the parse is exhausted,
+or you will not care.
+But what if you do not know and do care?
 
 Those applications which want to know whether
 a parse is exhausted or not
@@ -176,11 +178,11 @@ can directly query
 parse exhaustion status
 with
 the L<C<exhaustion()> method|/Marpa::R2::Scanless::R/"exhaustion()">.
-Even what L<parse exhaustion events|Marpa::R2::Event/"Exhaustion events">
+Even when L<parse exhaustion events|Marpa::R2::Event/"Exhaustion events">
 are enabled,
-using the C<exhaustion()> method will be preferred,
-because it reports both asynchronous and synchronous parse exhaustion,
-while exhaustion events only occur in cases of asynchronous parse exhaustion.
+using the C<exhaustion()> method is the preferred method for detecting exhaustion,
+because it reports both asynchronous and synchronous parse exhaustion.
+Exhaustion events only trigger in cases of asynchronous parse exhaustion.
 
 =head1 Exhaustion-conflicted
 
