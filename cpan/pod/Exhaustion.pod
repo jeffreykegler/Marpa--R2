@@ -164,101 +164,101 @@ so that every parse exhaustion is synchronous.
 
 =head Querying parse exhaustion
 
-Applications can directly query
-the parse exhaustion status
+In the detailed cases discussed next, in many cases
+it will not be clear, based on the return from
+a reading method, whether exhaustion occurred or not.
+In most of these cases, you will not care.
+But what if you do?
+
+Those applications which want to know whether
+a parse is exhausted or not
+can directly query
+parse exhaustion status
 with
 the L<exhaustion() method|/Marpa::R2::Scanless::R/"exhaustion()">.
+Even what L<parse exhaustion events|Marpa::R2::Event/"Exhaustion events">
+are enabled,
+using the L<exhaustion() method will be preferred,
+because it reports both asynchronous and synchronous parse exhaustion,
+while exhaustion events only occur in cases of asynchronous parse exhaustion.
 
-=head1 Cases
+=head1 Exhaustion-conflicted
 
-To explain how this behavior works for exhaustion-loving and
-exhaustion-hating applications, we'll consider the various possibilities.
+Exhaustion-conflicted applications are those which cannot be
+called exhaustion-loving or exhaustion-hating.
+This may be because their behavior is a combination of the two,
+but it may also be because the application's behavior is not known.
+For example, while developing an application, it's convenient
+to treat it as exhaustion-conflicted.
+By default, the SLIF assumes that
+applications are exhausted-conflicted,
+as a "lowest common denominator".
+This default behavior usually fits well enough
+to not need changing.
 
-=head2 Exhaustion-loving and successful
+For a typical application without events, end of parse is end of string.
+In this case exhaustion before end of string is a fatal error,
+which is usually what is desired.
+On end of string,
+unless the application checks,
+it will not know whether exhaustion occurred, but typically
+it does not care.
 
-If the
-application is exhaustion-loving and it returns success
-at an exhaustion location,
-all should be well.
-A successful return is usually exactly what is
-wanted.
-If an application wants to confirm that exhaustion occurred,
-it can use the L<C<< $slr->exhausted() >> method|/"exhausted()">.
+If the application uses events to signal end of parse,
+the case is much the same.
+The application will not know if exhaustion occurred,
+but typically
+it will not care.
 
-=head2 Exhaustion-hating and successful
+If the application uses events for other purposes,
+an event may "hide" exhaustion, so that it is not
+thrown as an error.
+Typically, the applications will soon attempts to continue
+the reading of input, and when it does there will be a fatal
+error.
+An application which wants to know about exhaustion immediately,
+either to "fast fail" or for other reasons,
+can check
+for exhaustion explicitly every time an event triggers.
 
-It may happen that an application is exhaustion-hating but
-exhausts the parse at a return location.
-This will usually not be what was wanted,
-but the return value will give no indication of the problem.
-Typically, an application will continue processing,
-and either try to evaluate the
-parse,
-or to read more input.
+=head2 Exhaustion-loving
 
-In either case the problem will be reported quickly.
-If the application tries to evaluate the parse,
-it will discover there is no parse value.
-If it tries to read more input, this will fail
-and be reported as an attempt to read by an exhausted recognizer.
+For an exhaustion-loving application,
+what was said for exhaustion-conflicted applications
+applies without change.
+Applications that consider it important to confirm
+that exhaustion *did* occur at end of parse
+may check for exhaustion explicitly.
 
-Some applications will be unable to rely on later methods
-to report the problem,
-will wish to fast fail,
-or will want finer control of the error reporting.
-These applications can
-L<check the exhaustion status explicitly|/"exhausted()">.
+Some applications go beyond being exhaustion-loving,
+and want to use exhaustion to signal the end of parse.
+These exhaustion-sensing applications are
+L<discussed below|Exhaustion-sensing>.
 
-=head2 Failures
+=head2 Exhaustion-hating
 
-If an application
-returns or throws a failure that occurs
-at an exhaustion location,
-but for another reason,
-the other failure overrides.
-This is the case regardless of whether
-the application is exhaustion-loving or exhaustion-hating.
+Exhaustion-hating applications are handled reasonably
+by the default behavior.
+Aynchronous exhaustion will be a fatal error.
+Synchronous exhaustion
+will cause failure at the next read,
+unless it happens at end of parse.
+By default, exhaustion at end of parse will go unreported
+but in a genuinely exhaustion-hating application, the
+problem will the parse will fail,
+and this will show up during evaluation.
 
-A non-recoverable error
-makes parse exhaustion irrelevant.
-If the other error is recoverable,
-exhaustion status can be checked
-using the L<C<< $slr->exhausted() >> method|/"exhausted()">.
+Exhaustion-hating applications may want to be stricter
+than this.
+These can check for exhaustion explicitly whenever
+a reading method returns.
+A possible annoyance is that, depending where it happens,
+exhaustion may also cause the reading method to throw an exception.
+Applications which want more orthogonality in their exhaustion handling
+can prevent exception being thrown due to parse exhaustion
+by enabling exhaustion events.
 
-=head2 Exhausted-hating and asynchronous parse exhaustion
-
-If the application is exhaustion-hating, but it is exhausted
-and the exhaustion location is not a return location,
-Marpa's SLIF throws a failure.
-Since the application would ordinarily
-go on to read more input at a later location,
-something which is certain to fail,
-an exception is appropriate.
-
-=head2 Exhausted-loving and asynchronous parse exhaustion
-
-If the application is exhaustion-loving, but would continue
-reading past the exhaustion location,
-Marpa throws an exception.
-Exhaustion-loving usually means that
-when exhaustion occurs,
-an application succeeds and is at the end of the parse.
-For attempts to read past the end of parse,
-throwing an exception is
-the right thing to do.
-
-But some exhaustion-loving applications
-do not know where the end of parse is in advance.
-As a specialized technique,
-these applications
-may try to use parse exhaustion to detect where the
-parse ends.
-See below on
-L<exhaustion-sensitivity|/"Exhaustion-sensitive applications">.
-If it is desirable to use exhaustion to help find the end of parse,
-the exception may be caught.
-
-=head1 Exhaustion-sensitive applications 
+=head1 Exhaustion-sensing applications 
 
 Sometimes an application, rather than read
 an entire input,
