@@ -264,11 +264,11 @@ By default, exhaustion at EOP will go unreported
 but if an application really is exhaustion-hating,
 the parse will fail,
 and parse failure will certainly show up
-when the application tries to evaluation the parse.
+when the application tries to evaluate the parse.
 
-Exhaustion-hating applications may want to be stricter
-than this.
-These can check for exhaustion explicitly whenever
+Exhaustion-hating applications, if they want to be stricter
+than this,
+can check for exhaustion explicitly whenever
 a reading method returns.
 A possible annoyance is that, depending where it happens,
 exhaustion may also cause the reading method to throw an exception.
