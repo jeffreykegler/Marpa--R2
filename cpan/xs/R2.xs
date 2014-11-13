@@ -77,7 +77,7 @@ typedef struct {
     int linecol;
     /* Lines are 1-based, columns are zero-based and negated.
      * In the first column (column 0), linecol is the 1-based line number.
-     * In subsequenct columns, linecol is -n, where n is the 0-based column
+     * In subsequent columns, linecol is -n, where n is the 0-based column
      * number.
      */
 } Pos_Entry;
@@ -5972,7 +5972,7 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv ((IV) length)));
 }
 
- # Return values are 1-based, as is the tradition */
+ # Return values are 1-based, as is the tradition
  # EOF is reported as the last line, last column plus one.
 void
 line_column(slr, pos)
