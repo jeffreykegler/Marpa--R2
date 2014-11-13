@@ -13,3 +13,4 @@ nogit*
 cpan/pod/Event.pod~
 *.PL~
 *.pod~
+*.xs~
