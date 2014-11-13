@@ -195,12 +195,14 @@ to assume that it is exhaustion-conflicted.
 
 The SLIF behavior for exhaustion-conflicted applications has to be aimed
 at a "lowest common denominator".
-Since it is also a good idea for a default to be a lowest common
-denomiator,
-the SLIF's default behaviors assumes that an application
-is exhausted-conflicted,
-Lowest common denominator or not,
-the default behavior usually works well enough
+It is also a good idea for a default to be a lowest common
+denominator and,
+by default,
+the SLIF assumes that an application
+is exhausted-conflicted.
+In fact,
+the default behavior on parse exhaustion
+usually works well enough
 that it does not need customizing.
 
 For a typical application without events, end of parse (EOP)
