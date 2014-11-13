@@ -193,7 +193,7 @@ But it may also be because the application's behavior is not known --
 for example, while developing an application, it's convenient
 to assume that it is exhaustion-conflicted.
 
-The SLIF behavior for exhaustion-conflicted applications has to be aimed
+The SLIF's behavior for exhaustion-conflicted applications has to be aimed
 at a "lowest common denominator".
 It is also a good idea for a default to be a lowest common
 denominator and,
@@ -209,27 +209,34 @@ For a typical application without events, end of parse (EOP)
 is end of string (EOS).
 In this case exhaustion before EOS is a fatal error,
 which is usually what is desired.
-On EOS,
+On return due to EOS,
 unless the application checks,
-it will not know whether exhaustion occurred, but typically
+it will not know whether exhaustion occurred, but usually
 it does not care.
+If the application does care, it can
+L<check for exhaustion explicitly|Detecting parse exhaustion>.
 
 If the application uses events to signal EOP,
 the case is much the same.
-The application will not know if exhaustion occurred,
-but typically
+On return due to an event,
+the application will not know if exhaustion occurred,
+but usually
 it will not care.
+If the application does care, it can
+L<check for exhaustion explicitly|Detecting parse exhaustion>.
 
 If the application uses events for other purposes,
 an event may "hide" exhaustion, so that it is not
 thrown as an error.
-Typically, the applications will soon attempts to continue
-the reading of input, and when it does there will be a fatal
+Typically, an application will soon attempts to continue
+the reading of input,
+and when it does there will be a fatal
 error.
 An application which wants to know about exhaustion immediately,
 either to "fast fail" or for other reasons,
-can check
-for exhaustion explicitly every time an event triggers.
+can
+L<check for exhaustion explicitly|Detecting parse exhaustion>
+every time an event triggers.
 
 =head2 Exhaustion-loving
 
