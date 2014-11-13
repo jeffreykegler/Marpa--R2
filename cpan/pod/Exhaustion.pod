@@ -276,7 +276,7 @@ Applications which want more orthogonality in their exhaustion handling
 can enable exhaustion events,
 which will prevent exceptions being thrown due to parse exhaustion.
 
-=head1 Exhaustion-sensing applications 
+=head1 Exhaustion-sensing
 
 Sometimes an application, rather than read
 an entire input,
