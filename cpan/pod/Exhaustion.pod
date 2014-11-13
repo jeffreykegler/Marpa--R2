@@ -250,7 +250,7 @@ L<check for exhaustion explicitly|/"Detecting parse exhaustion">
 Some applications go beyond being exhaustion-loving,
 and want to use exhaustion to signal the EOP.
 These exhaustion-sensing applications are
-L<discussed below|Exhaustion-sensing>.
+L<discussed below|/"Exhaustion-sensing">.
 
 =head2 Exhaustion-hating
 
