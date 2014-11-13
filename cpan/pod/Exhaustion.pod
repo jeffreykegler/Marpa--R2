@@ -244,7 +244,7 @@ For an exhaustion-loving application,
 what was said for exhaustion-conflicted applications
 applies without change.
 Applications that consider it important to confirm
-that exhaustion did occur at EOP
+that exhaustion did occur at EOP can
 L<check for exhaustion explicitly|Detecting parse exhaustion>
 
 Some applications go beyond being exhaustion-loving,
@@ -256,7 +256,7 @@ L<discussed below|Exhaustion-sensing>.
 
 Exhaustion-hating applications are handled reasonably
 by the default behavior.
-Aynchronous exhaustion will be a fatal error.
+Asynchronous exhaustion will be a fatal error.
 Synchronous exhaustion
 will cause failure at the next read,
 unless it happens at EOP.
