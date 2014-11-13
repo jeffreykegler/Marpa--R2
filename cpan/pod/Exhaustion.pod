@@ -298,7 +298,7 @@ L<SLIF's C<exhaustion> recognizer setting|Marpa::R2::Scanless::R/"exhaustion">
 to "C<event>", so that a parse event occurs at parse exhaustion.
 When the event-triggering method returns, the application
 can then
-L<check the exhaustion status explicitly|/"exhausted()">.
+L<check for exhaustion explicitly|/"Detecting parse exhaustion">.
 
 =head1 Copyright and License
 
