@@ -261,9 +261,10 @@ Synchronous exhaustion
 will cause failure at the next read,
 unless it happens at EOP.
 By default, exhaustion at EOP will go unreported
-but in a genuinely exhaustion-hating application, the
-problem will the parse will fail,
-and this will show up during evaluation.
+but if an application really is exhaustion-hating,
+the parse will fail,
+and parse failure will certainly show up
+when the application tries to evaluation the parse.
 
 Exhaustion-hating applications may want to be stricter
 than this.
@@ -272,8 +273,8 @@ a reading method returns.
 A possible annoyance is that, depending where it happens,
 exhaustion may also cause the reading method to throw an exception.
 Applications which want more orthogonality in their exhaustion handling
-can prevent exception being thrown due to parse exhaustion
-by enabling exhaustion events.
+can enable exhaustion events,
+which will prevent exceptions being thrown due to parse exhaustion.
 
 =head1 Exhaustion-sensing applications 
 
