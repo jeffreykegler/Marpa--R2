@@ -256,6 +256,7 @@ t/sl_amon.t
 t/sl_asf.t
 t/sl_ast.t
 t/sl_astsyn.t
+t/sl_bracket.t
 t/sl_calc.t
 t/sl_completed.t
 t/sl_debug.t

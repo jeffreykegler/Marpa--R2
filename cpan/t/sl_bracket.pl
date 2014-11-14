@@ -42,7 +42,7 @@ sub usage {
         "For testing: $PROGRAM_NAME --test\n";
 }
 
-my $testing = 0;
+my $testing = 1;
 my $verbose = 0;
 usage()
     if
