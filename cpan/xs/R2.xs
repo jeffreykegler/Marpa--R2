@@ -6299,8 +6299,9 @@ PPCODE:
    * but a CR would work here.
    */
   UV previous_codepoint = 0xFDD0;
-  int next_line = 1;
-  int next_column = 0;
+  /* Counts are 1-based */
+  int this_line = 1;
+  int this_column = 1;
 
   STRLEN pv_length;
 
@@ -6365,13 +6366,19 @@ PPCODE:
            * Delay using those until the next pass through this
            * loop.
            */
-	  slr->pos_db[slr->pos_db_logical_size].linecol =
-	    slr->pos_db[slr->pos_db_logical_size - 1].linecol - 1;
+          const int pos = slr->pos_db_logical_size - 1;
+          const int previous_linecol = slr->pos_db[pos].linecol;
+          if (previous_linecol < 0)
+          {
+            slr->pos_db[slr->pos_db_logical_size].linecol = previous_linecol-1;
+          } else {
+            slr->pos_db[slr->pos_db_logical_size].linecol = -1;
+          }
 	}
       else
 	{
 	  slr->pos_db[slr->pos_db_logical_size].linecol =
-	    next_column ? next_column : next_line;
+	    this_column > 1 ? 1-this_column : this_line;
 	  switch (codepoint)
 	    {
 	    case 0x0a:
@@ -6381,11 +6388,11 @@ PPCODE:
 	    case 0x85:
 	    case 0x2028:
 	    case 0x2029:
-	      next_line++;
-	      next_column = 0;
+	      this_line++;
+	      this_column = 1;
 	      break;
 	    default:
-	      next_column--;
+	      this_column++;
 	    }
 	}
       slr->pos_db_logical_size++;
