@@ -42,15 +42,14 @@ sub usage {
         "For testing: $PROGRAM_NAME --test\n";
 }
 
-my $testing = 1;
+our $TESTING = 1;
 my $verbose = 0;
 usage()
     if
-    not Getopt::Long::GetOptions( verbose => \$verbose, test => \$testing );
+    not Getopt::Long::GetOptions( verbose => \$verbose, 'test!' => \$TESTING );
 usage() if @ARGV;
 
-Test::More::plan tests => 5 if $testing;
-our $TESTING = $testing;
+Test::More::plan tests => 5 if $TESTING;
 
 my $grammar = << '=== GRAMMAR ===';
 :default ::= action => [ name, value ]
@@ -166,7 +165,7 @@ sub test {
     my ( $g, $string, $fixes ) = @_;
     my @problems = ();
     my @fixes    = ();
-    diagnostic( "Input: ", substr( $string, 0, 60 ) ) if $verbose or $TESTING;
+    diagnostic( "Input: ", substr( $string, 0, 60 ) ) if $verbose;
 
     # Record the length of the "real input"
     my $input_length = length $string;
