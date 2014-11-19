@@ -95,7 +95,7 @@ By default, this
 is identical to a physical input stream.
 The physical input stream is
 a Perl string passed as the first argument
-to the L<C<< $slr->read() >> method|/read()> method.
+to the L<C<< $recce->read() >> method|/read()> method.
 Once set by the C<read()> method, the physical input
 stream cannot be changed.
 
@@ -286,7 +286,7 @@ L<C<resume()>|/"resume()"> methods, below.
 
 When the application considers input complete,
 and is ready to produce a parse value,
-the L<C<< $slr->value() >> method|/"value()"> method
+the L<C<< $recce->value() >> method|/"value()"> method
 is used.
 In most cases, this is all that is needed.
 But Marpa also allows repeated passes over the same input
@@ -297,11 +297,11 @@ L<a separate document|Marpa::R2::Semantics>.
 =head1 External scanning
 
 External scanning is usually performed by reading lexemes using the 
-L<C<< $slr->lexeme_read() >> method|/"lexeme_read()">, which
+L<C<< $recce->lexeme_read() >> method|/"lexeme_read()">, which
 allows the reading of unambiguous lexemes.
 If ambiguous lexemes are needed, then
-the L<C<< $slr->lexeme_alternative() >>|/"lexeme_alternative()"> and
-L<C<< $slr->lexeme_complete() >>|/"lexeme_complete()"> methods can be used.
+the L<C<< $recce->lexeme_alternative() >>|/"lexeme_alternative()"> and
+L<C<< $recce->lexeme_complete() >>|/"lexeme_complete()"> methods can be used.
 
 Scanning must always begin with a call 
 to the L<C<read()>|/"read()"> method,
@@ -348,11 +348,11 @@ ignore: 1
 To read the natural input,
 the initial call to the L<C<read()>|/"read()"> method should be
 of the form
-C<< $slr->read($input_string, -8) >>.
+C<< $recce->read($input_string, -8) >>.
 When externally reading a lexeme which has no real relationship
 to the natural input,
 use a method call similar to
-C<< $slr->lexeme_read($symbol_name, -7, -1, $value) >>.
+C<< $recce->lexeme_read($symbol_name, -7, -1, $value) >>.
 
 =head1 G1 locations
 
@@ -649,7 +649,7 @@ calls of the L<C<new()>|/"Constructor">,
 and of the L<C<series_restart()>|"series_restart()"> methods.
 The C<ranking_method> setting is also allowed
 in those calls of the
-L<C<< $slr->set() >>|"set()"> method
+L<C<< $recce->set() >>|"set()"> method
 that are not made during
 L<evaluation time|/"Evaluation time">.
 
@@ -889,7 +889,7 @@ On failure, C<read()> throws an exception.
 name: SLIF recognizer series_restart() synopsis
 normalize-whitespace: 1
 
-    $slr->series_restart( { end => $i } );
+    $recce->series_restart( { end => $i } );
 
 =for Marpa::R2::Display::End
 
@@ -917,7 +917,7 @@ C<end> and C<semantics_package> named arguments.
 name: SLIF recognizer set() synopsis
 normalize-whitespace: 1
 
-    $slr->set( { max_parses => 42 } );
+    $recce->set( { max_parses => 42 } );
 
 =for Marpa::R2::Display::End
 
@@ -1018,7 +1018,7 @@ name: SLIF activate() method synopsis
 partial: 1
 normalize-whitespace: 1
 
-        $slr->activate($_, 0) for @events;
+        $recce->activate($_, 0) for @events;
 
 =for Marpa::R2::Display::End
 
@@ -1215,7 +1215,7 @@ the value of the lexeme will be a Perl C<undef>.
 =for Marpa::R2::Display
 ignore: 1
 
-    $slr->lexeme_read($symbol, $start, $length, $value)
+    $recce->lexeme_read($symbol, $start, $length, $value)
 
 =for Marpa::R2::Display::End
 
@@ -1224,8 +1224,8 @@ is roughly equivalent to
 =for Marpa::R2::Display
 ignore: 1
 
-    $slr->lexeme_alternative($symbol, $value)
-    $slr->lexeme_complete($start, $length)
+    $recce->lexeme_alternative($symbol, $value)
+    $recce->lexeme_complete($start, $length)
 
 =for Marpa::R2::Display::End
 
@@ -1297,7 +1297,7 @@ L<as described
 above|/"Internal scanning">.
 A physical input stream must already have
 been specified using the 
-L<C<< $slr->read() >> method|/"read()">.
+L<C<< $recce->read() >> method|/"read()">.
 
 The C<resume()> method takes two optional arguments,
 which represent the start and length parameters of
@@ -1332,7 +1332,7 @@ Currently, all failures are thrown.
 =for Marpa::R2::Display
 name: Scanless ambiguity_metric() synopsis
 
-    my $ambiguity_metric = $slr->ambiguity_metric();
+    my $ambiguity_metric = $recce->ambiguity_metric();
 
 =for Marpa::R2::Display::End
 
@@ -1356,7 +1356,7 @@ but determining that can be very expensive.)
 =for Marpa::R2::Display
 name: Scanless current_g1_location() synopsis
 
-    my $current_g1_location = $slr->current_g1_location();
+    my $current_g1_location = $recce->current_g1_location();
 
 =for Marpa::R2::Display::End
 
@@ -1370,7 +1370,7 @@ normalize-whitespace: 1
 partial: 1
 
         EVENT:
-        for my $event ( @{ $slr->events() } ) {
+        for my $event ( @{ $recce->events() } ) {
             my ($name) = @{$event};
             push @actual_events, $name;
         }
@@ -1424,9 +1424,9 @@ the order of events is arbitrary.
 =head2 exhausted()
 
 =for Marpa::R2::Display
-name: $slr->exhausted example
+name: $recce->exhausted example
 
-    my $exhausted_status = $slr->exhausted();
+    my $exhausted_status = $recce->exhausted();
 
 =for Marpa::R2::Display::End
 
@@ -1447,7 +1447,7 @@ L<a separate document|Marpa::R2::Exhaustion>.
 name: Scanless g1_location_to_span() synopsis
 
         my ( $span_start, $span_length ) =
-            $slr->g1_location_to_span($g1_location);
+            $recce->g1_location_to_span($g1_location);
 
 =for Marpa::R2::Display::End
 
@@ -1474,7 +1474,7 @@ name: SLIF input_length() example
 partial: 1
 normalize-whitespace: 1
 
-    my $input_length = $slr->input_length();
+    my $input_length = $recce->input_length();
 
 =for Marpa::R2::Display::End
 
@@ -1692,7 +1692,7 @@ name: SLIF pos() example
 partial: 1
 normalize-whitespace: 1
 
-    my $pos = $slr->pos();
+    my $pos = $recce->pos();
 
 =for Marpa::R2::Display::End
 
@@ -1704,7 +1704,7 @@ and returns the current physical input stream location.
 =for Marpa::R2::Display
 name: Scanless progress() synopsis
 
-    my $progress_output = $slr->progress();
+    my $progress_output = $recce->progress();
 
 =for Marpa::R2::Display::End
 
@@ -1735,7 +1735,7 @@ name: Scanless show_progress() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $show_progress_output = $slr->show_progress();
+    my $show_progress_output = $recce->show_progress();
 
 =for Marpa::R2::Display::End
 
@@ -1802,7 +1802,7 @@ L<described above|/"Literals and G1 spans">.
 name: Scanless terminals_expected() synopsis
 normalize-whitespace: 1
 
-    my @terminals_expected = @{$slr->terminals_expected()};
+    my @terminals_expected = @{$recce->terminals_expected()};
 
 =for Marpa::R2::Display::End
 
@@ -1827,7 +1827,7 @@ name: SLR event() method synopsis
 normalize-whitespace: 1
 partial: 1
 
-            my $event    = $slr->event($event_ix);
+            my $event    = $recce->event($event_ix);
 
 =for Marpa::R2::Display::End
 

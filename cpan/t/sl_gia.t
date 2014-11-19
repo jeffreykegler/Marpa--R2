@@ -238,10 +238,10 @@ Descriptive line
 1,10 1,10 1,30
 INPUT
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
         [
-        $slg, $input,
+        $grammar, $input,
         [ '130.12312', 'Descriptive line', '1,10', '1,10', '1,30' ],
         'Parse OK', 'Test of forgiving token from Peter Stuifzand'
         ];
@@ -270,10 +270,10 @@ END_OF_SOURCE
     my $expected_output =
         [ 'UID', ':', 'urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1' ];
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
         [
-        $slg, $input, $expected_output,
+        $grammar, $input, $expected_output,
         'Parse OK', 'Test of LATM token from Ruslan Zakirov'
         ];
 }
@@ -295,10 +295,10 @@ END_OF_SOURCE
     my $expected_output =
         [ 'UID', ':', 'urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1' ];
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
         [
-        $slg, $input, $expected_output,
+        $grammar, $input, $expected_output,
         'Parse OK', 'Test of LATM token using lexeme default statement'
         ];
 }
@@ -341,17 +341,17 @@ END_OF_INPUT
         ]
     ];
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
         [
-        $slg, $input, $expected_output,
+        $grammar, $input, $expected_output,
         'Parse OK', 'Test of rank adverb for display'
         ];
 }
 
 # Test of rule array item descriptor for action adverb
 # todo: test by converting rule and lhs ID's to names
-# based on $slg->symbol_is_lexeme(symbol_id) -- to be written
+# based on $grammar->symbol_is_lexeme(symbol_id) -- to be written
 if (1) {
     my $source = <<'END_OF_SOURCE';
 
@@ -368,10 +368,10 @@ END_OF_SOURCE
     my $expected_output =
         [ 1, 0, [ 2, 1, [ 4, undef, '42' ] ], [ 3, 2, [ 5, undef, '43' ] ] ];
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
         [
-        $slg, $input, $expected_output,
+        $grammar, $input, $expected_output,
         'Parse OK', 'Test of rule array item descriptor for action adverb'
         ];
 }
@@ -405,10 +405,10 @@ END_OF_SOURCE
         [ 'number2', 'number 2', [ 'forty three', 'forty three', '43' ] ]
     ];
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
         [
-        $slg, $input, $expected_output,
+        $grammar, $input, $expected_output,
         'Parse OK', 'Test of rule array item descriptor for action adverb'
         ];
 }
@@ -442,10 +442,10 @@ END_OF_SOURCE
         [ [ 'x' ] ]
     ];
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
     push @tests_data,
         [
-        $slg, $input, $expected_output,
+        $grammar, $input, $expected_output,
         'Parse OK', qq{Test of "Inaccessible is ok"}
         ];
 }
@@ -472,10 +472,10 @@ END_OF_SOURCE
 
         my $this_source = $source;
         $this_source =~ s/!START!/$this_start/;
-        my $slg = Marpa::R2::Scanless::G->new( { source => \$this_source } );
+        my $grammar = Marpa::R2::Scanless::G->new( { source => \$this_source } );
         push @tests_data,
             [
-            $slg, $input, $expected_output,
+            $grammar, $input, $expected_output,
             'Parse OK', qq{Test of changing start symbols: <$this_start>}
             ];
 
@@ -500,23 +500,23 @@ END_OF_SOURCE
     my $input           = 'X';
     my $expected_output = 'X';
 
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
 
 # Marpa::R2::Display
-# name: $slg->start_symbol_id() example
+# name: $grammar->start_symbol_id() example
 
-    my $start_id = $slg->start_symbol_id();
+    my $start_id = $grammar->start_symbol_id();
 
 # Marpa::R2::Display::End
 
-    Test::More::is( $start_id, 0, q{Test of $slg->start_symbol_id()} );
+    Test::More::is( $start_id, 0, q{Test of $grammar->start_symbol_id()} );
 
     my @rule_names = ();
 
 # Marpa::R2::Display
-# name: $slg->rule_name() example
+# name: $grammar->rule_name() example
 
-    push @rule_names, $slg->rule_name($_) for $slg->rule_ids();
+    push @rule_names, $grammar->rule_name($_) for $grammar->rule_ids();
 
 # Marpa::R2::Display::End
 
@@ -524,12 +524,12 @@ END_OF_SOURCE
     Test::More::is(
         $rule_names,
         'first start rule:second start rule:start1:start2:[:start]',
-        q{Test of $slg->rule_name()}
+        q{Test of $grammar->rule_name()}
     );
 
     push @tests_data,
         [
-        $slg, $input, $expected_output,
+        $grammar, $input, $expected_output,
         'Parse OK', qq{Test of alternative as start rule}
         ];
 

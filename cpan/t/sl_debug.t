@@ -64,7 +64,7 @@ string ~ ['] <string contents> [']
 whitespace ~ [\s]+
 END_OF_SOURCE
 
-my $slg = Marpa::R2::Scanless::G->new(
+my $grammar = Marpa::R2::Scanless::G->new(
     {
     bless_package => 'My_Nodes',
     source => \$slif_debug_source,
@@ -79,23 +79,23 @@ open my $trace_fh, q{>}, \( my $trace_output = q{} );
 # Marpa::R2::Display
 # name: SLIF grammar set() synopsis
 
-$slg->set( { trace_file_handle => $trace_fh } );
+$grammar->set( { trace_file_handle => $trace_fh } );
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
 # name: SLIF debug example, part 2
 
-my $slr = Marpa::R2::Scanless::R->new(
-    { grammar => $slg,
+my $recce = Marpa::R2::Scanless::R->new(
+    { grammar => $grammar,
     trace_terminals => 1,
     trace_values => 1,
     } );
 
 my $test_input = 'a = 8675309 + 42 * 711';
-my $eval_error = $EVAL_ERROR if not eval { $slr->read( \$test_input ); 1 };
+my $eval_error = $EVAL_ERROR if not eval { $recce->read( \$test_input ); 1 };
 
-$progress_report = $slr->show_progress( 0, -1 );
+$progress_report = $recce->show_progress( 0, -1 );
 
 # Marpa::R2::Display::End
 
@@ -120,7 +120,7 @@ END_OF_TEXT
 # Marpa::R2::Display
 # name: SLIF debug example dump of value
 
-my $value_ref = $slr->value();
+my $value_ref = $recce->value();
 my $expected_output = \bless( [
                  bless( [
                           bless( [
@@ -208,7 +208,7 @@ $Data::Dumper::Terse  = 1;
 # Marpa::R2::Display
 # name: SLIF progress(0) example
 
-my $report0 = $slr->progress(0);
+my $report0 = $recce->progress(0);
 
 # Marpa::R2::Display::End
 
@@ -226,11 +226,11 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
 # Marpa::R2::Display::End
 
 # Try again with negative index
-$report0 = $slr->progress(-6);
+$report0 = $recce->progress(-6);
 Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
     $expected_report0, 'progress report at location -6' );
 
-my $report1 = $slr->progress(1);
+my $report1 = $recce->progress(1);
 
 # Marpa::R2::Display
 # name: SLIF progress() output at location 1
@@ -246,11 +246,11 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
 # Marpa::R2::Display::End
 
 # Try again with negative index
-$report1 = $slr->progress(-5);
+$report1 = $recce->progress(-5);
 Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
     $expected_report1, 'progress report at location -5' );
 
-my $report2 = $slr->progress(2);
+my $report2 = $recce->progress(2);
 
 # Marpa::R2::Display
 # name: SLIF progress() output at location 2
@@ -266,14 +266,14 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
 # Marpa::R2::Display::End
 
 # Try again with negative index
-$report2 = $slr->progress(-4);
+$report2 = $recce->progress(-4);
 Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
     $expected_report2, 'progress report at location -4' );
 
 # Marpa::R2::Display
 # name: SLIF progress() example
 
-my $latest_report = $slr->progress();
+my $latest_report = $recce->progress();
 
 # Marpa::R2::Display::End
 
@@ -295,12 +295,12 @@ chomp( my $expected_report3 = <<'END_PROGRESS_REPORT');
 END_PROGRESS_REPORT
 
 # Try latest report again with explicit index
-my $report3 = $slr->progress(3);
+my $report3 = $recce->progress(3);
 Marpa::R2::Test::is( Data::Dumper::Dumper($report3),
     $expected_report3, 'progress report at location 3' );
 
 # Try latest report again with negative index
-$latest_report = $slr->progress(-3);
+$latest_report = $recce->progress(-3);
 Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
     $expected_report3, 'progress report at location -3' );
 
@@ -334,17 +334,17 @@ $slif_debug_source =~
     s{^ [<] numeric \s+ assignment [>] \s+ [:][:][=] \s+ variable \s+ ['][=]['] \s+ expression $}
     {<numeric assignment> ::= variable '=' <numeric expression>}xms;
 
-$slg = Marpa::R2::Scanless::G->new(
+$grammar = Marpa::R2::Scanless::G->new(
     {
     bless_package => 'My_Nodes',
     source => \$slif_debug_source,
 });
 
-$slr = Marpa::R2::Scanless::R->new(
-    { grammar => $slg } );
+$recce = Marpa::R2::Scanless::R->new(
+    { grammar => $grammar } );
 
-die if not defined $slr->read( \$test_input );
-$value_ref = $slr->value();
+die if not defined $recce->read( \$test_input );
+$value_ref = $recce->value();
 my $expected_value_after_fix = \bless(
     [   bless(
             [   bless(
@@ -383,13 +383,13 @@ Test::More::is_deeply($value_ref, $expected_value_after_fix, 'Value after fix');
 
 my $show_rules_output;
 $show_rules_output .= "G1 Rules:\n";
-$show_rules_output .= $slg->show_rules(3);
+$show_rules_output .= $grammar->show_rules(3);
 $show_rules_output .= "Lex (L0) Rules:\n";
 
 # Marpa::R2::Display
 # name: SLG show_rules() synopsis with 2 args
 
-$show_rules_output .= $slg->show_rules(3, 'L0');
+$show_rules_output .= $grammar->show_rules(3, 'L0');
 
 # Marpa::R2::Display::End
 
@@ -584,9 +584,9 @@ END_OF_SHOW_RULES_OUTPUT
 
 my $show_symbols_output;
 $show_symbols_output .= "G1 Symbols:\n";
-$show_symbols_output .= $slg->show_symbols(3);
+$show_symbols_output .= $grammar->show_symbols(3);
 $show_symbols_output .= "Lex (L0) Symbols:\n";
-$show_symbols_output .= $slg->show_symbols(3, 'L0');
+$show_symbols_output .= $grammar->show_symbols(3, 'L0');
 
 # Marpa::R2::Display::End
 
@@ -801,7 +801,7 @@ sub do_something { push @TEST_ARRAY, $_[0] }
 # Marpa::R2::Display
 # name: SLG symbol_ids() 2 arg synopsis
 
-do_something($_) for $slg->symbol_ids('L0');
+do_something($_) for $grammar->symbol_ids('L0');
 
 # Marpa::R2::Display::End
 
@@ -816,7 +816,7 @@ Marpa::R2::Test::is(
 # Marpa::R2::Display
 # name: SLG symbol_ids() synopsis
 
-do_something($_) for $slg->symbol_ids();
+do_something($_) for $grammar->symbol_ids();
 
 # Marpa::R2::Display::End
 
@@ -831,7 +831,7 @@ Marpa::R2::Test::is(
 # Marpa::R2::Display
 # name: SLG rule_ids() synopsis
 
-do_something($_) for $slg->rule_ids();
+do_something($_) for $grammar->rule_ids();
 
 # Marpa::R2::Display::End
 
@@ -846,7 +846,7 @@ Marpa::R2::Test::is(
 # Marpa::R2::Display
 # name: SLG rule_ids() 2 arg synopsis
 
-do_something($_) for $slg->rule_ids('L0');
+do_something($_) for $grammar->rule_ids('L0');
 
 # Marpa::R2::Display::End
 
@@ -860,12 +860,12 @@ my $text;
 
 $text = q{};
 
-for my $rule_id ( $slg->rule_ids() ) {
+for my $rule_id ( $grammar->rule_ids() ) {
 
 # Marpa::R2::Display
 # name: SLG rule_expand() synopsis
 
-    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id);
+    my ($lhs_id, @rhs_ids) = $grammar->rule_expand($rule_id);
     $text .= "Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
 
 # Marpa::R2::Display::End
@@ -897,12 +897,12 @@ END_OF_TEXT
 
 $text = q{};
 
-for my $rule_id ( $slg->rule_ids('L0') ) {
+for my $rule_id ( $grammar->rule_ids('L0') ) {
 
 # Marpa::R2::Display
 # name: SLG rule_expand() 2 args synopsis
 
-    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id, 'L0');
+    my ($lhs_id, @rhs_ids) = $grammar->rule_expand($rule_id, 'L0');
     $text .= "L0 Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
 
 # Marpa::R2::Display::End
@@ -942,12 +942,12 @@ END_OF_TEXT
 
 $text = q{};
 
-for my $symbol_id ( $slg->symbol_ids() ) {
+for my $symbol_id ( $grammar->symbol_ids() ) {
 
 # Marpa::R2::Display
 # name: SLG symbol_name() synopsis
 
-    my $name = $slg->symbol_name($symbol_id);
+    my $name = $grammar->symbol_name($symbol_id);
     $text .= "symbol number: $symbol_id  name: $name\n";
 
 # Marpa::R2::Display::End
@@ -955,7 +955,7 @@ for my $symbol_id ( $slg->symbol_ids() ) {
 # Marpa::R2::Display
 # name: SLG symbol_description() synopsis
 
-    my $description = $slg->symbol_description($symbol_id)
+    my $description = $grammar->symbol_description($symbol_id)
         // '[No description]';
     $text .= "symbol number: $symbol_id  description $description\n";
 
@@ -964,7 +964,7 @@ for my $symbol_id ( $slg->symbol_ids() ) {
 # Marpa::R2::Display
 # name: SLG symbol_display_form() synopsis
 
-    my $display_form = $slg->symbol_display_form($symbol_id);
+    my $display_form = $grammar->symbol_display_form($symbol_id);
     $text
         .= "symbol number: $symbol_id  name in display form: $display_form\n";
 
@@ -973,13 +973,13 @@ for my $symbol_id ( $slg->symbol_ids() ) {
 # Marpa::R2::Display
 # name: SLG symbol_dsl_form() synopsis
 
-    my $dsl_form = $slg->symbol_dsl_form($symbol_id)
+    my $dsl_form = $grammar->symbol_dsl_form($symbol_id)
         // '[No name in DSL form]';
     $text .= "symbol number: $symbol_id  DSL form: $dsl_form\n";
 
 # Marpa::R2::Display::End
 
-} ## end for my $symbol_id ( $slg->symbol_ids() )
+} ## end for my $symbol_id ( $grammar->symbol_ids() )
 
 Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G1 symbol names and description');
 symbol number: 0  name: [:start]
@@ -1086,12 +1086,12 @@ END_OF_TEXT
 
 $text = q{};
 
-for my $rule_id ( $slg->rule_ids() ) {
+for my $rule_id ( $grammar->rule_ids() ) {
 
 # Marpa::R2::Display
 # name: SLG rule_show() synopsis
 
-    my $rule_description = $slg->rule_show($rule_id);
+    my $rule_description = $grammar->rule_show($rule_id);
 
 # Marpa::R2::Display::End
 
@@ -1124,12 +1124,12 @@ END_OF_TEXT
 
 $text = q{};
 
-for my $rule_id ( $slg->rule_ids('L0') ) {
+for my $rule_id ( $grammar->rule_ids('L0') ) {
 
 # Marpa::R2::Display
 # name: SLG rule_show() 2 args synopsis
 
-    my $rule_description = $slg->rule_show($rule_id, 'L0');
+    my $rule_description = $grammar->rule_show($rule_id, 'L0');
 
 # Marpa::R2::Display::End
     $text .= "$rule_description\n";
@@ -1169,12 +1169,12 @@ END_OF_TEXT
 
 $text = '';
 
-for my $symbol_id ( $slg->symbol_ids('L0') ) {
+for my $symbol_id ( $grammar->symbol_ids('L0') ) {
 
 # Marpa::R2::Display
 # name: SLG symbol_name() 2 arg synopsis
 
-    my $name = $slg->symbol_name( $symbol_id, 'L0' );
+    my $name = $grammar->symbol_name( $symbol_id, 'L0' );
     $text .= "L0 symbol number: $symbol_id  name: $name\n";
 
 # Marpa::R2::Display::End
@@ -1182,7 +1182,7 @@ for my $symbol_id ( $slg->symbol_ids('L0') ) {
 # Marpa::R2::Display
 # name: SLG symbol_description() 2 arg synopsis
 
-    my $description = $slg->symbol_description( $symbol_id, 'L0' )
+    my $description = $grammar->symbol_description( $symbol_id, 'L0' )
         // '[No description]';
     $text .= "L0 symbol number: $symbol_id  description $description\n";
 
@@ -1191,7 +1191,7 @@ for my $symbol_id ( $slg->symbol_ids('L0') ) {
 # Marpa::R2::Display
 # name: SLG symbol_display_form() 2 arg synopsis
 
-    my $display_form = $slg->symbol_display_form( $symbol_id, 'L0' );
+    my $display_form = $grammar->symbol_display_form( $symbol_id, 'L0' );
     $text
         .= "L0 symbol number: $symbol_id  name in display form: $display_form\n";
 
@@ -1200,13 +1200,13 @@ for my $symbol_id ( $slg->symbol_ids('L0') ) {
 # Marpa::R2::Display
 # name: SLG symbol_dsl_form() 2 arg synopsis
 
-    my $dsl_form = $slg->symbol_dsl_form( $symbol_id, 'L0' )
+    my $dsl_form = $grammar->symbol_dsl_form( $symbol_id, 'L0' )
         // '[No name in DSL form]';
     $text .= "L0 symbol number: $symbol_id  DSL form: $dsl_form\n";
 
 # Marpa::R2::Display::End
 
-} ## end for my $symbol_id ( $slg->symbol_ids('L0') )
+} ## end for my $symbol_id ( $grammar->symbol_ids('L0') )
 
 Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'L0 symbol names and description');
 L0 symbol number: 0  name: [:discard]

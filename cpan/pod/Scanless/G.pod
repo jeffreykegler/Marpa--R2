@@ -175,7 +175,7 @@ C<parse()> throws an exception.
 name: SLIF grammar set() synopsis
 normalize-whitespace: 1
 
-    $slg->set( { trace_file_handle => $trace_fh } );
+    $grammar->set( { trace_file_handle => $trace_fh } );
 
 =for Marpa::R2::Display::End
 
@@ -190,7 +190,7 @@ Currently, the only argument that may be changed in L<C<trace_file_handle>|/"tra
 =for Marpa::R2::Display
 name: SLG rule_expand() synopsis
 
-    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id);
+    my ($lhs_id, @rhs_ids) = $grammar->rule_expand($rule_id);
     $text .= "Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
 
 =for Marpa::R2::Display::End
@@ -198,7 +198,7 @@ name: SLG rule_expand() synopsis
 =for Marpa::R2::Display
 name: SLG rule_expand() 2 args synopsis
 
-    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id, 'L0');
+    my ($lhs_id, @rhs_ids) = $grammar->rule_expand($rule_id, 'L0');
     $text .= "L0 Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
 
 =for Marpa::R2::Display::End
@@ -221,7 +221,7 @@ The default subgrammar is G1.
 name: SLG rule_ids() synopsis
 normalize-whitespace: 1
 
-    do_something($_) for $slg->rule_ids();
+    do_something($_) for $grammar->rule_ids();
 
 =for Marpa::R2::Display::End
 
@@ -229,7 +229,7 @@ normalize-whitespace: 1
 name: SLG rule_ids() 2 arg synopsis
 normalize-whitespace: 1
 
-    do_something($_) for $slg->rule_ids('L0');
+    do_something($_) for $grammar->rule_ids('L0');
 
 =for Marpa::R2::Display::End
 
@@ -241,9 +241,9 @@ The default subgrammar is G1.
 =head2 rule_name()
 
 =for Marpa::R2::Display
-name: $slg->rule_name() example
+name: $grammar->rule_name() example
 
-    push @rule_names, $slg->rule_name($_) for $slg->rule_ids();
+    push @rule_names, $grammar->rule_name($_) for $grammar->rule_ids();
 
 =for Marpa::R2::Display::End
 
@@ -258,14 +258,14 @@ the LHS symbol.
 =for Marpa::R2::Display
 name: SLG rule_show() synopsis
 
-    my $rule_description = $slg->rule_show($rule_id);
+    my $rule_description = $grammar->rule_show($rule_id);
 
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
 name: SLG rule_show() 2 args synopsis
 
-    my $rule_description = $slg->rule_show($rule_id, 'L0');
+    my $rule_description = $grammar->rule_show($rule_id, 'L0');
 
 =for Marpa::R2::Display::End
 
@@ -282,9 +282,9 @@ The default subgrammar is G1.
 =head2 start_symbol_id()
 
 =for Marpa::R2::Display
-name: $slg->start_symbol_id() example
+name: $grammar->start_symbol_id() example
 
-    my $start_id = $slg->start_symbol_id();
+    my $start_id = $grammar->start_symbol_id();
 
 =for Marpa::R2::Display::End
 
@@ -297,7 +297,7 @@ rule, because there may be no unique start rule.
 =for Marpa::R2::Display
 name: SLG symbol_description() synopsis
 
-    my $description = $slg->symbol_description($symbol_id)
+    my $description = $grammar->symbol_description($symbol_id)
         // '[No description]';
     $text .= "symbol number: $symbol_id  description $description\n";
 
@@ -306,7 +306,7 @@ name: SLG symbol_description() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_description() 2 arg synopsis
 
-    my $description = $slg->symbol_description( $symbol_id, 'L0' )
+    my $description = $grammar->symbol_description( $symbol_id, 'L0' )
         // '[No description]';
     $text .= "L0 symbol number: $symbol_id  description $description\n";
 
@@ -330,7 +330,7 @@ or if it has no description.
 =for Marpa::R2::Display
 name: SLG symbol_display_form() synopsis
 
-    my $display_form = $slg->symbol_display_form($symbol_id);
+    my $display_form = $grammar->symbol_display_form($symbol_id);
     $text
         .= "symbol number: $symbol_id  name in display form: $display_form\n";
 
@@ -339,7 +339,7 @@ name: SLG symbol_display_form() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_display_form() 2 arg synopsis
 
-    my $display_form = $slg->symbol_display_form( $symbol_id, 'L0' );
+    my $display_form = $grammar->symbol_display_form( $symbol_id, 'L0' );
     $text
         .= "L0 symbol number: $symbol_id  name in display form: $display_form\n";
 
@@ -362,7 +362,7 @@ Returns a Perl C<undef> if the symbol does not exist.
 =for Marpa::R2::Display
 name: SLG symbol_dsl_form() synopsis
 
-    my $dsl_form = $slg->symbol_dsl_form($symbol_id)
+    my $dsl_form = $grammar->symbol_dsl_form($symbol_id)
         // '[No name in DSL form]';
     $text .= "symbol number: $symbol_id  DSL form: $dsl_form\n";
 
@@ -371,7 +371,7 @@ name: SLG symbol_dsl_form() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_dsl_form() 2 arg synopsis
 
-    my $dsl_form = $slg->symbol_dsl_form( $symbol_id, 'L0' )
+    my $dsl_form = $grammar->symbol_dsl_form( $symbol_id, 'L0' )
         // '[No name in DSL form]';
     $text .= "L0 symbol number: $symbol_id  DSL form: $dsl_form\n";
 
@@ -404,7 +404,7 @@ or if it has no DSL form.
 name: SLG symbol_ids() synopsis
 normalize-whitespace: 1
 
-    do_something($_) for $slg->symbol_ids();
+    do_something($_) for $grammar->symbol_ids();
 
 =for Marpa::R2::Display::End
 
@@ -412,7 +412,7 @@ normalize-whitespace: 1
 name: SLG symbol_ids() 2 arg synopsis
 normalize-whitespace: 1
 
-    do_something($_) for $slg->symbol_ids('L0');
+    do_something($_) for $grammar->symbol_ids('L0');
 
 =for Marpa::R2::Display::End
 
@@ -426,7 +426,7 @@ The default subgrammar is G1.
 =for Marpa::R2::Display
 name: SLG symbol_name() synopsis
 
-    my $name = $slg->symbol_name($symbol_id);
+    my $name = $grammar->symbol_name($symbol_id);
     $text .= "symbol number: $symbol_id  name: $name\n";
 
 =for Marpa::R2::Display::End
@@ -434,7 +434,7 @@ name: SLG symbol_name() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_name() 2 arg synopsis
 
-    my $name = $slg->symbol_name( $symbol_id, 'L0' );
+    my $name = $grammar->symbol_name( $symbol_id, 'L0' );
     $text .= "L0 symbol number: $symbol_id  name: $name\n";
 
 =for Marpa::R2::Display::End
@@ -463,7 +463,7 @@ name: SLG show_rules() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $show_rules_output = $slg->show_rules();
+    my $show_rules_output = $grammar->show_rules();
 
 =for Marpa::R2::Display::End
 
@@ -472,7 +472,7 @@ name: SLG show_rules() synopsis with 2 args
 partial: 1
 normalize-whitespace: 1
 
-    $show_rules_output .= $slg->show_rules(3, 'L0');
+    $show_rules_output .= $grammar->show_rules(3, 'L0');
 
 =for Marpa::R2::Display::End
 
@@ -501,7 +501,7 @@ name: SLIF show_symbols() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    $show_symbols_output .= $slg->show_symbols(3);
+    $show_symbols_output .= $grammar->show_symbols(3);
 
 =for Marpa::R2::Display::End
 
@@ -510,7 +510,7 @@ name: SLIF show_symbols() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    $show_symbols_output .= $slg->show_symbols(3, 'L0');
+    $show_symbols_output .= $grammar->show_symbols(3, 'L0');
 
 =for Marpa::R2::Display::End
 
@@ -545,10 +545,10 @@ reason or another.
 name: Scanless g0_rule() synopsis
 normalize-whitespace: 1
 
-    my @g0_rule_ids = $slg->g0_rule_ids();
+    my @g0_rule_ids = $grammar->g0_rule_ids();
     for my $g0_rule_id (@g0_rule_ids) {
         $g0_rules_description .= "$g0_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $grammar->g0_rule($g0_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -574,10 +574,10 @@ RHS symbols, in order.
 name: Scanless g0_rule() synopsis
 normalize-whitespace: 1
 
-    my @g0_rule_ids = $slg->g0_rule_ids();
+    my @g0_rule_ids = $grammar->g0_rule_ids();
     for my $g0_rule_id (@g0_rule_ids) {
         $g0_rules_description .= "$g0_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $grammar->g0_rule($g0_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -591,10 +591,10 @@ Returns a list of the L0 rule ID's.
 name: Scanless rule() synopsis
 normalize-whitespace: 1
 
-    my @g1_rule_ids = $slg->g1_rule_ids();
+    my @g1_rule_ids = $grammar->g1_rule_ids();
     for my $g1_rule_id (@g1_rule_ids) {
         $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $grammar->rule($g1_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -607,10 +607,10 @@ Returns a list of the G1 rule ID's.
 =for Marpa::R2::Display
 name: Scanless rule() synopsis
 
-    my @g1_rule_ids = $slg->g1_rule_ids();
+    my @g1_rule_ids = $grammar->g1_rule_ids();
     for my $g1_rule_id (@g1_rule_ids) {
         $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $grammar->rule($g1_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End

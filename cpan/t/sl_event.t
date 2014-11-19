@@ -130,27 +130,27 @@ EVENT: for my $event (@events) {
 }
 
 sub show_last_subtext {
-    my ($slr) = @_;
-    my ( $start, $end ) = $slr->last_completed_range('subtext');
+    my ($recce) = @_;
+    my ( $start, $end ) = $recce->last_completed_range('subtext');
     return 'No expression was successfully parsed' if not defined $start;
-    return $slr->range_to_string( $start, $end );
+    return $recce->range_to_string( $start, $end );
 }
 
 sub do_test {
     my ( $test, $slg, $string, $expected_events, $reactivate_events ) = @_;
     my $actual_events = q{};
-    my $slr = Marpa::R2::Scanless::R->new(
+    my $recce = Marpa::R2::Scanless::R->new(
         { grammar => $grammar, semantics_package => 'My_Actions' } );
     if (defined $reactivate_events) {
 
 # Marpa::R2::Display
 # name: SLIF activate() method synopsis
 
-        $slr->activate($_, 0) for @events;
+        $recce->activate($_, 0) for @events;
 
 # Marpa::R2::Display::End
 
-        $slr->activate($_) for @{$reactivate_events};
+        $recce->activate($_) for @{$reactivate_events};
 
     }
 
@@ -158,13 +158,13 @@ sub do_test {
 # name: SLIF events() method synopsis
 
     my $length = length $string;
-    my $pos    = $slr->read( \$string );
+    my $pos    = $recce->read( \$string );
     READ: while (1) {
 
         my @actual_events = ();
 
         EVENT:
-        for my $event ( @{ $slr->events() } ) {
+        for my $event ( @{ $recce->events() } ) {
             my ($name) = @{$event};
             push @actual_events, $name;
         }
@@ -174,12 +174,12 @@ sub do_test {
             $actual_events .= "\n";
         }
         last READ if $pos >= $length;
-        $pos = $slr->resume($pos);
+        $pos = $recce->resume($pos);
     } ## end READ: while (1)
 
 # Marpa::R2::Display::End
 
-    my $value_ref = $slr->value();
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die "No parse\n";
     }

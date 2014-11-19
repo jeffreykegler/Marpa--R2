@@ -47,7 +47,7 @@ whitespace ~ [\s]+
 <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 END_OF_RULES
 
-my $slg = Marpa::R2::Scanless::G->new(
+my $grammar = Marpa::R2::Scanless::G->new(
     {   action_object  => 'My_Actions',
         default_action => 'do_arg0',
         source => \$grammar,
@@ -59,10 +59,10 @@ my $g0_rules_description;
 # Marpa::R2::Display
 # name: Scanless g0_rule() synopsis
 
-    my @g0_rule_ids = $slg->g0_rule_ids();
+    my @g0_rule_ids = $grammar->g0_rule_ids();
     for my $g0_rule_id (@g0_rule_ids) {
         $g0_rules_description .= "$g0_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $grammar->g0_rule($g0_rule_id) ) . "\n";
     }
 
 # Marpa::R2::Display::End
@@ -96,10 +96,10 @@ my $g1_rules_description;
 # Marpa::R2::Display
 # name: Scanless rule() synopsis
 
-    my @g1_rule_ids = $slg->g1_rule_ids();
+    my @g1_rule_ids = $grammar->g1_rule_ids();
     for my $g1_rule_id (@g1_rule_ids) {
         $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $grammar->rule($g1_rule_id) ) . "\n";
     }
 
 # Marpa::R2::Display::End
@@ -119,7 +119,7 @@ END_OF_DESCRIPTION
 
 package My_Actions;
 # The SELF object is a very awkward way of specifying the per-parse
-# argument directly, one which was necessary before the $slr->value()
+# argument directly, one which was necessary before the $recce->value()
 # method took an argument.
 # This way of doing things is discourage and preserved here for testing purposes.
 our $SELF;
@@ -135,10 +135,10 @@ sub do_arg0 { shift; return shift; }
 
 sub show_last_expression {
     my ($self) = @_;
-    my $slr = $self->{recce};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
+    my $recce = $self->{recce};
+    my ( $start, $end ) = $recce->last_completed_range('Expression');
     return if not defined $start;
-    my $last_expression = $slr->range_to_string( $start, $end );
+    my $last_expression = $recce->range_to_string( $start, $end );
     return $last_expression;
 } ## end sub show_last_expression
 
@@ -189,13 +189,13 @@ for my $test_data (@tests_data) {
     my ($test_string,     $expected_value,
         $expected_result, $expected_last_expression
     ) = @{$test_data};
-    my ( $slr, $actual_value, $trace_output ) =
-        my_parser( $slg, $test_string );
+    my ( $recce, $actual_value, $trace_output ) =
+        my_parser( $grammar, $test_string );
 
 # Marpa::R2::Display
 # name: Scanless terminals_expected() synopsis
 
-    my @terminals_expected = @{$slr->terminals_expected()};
+    my @terminals_expected = @{$recce->terminals_expected()};
 
 # Marpa::R2::Display::End
 
@@ -208,7 +208,7 @@ for my $test_data (@tests_data) {
 # Marpa::R2::Display
 # name: Scanless show_progress() synopsis
 
-    my $show_progress_output = $slr->show_progress();
+    my $show_progress_output = $recce->show_progress();
 
 # Marpa::R2::Display::End
 
@@ -284,7 +284,7 @@ END_OF_OUTPUT
 # Marpa::R2::Display
 # name: Scanless progress() synopsis
 
-    my $progress_output = $slr->progress();
+    my $progress_output = $recce->progress();
 
 # Marpa::R2::Display::End
 
@@ -294,13 +294,13 @@ END_OF_OUTPUT
         qq{Scanless progress()}
     );
 
-    my $latest_g1_location = $slr->latest_g1_location();
+    my $latest_g1_location = $recce->latest_g1_location();
     Test::More::is( $latest_g1_location, 11, qq{Scanless latest_g1_location()} );
 
 # Marpa::R2::Display
 # name: Scanless current_g1_location() synopsis
 
-    my $current_g1_location = $slr->current_g1_location();
+    my $current_g1_location = $recce->current_g1_location();
 
 # Marpa::R2::Display::End
 
@@ -309,7 +309,7 @@ END_OF_OUTPUT
 # Marpa::R2::Display
 # name: SLIF pos() example
 
-    my $pos = $slr->pos();
+    my $pos = $recce->pos();
 
 # Marpa::R2::Display::End
 
@@ -318,7 +318,7 @@ END_OF_OUTPUT
 # Marpa::R2::Display
 # name: SLIF input_length() example
 
-    my $input_length = $slr->input_length();
+    my $input_length = $recce->input_length();
 
 # Marpa::R2::Display::End
 
@@ -337,7 +337,7 @@ END_OF_OUTPUT
 # name: Scanless g1_location_to_span() synopsis
 
         my ( $span_start, $span_length ) =
-            $slr->g1_location_to_span($g1_location);
+            $recce->g1_location_to_span($g1_location);
 
 # Marpa::R2::Display::End
 

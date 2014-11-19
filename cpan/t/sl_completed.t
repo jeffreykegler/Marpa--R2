@@ -54,19 +54,19 @@ do_test($grammar, q{1(2(3(4)))}, [ qw{ (4) (3(4)) (2(3(4))) } ]);
 do_test($grammar, q{(((1)2)3)4}, [ qw{(1) ((1)2) (((1)2)3)} ]);
 
 sub show_last_subtext {
-    my ($slr) = @_;
-    my ( $start, $end ) = $slr->last_completed_range('subtext');
+    my ($recce) = @_;
+    my ( $start, $end ) = $recce->last_completed_range('subtext');
     return 'No expression was successfully parsed' if not defined $start;
-    return $slr->range_to_string( $start, $end );
+    return $recce->range_to_string( $start, $end );
 }
 
 sub do_test {
-    my ( $slg, $string, $expected_events ) = @_;
+    my ( $grammar, $string, $expected_events ) = @_;
     my @actual_events;
-    my $slr = Marpa::R2::Scanless::R->new(
+    my $recce = Marpa::R2::Scanless::R->new(
         { grammar => $grammar, semantics_package => 'My_Actions' } );
     my $length = length $string;
-    my $pos    = $slr->read( \$string );
+    my $pos    = $recce->read( \$string );
     READ: while (1) {
 
 # Marpa::R2::Display
@@ -74,23 +74,23 @@ sub do_test {
 
         EVENT: for (
             my $event_ix = 0;
-            my $event    = $slr->event($event_ix);
+            my $event    = $recce->event($event_ix);
             $event_ix++
             )
         {
             my ($name) = @{$event};
             if ( $name eq 'subtext' ) {
-                push @actual_events, show_last_subtext($slr);
+                push @actual_events, show_last_subtext($recce);
                 next EVENT;
             }
-        } ## end for ( my $event_ix = 0; my $event = $slr->event($event_ix...))
+        } ## end for ( my $event_ix = 0; my $event = $recce->event($event_ix...))
 
 # Marpa::R2::Display::End
 
         last READ if $pos >= $length;
-        $pos = $slr->resume($pos);
+        $pos = $recce->resume($pos);
     } ## end READ: while (1)
-    my $value_ref = $slr->value();
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die "No parse\n";
     }

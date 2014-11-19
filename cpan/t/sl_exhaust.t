@@ -53,10 +53,10 @@ sub do_list {
 
 sub show_last_expression {
     my ($self) = @_;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Number');
+    my $recce = $self->{slr};
+    my ( $start, $end ) = $recce->last_completed_range('Number');
     return '[none]' if not defined $start;
-    my $last_expression = $slr->range_to_string( $start, $end );
+    my $last_expression = $recce->range_to_string( $start, $end );
     return $last_expression;
 } ## end sub show_last_expression
 
@@ -67,17 +67,17 @@ sub my_parser {
 
     my $self = bless { grammar => $grammar }, 'My_Actions';
 
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{slr} = $slr;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $self->{slr} = $recce;
     my ( $parse_value, $parse_status, $last_expression );
 
-    my $eval_ok = eval { $slr->read( \$string ); 1; };
+    my $eval_ok = eval { $recce->read( \$string ); 1; };
     my $eval_error = $EVAL_ERROR;
 
 # Marpa::R2::Display
-# name: $slr->exhausted example
+# name: $recce->exhausted example
 
-    my $exhausted_status = $slr->exhausted();
+    my $exhausted_status = $recce->exhausted();
 
 # Marpa::R2::Display::End
 
@@ -88,7 +88,7 @@ sub my_parser {
             $exhausted_status;
     } ## end if ( not $eval_ok )
 
-    my $value_ref = $slr->value($self);
+    my $value_ref = $recce->value($self);
 
     if ( not defined $value_ref ) {
         return 'No parse', 'Input read to end but no parse',

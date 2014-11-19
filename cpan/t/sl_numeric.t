@@ -60,16 +60,16 @@ my @minimal = ( q{}, qw[(;;;a) (;;a;a) (;a;a;a) (a;a;a;a)] );
 
 for my $maximal ( 0, 1 ) {
     my $dsl = $dsl{ $maximal ? 'low' : 'high' };
-    my $slg = Marpa::R2::Scanless::G->new( { source => $dsl } );
-    my $slr = Marpa::R2::Scanless::R->new(
-        {   grammar        => $slg,
+    my $grammar = Marpa::R2::Scanless::G->new( { source => $dsl } );
+    my $recce = Marpa::R2::Scanless::R->new(
+        {   grammar        => $grammar,
             ranking_method => 'high_rule_only'
         }
     );
 
     my $input_length = 4;
     my $input        = 'a' x $input_length;
-    $slr->read( \$input );
+    $recce->read( \$input );
 
     for my $i ( 0 .. $input_length ) {
         my $expected = $maximal ? \@maximal : \@minimal;
@@ -78,18 +78,18 @@ for my $maximal ( 0, 1 ) {
 # Marpa::R2::Display
 # name: SLIF recognizer series_restart() synopsis
 
-        $slr->series_restart( { end => $i } );
+        $recce->series_restart( { end => $i } );
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
 # name: SLIF recognizer set() synopsis
 
-        $slr->set( { max_parses => 42 } );
+        $recce->set( { max_parses => 42 } );
 
 # Marpa::R2::Display::End
 
-        my $result = $slr->value();
+        my $result = $recce->value();
         die "No parse" if not defined $result;
         Test::More::is( ${$result}, $expected->[$i],
             "$name parse, length=$i" );

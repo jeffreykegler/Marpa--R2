@@ -57,8 +57,8 @@ name: SLIF debug example, part 2
 partial: 1
 normalize-whitespace: 1
 
-    my $eval_error = $EVAL_ERROR if not eval { $slr->read( \$test_input ); 1 };
-    $progress_report = $slr->show_progress( 0, -1 );
+    my $eval_error = $EVAL_ERROR if not eval { $recce->read( \$test_input ); 1 };
+    $progress_report = $recce->show_progress( 0, -1 );
 
 =for Marpa::R2::Display::End
 

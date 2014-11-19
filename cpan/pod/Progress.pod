@@ -834,7 +834,7 @@ Marpa's "situational awareness" in innovative ways.
 name: SLIF progress(0) example
 normalize-whitespace: 1
 
-    my $report0 = $slr->progress(0);
+    my $report0 = $recce->progress(0);
 
 =for Marpa::R2::Display::End
 
@@ -844,7 +844,7 @@ Z<>
 name: SLIF progress() example
 normalize-whitespace: 1
 
-    my $latest_report = $slr->progress();
+    my $latest_report = $recce->progress();
 
 =for Marpa::R2::Display::End
 
@@ -978,7 +978,7 @@ normalize-whitespace: 1
     whitespace ~ [\s]+
     END_OF_SOURCE
 
-    my $slg = Marpa::R2::Scanless::G->new(
+    my $grammar = Marpa::R2::Scanless::G->new(
         {
         bless_package => 'My_Nodes',
         source => \$slif_debug_source,
@@ -990,16 +990,16 @@ normalize-whitespace: 1
 name: SLIF debug example, part 2
 perltidy: '-dcsc -sil=0'
 
-    my $slr = Marpa::R2::Scanless::R->new(
-        { grammar => $slg,
+    my $recce = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar,
         trace_terminals => 1,
         trace_values => 1,
         } );
 
     my $test_input = 'a = 8675309 + 42 * 711' ;
-    my $eval_error = $EVAL_ERROR if not eval { $slr->read( \$test_input ); 1 };
+    my $eval_error = $EVAL_ERROR if not eval { $recce->read( \$test_input ); 1 };
 
-    $progress_report = $slr->show_progress( 0, -1 );
+    $progress_report = $recce->show_progress( 0, -1 );
 
 =for Marpa::R2::Display::End
 
@@ -1032,7 +1032,7 @@ name: SLIF debug example dump of value
 partial: 1
 normalize-whitespace: 1
 
-    my $value_ref = $slr->value();
+    my $value_ref = $recce->value();
     my $expected_output = \bless( [
                      bless( [
                               bless( [

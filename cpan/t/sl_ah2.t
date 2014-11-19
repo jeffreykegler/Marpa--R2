@@ -47,11 +47,11 @@ A ::=
 A ::= 'a'
 END_OF_DSL
 
-my $slg = Marpa::R2::Scanless::G->new( {   source => \$dsl });
-my $slr = Marpa::R2::Scanless::R->new( {   grammar => $slg });
+my $grammar = Marpa::R2::Scanless::G->new( {   source => \$dsl });
+my $recce = Marpa::R2::Scanless::R->new( {   grammar => $grammar });
 my $input_length = 4;
 my $input = ('a' x $input_length);
-$slr->read( \$input );
+$recce->read( \$input );
 
 my @expected = map {
     +{ map { ( $_ => 1 ) } @{$_} }
@@ -62,7 +62,7 @@ my @expected = map {
     [qw( (a;a;a;) (a;a;;a) (a;;a;a) (;a;a;a) )],
     ['(a;a;a;a)'];
 
-$slr->set( { max_parses => 20 } );
+$recce->set( { max_parses => 20 } );
 
 my @ambiguity_expected;
 $ambiguity_expected[0] = 'No ambiguity';
@@ -96,13 +96,13 @@ $ambiguity_expected[4] = 'No ambiguity';
 
 for my $i ( 0 .. $input_length ) {
 
-    $slr->series_restart( { end => $i } );
+    $recce->series_restart( { end => $i } );
     my $expected = $expected[$i];
 
 # Marpa::R2::Display
 # name: Scanless ambiguity_metric() synopsis
 
-    my $ambiguity_metric = $slr->ambiguity_metric();
+    my $ambiguity_metric = $recce->ambiguity_metric();
 
 # Marpa::R2::Display::End
 
@@ -110,7 +110,7 @@ for my $i ( 0 .. $input_length ) {
     my $expected_metric = (scalar keys %{$expected} > 1 ? 2 : 1);
     Test::More::is($ambiguity_metric, $expected_metric, "Ambiguity check for length $i");
 
-    while ( my $value_ref = $slr->value() ) {
+    while ( my $value_ref = $recce->value() ) {
 
         my $value = $value_ref ? ${$value_ref} : 'No parse';
         if ( defined $expected->{$value} ) {
@@ -120,7 +120,7 @@ for my $i ( 0 .. $input_length ) {
         else {
             Test::More::fail(qq{Unexpected result for length=$i, "$value"});
         }
-    } ## end while ( my $value_ref = $slr->value() )
+    } ## end while ( my $value_ref = $recce->value() )
 
     for my $value ( keys %{$expected} ) {
         Test::More::fail(qq{Missing result for length=$i, "$value"});
@@ -129,8 +129,8 @@ for my $i ( 0 .. $input_length ) {
     my $ambiguity_desc = 'No ambiguity';
     if ($ambiguity_metric > 1) {
 
-        $slr->series_restart( { end => $i } );
-        my $asf = Marpa::R2::ASF->new( { slr => $slr } );
+        $recce->series_restart( { end => $i } );
+        my $asf = Marpa::R2::ASF->new( { slr => $recce } );
         die 'No ASF' if not defined $asf;
         my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
 
