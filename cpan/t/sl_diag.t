@@ -26,7 +26,7 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-my $grammar = <<'END_OF_RULES';
+my $dsl = <<'END_OF_RULES';
 :start ::= Script
 Script ::= Calculation* action => do_list
 Calculation ::= Expression | ('say') Expression
@@ -50,7 +50,7 @@ END_OF_RULES
 my $grammar = Marpa::R2::Scanless::G->new(
     {   action_object  => 'My_Actions',
         default_action => 'do_arg0',
-        source => \$grammar,
+        source => \$dsl,
     }
 );
 
