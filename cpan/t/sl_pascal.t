@@ -39,17 +39,17 @@ sub ah_extended {
     my $n = shift;
 
     my $full_dsl = $base_dsl . join q{ }, 'S', '::=', ( ('A') x $n );
-    my $slg   = Marpa::R2::Scanless::G->new( { source => \$full_dsl, } );
+    my $grammar   = Marpa::R2::Scanless::G->new( { source => \$full_dsl, } );
     my $input = 'a' x $n;
-    my $slr   = Marpa::R2::Scanless::R->new( { grammar => $slg } );
-    $slr->read( \$input );
+    my $recce   = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $recce->read( \$input );
 
     my @parse_counts = (1);
     for my $loc ( 1 .. $n ) {
         my $parse_number = 0;
 
-        $slr->series_restart( { end => $loc } );
-        my $asf = Marpa::R2::ASF->new( { slr => $slr , factoring_max => 1000} );
+        $recce->series_restart( { end => $loc } );
+        my $asf = Marpa::R2::ASF->new( { slr => $recce , factoring_max => 1000} );
         $parse_counts[$loc] = $asf->traverse(
             {},
             sub {
