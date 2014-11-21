@@ -1708,7 +1708,8 @@ name: Scanless progress() synopsis
 
 =for Marpa::R2::Display::End
 
-Returns an array that describes the progress
+Returns a reference to an array
+that describes the progress
 of a parse
 at a location.
 With no argument, C<progress()> reports progress at
