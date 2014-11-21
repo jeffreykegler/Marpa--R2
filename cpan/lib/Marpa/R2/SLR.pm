@@ -823,7 +823,7 @@ my $libmarpa_event_handlers = {
         else {
             my $trace_file_handle =
                 $slr->[Marpa::R2::Internal::Scanless::R::TRACE_FILE_HANDLE];
-            say {$trace_file_handle} 'Trace event: ', join q{ }, @{$event}
+            say {$trace_file_handle} join q{ }, qw(Trace event:), @{$event}[1 .. $#{$event}]
                 or Marpa::R2::exception("Could not say(): $ERRNO");
         } ## end else [ if ( defined $handler ) ]
         return 0;
