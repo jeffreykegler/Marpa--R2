@@ -480,7 +480,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Here the "C<R12:2>" indicates that this is rule number 12
+Here the "C<R11:2>" indicates that this is rule number 11
 (the "C<R>" stands for rule number) and that its dot
 position is after the second symbol on the right hand side.
 Symbol positions are numbered using the
@@ -548,15 +548,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-It's rule 19 in subgrammar G1, and for convenience we will call it R19.
+It's rule 18 in subgrammar G1, and for convenience we will call it R18.
 The next step is to look at the Earley items for this rule.
 But there is a problem.
 We don't find any.
 
-Next, we ask ourselves, what is the earliest place R19
+Next, we ask ourselves, what is the earliest place R18
 should be appearing?
 The answer is that
-there should be a prediction of R19 at location 0.
+there should be a prediction of R18 at location 0.
 So we look at the predictions at location 0.
 
 =for Marpa::R2::Display
@@ -573,12 +573,12 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-No R19 predicted at G1 location 0.
+No R18 predicted at G1 location 0.
 Next we look through the the entire progress report, at all G1 locations,
-to see if R19 is predicted anywhere.
-No R19.  Not anywhere.
+to see if R18 is predicted anywhere.
+No R18.  Not anywhere.
 
-The LHS of R19 is C<E<lt>numeric expressionE<gt>>.
+The LHS of R18 is C<E<lt>numeric expressionE<gt>>.
 We look in the progress report for dotted rules where
 C<E<lt>numeric expressionE<gt>> is expected -- that is,
 dotted rules where C<E<lt>numeric expressionE<gt>> is the post-dot symbol.
@@ -763,7 +763,7 @@ a C<E<lt>plain assignmentE<gt>>.
 
 In each of the three lines, notice that a new field appears second.
 This second field is variously
-"C<x13>", "C<x20>" or "C<x12>".
+"C<x12>" or "C<x20>".
 These are counts,
 indicating the number of instances of that dotted rule at
 the dotted rule's G1 dot location.
@@ -853,7 +853,7 @@ the C<progress()> recognizer method returns a reference
 to an array of "report items".
 The G1 location may be given as a negative number.
 An argument of I<-X>
-will be interpreted as G1 location I<N+X+1>, where I<N> is
+will be interpreted as G1 location I<N-(X+1)>, where I<N> is
 the latest Earley set.
 This means that an argument of -1 indicates the latest
 Earley set,
