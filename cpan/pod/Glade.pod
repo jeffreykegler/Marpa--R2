@@ -1019,8 +1019,8 @@ a multifactored stretch encompasses the entire RHS of a rule.
 
 The main body of this document worked with an intuitive "know one when I see one"
 idea of multifactored stretches.
-The exact definition follows.
-First we will need a series of preliminary definitions.
+In this section we will give an exact definition.
+First, we will need some preliminary definitions.
 
 Consider the case of a arbitrary, ambiguous rule symch.
 The ambiguous rule symch can be seen as a set of factorings.
