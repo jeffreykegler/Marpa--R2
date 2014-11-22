@@ -175,13 +175,14 @@ arbitrary.
 
 =back
 
-Note that, in the above, the logic is the same regardless of the DSL rule
-to which the rule alternatives belong.
-Different rule alternatives can,
-in the case of a prioritized rule,
-belong to the same DSL rule.
-But two rule alternatives may also be different because they are
-from two different DSL rules.
+Rule alternatives may be part of a single rule in the DSL --
+for example, a
+L<prioritized rule|Marpa::R2::Scanless::DSL/"Prioritized rules">.
+Placement with a DSL rule
+makes no difference when ranking rule alternatives.
+For example, it makes no difference if two rule alternatives
+come from the same prioritized rule;
+or from two different prioritized rules.
 
 =head2 Null variant ranking
 
@@ -244,14 +245,13 @@ In practice, ambiguity tends to get out of hand very easily.
 Producing and sorting all the parses can take a very
 long time.
 
-=head1 Formal definitions
+=head1 A formal definitions
 
-This section is a restatement of earlier material in more formal language.
+This section is a restatement of earlier definition in more formal language.
 It is recorded here for those who find it helpful.
-Most readers will want to ignore this section.
-
+Most readers will want to ignore this.
 Call the set of parse trees, C<T>.
-Semantic equivalence is an equivalence relation
+B<Semantic equivalence> is an equivalence relation
 on C<T>.
 Call this relation C<~>.
 Call C<E>, the quotient set of C<T> by C<~>.
