@@ -15,25 +15,51 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Phases - Phases of SLIF parse evaluation
+Marpa::R2::Semantics::Phases - SLIF recognizer phases
 
-=head1 Overview of the semantic phases
+=head1 About this document
 
-[ ADDING STUFF ... ]
+This document describes in detail the sequence of events
+in the SLIF recognizer.
+It serves two purposes.
+
+=over 4
+
+=item *
+
+It give fuller details of the sequence of events
+than is given in the other documents.
+
+=item *
+
+It describes the use of more than one parse series.
+
+=back
+
+Applications will usually
+find that the order in which
+the SLIF recognizer "just works".
+But some application will depend on the full detail.
+These include
+
+=over 4
+
+=item *
+
+applications which make unusual use of side effects in the semantics; and
+
+=item *
+
+and applications which alter their symbol tables at runtime.
+
+=back
+
+=head1 Parse series
 
 The SLIF recognizer can be run several times on the same
 virtual input stream.
 Each of these runs is called a B<parse series>.
-This is useful for parsing the same input with different settings.
 
-[ ... ]
-
-=head1  Parse trees and parse series
-
-Because Marpa allows ambiguous parsing,
-each parse can produce a B<parse series> --
-a series of zero or more parse trees,
-each with its own parse result.
 The first parse series starts with a
 call to
 the SLIF recognizer's
@@ -44,11 +70,60 @@ one started,
 by calling the SLIF recognizer's
 L<C<series_restart()>
 method|Marpa::R2::Scanless::R/"series_restart()">.
-Using more than one parse series is an advanced technique,
-one which is not useful for most applications.
-More details about the use of multiple parse series
-can be found in
-L<another document|Marpa::R2::Semantics::Phases>.
+Destroying the recognizer ends the current parse series.
+
+Most applications will not need to use more than
+a single parse series.
+But they are useful in some specialized
+applications.
+Starting a new parse series allows the applications
+to change some settings and even,
+to some extent, the input.
+Specifically.
+
+=over 4
+
+=item *
+
+Once input is read into a SLIF recognizer's
+virtual input stream, it is there for the life of the recognizer.
+It cannot be "unread".
+But during the reading phase of a new parse series,
+a recognizer can extend the virtual input stream,
+using the recognizer's 
+L<C<resume()> method|Marpa::R2::Scanless::R/"resume()">.
+
+=item *
+
+Within a parse series,
+the semantics package cannot change.
+But you can specify a new semantics package
+after starting a new parse series.
+
+=item *
+
+Certain other SLIF recognizer settings can be
+changed
+after starting a new parse series.
+These include the SLIF recognizer's
+L<C<end> setting|Marpa::R2::Scanless::R/"end">
+and its 
+L<C<ranking_method> setting|Marpa::R2::Scanless::R/"ranking_method">.
+For details, see
+L<Marpa::R2::Scanless::R/"Recognizer settings">.
+
+=back
+
+[ ADDING STUFF ... ]
+
+[ ... ]
+
+=head1  Parse trees and parse series
+
+Because Marpa allows ambiguous parsing,
+each parse can produce a B<parse series> --
+a series of zero or more parse trees,
+each with its own parse result.
 
 A parse series is divided into
 
@@ -130,29 +205,6 @@ to the C<value()> method of B<every> series.
 
 =back
 
-Applications will usually
-find that the order in which
-the evaluation subphases are executed "just works".
-Application's whose behavior could depend on the details
-include
-
-=over 4
-
-=item *
-
-applications which make unusual use of side effects in the semantics; and
-
-=item *
-
-and applications which alter their symbol tables at runtime.
-
-=back
-
-A full description of the subphases of the Evaluation
-Phase is in
-L<a separate
-document|Marpa::R2::Semantics::Phases>.
-
 [ ADDED STUFF ENDS HERE ]
 
 Most users will find that the order in which
@@ -166,46 +218,6 @@ These details can matter in some applications,
 for example, those which exploit side effects.
 And some readers may also find this background material
 to be helpful.
-
-=head1  Why use more than one parse series
-
-Starting a new parse series allows the applications
-to change some settings and even,
-to some extent, the input.
-Specifically.
-
-=over 4
-
-=item *
-
-Once input is read into a SLIF recognizer's
-virtual input stream, it is there for the life of the recognizer.
-It cannot be "unread".
-But during the reading phase of a new parse series,
-a recognizer can extend the virtual input stream,
-using the recognizer's 
-L<C<resume()> method|Marpa::R2::Scanless::R/"resume()">.
-
-=item *
-
-Within a parse series,
-the semantics package cannot change.
-But you can specify a new semantics package
-after starting a new parse series.
-
-=item *
-
-Certain other SLIF recognizer settings can be
-changed
-after starting a new parse series.
-These include the SLIF recognizer's
-L<C<end> setting|Marpa::R2::Scanless::R/"end">
-and its 
-L<C<ranking_method> setting|Marpa::R2::Scanless::R/"ranking_method">.
-For details, see
-L<Marpa::R2::Scanless::R/"Recognizer settings">.
-
-=back
 
 =head1  Parse trees and parse series
 
