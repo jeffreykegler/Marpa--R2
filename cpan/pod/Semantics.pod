@@ -231,9 +231,15 @@ More details about the use of multiple parse series
 can be found in
 L<another document|Marpa::R2::Semantics::Phases>.
 
-A parse series is divided into two phases:
+A parse series is divided into
 
 =over 4
+
+=item * a Reading Phase; and
+
+=item * an Evaluation Phase.
+
+=back
 
 =head1 The Reading Phase
 
