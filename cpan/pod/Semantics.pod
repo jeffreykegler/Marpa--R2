@@ -256,9 +256,16 @@ The reading phase ends when the first of the following occurs:
 
 =over 4
 
-=item * The recognizer is destroyed, or a new parse series
-is begun by calling the C<series_restart()> method.
-These cases are unusual, because applications will almost always
+=item *
+
+The recognizer is destroyed.
+
+=item *
+
+A new parse series is begun
+by calling the C<series_restart()> method.
+This and the previous case are unusual.
+Applications almost always
 want to continue the parse series into the Evaluation Phase.
 
 =item * The C<value()> method is called for this SLIF recognizer.
