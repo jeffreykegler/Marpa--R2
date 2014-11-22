@@ -26,6 +26,133 @@ virtual input stream.
 Each of these runs is called a B<parse series>.
 This is useful for parsing the same input with different settings.
 
+[ ... ]
+
+=head1  Parse trees and parse series
+
+Because Marpa allows ambiguous parsing,
+each parse can produce a B<parse series> --
+a series of zero or more parse trees,
+each with its own parse result.
+The first parse series starts with a
+call to
+the SLIF recognizer's
+L<C<read()>
+method|Marpa::R2::Scanless::R/"read()">.
+A parse series can be ended, and a new
+one started,
+by calling the SLIF recognizer's
+L<C<series_restart()>
+method|Marpa::R2::Scanless::R/"series_restart()">.
+Using more than one parse series is an advanced technique,
+one which is not useful for most applications.
+More details about the use of multiple parse series
+can be found in
+L<another document|Marpa::R2::Semantics::Phases>.
+
+A parse series is divided into
+
+=over 4
+
+=item * a Reading Phase; and
+
+=item * an Evaluation Phase.
+
+=back
+
+=head1 The Reading Phase
+
+The Reading Phase starts
+when the parse series starts,
+that is
+with either a call to the
+L<C<read()>
+method|Marpa::R2::Scanless::R/"read()">
+or a call to the
+L<C<series_restart()>
+method|Marpa::R2::Scanless::R/"series_restart()">.
+The reading phase ends when the first of the following occurs:
+
+=over 4
+
+=item *
+
+The recognizer is destroyed.
+
+=item *
+
+A new parse series is begun
+by calling the C<series_restart()> method.
+This and the previous case are unusual.
+Applications almost always
+want to continue the parse series into the Evaluation Phase.
+
+=item * The C<value()> method is called for this SLIF recognizer.
+This is the most common case.
+
+=back
+
+The C<read()> method can be called only once for a SLIF recognizer.
+But, while the Reading Phase continues,
+the C<resume()> method may be called multiple times to continue reading
+input.
+The C<resume()> method should not be called except during the
+Reading Phase of a parse series.
+
+=head2 The Evaluation Phase
+
+The Evaluation Phase of a parse series begins with its
+first call of the C<value()> method.
+If a parse series ends before the C<value()> method is
+called, there is no Evaluation Phase.
+
+The C<value()> method may be called again during
+the Evaluation Phase, in which case it will produce the
+result of the
+next parse tree of an ambiguous parse.
+
+The Evaluation Phase has several subphases, two of which are
+important for the purposes of this document
+
+=over 4
+
+=item *
+
+The Parse Series Setup Subphase,
+which occurs during during the first call
+to the C<value()> method of B<the first> parse series.
+
+=item *
+
+The Parse Tree Setup Subphase,
+which occurs during during the first call
+to the C<value()> method of B<every> series.
+
+=back
+
+Applications will usually
+find that the order in which
+the evaluation subphases are executed "just works".
+Application's whose behavior could depend on the details
+include
+
+=over 4
+
+=item *
+
+applications which make unusual use of side effects in the semantics; and
+
+=item *
+
+and applications which alter their symbol tables at runtime.
+
+=back
+
+A full description of the subphases of the Evaluation
+Phase is in
+L<a separate
+document|Marpa::R2::Semantics::Phases>.
+
 [ ADDED STUFF ENDS HERE ]
 
 Most users will find that the order in which
