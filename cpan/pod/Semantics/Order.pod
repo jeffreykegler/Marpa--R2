@@ -245,7 +245,7 @@ In practice, ambiguity tends to get out of hand very easily.
 Producing and sorting all the parses can take a very
 long time.
 
-=head1 A formal definitions
+=head1 A formal definition
 
 This section is a restatement of earlier definition in more formal language.
 It is recorded here for those who find it helpful.
