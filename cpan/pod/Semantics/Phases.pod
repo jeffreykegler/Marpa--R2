@@ -27,8 +27,10 @@ It serves two purposes.
 
 =item *
 
-It gives fuller details of the sequence of events
-than is given in the other documents.
+It describes the sequence of events
+in the SLIF recognizer
+in fuller detail
+than the other documents do.
 
 =item *
 
@@ -36,10 +38,12 @@ It describes the use of more than one parse series.
 
 =back
 
-Applications will usually
-find that the order in which
-the SLIF recognizer performs tasks "just works".
-But some application will depend on the full detail.
+Full detail of the sequence of events
+inside the SLIF recognizer
+is not usually necessary.
+Applications usually
+find that things "just work".
+But some application B<do> depend on the details.
 These include
 
 =over 4
@@ -54,32 +58,46 @@ and applications which alter their symbol tables at runtime.
 
 =back
 
-=head1 Parse series
+=head1 Parse trees and parse series
+
+Because Marpa allows ambiguous parsing,
+each parse can produce a B<parse series> --
+a series of zero or more parse trees,
+where each tree has its own parse result.
+Because the parse may fail,
+there may be zero parse
+trees in a parse series.
+Because a parse may be ambiguous,
+there may be more than one parse tree
+in a parse series.
 
 The SLIF recognizer can be run several times on the same
 virtual input stream.
 Each of these runs is called a B<parse series>.
+Most applications use only
+one parse series.
 
-The first parse series starts with a
-call to
-the SLIF recognizer's
-L<C<read()>
-method|Marpa::R2::Scanless::R/"read()">.
-A parse series can be ended, and a new
-one started,
-by calling the SLIF recognizer's
+The call to the
+L<SLIF recognizer's C<read()>
+method|Marpa::R2::Scanless::R/"read()">
+is the
+start of the first parse series.
+The first parse series continues until there is
+a call to the
 L<C<series_restart()>
-method|Marpa::R2::Scanless::R/"series_restart()">.
-Destroying the recognizer ends the current parse series.
+method|Marpa::R2::Scanless::R/"series_restart()">
+or until the recognizer is destroyed.
+Each call of the C<series_restart()> method
+starts a new parse series.
 
-Most applications will not need to use more than
+Few applications need to use more than
 a single parse series.
 But they are useful in some specialized
 applications.
 Starting a new parse series allows the applications
 to change some settings and even,
 to some extent, the input.
-Specifically.
+Specifically,
 
 =over 4
 
@@ -113,38 +131,6 @@ For details, see
 L<Marpa::R2::Scanless::R/"Recognizer settings">.
 
 =back
-
-=head1  Parse trees and parse series
-
-Because Marpa allows ambiguous parsing,
-each parse can produce a B<parse series> --
-a series of zero or more parse trees,
-where each tree its own parse result.
-In most applications, there is only
-one parse series.
-The call to the
-L<SLIF recognizer's C<read()>
-method|Marpa::R2::Scanless::R/"read()">
-is the
-start of the first parse series.
-
-The first parse series continues until there is
-a call to the
-L<C<series_restart()>
-method|Marpa::R2::Scanless::R/"series_restart()">
-or until the recognizer is destroyed.
-Each call of the C<series_restart()> method
-starts a new parse series.
-An application is usually interested in only one
-parse series.
-
-The processing of each parse series takes place
-in two phases, the second of which is optional.
-The Reading Phase is the first phase,
-and starts when then parse series starts.
-The Evaluation Phase is optional.
-If it occurs,
-it comes after the Reading Phase.
 
 =head1 SLIF recognizer phases
 
