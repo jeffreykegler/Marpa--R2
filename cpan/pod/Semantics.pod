@@ -285,10 +285,10 @@ Reading Phase of a parse series.
 The Evaluation Phase of a parse series begins with its
 first call of the C<value()> method.
 If a parse series ends before the C<value()> method is
-called, there is no Evalution Phase.
+called, there is no Evaluation Phase.
 
 The C<value()> method may be called again during
-the Evalution Phase, in which case it will produce the
+the Evaluation Phase, in which case it will produce the
 result of the
 next parse tree of an ambiguous parse.
 
@@ -327,7 +327,7 @@ and applications which alter their symbol tables at runtime.
 
 =back
 
-A full description of the subphases of the Evalution
+A full description of the subphases of the Evaluation
 Phase is in
 L<a separate
 document|Marpa::R2::Semantics::Phases>.
