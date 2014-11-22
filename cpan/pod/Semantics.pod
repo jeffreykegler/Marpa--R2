@@ -209,130 +209,26 @@ and available for use by the semantics.
 The final value of a parse is the value of the top node
 of the parse tree.
 
-=head1  Parse trees and parse series
+=head1  Parse trees
 
-Because Marpa allows ambiguous parsing,
-each parse can produce a B<parse series> --
-a series of zero or more parse trees,
-each with its own parse result.
-The first parse series starts with a
-call to
-the SLIF recognizer's
-L<C<read()>
-method|Marpa::R2::Scanless::R/"read()">.
-A parse series can be ended, and a new
-one started,
-by calling the SLIF recognizer's
-L<C<series_restart()>
-method|Marpa::R2::Scanless::R/"series_restart()">.
-Using more than one parse series is an advanced technique,
-one which is not useful for most applications.
-More details about the use of multiple parse series
+The calls of the
+L<C<value()> method|Marpa::R2::Scanless::R/"value()">
+by a SLIF recognizer produce a series of zero
+or more parses trees,
+called a B<parse series>.
+A recognizer will have only one parse series,
+unless it calls
+the L<C<series_restart()> method|Marpa::R2::Scanless::R/"series_restart()">.
+
+There may be zero parses in a parse series,
+because there may be no valid parse of a virtual input.
+There may be more than one parse in a parse series,
+Because Marpa allows ambiguous parsing.
+Full details about the life cycle of a Marpa
+recognizer,
+including a full treatment of parse series
 can be found in
 L<another document|Marpa::R2::Semantics::Phases>.
-
-A parse series is divided into
-
-=over 4
-
-=item * a Reading Phase; and
-
-=item * an Evaluation Phase.
-
-=back
-
-=head1 The Reading Phase
-
-The Reading Phase starts
-when the parse series starts,
-that is
-with either a call to the
-L<C<read()>
-method|Marpa::R2::Scanless::R/"read()">
-or a call to the
-L<C<series_restart()>
-method|Marpa::R2::Scanless::R/"series_restart()">.
-The reading phase ends when the first of the following occurs:
-
-=over 4
-
-=item *
-
-The recognizer is destroyed.
-
-=item *
-
-A new parse series is begun
-by calling the C<series_restart()> method.
-This and the previous case are unusual.
-Applications almost always
-want to continue the parse series into the Evaluation Phase.
-
-=item * The C<value()> method is called for this SLIF recognizer.
-This is the most common case.
-
-=back
-
-The C<read()> method can be called only once for a SLIF recognizer.
-But, while the Reading Phase continues,
-the C<resume()> method may be called multiple times to continue reading
-input.
-The C<resume()> method should not be called except during the
-Reading Phase of a parse series.
-
-=head2 The Evaluation Phase
-
-The Evaluation Phase of a parse series begins with its
-first call of the C<value()> method.
-If a parse series ends before the C<value()> method is
-called, there is no Evaluation Phase.
-
-The C<value()> method may be called again during
-the Evaluation Phase, in which case it will produce the
-result of the
-next parse tree of an ambiguous parse.
-
-The Evaluation Phase has several subphases, two of which are
-important for the purposes of this document
-
-=over 4
-
-=item *
-
-The Parse Series Setup Subphase,
-which occurs during during the first call
-to the C<value()> method of B<the first> parse series.
-
-=item *
-
-The Parse Tree Setup Subphase,
-which occurs during during the first call
-to the C<value()> method of B<every> series.
-
-=back
-
-Applications will usually
-find that the order in which
-the evaluation subphases are executed "just works".
-Application's whose behavior could depend on the details
-include
-
-=over 4
-
-=item *
-
-applications which make unusual use of side effects in the semantics; and
-
-=item *
-
-and applications which alter their symbol tables at runtime.
-
-=back
-
-A full description of the subphases of the Evaluation
-Phase is in
-L<a separate
-document|Marpa::R2::Semantics::Phases>.
 
 =head1 Nulled subtrees
 
@@ -749,6 +645,11 @@ L<SLIF recognizer's C<semantics_package> named
 argument|Marpa::R2::Scanless::R/"semantics_package">,
 or it can be taken from the argument to the first C<value()>
 call of the parse series.
+(All of a recognizer's C<value()> method calls
+refer to a single parse series unless
+the recognizer calls
+the
+L<C<series_restart()> method|Marpa::R2::Scanless::R/"series_restart()">.)
 The C<semantics_package> named argument takes precedence.
 
 If the arguments to the C<value()> method are used to specify
@@ -993,11 +894,13 @@ for resolution from a Perl name to a Perl variable to take place,
 that Perl name must
 refer to the intended variable,
 and this variable must be visible,
-during the Parse Series Setup Subphase.
-Parse Series Setup Subphase occurs during
+during the
+L<Parse Series Setup Subphase|Marpa::R2::Semantics::Phases/"Parse Series Setup Subphase">.
+The Parse Series Setup Subphase occurs during
 the first call to a recognizer's L<C<value()>|Marpa::R2::Scanless::R/"value()">
 method of the parse series.
-More details about Parse Series Setup Subphase
+More details about
+Parse Series Setup Subphase
 can be found in
 L<the document that describes the processing phases of Marpa's
 semantics|Marpa::R2::Semantics::Phases>.
@@ -1043,7 +946,22 @@ Otherwise it is the name of the semantics package.
 
 The result returned by the per-parse constructor becomes the per-parse argument.
 The per-parse constructor is called
-in the Parse Tree Setup Subphase.
+in the
+L<Parse Tree Setup Subphase|Marpa::R2::Semantics::Phases/"Parse Tree Setup Subphase">.
+The Parse Tree Setup Subphase occurs during
+the first call to a recognizer's L<C<value()>|Marpa::R2::Scanless::R/"value()">
+method of the parse series.
+(All of a recognizer's C<value()> method calls
+refer to a single parse series unless
+the recognizer calls
+the
+L<C<series_restart()> method|Marpa::R2::Scanless::R/"series_restart()">.)
+The C<semantics_package> named argument takes precedence.
+More details about
+Parse Series Setup Subphase
+can be found in
+L<the document that describes the processing phases of Marpa's
+semantics|Marpa::R2::Semantics::Phases>.
 
 =head1 Parse order
 
