@@ -167,6 +167,46 @@ for example, those which exploit side effects.
 And some readers may also find this background material
 to be helpful.
 
+=head1  Why use more than one parse series
+
+Starting a new parse series allows the applications
+to change some settings and even,
+to some extent, the input.
+Specifically.
+
+=over 4
+
+=item *
+
+Once input is read into a SLIF recognizer's
+virtual input stream, it is there for the life of the recognizer.
+It cannot be "unread".
+But during the reading phase of a new parse series,
+a recognizer can extend the virtual input stream,
+using the recognizer's 
+L<C<resume()> method|Marpa::R2::Scanless::R/"resume()">.
+
+=item *
+
+Within a parse series,
+the semantics package cannot change.
+But you can specify a new semantics package
+after starting a new parse series.
+
+=item *
+
+Certain other SLIF recognizer settings can be
+changed
+after starting a new parse series.
+These include the SLIF recognizer's
+L<C<end> setting|Marpa::R2::Scanless::R/"end">
+and its 
+L<C<ranking_method> setting|Marpa::R2::Scanless::R/"ranking_method">.
+For details, see
+L<Marpa::R2::Scanless::R/"Recognizer settings">.
+
+=back
+
 =head1  Parse trees and parse series
 
 Because Marpa allows ambiguous parsing,
