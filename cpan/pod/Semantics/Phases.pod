@@ -27,7 +27,7 @@ It serves two purposes.
 
 =item *
 
-It give fuller details of the sequence of events
+It gives fuller details of the sequence of events
 than is given in the other documents.
 
 =item *
@@ -38,7 +38,7 @@ It describes the use of more than one parse series.
 
 Applications will usually
 find that the order in which
-the SLIF recognizer "just works".
+the SLIF recognizer performs tasks "just works".
 But some application will depend on the full detail.
 These include
 
@@ -114,111 +114,6 @@ L<Marpa::R2::Scanless::R/"Recognizer settings">.
 
 =back
 
-[ ADDING STUFF ... ]
-
-[ ... ]
-
-=head1  Parse trees and parse series
-
-Because Marpa allows ambiguous parsing,
-each parse can produce a B<parse series> --
-a series of zero or more parse trees,
-each with its own parse result.
-
-A parse series is divided into
-
-=over 4
-
-=item * a Reading Phase; and
-
-=item * an Evaluation Phase.
-
-=back
-
-=head1 The Reading Phase
-
-The Reading Phase starts
-when the parse series starts,
-that is
-with either a call to the
-L<C<read()>
-method|Marpa::R2::Scanless::R/"read()">
-or a call to the
-L<C<series_restart()>
-method|Marpa::R2::Scanless::R/"series_restart()">.
-The reading phase ends when the first of the following occurs:
-
-=over 4
-
-=item *
-
-The recognizer is destroyed.
-
-=item *
-
-A new parse series is begun
-by calling the C<series_restart()> method.
-This and the previous case are unusual.
-Applications almost always
-want to continue the parse series into the Evaluation Phase.
-
-=item * The C<value()> method is called for this SLIF recognizer.
-This is the most common case.
-
-=back
-
-The C<read()> method can be called only once for a SLIF recognizer.
-But, while the Reading Phase continues,
-the C<resume()> method may be called multiple times to continue reading
-input.
-The C<resume()> method should not be called except during the
-Reading Phase of a parse series.
-
-=head2 The Evaluation Phase
-
-The Evaluation Phase of a parse series begins with its
-first call of the C<value()> method.
-If a parse series ends before the C<value()> method is
-called, there is no Evaluation Phase.
-
-The C<value()> method may be called again during
-the Evaluation Phase, in which case it will produce the
-result of the
-next parse tree of an ambiguous parse.
-
-The Evaluation Phase has several subphases, two of which are
-important for the purposes of this document
-
-=over 4
-
-=item *
-
-The Parse Series Setup Subphase,
-which occurs during during the first call
-to the C<value()> method of B<the first> parse series.
-
-=item *
-
-The Parse Tree Setup Subphase,
-which occurs during during the first call
-to the C<value()> method of B<every> series.
-
-=back
-
-[ ADDED STUFF ENDS HERE ]
-
-Most users will find that the order in which
-the SLIF executes its semantics "just works",
-and they will not need to learn the details,
-or to use the advanced features, described in this document.
-
-This document describes the order of execution
-of the semantics in detail.
-These details can matter in some applications,
-for example, those which exploit side effects.
-And some readers may also find this background material
-to be helpful.
-
 =head1  Parse trees and parse series
 
 Because Marpa allows ambiguous parsing,
@@ -251,15 +146,89 @@ The Evaluation Phase is optional.
 If it occurs,
 it comes after the Reading Phase.
 
+=head1 SLIF recognizer phases
+
+A SLIF recognizer is always in one of three phases:
+
+=over 4
+
+=item * The Initial Phase;
+
+=item * a Reading Phase; or
+
+=item * an Evaluation Phase.
+
+=back
+
+Note that,
+in this document, phase and subphase names are capitalized.
+This is done for clarity.
+
+Reading and Evaluation Phases
+are always part of a parse series.
+The Initial Phase is never part of any parse series.
+
+=head1 The Initial Phase
+
+The B<Initial Phase> of a SLIF recognizer
+begins when the recognizer is created with the
+calls the L<C<new()>|"new()"> method.
+It ends when
+the L<C<read()>|"read()"> method
+in called.
+It will also end, of course, if
+the recognizer is destroyed,
+but most applications will want to
+continue into the next phases.
+
+There is always exactly one Initial Phase for
+every recognizer.
+The Initial Phase is not part of any parse series.
+Very little can happen in this phase.
+It is possible to change some recognizer settings
+using the L<C<set()>|"set()"> method.
+
 =head1 The Reading Phase
 
-The Reading Phase begins with a call to either
-the SLIF's C<read()> method
-or the SLIF's C<series_restart()> method.
-During the reading phase, the application can
-call the SLIF's C<resume()> method.
-The Reading Phase ends just before the first call
-of the SLIF's C<value()> method.
+The Reading Phase starts
+when a parse series starts,
+that is
+with either a call to the
+L<C<read()>
+method|Marpa::R2::Scanless::R/"read()">
+or a call to the
+L<C<series_restart()>
+method|Marpa::R2::Scanless::R/"series_restart()">.
+The reading phase ends when the first of the following occurs:
+
+=over 4
+
+=item *
+
+The recognizer is destroyed.
+
+=item *
+
+A new parse series is begun
+by calling the C<series_restart()> method.
+This and the previous case are unusual.
+Applications almost always
+want to continue the parse series into the Evaluation Phase.
+
+=item * The C<value()> method is called for this SLIF recognizer.
+This is the most common case.
+
+=back
+
+The C<read()> method can be called only once for a SLIF recognizer.
+But, while a Reading Phase continues,
+the C<resume()> method may be called multiple times to continue reading
+input.
+The C<resume()> method should not be called except during the
+Reading Phase of a parse series.
+
+A Reading Phase is always part of a parse series.
+There is always exactly one Reading Phase for every parse series.
 
 =head1 The Evaluation Phase
 
@@ -272,23 +241,42 @@ is called for that recognizer.
 The Evaluation Phase is divided into subphases,
 as described
 L<below|"The evaluation subphases">.
+If a parse series ends before the C<value()> method is
+called, there is no Evaluation Phase.
 
-During the Evaluation Phase,
-the C<value()> method may be called multiple times,
-each time producing a new parse tree.
-The C<resume> method should B<not> be called
-during the evaluation phase -- the result of doing
-so is not defined.
+If the parse is ambiguous,
+the L<C<value()>|"value()"> method
+may be called more than once during the evaluation phase.
+The second and later calls of
+the L<C<value()>|"value()"> method will return
+the result of the next parse tree.
+When there are no more parse trees,
+the L<C<value()>|"value()"> method will return
+a Perl C<undef>
+
+If you call
+the L<C<resume()>|"resume()"> method
+during an Evaluation Phase,
+the behavior of
+Marpa::R2
+is not defined.
+You should not do this.
+
+An Evaluation Phase is always part of a parse series,
+but it is optional.
+A parse series may end without entering into an evalution phase.
 
 =head1 The evaluation subphases
 
 During the evaluation phase of a parse series, we have:
 
-=over
+=over 4
 
-=item * A Parse Series Setup Subphase, which occurs during
-the first call of the SLIF recognizer's C<value()> method
-for that series.
+=item *
+
+The Parse Series Setup Subphase,
+which occurs during during the first call
+to the C<value()> method of B<the first> parse series.
 It is followed by
 
 =item * the processing of zero or more parse trees.
@@ -297,11 +285,13 @@ It is followed by
 
 While processing a parse tree, we have:
 
-=over
+=over 4
 
-=item * A Parse Tree Setup Subphase, which occurs during
-the call of the recognizer's C<value()> method
-for that parse tree.
+=item * 
+
+The Parse Tree Setup Subphase,
+which occurs during during the first call
+to the C<value()> method of B<every> series.
 It is followed by
 
 =item * a Parse Tree Traveral Subphase.
@@ -340,8 +330,6 @@ for each parse tree.
 
 During the Parse Tree Traversal Subphase,
 the rule evaluation closures are called.
-Node Evaluation Time is the Parse Tree Traversal Subphase,
-as seen from the point of view of the individual nodes of the parse tree.
 
 =head1 Copyright and License
 
