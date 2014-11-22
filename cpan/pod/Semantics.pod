@@ -297,14 +297,16 @@ important for the purposes of this document
 
 =over 4
 
-=item * The Parse Series Setup Subphase
+=item *
 
-This occurs during during the first call
+The Parse Series Setup Subphase,
+which occurs during during the first call
 to the C<value()> method of B<the first> parse series.
 
-=item * The Parse Tree Setup Subphase
+=item *
 
-This occurs during during the first call
+The Parse Tree Setup Subphase,
+which occurs during during the first call
 to the C<value()> method of B<every> series.
 
 =back
