@@ -515,33 +515,90 @@ may want to use custom logic to reassemble the input
 from the physical input stream.
 The L</"literal()"> method can assist in this process.
 
-=head1 Parse series
+=head1 The life cycle of a recognizer
 
-The SLIF recognizer can be run several times on the same
-virtual input stream.
-Each of these runs is called a B<parse series>.
-This is useful for parsing the same input with different settings.
-
-The recognizer is always dealing with exactly one parse series.
-The L<C<new()>|/"Constructor"> starts the first
-(and usually the only) parse series.
-To end the current parse series and start a new one,
-use the L<C<series_restart()>|"series_restart()"> method.
-
-A parse series may result in no parses or be ambiguous,
-so that each parse series has zero or more B<parse trees>,
-each with its own B<parse result>.
-More details about parse series and parse trees
-are in
+This describes the life cycle of a recognizer
+which has only one parse series.
+Your recognizer has only one parse series
+unless it
+calls the L<C<series_restart()>|"series_restart()"> method.
+Use of multiple parse series is an advanced technique,
+one which most applications will not need.
+Full details about parse series are in
 L<a separate document|Marpa::R2::Semantics::Phases>.
 
-=head2 Evaluation time
+=head2 The initial phase
 
-A recognizer is in B<evaluation time> after the
-first call of the C<< $recce->value() >> method
-for the current parse series.
-B<Evaluation time> ends when the recognizer is
-destroyed, or when the parse series ends.
+The B<initial phase>
+begins when the recognizer is created with the
+calls the L<C<new()>|"new()"> method.
+It ends when
+the L<C<read()>|"read()"> method
+in called.
+It will also end, of course, if
+the recognizer is destroyed,
+but most applications will want to
+continue into the next phase.
+Very little can happen in this phase.
+It is possible to change some recognizer settings
+using the L<C<set()>|"set()"> method.
+
+=head2 The reading phase
+
+The B<reading phase> of a recognizer
+begins when
+it calls the L<C<read()>|"read()"> method.
+It ends when it first calls
+the L<C<value()>|"value()"> method.
+The reading phase will also end, of course, if
+the recognizer is destroyed,
+but most applications will want to
+continue into the next phase.
+During this phase, it is possible to add other
+input strings to the virtual input,
+by calling
+the L<C<resume()>|"resume()"> method.
+
+=head2 The evaluation phase
+
+The B<evaluation phase> of a recognizer
+begins when
+it first calls the L<C<value()>|"value()"> method,
+which returns the result of the first parse tree.
+If there we no parses,
+the L<C<value()>|"value()"> method will return
+a Perl C<undef>.
+
+If the parse is ambiguous,
+the L<C<value()>|"value()"> method
+may be called more than once during the evaluation phase.
+The second and later calls of
+the L<C<value()>|"value()"> method will return
+the result of the next parse tree.
+When there are no more parse trees,
+the L<C<value()>|"value()"> method will return
+a Perl C<undef>
+The L<C<resume()>|"resume()"> method should
+B<not> be called during evaluation phase.
+
+=head2 For more details
+
+In the above, we have described the life cycle for
+recognizers which have 
+only one parse series.
+A recognizer will have only one parse series,
+unless it calls
+the L<C<series_restart()>|"series_restart()"> method.
+
+Using multiple parse series,
+an application can run
+the SLIF recognizer several times on the same
+virtual input stream.
+More detail
+about the recognizer's life cycle,
+including a full treatment of parse series,
+is in
+L<a separate document|Marpa::R2::Semantics::Phases>.
 
 =head1 Recognizer settings
 

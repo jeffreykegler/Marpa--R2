@@ -19,6 +19,15 @@ Marpa::R2::Semantics::Phases - Phases of SLIF parse evaluation
 
 =head1 Overview of the semantic phases
 
+[ ADDING STUFF ... ]
+
+The SLIF recognizer can be run several times on the same
+virtual input stream.
+Each of these runs is called a B<parse series>.
+This is useful for parsing the same input with different settings.
+
+[ ADDED STUFF ENDS HERE ]
+
 Most users will find that the order in which
 the SLIF executes its semantics "just works",
 and they will not need to learn the details,
