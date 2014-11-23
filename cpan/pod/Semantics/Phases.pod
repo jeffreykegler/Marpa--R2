@@ -54,16 +54,17 @@ applications which make unusual use of side effects in the semantics; and
 
 =item *
 
-and applications which alter their symbol tables at runtime.
+applications which alter their symbol tables at runtime.
 
 =back
 
 =head1 Parse trees and parse series
 
 Because Marpa allows ambiguous parsing,
-each parse can produce a B<parse series> --
+each parse can produce a
 a series of zero or more parse trees,
-where each tree has its own parse result.
+-- a B<parse series>.
+Each parse tree has its own parse result.
 Because the parse may fail,
 there may be zero parse
 trees in a parse series.
@@ -71,9 +72,10 @@ Because a parse may be ambiguous,
 there may be more than one parse tree
 in a parse series.
 
-The SLIF recognizer can be run several times on the same
+The SLIF allows the recognizer to
+be run several times on the same
 virtual input stream.
-Each of these runs is called a B<parse series>.
+Each of these runs is a separate B<parse series>.
 Most applications use only
 one parse series.
 
@@ -95,8 +97,8 @@ a single parse series.
 But they are useful in some specialized
 applications.
 Starting a new parse series allows the applications
-to change some settings and even,
-to some extent, the input.
+to change some settings
+and to extend the input.
 Specifically,
 
 =over 4
@@ -106,7 +108,7 @@ Specifically,
 Once input is read into a SLIF recognizer's
 virtual input stream, it is there for the life of the recognizer.
 It cannot be "unread".
-But during the reading phase of a new parse series,
+But during the Reading Phase of a new parse series,
 a recognizer can extend the virtual input stream,
 using the recognizer's 
 L<C<resume()> method|Marpa::R2::Scanless::R/"resume()">.
@@ -146,9 +148,8 @@ A SLIF recognizer is always in one of three phases:
 
 =back
 
-Note that,
-in this document, phase and subphase names are capitalized.
-This is done for clarity.
+In this document phase and subphase names are capitalized.
+for clarity.
 
 Reading and Evaluation Phases
 are always part of a parse series.
@@ -158,10 +159,10 @@ The Initial Phase is never part of any parse series.
 
 The B<Initial Phase> of a SLIF recognizer
 begins when the recognizer is created with the
-calls the L<C<new()>|"new()"> method.
+a call of the L<C<new()>|"new()"> method.
 It ends when
 the L<C<read()>|"read()"> method
-in called.
+is called.
 It will also end, of course, if
 the recognizer is destroyed,
 but most applications will want to
@@ -170,22 +171,22 @@ continue into the next phases.
 There is always exactly one Initial Phase for
 every recognizer.
 The Initial Phase is not part of any parse series.
-Very little can happen in this phase.
-It is possible to change some recognizer settings
+Very little can happen in the Initial Phase,
+but it is possible to change some recognizer settings
 using the L<C<set()>|"set()"> method.
 
 =head1 The Reading Phase
 
 The Reading Phase starts
 when a parse series starts,
-that is
+that is,
 with either a call to the
 L<C<read()>
 method|Marpa::R2::Scanless::R/"read()">
 or a call to the
 L<C<series_restart()>
 method|Marpa::R2::Scanless::R/"series_restart()">.
-The reading phase ends when the first of the following occurs:
+The Reading Phase ends when the first of the following occurs:
 
 =over 4
 
@@ -210,7 +211,7 @@ The C<read()> method can be called only once for a SLIF recognizer.
 But, while a Reading Phase continues,
 the C<resume()> method may be called multiple times to continue reading
 input.
-The C<resume()> method should not be called except during the
+The C<resume()> method should only be called except during the
 Reading Phase of a parse series.
 
 A Reading Phase is always part of a parse series.
@@ -230,15 +231,14 @@ L<below|"The evaluation subphases">.
 If a parse series ends before the C<value()> method is
 called, there is no Evaluation Phase.
 
-If the parse is ambiguous,
-the L<C<value()>|"value()"> method
-may be called more than once during the evaluation phase.
+The L<C<value()>|"value()"> method
+may be called more than once during the Evaluation Phase.
 The second and later calls of
 the L<C<value()>|"value()"> method will return
-the result of the next parse tree.
+the result of the next parse tree, if there is one.
 When there are no more parse trees,
 the L<C<value()>|"value()"> method will return
-a Perl C<undef>
+a Perl C<undef>.
 
 If you call
 the L<C<resume()>|"resume()"> method
@@ -248,39 +248,25 @@ Marpa::R2
 is not defined.
 You should not do this.
 
-An Evaluation Phase is always part of a parse series,
-but it is optional.
-A parse series may end without entering into an evalution phase.
+When it occurs, an Evaluation Phase is always part of a parse series.
+But the Evaluation Phase is optional --
+a parse series may end without entering into an Evalution Phase.
 
-=head1 The evaluation subphases
-
-During the evaluation phase of a parse series, we have:
+The Evaluation Phase has subphases:
 
 =over 4
 
 =item *
 
-The Parse Series Setup Subphase,
-which occurs during during the first call
-to the C<value()> method of B<the first> parse series.
-It is followed by
-
-=item * the processing of zero or more parse trees.
-
-=back
-
-While processing a parse tree, we have:
-
-=over 4
+The Parse Series Setup Subphase.
 
 =item * 
 
-The Parse Tree Setup Subphase,
-which occurs during during the first call
-to the C<value()> method of B<every> series.
-It is followed by
+The Parse Tree Setup Subphase.
 
-=item * a Parse Tree Traveral Subphase.
+=item *
+
+The Parse Tree Traveral Subphase.
 
 =back
 
@@ -290,6 +276,9 @@ each rule node.  It is not a separate phase.
 
 =head1 Parse Series Setup Subphase
 
+The Parse Series Setup Subphase
+occurs during during the first call
+to the C<value()> method of B<the first> parse series.
 During the Parse Series Setup Subphase
 all action names are resolved to
 actions --
@@ -304,6 +293,9 @@ ranks parse trees is executed.
 
 =head1 Parse Tree Setup Subphase
 
+The Parse Tree Setup Subphase
+occurs during during the first call
+to the C<value()> method of B<every> series.
 In the Parse Tree Setup Subphase,
 the per-parse argument is created.
 If a per-parse constructor was found,
