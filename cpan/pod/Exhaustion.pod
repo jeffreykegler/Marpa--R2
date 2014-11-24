@@ -177,10 +177,10 @@ a parse is exhausted or not
 can directly query
 parse exhaustion status
 with
-the L<C<exhaustion()> method|Marpa::R2::Scanless::R/"exhaustion()">.
+the L<C<exhausted()> method|Marpa::R2::Scanless::R/"exhausted()">.
 Even when L<parse exhaustion events|Marpa::R2::Event/"Exhaustion events">
 are enabled,
-using the C<exhaustion()> method is the preferred method for detecting exhaustion,
+using the C<exhausted()> method is the preferred method for detecting exhaustion,
 because it reports both asynchronous and synchronous parse exhaustion.
 Exhaustion events only trigger in cases of asynchronous parse exhaustion.
 

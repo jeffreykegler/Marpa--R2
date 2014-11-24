@@ -242,7 +242,8 @@ for C<read()> defaults to the range [I<0 ... -1>].
 
 L<C<read()>|/"read()"> will return success when it reaches the end of its
 input string, or when a SLIF parse event triggers.
-(Parse events are described in L<a separate
+(Parse events are described in
+L<a separate
 document|Marpa::R2::Event>.)
 In many cases there are no parse events declared,
 or none trigger.
@@ -1241,7 +1242,7 @@ In the span specified by
 the second and third arguments,
 the start location defaults to the current location.
 If the
-L<pause span|Marpa::R2::Event/"Pause span and lexeme">
+L<pause span|Marpa::R2::Event/"Pause span and pause lexeme">
 is defined,
 and the start of the pause lexeme is
 the same as the current location,
@@ -1464,9 +1465,8 @@ containing the name of the event.
 Typically the name of the event is only element.
 Other elements
 will be as
-L<described for
-each type of parse event|
-document|Marpa::R2::Event/"Types of parse event">.
+L<described for each type of parse
+event|Marpa::R2::Event/"Types of parse event">.
 
 Any other SLIF recognizer mutator
 may clear the events.
@@ -1727,7 +1727,7 @@ L<a separate document|Marpa::R2::Event>.
 
 The C<pause_lexeme()> method accepts no arguments.
 It returns the current
-L<pause lexeme|Marpa::R2::Event/"Pause span and lexeme">.
+L<pause lexeme|Marpa::R2::Event/"Pause span and pause lexeme">.
 More than one lexeme may trigger at the same location,
 in which case the choice of pause lexeme
 is made arbitrarily.
@@ -1753,7 +1753,7 @@ the pause span
 as a 2-element array: start and length.
 The "pause span" is
 described in detail
-L<in another document|Marpa::R2::Event/"Pause span and lexeme">.
+L<in another document|Marpa::R2::Event/"Pause span and pause lexeme">.
 C<pause_span()> returns a Perl C<undef> if
 the pause span is undefined.
 

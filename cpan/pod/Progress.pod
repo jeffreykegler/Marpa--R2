@@ -43,7 +43,7 @@ reading this document.
 =head1 Introduction to Earley items
 
 To read the
-L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
+L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress()">
 output, it is important to have a
 basic idea of what
 Earley items are,
@@ -386,7 +386,7 @@ that you were working on when the error occurred.
 This is called the B<current location>.
 In our example the current location is G1 location 5.
 By default,
-L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
+L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress()">
 prints out only the progress reports for the current location.
 
 Here are the progress reports for the current location,
@@ -676,7 +676,7 @@ and which might be unexpected.
 =head2 Empty rules
 
 When a symbol is nulled in your parse,
-L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
+L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress()">
 show only the nulled symbol.
 It does not show the symbols expansion into rules,
 or any of its nulled child symbols.

@@ -123,10 +123,10 @@ SLIF grammars are
 L<C<Marpa::R2::Scanless:G>|Marpa::R2::Scanless::G> objects.
 They are created
 with the
-L<Marpa::R2::Scanless:G::new|Marpa::R2::Scanless::G/"new">
+L<Marpa::R2::Scanless:G::new|Marpa::R2::Scanless::G/"Constructor">
 constructor.
 The arguments to
-L<Marpa::R2::Scanless::G::new|Marpa::R2::Scanless::G/"new">
+L<Marpa::R2::Scanless::G::new|Marpa::R2::Scanless::G/"Constructor">
 are references to
 hashes of named arguments.
 In the key/value pairs of these hashes,

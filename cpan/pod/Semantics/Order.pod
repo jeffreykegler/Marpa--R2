@@ -210,7 +210,7 @@ with null symbols higher.
 
 The
 L<C<null-ranking> adverb
-for RHS alternatives|Marpa::R2::Scanless::R/"null-ranking">
+for RHS alternatives|Marpa::R2::Scanless::DSL/"null-ranking">
 specifies which nulling variants are ranked high or low.
 If the C<null-ranking> is "C<low>",
 then the closer a nulling variant

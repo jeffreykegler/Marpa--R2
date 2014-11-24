@@ -62,10 +62,8 @@ The semantics has two different modes,
 one of which is deprecated.
 If the SLIF recognizer is created from a grammar
 which uses the SLIF grammar's
-L<C<actions>|Marpa::R2::Scanless::G/"actions">
-or 
 L<C<action_object>|Marpa::R2::Scanless::G/"action_object">
-settings,
+setting,
 the SLIF's semantics will be in "legacy" mode.
 Otherwise, the SLIF's semantics will be
 in "standard" mode.
@@ -178,7 +176,7 @@ The Initial Phase is never part of any parse series.
 
 The B<Initial Phase> of a SLIF recognizer
 begins when the recognizer is created with the
-a call of the L<C<new()>|Marpa::R2::Scanless::R/"new()"> method.
+a call of the L<C<new()>|Marpa::R2::Scanless::R/"Constructor"> method.
 It ends when
 the L<C<read()>|Marpa::R2::Scanless::R/"read()"> method
 is called.
@@ -330,8 +328,6 @@ the rule evaluation closures are called.
 
 If the SLIF recognizer is created from a grammar
 which uses the
-L<C<actions>|Marpa::R2::Scanless::G/"actions">
-or 
 L<C<action_object>|Marpa::R2::Scanless::G/"action_object">
 SLIF grammar setting,
 the SLIF recognizer will be in "legacy" mode.

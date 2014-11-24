@@ -894,16 +894,9 @@ for resolution from a Perl name to a Perl variable to take place,
 that Perl name must
 refer to the intended variable,
 and this variable must be visible,
-during the
-L<Parse Series Setup Subphase|Marpa::R2::Semantics::Phases/"Parse Series Setup Subphase">.
-The Parse Series Setup Subphase occurs during
-the first call to a recognizer's L<C<value()>|Marpa::R2::Scanless::R/"value()">
-method of the parse series.
-More details about
-Parse Series Setup Subphase
-can be found in
-L<the document that describes the processing phases of Marpa's
-semantics|Marpa::R2::Semantics::Phases>.
+when actions are resolved.
+For details of when this happens,
+see L<Marpa::R2::Semantics::Phases>.
 
 =head1 The per-parse argument
 
