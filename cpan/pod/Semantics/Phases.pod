@@ -336,7 +336,7 @@ which uses the
 L<C<actions>|Marpa::R2::Scanless::G/"actions">
 or 
 L<C<action_object>|Marpa::R2::Scanless::G/"action_object">
-SLIF gramamr setting,
+SLIF grammar setting,
 the SLIF recognizer will be in "legacy" mode.
 Legacy mode is deprecated.
 It is documented here only for the support of legacy
@@ -346,23 +346,22 @@ In legacy mode,
 there is an additional evaluation subphase,
 the Parse Series Setup Subphase,
 and tasks performed in standard mode
-by the 
-the Parse Tree Setup Subphase
+by the Parse Tree Setup Subphase
 are split between the two subphases.
 
 The Parse Series Setup Subphase
 occurs just before
 the Parse Tree Setup Subphase,
 in the first C<value> method call
-of a parse series.
-However,
+of B<the first> parse series.
+It is important to emphasize that
 the Parse Series Setup Subphase
 occurs B<only in the first parse series>.
 
 In legacy mode,
 the only task performed by
 the Parse Tree Setup Phase is creation
-of the per-parse object.
+of the per-parse argument.
 The other tasks
 (action resolution and ranking)
 are performed in the 
@@ -377,7 +376,9 @@ be changed in legacy mode
 by starting a new parse series.
 Both are decided once and for all
 in the Parse Series Setup Subphase,
-and that occurs only during the life
+and
+the Parse Series Setup Subphase
+occurs only once during the life
 cycle of a SLIF recognizer.
 
 The precise timing of semantics
