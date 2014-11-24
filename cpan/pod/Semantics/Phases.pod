@@ -178,9 +178,9 @@ The Initial Phase is never part of any parse series.
 
 The B<Initial Phase> of a SLIF recognizer
 begins when the recognizer is created with the
-a call of the L<C<new()>|"new()"> method.
+a call of the L<C<new()>|Marpa::R2::Scanless::R/"new()"> method.
 It ends when
-the L<C<read()>|"read()"> method
+the L<C<read()>|Marpa::R2::Scanless::R/"read()"> method
 is called.
 It will also end, of course, if
 the recognizer is destroyed,
@@ -192,7 +192,7 @@ every recognizer.
 The Initial Phase is not part of any parse series.
 Very little can happen in the Initial Phase,
 but it is possible to change some recognizer settings
-using the L<C<set()>|"set()"> method.
+using the L<C<set()>|Marpa::R2::Scanless::R/"set()"> method.
 
 =head1 The Reading Phase
 
@@ -244,23 +244,20 @@ It ends when the recognizer is destroyed,
 or when
 the SLIF's C<series_restart()> method
 is called for that recognizer.
-The Evaluation Phase is divided into subphases,
-as described
-L<below|"The evaluation subphases">.
 If a parse series ends before the C<value()> method is
 called, there is no Evaluation Phase.
 
-The L<C<value()>|"value()"> method
+The L<C<value()>|Marpa::R2::Scanless::R/"value()"> method
 may be called more than once during the Evaluation Phase.
 The second and later calls of
-the L<C<value()>|"value()"> method will return
+the L<C<value()>|Marpa::R2::Scanless::R/"value()"> method will return
 the result of the next parse tree, if there is one.
 When there are no more parse trees,
-the L<C<value()>|"value()"> method will return
+the L<C<value()>|Marpa::R2::Scanless::R/"value()"> method will return
 a Perl C<undef>.
 
 If you call
-the L<C<resume()>|"resume()"> method
+the L<C<resume()>|Marpa::R2::Scanless::R/"resume()"> method
 during an Evaluation Phase,
 the behavior of
 Marpa::R2

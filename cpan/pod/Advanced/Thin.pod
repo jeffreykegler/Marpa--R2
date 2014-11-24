@@ -248,7 +248,7 @@ The throw setting is 1 in newly created grammar
 objects.
 Once created, the throw setting of a grammar object
 can be changed using the L<< C<throw_set()>
-method|"$g->throw_set()" >>
+method|C<< $g->throw_set() >> >>
 The throw setting of other objects is that
 of their base grammar.
 
@@ -259,19 +259,19 @@ controls the throw setting, so that a problem with them
 suggests the throw setting itself may not be correct.
 The methods which never obey the throw setting,
 are
-L<< C<< Marpa::R2::Thin::G->new() >>|"Marpa::R2::Thin::G->new()" >>,
-L<< C<throw_set()>|"$g->throw_set()" >>
-and L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>.
+L<< C<< Marpa::R2::Thin::G->new() >>|C<< Marpa::R2::Thin::G->new() >> >>,
+L<< C<throw_set()>|C<< $g->throw_set() >> >>
+and L<< C<ruby_slippers_set()>|C<< $r->ruby_slippers_set() >> >>.
 These methods throw all failures.
 
 One method allows the throw setting to be overriden.
 For convenience in using the Ruby Slippers technique,
 the behavior of the L<< C<alternative()>
-method|"$r->alternative()" >>
+method|C<< $r->alternative() >> >>
 is also affected by a separate "Ruby Slippers" flag.
 For details, see
 L<< the description of that
-method|"$r->alternative()" >>.
+method|C<< $r->alternative() >> >>.
 
 =head1 Error codes, names and descriptions
 
@@ -368,7 +368,7 @@ An application should assume that the
 error codes and error descriptions will be overwritten by the
 next call to 
 any  thin interface method other than the L<< C<error()>
-method|"$g->error()" >>.
+method|C<< $g->error() >> >>.
 
 =head2 Failure and the error variables
 
@@ -598,7 +598,7 @@ The C<error_clear()> method follows the general pattern.
 
 For a synopsis, see L<< the section on
 the C<< $g->error() >>
-method|"$g->error()" >>.
+method|C<< $g->error() >> >>.
 The C<error_names()> method returns a
 B<reference> to an array of error names,
 indexed by Libmarpa error code.
@@ -863,7 +863,7 @@ The error code
 will be C<MARPA_ERR_NONE> if and only
 if the call was successful.
 The error code can be found using the L<< C<error()>
-method|"$g->error()" >>.
+method|C<< $g->error() >> >>.
 Applications may find it more convenient to have
 C<rule_rank()> always throw its errors.
 
@@ -884,7 +884,7 @@ The error code
 will be C<MARPA_ERR_NONE> if and only
 if the call was successful.
 The error code can be found using the L<< C<error()>
-method|"$g->error()" >>.
+method|C<< $g->error() >> >>.
 Applications may find it more convenient to have
 C<rule_rank_set()> always throw its errors.
 
@@ -944,7 +944,7 @@ Note that this default (disabled) is
 the opposite of that in the higher level L<Marpa::R2> interface.
 
 The L<< C<alternative()>
-method|"$r->alternative()" >>
+method|C<< $r->alternative() >> >>
 will only throw exceptions when 
 "Ruby Slippers" mode is disabled and the throw flag is on.
 One way of describing Ruby Slippers mode is as
@@ -997,7 +997,7 @@ Catching and recovering
 from this error is the basis of the Ruby Slippers parsing
 technique.
 For more on the Ruby Slippers flag,
-see L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>.
+see L<< C<ruby_slippers_set()>|C<< $r->ruby_slippers_set() >> >>.
 
 =head2 C<< $r->terminals_expected() >>
 
@@ -1431,7 +1431,7 @@ returns the string indicating the type of the last
 Libmarpa valuator step.
 If the last call of the
 L<< C<step()>
-method|"$v->step()" >> succeeded,
+method|C<< $v->step() >> >> succeeded,
 the string returned by C<step_type()> will
 be the same as the one that was the first
 element of the array returned by C<step()>.

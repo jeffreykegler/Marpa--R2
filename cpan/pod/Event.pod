@@ -237,11 +237,11 @@ All events are automatically activated when declared.
 
 Events may be accessed using
 L<the Scanless recognizer's events()
-method|/"events()">.
+method|Marpa::R2::Scanless::R/"events()">.
 The beginning and end of the lexeme triggering a lexeme event
 may be found using
 L<the Scanless recognizer's pause_span()
-method|/"pause_span()">.
+method|Marpa::R2::Scanless::R/"pause_span()">.
 
 =head1 Types of parse event
 
@@ -524,7 +524,7 @@ The event itself is often simply discarded,
 because an application typically
 does not care whether
 exhaustion is synchronous or asynchronous.
-The L<C<exhausted()> method|/"exhausted()">
+The L<C<exhausted()> method|Marpa::R2::Scanless::R/"exhausted()">
 can be relied on to report
 both asynchronous and synchronous parse exhaustion,
 and it is usually used instead.

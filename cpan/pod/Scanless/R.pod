@@ -527,11 +527,11 @@ one which most applications will not need.
 Full details about parse series are in
 L<a separate document|Marpa::R2::Semantics::Phases>.
 
-=head2 The initial phase
+=head2 The Initial Phase
 
-The B<initial phase>
+The B<Initial Phase>
 begins when the recognizer is created with the
-calls the L<C<new()>|"new()"> method.
+calls the L<C<new()>|/"Constructor"> method.
 It ends when
 the L<C<read()>|"read()"> method
 in called.
@@ -541,16 +541,16 @@ but most applications will want to
 continue into the next phase.
 Very little can happen in this phase.
 It is possible to change some recognizer settings
-using the L<C<set()>|"set()"> method.
+using the L<C<set()>|/"set()"> method.
 
-=head2 The reading phase
+=head2 The Reading Phase
 
-The B<reading phase> of a recognizer
+The B<Reading Phase> of a recognizer
 begins when
 it calls the L<C<read()>|"read()"> method.
 It ends when it first calls
 the L<C<value()>|"value()"> method.
-The reading phase will also end, of course, if
+The Reading Phase will also end, of course, if
 the recognizer is destroyed,
 but most applications will want to
 continue into the next phase.
@@ -559,9 +559,9 @@ input strings to the virtual input,
 by calling
 the L<C<resume()>|"resume()"> method.
 
-=head2 The evaluation phase
+=head2 The Evaluation Phase
 
-The B<evaluation phase> of a recognizer
+The B<Evaluation Phase> of a SLIF recognizer
 begins when
 it first calls the L<C<value()>|"value()"> method,
 which returns the result of the first parse tree.
@@ -571,7 +571,7 @@ a Perl C<undef>.
 
 If the parse is ambiguous,
 the L<C<value()>|"value()"> method
-may be called more than once during the evaluation phase.
+may be called more than once during the Evaluation Phase.
 The second and later calls of
 the L<C<value()>|"value()"> method will return
 the result of the next parse tree.
@@ -579,7 +579,7 @@ When there are no more parse trees,
 the L<C<value()>|"value()"> method will return
 a Perl C<undef>
 The L<C<resume()>|"resume()"> method should
-B<not> be called during evaluation phase.
+B<not> be called during Evaluation Phase.
 
 =head2 For more details
 
@@ -708,7 +708,7 @@ The C<ranking_method> setting is also allowed
 in those calls of the
 L<C<< $recce->set() >>|"set()"> method
 that are not made during
-L<evaluation time|/"Evaluation time">.
+L<the Evaluation Phase|/"The Evaluation Phase">.
 
 =head2 rejection
 
@@ -952,7 +952,7 @@ normalize-whitespace: 1
 
 The C<series_restart()> method ends the current parse series,
 and starts another.
-Parse series are described L<above|"Parse series">.
+Parse series are described L<in another document|Marpa::R2::Semantics::Phases>.
 The C<series_restart()> method allows,
 as optional arguments, hashes whose key-value pairs
 are L<recognizer settings|/"Recognizer settings">.

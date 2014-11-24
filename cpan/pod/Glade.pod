@@ -45,12 +45,12 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The code for C<asf_to_basic_tree()> represents a user-supplied call
-using the interface described below.  An full example of C<ast_to_basic_tree()>,
+using the interface described below.  An full example of C<asf_to_basic_tree()>,
 which constructs a Perl array "tree",
 is given
-L<below|/"The code for ast_to_basic_tree()">.
+L<below|/"The asf_to_basic_tree() code">.
 C<array_display()> displays the tree in a compact form.
-The code for it is also given L<below|/"The code for array_display()">.
+The code for it is also given L<below|/"The array_display() code">.
 The return value of C<array_display()> is as follows:
 
 =for Marpa::R2::Display

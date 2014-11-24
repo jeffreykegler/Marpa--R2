@@ -80,10 +80,10 @@ We can call those languages B<exhaustion-conflicted>.
 
 The methods that may encounter parse exhaustion are those
 that read input:
-L<read()|/"read()">,
-L<resume()|/"resume()">,
-L<lexeme_complete()|/"lexeme_complete()">,
-and L<lexeme_read()|/"lexeme_read()">.
+L<read()|Marpa::R2::Scanless::R/"read()">,
+L<resume()|Marpa::R2::Scanless::R/"resume()">,
+L<lexeme_complete()|Marpa::R2::Scanless::R/"lexeme_complete()">,
+and L<lexeme_read()|Marpa::R2::Scanless::R/"lexeme_read()">.
 These are also, and not by coincidence, the event-triggering methods.
 In this document, we will call them the B<reading methods>.
 
@@ -131,8 +131,8 @@ a location at which parse exhaustion occurs.
 
 How parse exhaustion is handled depends on the setting
 of the
-L<SLIF's C<exhaustion> recognizer setting|
-Marpa::R2::Scanless::R/"exhaustion">.
+L<SLIF's C<exhaustion> recognizer
+setting|Marpa::R2::Scanless::R/"exhaustion">.
 The value of this may be "C<fatal>" or
 "C<event>".
 ("C<fatal>" is the default.)
@@ -153,8 +153,8 @@ This is treated by the
 triggering method as a successful return.
 
 Note that the
-L<lexeme_complete()|/Marpa::R2::Scanless::R/"lexeme_complete()">,
-and L<lexeme_read()|/Marpa::R2::Scanless::R/"lexeme_read()">,
+L<lexeme_complete()|Marpa::R2::Scanless::R/"lexeme_complete()">,
+and L<lexeme_read()|Marpa::R2::Scanless::R/"lexeme_read()">,
 always ignore
 parse exhaustion,
 regardless of the C<exhaustion> recognizer setting.
@@ -177,7 +177,7 @@ a parse is exhausted or not
 can directly query
 parse exhaustion status
 with
-the L<C<exhaustion()> method|/Marpa::R2::Scanless::R/"exhaustion()">.
+the L<C<exhaustion()> method|Marpa::R2::Scanless::R/"exhaustion()">.
 Even when L<parse exhaustion events|Marpa::R2::Event/"Exhaustion events">
 are enabled,
 using the C<exhaustion()> method is the preferred method for detecting exhaustion,
