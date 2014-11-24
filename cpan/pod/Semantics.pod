@@ -223,7 +223,7 @@ the L<C<series_restart()> method|Marpa::R2::Scanless::R/"series_restart()">.
 There may be zero parses in a parse series,
 because there may be no valid parse of a virtual input.
 There may be more than one parse in a parse series,
-Because Marpa allows ambiguous parsing.
+because Marpa allows ambiguous parsing.
 Full details about the life cycle of a Marpa
 recognizer,
 including a full treatment of parse series
@@ -353,7 +353,7 @@ The C<bless> adverb is allowed
 
 =back
 
-A L0 RHS alternative cannot have a C<bless> adverb.
+An L0 RHS alternative cannot have a C<bless> adverb.
 
 The value of a C<bless> adverb is called a B<blessing>.
 If the blessing is a Perl word
@@ -553,7 +553,7 @@ the token value of the lexeme.
 =item C<values>
 
 The C<value> and C<values> array item descriptors are synonyms,
-and may be used interchangeably for both rules alternatives and lexemes.
+and may be used interchangeably for both rule alternatives and lexemes.
 
 =back
 
@@ -664,10 +664,11 @@ in the C<main> namespace,
 she can specify
 C<"main">
 as the semantics package.
-But it is usually good practice to keep
+This is fine for small scripts and applications.
+For a large project,
+it is usually good practice to keep
 Perl variables intended for use by Marpa's semantics
-in their own namespace,
-especially if the application is not small.
+in their own namespace.
 
 =head1 Resolving Perl identifiers to Perl names
 
@@ -729,7 +730,7 @@ The first will be the per-parse argument,
 and the second will be a blessed array that contains
 the child values in lexical order.
 (The grouping of child values into an array
-is required in order to allow the blessing to stay in effect.)
+is required in order to allow the blessing to take effect.)
 
 =back
 
@@ -843,7 +844,7 @@ by other nodes of the current parse,
 and by other parses.
 All this suggests that,
 as a matter of good practice,
-Perl scalar actions be used only as constants.
+Perl scalar actions should only be used as constants.
 
 For example,
 assume that actions are in a package named C<My_Actions>,
@@ -894,9 +895,10 @@ for resolution from a Perl name to a Perl variable to take place,
 that Perl name must
 refer to the intended variable,
 and this variable must be visible,
-when actions are resolved.
-For details of when this happens,
-see L<Marpa::R2::Semantics::Phases>.
+at the time when actions are resolved.
+The timing of action resolution
+is specified in
+L<a separate document|Marpa::R2::Semantics::Phases>.
 
 =head1 The per-parse argument
 
@@ -943,15 +945,14 @@ in the
 L<Parse Tree Setup Subphase|Marpa::R2::Semantics::Phases/"Parse Tree Setup Subphase">.
 The Parse Tree Setup Subphase occurs during
 the first call to a recognizer's L<C<value()>|Marpa::R2::Scanless::R/"value()">
-method of the parse series.
+method in a parse series.
 (All of a recognizer's C<value()> method calls
 refer to a single parse series unless
 the recognizer calls
 the
 L<C<series_restart()> method|Marpa::R2::Scanless::R/"series_restart()">.)
-The C<semantics_package> named argument takes precedence.
 More details about
-Parse Series Setup Subphase
+Parse Tree Setup Subphase
 can be found in
 L<the document that describes the processing phases of Marpa's
 semantics|Marpa::R2::Semantics::Phases>.
