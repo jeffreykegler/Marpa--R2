@@ -21,12 +21,12 @@ Marpa::R2::Advanced::Bibliography - A Marpa bibliography
 
 =over
 
-=item 1970
+=item * 1970
 
 Jay Earley L<invents the algorithm that now bears his
 name|"Earley 1970">.
 
-=item 1991
+=item * 1991
 
 Joop Leo L<describes a way to modify Earley's algorithm so that it
 runs in O(n) time for all LR-regular
@@ -37,7 +37,7 @@ and regular expressions.
 LR-regular can safely be thought of as including all grammars
 in practical use today, and then some.
 
-=item 2002
+=item * 2002
 
 L<Aycock and Horspool describe a way to do LR(0)
 precomputation|"Aycock and Horspool 2002">
@@ -50,7 +50,7 @@ Worst case is no better than Earley's.
 Leo is unaware of Aycock and Horspool's work
 and Aycock and Horspool seem unaware of Leo.
 
-=item 2010
+=item * 2010
 
 L<Marpa combines the Leo and Aycock-Horspool
 algorithms|"Kegler 2013">,
