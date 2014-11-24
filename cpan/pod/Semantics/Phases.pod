@@ -368,11 +368,14 @@ are performed in the
 the Parse Series Setup Phase.
 
 One practical implication
-of this is that, in legacy mode,
+of this is that,
+in legacy mode,
 the semantics package cannot be changed
 by starting a new parse series.
-Similarly, the ranking method cannot
-be changed in legacy mode
+Similarly,
+in legacy mode,
+the ranking method cannot
+be changed
 by starting a new parse series.
 Both are decided once and for all
 in the Parse Series Setup Subphase,
