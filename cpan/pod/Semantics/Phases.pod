@@ -58,6 +58,25 @@ applications which alter their symbol tables at runtime.
 
 =back
 
+The semantics has two different modes,
+one of which is deprecated.
+If the SLIF recognizer is created from a grammar
+which uses the SLIF grammar's
+L<C<actions>|Marpa::R2::Scanless::G/"actions">
+or 
+L<C<action_object>|Marpa::R2::Scanless::G/"action_object">
+settings,
+the SLIF's semantics will be in "legacy" mode.
+Otherwise, the SLIF's semantics will be
+in "standard" mode.
+
+Legacy mode is deprecated and should not be used in new
+applications.
+It is documented in L<its own section|/"Legacy mode">.
+Unless otherwise specified,
+the other sections of this document assume
+that "standard" mode is in use.
+
 =head1 Parse trees and parse series
 
 Because Marpa allows ambiguous parsing,
@@ -252,13 +271,9 @@ When it occurs, an Evaluation Phase is always part of a parse series.
 But the Evaluation Phase is optional --
 a parse series may end without entering into an Evalution Phase.
 
-The Evaluation Phase has subphases:
+The Evaluation Phase has two subphases:
 
 =over 4
-
-=item *
-
-The Parse Series Setup Subphase.
 
 =item * 
 
@@ -274,33 +289,38 @@ B<Node Evaluation Time>
 is the Tree Traversal Subphase, as seen from the point of view of
 each rule node.  It is not a separate phase.
 
-=head1 Parse Series Setup Subphase
-
-The Parse Series Setup Subphase
-occurs during during the first call
-to the C<value()> method of B<the first> parse series.
-During the Parse Series Setup Subphase
-all action names are resolved to
-actions --
-Perl scalars
-or rule evaluation closures.
-The rule evaluation closures are not called in the Parse Series Setup Subphase.
-They will be called later,
-in the Parse Tree Traversal Subphase.
-Also, during the Parse Series Setup Subphase,
-the logic which
-ranks parse trees is executed.
-
 =head1 Parse Tree Setup Subphase
 
 The Parse Tree Setup Subphase
 occurs during during the first call
-to the C<value()> method of B<every> series.
-In the Parse Tree Setup Subphase,
-the per-parse argument is created.
+to the C<value()> method of every series.
+In the Parse Tree Setup Subphase, the following happens:
+
+=over 4
+
+=item *
+
+The per-parse argument is created.
 If a per-parse constructor was found,
 it is run at this point, and the per-parse argument is
 its return value.
+
+=item *
+
+All action names are resolved to
+actions --
+Perl scalars
+or rule evaluation closures.
+The rule evaluation closures are not called in the Parse Tree Setup Subphase.
+They will be called later,
+in the Parse Tree Traversal Subphase.
+
+=item *
+
+The logic which ranks parse trees is executed.
+
+=back
+
 Exactly one Parse Tree Setup Subphase occurs
 for each parse tree.
 
@@ -308,6 +328,64 @@ for each parse tree.
 
 During the Parse Tree Traversal Subphase,
 the rule evaluation closures are called.
+
+=head1 Legacy mode
+
+If the SLIF recognizer is created from a grammar
+which uses the
+L<C<actions>|Marpa::R2::Scanless::G/"actions">
+or 
+L<C<action_object>|Marpa::R2::Scanless::G/"action_object">
+SLIF gramamr setting,
+the SLIF recognizer will be in "legacy" mode.
+Legacy mode is deprecated.
+It is documented here only for the support of legacy
+applications.
+
+In legacy mode,
+there is an additional evaluation subphase,
+the Parse Series Setup Subphase,
+and tasks performed in standard mode
+by the 
+the Parse Tree Setup Subphase
+are split between the two subphases.
+
+The Parse Series Setup Subphase
+occurs just before
+the Parse Tree Setup Subphase,
+in the first C<value> method call
+of a parse series.
+However,
+the Parse Series Setup Subphase
+occurs B<only in the first parse series>.
+
+In legacy mode,
+the only task performed by
+the Parse Tree Setup Phase is creation
+of the per-parse object.
+The other tasks
+(action resolution and ranking)
+are performed in the 
+the Parse Series Setup Phase.
+
+One practical implication
+of this is that, in legacy mode,
+the semantics package cannot be changed
+by starting a new parse series.
+Similarly, the ranking method cannot
+be changed in legacy mode
+by starting a new parse series.
+Both are decided once and for all
+in the Parse Series Setup Subphase,
+and that occurs only during the life
+cycle of a SLIF recognizer.
+
+The precise timing of semantics
+operations is affected by the
+changes described above.
+These changed timings, in turn,
+may affect applications that rely on side
+effects of the semantics.
 
 =head1 Copyright and License
 
