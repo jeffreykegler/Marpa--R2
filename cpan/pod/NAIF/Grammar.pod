@@ -174,7 +174,7 @@ a single Perl closure often results in
 simpler and more
 natural code.
 See L<the section on sequences in the semantics
-document|Marpa::R2::NAIF::Semantics/"Sequence Rule Nodes">.
+document|Marpa::R2::NAIF::Semantics/"Sequence rule nodes">.
 
 =head3 Caveats
 
@@ -313,7 +313,7 @@ RHS symbols in order.
 Situations where
 Rule ID's are encountered include
 callbacks and
-use of L<the progress method|Marpa::R2::NAIF/Progress/progress()>.
+use of L<the progress method|Marpa::R2::NAIF::Progress/progress()>.
 
 =head2 rule_ids()
 
@@ -329,7 +329,7 @@ Returns an array containing the valid rule IDs.
 Situations where
 Rule ID's are encountered include
 callbacks and
-use of L<the progress method|Marpa::R2::NAIF/Progress/progress()>.
+use of L<the progress method|Marpa::R2::NAIF::Progress/progress()>.
 
 =head1 Trace accessors
 

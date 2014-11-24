@@ -36,7 +36,7 @@ each of which will have its own parse result.
 
 This document describes ways of controlling
 the order in which
-the L<NAIF recognizer's C<value> method|Marpa::R2::NAIF::Recognizer/"value">
+the L<NAIF recognizer's C<value> method|Marpa::R2::NAIF::Recognizer/"value()">
 evaluates the parse
 trees of an ambiguous parse;
 It also describes ways to exclude selected parse trees
@@ -44,7 +44,7 @@ from the parse series.
 
 Almost all 
 of what is said in this document
-also applies to the L<SLIF recognizer's C<value> method|Marpa::R2::Scanless::R/"value">.
+also applies to the L<SLIF recognizer's C<value> method|Marpa::R2::Scanless::R/"value()">.
 Certain named arguments which control the parse order are present in the NAIF,
 but are not present in the SLIF,
 and this accounts for the differences between the two.
@@ -101,7 +101,7 @@ the parse series is traversed.
 
 By calling
 the recognizer's
-L<C<value>|Marpa::R2::NAIF::Recognizer/"value">
+L<C<value>|Marpa::R2::NAIF::Recognizer/"value()">
 method
 repeatedly,
 Marpa can produce all the parse results

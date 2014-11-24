@@ -159,10 +159,10 @@ Marpa grammars are
 L<C<Marpa::R2::Grammar>|Marpa::R2::NAIF::Grammar> objects.
 They are created
 with the
-L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"new">
+L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"Constructor">
 constructor.
 The arguments to
-L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"new">
+L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"Constructor">
 are references to
 hashes of named arguments.
 In the key/value pairs of these hashes,
