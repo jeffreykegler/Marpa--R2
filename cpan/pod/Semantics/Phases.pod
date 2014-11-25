@@ -163,7 +163,7 @@ A SLIF recognizer is always in one of three phases:
 
 =back
 
-In this document phase and subphase names are capitalized.
+In this document phase and subphase names are capitalized
 for clarity.
 
 Reading and Evaluation Phases
