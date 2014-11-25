@@ -407,6 +407,13 @@ For example, if a span of G1 locations which begin at G1 location
 42 and has length 2, 
 it will contain a pair of G1 locations: G1 location 42 and G1 location 43.
 
+Sometimes it is convenient to think of
+a G1 location as corresponding to a single input stream location.
+When this is the case,
+what is meant is the location
+at the end of physical input stream span:
+C<$span_start+$span_length>.
+
 =head2 Literals and G1 spans
 
 It is sometimes
@@ -1517,13 +1524,6 @@ L<span|/"Spans"> in the physical input stream.
 G1 location 0 does not correspond to a input stream span so,
 as a special case,
 the input stream span for G1 location 0 is returned as (0,0).
-
-Sometimes it is convenient to think of
-a G1 location as corresponding to a single input stream location.
-When this is the case,
-what is meant is the location
-at the end of physical input stream span:
-C<$span_start+$span_length>.
 
 =head2 input_length()
 
