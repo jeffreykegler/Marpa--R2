@@ -1403,7 +1403,7 @@ Fails and returns zero if called before parsing.
 Returns zero or a negative number on other unthrown failure.
 
 When the return value is 2 or greater,
-an applications should not rely on the exact value, which is subject to change.
+an application should not rely on the exact value, which is subject to change.
 In the future, return values of 2 or greater may represent a "metric" which
 estimates the degree of ambiguity in some useful way,
 but is cheap to compute.
@@ -1496,7 +1496,7 @@ recognizer will not accept any further input.
 Marpa usually "does what you mean" in case of parse exhaustion,
 but this method
 allows the recognizer's exhaustion status to be discovered directly.
-Parse exhaustion is discussion in detail in
+Parse exhaustion is discussed in detail in
 L<a separate document|Marpa::R2::Exhaustion>.
 
 =head2 g1_location_to_span()
