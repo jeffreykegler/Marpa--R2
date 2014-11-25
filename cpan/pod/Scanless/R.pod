@@ -1216,8 +1216,7 @@ technique.
 It can, in effect, allow an application
 to switch lexers.
 
-On success, returns the old priority value
-is returned.
+On success, returns the old priority value.
 Failure is thrown.
 
 =head2 lexeme_read()
@@ -1356,6 +1355,8 @@ above|/"Internal scanning">.
 A physical input stream must already have
 been specified using the 
 L<C<< $recce->read() >> method|/"read()">.
+The C<resume()> method should only be called during the
+Reading Phase.
 
 The C<resume()> method takes two optional arguments,
 which represent the start and length parameters of
@@ -1373,21 +1374,6 @@ If no SLIF parse event triggers,
 and the parse reaches the end of the input string without a
 failure,
 the current location is set to the end of the input string.
-
-The C<resume()> method should only be called during the
-Reading Phase.
-If, like most applications, your application does
-not call
-the L<C<series_restart()>|"series_restart()"> method,
-this means that,
-for each recognizer,
-it should only be called after the
-call of the C<read()> method,
-and before any call of the C<value()> method.
-For our applications, that do
-use the L<C<series_restart()>|"series_restart()"> method,
-the details are discussed in a
-L<separate document|Marpa::R2::Phases>.
 
 C<resume()> is considered successful
 if it reads input to the end of input string,
