@@ -1705,9 +1705,12 @@ normalize-whitespace: 1
 
 Use of this method is discouraged.
 New applications should avoid it.
-Instead a named event should be used,
-and the name of the event used to determine the name of
-the lexeme that triggers a lexeme event.
+Instead the lexeme event should be declared as
+a named event.
+The named lexeme event can be set up in such
+a way that
+it uniquely identifies
+the lexeme that triggered it.
 SLIF parse events are described in detail in
 L<a separate document|Marpa::R2::Event>.
 
