@@ -143,9 +143,7 @@ Certain other SLIF recognizer settings can be
 changed
 after starting a new parse series.
 These include the SLIF recognizer's
-L<C<end> setting|Marpa::R2::Scanless::R/"end">
-and its 
-L<C<ranking_method> setting|Marpa::R2::Scanless::R/"ranking_method">.
+L<C<end> setting|Marpa::R2::Scanless::R/"end">.
 For details, see
 L<Marpa::R2::Scanless::R/"Recognizer settings">.
 
@@ -310,10 +308,6 @@ The rule evaluation closures are not called in the Parse Tree Setup Subphase.
 They will be called later,
 in the Parse Tree Traversal Subphase.
 
-=item *
-
-The logic which ranks parse trees is executed.
-
 =back
 
 Exactly one Parse Tree Setup Subphase occurs
@@ -355,20 +349,14 @@ In legacy mode,
 the only task performed by
 the Parse Tree Setup Phase is creation
 of the per-parse argument.
-The other tasks
-(action resolution and ranking)
-are performed in the 
+Action resolution
+is performed in the 
 the Parse Series Setup Phase.
 
 One practical implication
 of this is that,
 in legacy mode,
 the semantics package cannot be changed
-by starting a new parse series.
-Similarly,
-in legacy mode,
-the ranking method cannot
-be changed
 by starting a new parse series.
 Both are decided once and for all
 in the Parse Series Setup Subphase,

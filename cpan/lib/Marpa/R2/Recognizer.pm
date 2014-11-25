@@ -165,6 +165,16 @@ sub Marpa::R2::Recognizer::thin {
     $_[0]->[Marpa::R2::Internal::Recognizer::C];
 }
 
+# For the non-legacy case,
+# I reset the ordering, forcing it to be recalculated
+# for each parse series.
+# But I do not actually allow the ranking method to
+# be changed once a parse is created.
+# Since I am stabilizing Marpa::R2, the "fix" should
+# probably be to save the overhead, rather than
+# to allow 'ranking_method' to be changed.
+# But for now I will do nothing.
+# JK -- Mon Nov 24 17:35:24 PST 2014
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];

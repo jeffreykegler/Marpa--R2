@@ -375,7 +375,7 @@ G1 location can be ignored most of the time,
 but it does become relevant
 when tracing the G1 grammar,
 and when dealing with ambiguous terminals.
-(For those more familiar with Marpa's internals,
+(For those familiar with Marpa's internals,
 the G1 location is the G1 Earley set index.)
 
 Because lexemes may be ambiguous,
@@ -539,7 +539,7 @@ begins when the recognizer is created with the
 calls the L<C<new()>|/"Constructor"> method.
 It ends when
 the L<C<read()>|"read()"> method
-in called.
+is called.
 It will also end, of course, if
 the recognizer is destroyed,
 but most applications will want to
@@ -570,12 +570,11 @@ The B<Evaluation Phase> of a SLIF recognizer
 begins when
 it first calls the L<C<value()>|"value()"> method,
 which returns the result of the first parse tree.
-If there we no parses,
+If there were no parses,
 the L<C<value()>|"value()"> method will return
 a Perl C<undef>.
 
-If the parse is ambiguous,
-the L<C<value()>|"value()"> method
+The L<C<value()>|"value()"> method
 may be called more than once during the Evaluation Phase.
 The second and later calls of
 the L<C<value()>|"value()"> method will return
@@ -625,7 +624,7 @@ specifies the parse end, as a G1 location.
 The default is for the parse to end where the input did,
 so that the parse returned is of the entire virtual input stream.
 The L<C<end>|/"end"> setting is only allowed in
-the L<C<new()>|/"Constructor">,
+the L<C<new()>|/"Constructor">
 and L<C<series_restart()>|"series_restart()"> methods.
 
 =head2 exhaustion
@@ -635,7 +634,7 @@ determines what happens when asynchronous parse exhaustion occurs.
 Intuitively, "asynchronous" parse exhaustion is parse
 exhaustion at a point when control would not normally
 return to the application.
-The C<too_many_earley_items> setting is allowed
+The C<exhaustion> setting is allowed
 in any call of any of the recognizer setting-aware methods.
 For details
 see the
@@ -687,6 +686,9 @@ calls of the recognizer setting-aware methods.
 
 =head2 ranking_method
 
+The C<ranking_method>
+is only allowed in
+calls of the L<C<new()>|/"Constructor"> method.
 The value must be a string:
 one of "C<none>",
 "C<rule>",
@@ -705,22 +707,13 @@ and to exclude some parse results from the parse series.
 For details, see L<the document
 on parse order|Marpa::R2::Semantics::Order>.
 
-The C<ranking_method>
-is always allowed in
-calls of the L<C<new()>|/"Constructor">,
-and of the L<C<series_restart()>|"series_restart()"> methods.
-The C<ranking_method> setting is also allowed
-in those calls of the
-L<C<< $recce->set() >>|"set()"> method
-that are not made during
-L<the Evaluation Phase|/"The Evaluation Phase">.
 
 =head2 rejection
 
 The C<rejection> recognizer setting
 determines what happens when all tokens are rejected by the
 G1 parser.
-The C<too_many_earley_items> setting is allowed
+The C<rejection> setting is allowed
 in any call of any of the recognizer setting-aware methods.
 The value must be either "C<fatal>"
 or "C<event>".
