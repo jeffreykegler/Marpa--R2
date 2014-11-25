@@ -959,7 +959,7 @@ The C<series_restart()> method
 cannot change the C<grammar> recognizer setting.
 If any other recognizer setting is not specified explicitly,
 it is reset to its default.
-If an application that wants an explicit recognizer setting to persist
+If an application wants an explicit recognizer setting to persist
 into a new parse series,
 it must specify that setting explicitly in the new parse series.
 C<series_restart()> is particularly useful with
@@ -980,7 +980,7 @@ This method allows recognizer settings to be changed after a SLIF
 grammar is created.
 The arguments to
 C<set()> must be one or more hashes whose key-value pairs
-are recognizer settings.
+are recognizer settings and their values.
 The allowed recognizer settings are
 L<described above|/"Recognizer settings">.
 
@@ -1033,7 +1033,7 @@ as the semantics package.
 (As a reminder, the semantics package is the package
 in which Marpa looks for the parse's Perl semantic closures.)
 
-When the per-parse argument of the value() method is the
+When the per-parse argument of the C<value()> method is the
 source of the semantics package,
 all calls to the C<value()> method in the same
 parse series must have a per-parse
