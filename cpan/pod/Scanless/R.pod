@@ -1168,8 +1168,11 @@ normalize-whitespace: 1
 
 The C<lexeme_complete()> method allows an external scanner to read
 ambiguous tokens.
+It completes the reading of a set of tokens specified by
+L<C<lexeme_alternative()>|/"lexeme_alternative()">
+for a G1 location.
 Most applications
-will prefer the simpler L<C<lexeme_read()>|/"lexeme_read()">.
+will prefer the simpler L<C<lexeme_read()>|/"lexeme_read()"> method.
 
 The C<lexeme_complete()> method
 requires two arguments,
