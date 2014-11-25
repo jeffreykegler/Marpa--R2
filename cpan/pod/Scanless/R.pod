@@ -1176,8 +1176,9 @@ normalize-whitespace: 1
 The C<lexeme_complete()> method allows an external scanner to read
 ambiguous tokens.
 It completes the reading of a set of tokens specified by
-L<C<lexeme_alternative()>|/"lexeme_alternative()">
-for a G1 location.
+one or more calls of the L<C<lexeme_alternative()>|/"lexeme_alternative()">
+method
+at a G1 location.
 Most applications
 will prefer the simpler L<C<lexeme_read()>|/"lexeme_read()"> method.
 
@@ -1817,9 +1818,6 @@ Two numeric arguments are interpreted as a
 L<span|/"Spans"> of G1 locations,
 and the returned string contains
 reports for all locations in the span.
-Negative arguments are allowed and are
-interpreted as
-L<described above|/"Spans">.
 For example,
 the method call C<< $recce->show_progress(0, -1) >>
 will print progress reports for the entire parse.
