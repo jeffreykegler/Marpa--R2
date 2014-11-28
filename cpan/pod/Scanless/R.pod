@@ -1879,6 +1879,22 @@ This is highly useful for Ruby Slippers parsing.
 A more fine-tuned approach is to identify the lexemes of interest
 and create "predicted symbol" events for them.
 
+Some lexemes are specified in the G1 rules
+of the DSL as quoted strings
+or as character classes,
+This is convenient,
+but the lexemes created in this way
+do not have real names.
+Instead, internal names, like
+C<[Lex-1]> are created for them,
+and these are what appear in the 
+list of strings
+returned by C<terminals_expected()>.
+If an application wants a quoted string
+or a character class to have a name,
+the quoted string or character class must
+be specified in an L0 rule.
+
 =head1 Discouraged methods
 
 Methods in this section continue to be supported, but their use is
