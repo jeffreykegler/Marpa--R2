@@ -1891,9 +1891,11 @@ and these are what appear in the
 list of strings
 returned by C<terminals_expected()>.
 If an application wants a quoted string
-or a character class to have a name,
-the quoted string or character class must
-be specified in an L0 rule.
+or a character class to have a
+mnemonic name,
+the application must provide that name explicitly,
+by specifying the character class
+or quoted string in an L0 rule.
 
 =head1 Discouraged methods
 
