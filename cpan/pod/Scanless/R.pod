@@ -1588,9 +1588,14 @@ normalize-whitespace: 1
         
 =for Marpa::R2::Display::End
 
-Returns the most recent input stream span for the symbol
+Returns the most recent input stream span for a completed
+instance of the symbol name
 that is its first and only argument.
 That argument is required.
+The search for a completed instance of a symbol
+can only succeed if the first argument
+is the name
+of the LHS symbol of some rule in the grammar.
 For details on how the input stream span is determined,
 see L<"Literals and G1 spans">.
 
