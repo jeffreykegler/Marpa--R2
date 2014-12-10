@@ -179,6 +179,8 @@ sub do_config_h {
                         last;
                     }
                 }
+            } else {
+                $inline = 'inline';
             }
             if ($inline) {
                 print {$config_fh} <<INLINEHOOK;

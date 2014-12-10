@@ -54,7 +54,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "marpa_slif.h"
+#include "marpa.h"
 #include "marpa_ami.h"
 
 #define MY_AVL_MALLOC(size) (my_malloc(size))

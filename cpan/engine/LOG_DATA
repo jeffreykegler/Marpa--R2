@@ -1,29 +1,29 @@
-commit e86ea1381a7ecf01c2b3d487213ac8f9b9aa4641
+commit cf9bf683a5b68c5f4dc5ad0112012ecc9c7428b8
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Oct 4 08:33:38 2014 -0700
+Date:   Tue Dec 9 17:41:18 2014 -0800
 
-    Bump version to 7.2.0
+    Refactoring to sever connections to SLIF
 
-commit 6f23f0ce2a87f3b8e2508b11994f6e1e7219726a
+commit 4da7f473a9921994e53714e8f8429a1e92c39551
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Oct 4 08:32:50 2014 -0700
+Date:   Tue Dec 9 15:28:56 2014 -0800
 
-    Fix jeffreykegler/Marpa--R2#202
+    Separate error/event/step codes from SLIF
 
-commit 354e35ff0593453b367f9a1e2a2f268b1180f0ff
+commit 6a88d3d5c9baf910877c8a535a9669df4f45f47c
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Sep 22 22:42:01 2014 -0700
+Date:   Thu Dec 4 23:15:36 2014 -0800
 
-    Fix doc -- negative token value is allowed
+    Work on cmake
 
-commit 9e36dc918af960cb7d6b4b2f417659575c311064
+commit 9dea1c2c0975edc21d5564a792c9eb0c29e6a46a
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Sep 1 12:04:47 2014 -0700
+Date:   Thu Dec 4 21:31:01 2014 -0800
 
-    Work on timings
+    Work on cmake
 
-commit 6f80eb0ee13f9446434666a30bdbdb59c67e7cad
+commit 74289504fac1baf1566c239ad39df44bf730b5ec
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Aug 30 22:01:20 2014 -0700
+Date:   Wed Dec 3 20:09:57 2014 -0800
 
-    Work on json.c
+    Add cmake build
