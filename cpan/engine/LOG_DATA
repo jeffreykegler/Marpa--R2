@@ -1,3 +1,21 @@
+commit f7a530b4fa3c269b49f95f8b58e51bb81b1222bf
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Dec 15 18:34:50 2014 -0800
+
+    Work on Cweb comments
+
+commit eeafdf37c0b698a9789fe516b4185b0b953aef98
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Dec 15 17:56:36 2014 -0800
+
+    Bump version
+
+commit bc7e6dd86ddd6ab483695afd71b1062f98090d6f
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Dec 15 17:56:17 2014 -0800
+
+    Update Cweb commentary
+
 commit cf9bf683a5b68c5f4dc5ad0112012ecc9c7428b8
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Tue Dec 9 17:41:18 2014 -0800
@@ -9,21 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Tue Dec 9 15:28:56 2014 -0800
 
     Separate error/event/step codes from SLIF
-
-commit 6a88d3d5c9baf910877c8a535a9669df4f45f47c
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Dec 4 23:15:36 2014 -0800
-
-    Work on cmake
-
-commit 9dea1c2c0975edc21d5564a792c9eb0c29e6a46a
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Dec 4 21:31:01 2014 -0800
-
-    Work on cmake
-
-commit 74289504fac1baf1566c239ad39df44bf730b5ec
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Wed Dec 3 20:09:57 2014 -0800
-
-    Add cmake build
