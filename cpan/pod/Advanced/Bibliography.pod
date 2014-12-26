@@ -165,7 +165,7 @@ by Dick Grune and
 Ceriel Jacobs,
 (Ellis Horwood Limited: Chichester, West Sussex, England,
 1990).
-This book is available on the Web: L<http://www.cs.vu.nl/~dick/PTAPG.html>
+This book is available on the Web: L<http://dickgrune.com/Books/PTAPG_1st_Edition/>
 
 =head2 Grune and Jacobs 2008
 
@@ -199,7 +199,9 @@ Time on Every LR(k) Grammar Without Using Lookahead",
 I<Theoretical Computer Science>,
 Vol. 82, No. 1, 1991, pp 165-176.
 This is a difficult paper.
-Unfortunately, there is no copy of it on-line.
+It is available online at 
+L<http://www.sciencedirect.com/science/article/pii/030439759190180A>,
+click the PDF icon at the top left.
 
 =head2 Wikipedia
 
