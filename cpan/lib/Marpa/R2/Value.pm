@@ -1339,8 +1339,6 @@ sub Marpa::R2::Recognizer::value {
 
     my $rules   = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $token_values =
-        $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
 
     if ( scalar @_ != 1 ) {
         Marpa::R2::exception(
@@ -1535,6 +1533,8 @@ sub Marpa::R2::Recognizer::value {
         $value->slr_set( $slr->thin() );
     }
     else {
+        my $token_values =
+            $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
         $value->valued_force();
         TOKEN_IX:
         for ( my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++ )
@@ -1601,8 +1601,7 @@ sub Marpa::R2::Recognizer::value {
                 last EVENT if not defined $event;
                 my ( $event_type, @event_data ) = @{$event};
                 if ( $event_type eq 'MARPA_STEP_TOKEN' ) {
-                    my ( $token_id, $token_value_ix ) = @event_data;
-                    my $token_value = $token_values->[$token_value_ix];
+                    my ( $token_id, $token_value_ix, $token_value ) = @event_data;
                     trace_token_evaluation( $recce, $value, $token_id,
                         $token_value );
                     next EVENT;

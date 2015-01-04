@@ -1123,7 +1123,11 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
                   result_string = "valuator unknown step";
                 event_data[0] = newSVpvn (result_string, 0);
                 event_data[1] = newSViv (marpa_v_token (v));
-                event_data[2] = newSViv (result_ix);
+                if (p_constant_sv) {
+                  event_data[2] = newSVsv (*p_constant_sv);
+                } else {
+                  event_data[2] = &PL_sv_undef;
+                }
                 event = av_make (Dim (event_data), event_data);
                 av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
               }
@@ -1577,7 +1581,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
                 event_data[0] = newSVpv (step_type_string, 0);
                 event_data[1] = newSViv (marpa_v_token (v));
                 event_data[2] = newSViv (marpa_v_token_value (v));
-                event_data[3] = newSViv (v_wrapper->result);
+                event_data[3] = *p_token_value_sv ? newSVsv (*p_token_value_sv) : &PL_sv_undef;
                 event = av_make (Dim (event_data), event_data);
                 av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
               }
