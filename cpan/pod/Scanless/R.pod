@@ -1267,15 +1267,19 @@ This correspondence between the span and the token
 may be artificial, but a span is defined for every token,
 even if only by default.
 
-If the fourth argument specifying the value of the lexeme
+The fourth argument specifies the lexeme value.
+The lexeme value plays an important role in the SLIF's semantics.
+More details on the SLIF's semantics are in
+L<a document dedicated to them|Marpa::R2::Semantics>.
+If the fourth argument
 is omitted,
-the token's value will be a string
+the lexeme value will be a string
 containing the corresponding substring
 of the input stream.
 Omitting the value argument does not have the same
 effect as passing an explicit Perl C<undef>.
 If the value argument is an explicit Perl C<undef>,
-the value of the lexeme will be a Perl C<undef>.
+the lexeme value will be a Perl C<undef>.
 
 =for Marpa::R2::Display
 ignore: 1
