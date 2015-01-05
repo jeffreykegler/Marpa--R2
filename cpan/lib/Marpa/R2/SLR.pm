@@ -210,6 +210,8 @@ sub Marpa::R2::Scanless::R::new {
     # Set SLIF (not NAIF) recognizer args to default
     $slr->[Marpa::R2::Internal::Scanless::R::EXHAUSTION_ACTION] = 'fatal';
     $slr->[Marpa::R2::Internal::Scanless::R::REJECTION_ACTION] = 'fatal';
+    $slr->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS] = 0;
+    $slr->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS] = 0;
 
     my $g1_recce_args =
         Marpa::R2::Internal::Scanless::R::set( $slr, "new", @args );
@@ -385,6 +387,17 @@ sub Marpa::R2::Internal::Scanless::R::set {
         $slr->[$index] = $value;
     } ## end ARG: for my $arg_name ( keys %flat_args )
 
+    # Normalize trace levels to numbers
+    for my $trace_level_arg (
+        Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS,
+        Marpa::R2::Internal::Scanless::R::TRACE_LEXERS
+        )
+    {
+        $slr->[$trace_level_arg] = 0
+            if
+            not Scalar::Util::looks_like_number( $slr->[$trace_level_arg] );
+    } ## end for my $trace_level_arg ( ...)
+
     # Trace file handle can never be undefined
     if (not defined $slr->[Marpa::R2::Internal::Scanless::R::TRACE_FILE_HANDLE] )
     {
@@ -460,10 +473,8 @@ sub Marpa::R2::Scanless::R::read {
     $self->[Marpa::R2::Internal::Scanless::R::P_INPUT_STRING] = $p_string;
 
     my $thin_slr = $self->[Marpa::R2::Internal::Scanless::R::C];
-    my $trace_terminals =
-        $self->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS] // 0;
-    my $trace_lexers =
-        $self->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS] // 0;
+    my $trace_terminals = $self->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS];
+    my $trace_lexers = $self->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS];
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
     $thin_slr->trace_lexers($trace_lexers)       if $trace_lexers;
 
@@ -915,8 +926,8 @@ sub Marpa::R2::Scanless::R::resume {
 
     my $thin_slr = $slr->[Marpa::R2::Internal::Scanless::R::C];
     my $trace_terminals =
-        $slr->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS] // 0;
-    my $trace_lexers = $slr->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS] // 0;
+        $slr->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS];
+    my $trace_lexers = $slr->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS];
 
     $thin_slr->pos_set( $start_pos, $length );
     $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];

@@ -172,6 +172,11 @@ sub Marpa::R2::Internal::Scanless::G::set {
         $slg->[$index] = $value;
     } ## end ARG: for my $arg_name ( keys %flat_args )
 
+    # Normalize trace_terminals
+    $slg->[Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS] = 0
+        if not Scalar::Util::looks_like_number(
+        $slg->[Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS] );
+
     # Trace file handle needs to be populated downwards
     if ( defined( my $trace_file_handle = $flat_args{trace_file_handle} ) ) {
         GRAMMAR:
@@ -207,7 +212,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
 sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     my ( $slg, $hashed_source, $g1_args ) = @_;
 
-    my $trace_terminals = $slg->[Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS] // 0;
+    my $trace_terminals = $slg->[Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS];
     # Pre-lexer G1 processing
 
     my $start_lhs = $hashed_source->{'start_lhs'} // $hashed_source->{'first_lhs'};
