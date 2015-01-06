@@ -20,7 +20,9 @@ use File::Spec;
 use File::Find::Rule;
 use Pod::Simple::SimpleTree;
 use Data::Dumper;
+use autodie;
 
+chdir('pod');
 my @pod_files = File::Find::Rule->file()->name( '*.pod' )->in('.');
 # die join " ", @pod_files;
 
