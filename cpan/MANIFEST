@@ -98,6 +98,10 @@ etc/dovg.sh
 etc/libmarpa_get.pl
 etc/libmarpa_test.sh
 etc/my_suppressions
+etc/pod_dump.pl
+etc/pod_errors.pl
+etc/pod_inlinks.pl
+etc/pod_links.pl
 etc/reserved_check.sh
 g/config/default.txt
 html/.gitignore
@@ -275,6 +279,7 @@ t/sl_gie.t
 t/sl_gif1.t
 t/sl_gires.t
 t/sl_gsyn.t
+t/sl_incremental.t
 t/sl_json.t
 t/sl_json_ast.t
 t/sl_lc.t
