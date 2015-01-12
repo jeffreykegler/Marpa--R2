@@ -57,8 +57,8 @@ The event described will have 4 elements:
 
     * the physical input location where the discarded token starts;
 
-    * the length of the discard token in physical  input locations;
-      and
+    * the length of the discarded token in physical
+      input locations; and
 
     * the last G1 location of a lexeme.
 
@@ -66,3 +66,10 @@ The event described will have 4 elements:
 If no lexeme has yet been recognized, the G1 location will be zero.
 The main use of the G1 location will be for syncing discarded
 tokens with a parse tree.
+
+Marpa::R2 parse event descriptors have been documented as 
+containing 1 or more elements, but those currently implemented
+always contain only one element, the event name.
+Discard events will therefore be the first event
+whose descriptor
+actually contains more than a single element.
