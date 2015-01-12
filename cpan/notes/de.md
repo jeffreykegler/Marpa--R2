@@ -47,3 +47,22 @@ for all `:discard` statements with no explicit event name,
 the event name is based on the name of the discarded symbol,
 and that the event is initialized
 to inactive.
+
+Discard events will be non-lexeme, named events,
+and will be accessible via the `$recce->events()` method.
+Conceptually, they always occur after the token has been discarded.
+The event described will have 4 elements:
+
+    * the event name, as with all events;
+
+    * the physical input location where the discarded token starts;
+
+    * the length of the discard token in physical  input locations;
+      and
+
+    * the last G1 location of a lexeme.
+
+(Recall that lexemes, by definition, are not discarded.)
+If no lexeme has yet been recognized, the G1 location will be zero.
+The main use of the G1 location will be for syncing discarded
+tokens with a parse tree.
