@@ -1,3 +1,5 @@
+# Design notes for discard events
+
 As the result of a discussion in this group and on the IRC channel,
 I am adding "discard events" to Marpa::R2.  Here is my "design document".
 
@@ -6,7 +8,7 @@ when an instance of that token is discarded.  (Note that I avoid calling
 discarded tokens "lexemes".  This is for pedantic reasons.)
 
 To generate the event, "ws-discard", when a <ws> token is discarded,
-I will allow the 'event' adverb for discard statements.
+I will allow the `event` adverb for discard statements.
 The following are some possible
 variants of the discard statement:
 
@@ -18,7 +20,7 @@ variants of the discard statement:
    :discard ~ ws event => 'ws-discard'
 ```
 
-The '=on' or '=off' after the event name indicates how the event is
+The `=on` or `=off` after the event name indicates how the event is
 initialized.  If set to "on" (the default), the event is initialized
 active.  If set to "off", the event is initialized inactive.
 
@@ -36,6 +38,6 @@ There will also be a new "discard default" statement, modeled on the
    discard default => event => ::name=off
 ```
 
-This says that all ':discard' statement with no explicit event name
+This says that all `:discard` statement with no explicit event name
 the event based on the name of the discarded symbol, and initialize it
 to inactive.
