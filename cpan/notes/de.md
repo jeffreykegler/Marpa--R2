@@ -30,7 +30,7 @@ want to define grammars which allow the possibility of events on discard
 tokens, but that applications
 will also often want the ability to initialize them to inactive.
 
-A new named parameter of the $recce->new() method will allow the
+A new named parameter of the `$recce->new()` method will allow the
 application to change this initial setting, on a per-token basis.
 The main expected use of this is to turn on, at runtime, discard events
 that were initialized to inactive.
