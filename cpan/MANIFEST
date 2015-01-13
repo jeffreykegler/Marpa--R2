@@ -311,6 +311,8 @@ typemap
 xs/.gitignore
 xs/Makefile
 xs/R2.xs
+xs/create_ops.pl
 xs/general_pattern.xsh
 xs/gp_generate.pl
+xs/marpa_slifop.h
 xs/ppport.h

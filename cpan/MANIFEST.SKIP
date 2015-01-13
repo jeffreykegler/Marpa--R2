@@ -39,6 +39,7 @@
 \.swp$
 \.tar.gz$
 \/\.git\/
+^notes\/
 ^Build$
 ^MANIFEST\.SKIP$
 ^MYMETA.json$
