@@ -16,10 +16,7 @@
  */
 
 #include "config.h"
-#include "marpa_slif.h"
-
-#include "ami.xsh"
-#include "marpa_slifop.xsh"
+#include "marpa.h"
 
 #define PERL_NO_GET_CONTEXT
 #include <EXTERN.h>
@@ -50,6 +47,9 @@ typedef SV* SVREF;
 
 #undef Dim
 #define Dim(x) (sizeof(x)/sizeof(*x))
+
+#include "marpa_slifop.xsh"
+#include "ami.xsh"
 
 typedef struct marpa_g Grammar;
 /* The error_code member should usually be ignored in favor of
@@ -858,7 +858,7 @@ if (trace_lexers >= 1)
                   }
                 if (result == -2)
                   {
-                    const Marpa_Error_Code error =
+                    const int error =
                       marpa_g_error (slr->current_lexer->g_wrapper->g, NULL);
                     if (error == MARPA_ERR_PARSE_EXHAUSTED)
                       {
@@ -2481,7 +2481,7 @@ PPCODE:
   int throw = 1;
   IV interface = 0;
   Marpa_Config marpa_configuration;
-  Marpa_Error_Code error_code;
+  int error_code;
 
   switch (items)
     {
@@ -6131,7 +6131,7 @@ PPCODE:
     }
   if (result == -2)
     {
-      const Marpa_Error_Code error = marpa_g_error (slr->g1_wrapper->g, NULL);
+      const int error = marpa_g_error (slr->g1_wrapper->g, NULL);
       if (error == MARPA_ERR_PARSE_EXHAUSTED)
 	{
 	  union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
