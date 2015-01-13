@@ -19,5 +19,5 @@ general_pattern.xsh: gp_generate.pl
 	perl gp_generate.pl general_pattern.xsh
 
 marpa_slifop.xsh: create_ops.pl
-	perl create_ops.pl > marpa_slifops.xsh
+	perl create_ops.pl > marpa_slifop.xsh
 
