@@ -18,6 +18,8 @@
 #include "config.h"
 #include "marpa_slif.h"
 
+#include "marpa_slifop.xsh"
+
 #define PERL_NO_GET_CONTEXT
 #include <EXTERN.h>
 #include <perl.h>
