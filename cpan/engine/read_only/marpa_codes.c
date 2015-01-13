@@ -25,6 +25,8 @@
 #line 1 "./marpa_codes.c.p10"
 #include "config.h"
 
+#include "marpa.h"
+#include "marpa_codes.h"
 #include "marpa_ami.h"
 
 

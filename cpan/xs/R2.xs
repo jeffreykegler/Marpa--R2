@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include "marpa.h"
+#include "marpa_codes.h"
 
 #define PERL_NO_GET_CONTEXT
 #include <EXTERN.h>
@@ -48,33 +49,10 @@ typedef SV* SVREF;
 #undef Dim
 #define Dim(x) (sizeof(x)/sizeof(*x))
 
-struct marpa_error_description_s;
-struct marpa_error_description_s
-{
-  int error_code;
-  const char *name;
-  const char *suggested;
-};
-extern const struct marpa_error_description_s marpa_error_description[];
-
-struct marpa_event_description_s;
-struct marpa_event_description_s
-{
-  Marpa_Event_Type event_code;
-  const char *name;
-  const char *suggested;
-};
-extern const struct marpa_event_description_s marpa_event_description[];
-
 typedef unsigned int Marpa_Codepoint;
 
-struct marpa_step_type_description_s;
-struct marpa_step_type_description_s
-{
-  Marpa_Step_Type step_type;
-  const char *name;
-};
-
+extern const struct marpa_error_description_s marpa_error_description[];
+extern const struct marpa_event_description_s marpa_event_description[];
 extern const struct marpa_step_type_description_s
   marpa_step_type_description[];
 

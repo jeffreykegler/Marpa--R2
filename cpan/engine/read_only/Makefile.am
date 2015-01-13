@@ -32,6 +32,6 @@ libmarpa_la_LIBADD = $(LIBOBJS)
 libmarpa_la_LDFLAGS = -release $(RELEASE)
 include_HEADERS = marpa.h \
   marpa_avl.h marpa_tavl.h marpa_ami.h \
-  marpa_obs.h
+  marpa_obs.h marpa_codes.h
 TEXI2PDF = texi2pdf --pdf --batch --quiet
 

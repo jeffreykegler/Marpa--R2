@@ -1,29 +1,29 @@
-commit 6b0897d6f25e98e96c40f9e3dfcd24b7f92cf960
+commit e5bb0753d863e8fe88569519934da4f789859ec0
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 21:04:17 2015 -0800
+Date:   Mon Jan 12 22:01:08 2015 -0800
 
     Move SLIF code out of Libmarpa
 
-commit cfb4983d486a35477ee834a14453aece4e03340d
+commit 622f260d931829d46d2eecfb179ddfce2b391ccd
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 20:56:51 2015 -0800
+Date:   Mon Jan 12 21:57:40 2015 -0800
 
     Move SLIF code out of Libmarpa
 
-commit d6b52a4b8c5c0736103d4961fa0ca6e33206def7
+commit 4a93a30c8e240dae1360b410b5e74f05ec63bdc2
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 18:09:01 2015 -0800
+Date:   Mon Jan 12 21:55:36 2015 -0800
 
-    Move SLIF ops out of Libmarpa
+    Move SLIF code out of Libmarpa
 
-commit 0830985482c90f99201d31d1531b704967973d57
+commit 1a34ebfe7065feb38cb15c355fa759a91e53545a
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 18:06:54 2015 -0800
+Date:   Mon Jan 12 21:37:52 2015 -0800
 
-    Bump version to 7.6.0
+    Move SLIF code out of Libmarpa
 
-commit 3b3813a8b58244bad45dba120293de7091f5a6aa
+commit b3ce0002865bb2373a79b7e3e38e706ea5154900
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 18:05:47 2015 -0800
+Date:   Mon Jan 12 21:30:02 2015 -0800
 
-    Move SLIF ops out of Libmarpa
+    Move SLIF code out of Libmarpa
