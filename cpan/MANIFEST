@@ -79,10 +79,9 @@ engine/read_only/marpa_ami.h
 engine/read_only/marpa_avl.c
 engine/read_only/marpa_avl.h
 engine/read_only/marpa_codes.c
+engine/read_only/marpa_codes.h
 engine/read_only/marpa_obs.c
 engine/read_only/marpa_obs.h
-engine/read_only/marpa_slif.c
-engine/read_only/marpa_slif.h
 engine/read_only/marpa_tavl.c
 engine/read_only/marpa_tavl.h
 engine/read_only/missing

@@ -345,20 +345,6 @@ marpa__slr_unref (Marpa_SLR slr)
    slr_unref(slr);
 }
 
-static SLR
-slr_ref (SLR slr)
-{
-  /* MARPA_ASSERT(slr->t_ref_count > 0) */
-  slr->t_ref_count++;
-  return slr;
-}
-
-static Marpa_SLR
-marpa__slr_ref (Marpa_SLR slr)
-{
-   return slr_ref(slr);
-}
-
 typedef int Marpa_Op;
 
 struct op_data_s { const char *name; Marpa_Op op; };
@@ -394,26 +380,6 @@ marpa__slif_op_id (const char *name)
 	}
     }
   return -1;
-}
-
-struct per_codepoint_data_s {
-    Marpa_Codepoint t_codepoint;
-    Marpa_Op t_ops[1];
-};
-
-static int
-cmp_per_codepoint_key( const void* a, const void* b, void* param )
-{
-    const Marpa_Codepoint codepoint_a = ((struct per_codepoint_data_s*)a)->t_codepoint;
-    const Marpa_Codepoint codepoint_b = ((struct per_codepoint_data_s*)b)->t_codepoint;
-    if (codepoint_a == codepoint_b) return 0;
-    return codepoint_a < codepoint_b ? -1 : 1;
-}
-
-static void
-per_codepoint_data_destroy(void *p, void* param )
-{
-    Safefree(p);
 }
 
 static void marpa__slr_event_clear( Marpa_SLR slr )
@@ -2788,7 +2754,7 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
 }
 
 #define EXPECTED_LIBMARPA_MAJOR 7
-#define EXPECTED_LIBMARPA_MINOR 5
+#define EXPECTED_LIBMARPA_MINOR 6
 #define EXPECTED_LIBMARPA_MICRO 0
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
