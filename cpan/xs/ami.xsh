@@ -15,6 +15,12 @@
  * http://www.gnu.org/licenses/.
  */
 
+/* File called "ami" because the original factoring was with
+ * the idea of a "friend" library for Libmarpa.  
+ * The "friend" concept is rarely a good idea, and Libmarpa
+ * did not prove to be an exception to that rule.
+ */
+
 /* Dynamic stacks.  Copied from Libmarpa.  */
 
 #define MARPA_DSTACK_DECLARE(this) struct marpa_dstack_s this
