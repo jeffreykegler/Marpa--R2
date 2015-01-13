@@ -38,6 +38,7 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
 
     my $meta_slg = bless [], 'Marpa::R2::Scanless::G';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
+    $meta_slg->[Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS] = 0;
     Marpa::R2::Internal::Scanless::G::hash_to_runtime( $meta_slg,
         $hashed_metag,
         { bless_package => 'Marpa::R2::Internal::MetaAST_Nodes' } );
@@ -49,6 +50,7 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
         for $thick_g1_grammar->rule_ids();
     $meta_slg->[Marpa::R2::Internal::Scanless::G::MASK_BY_RULE_ID] =
         \@mask_by_rule_id;
+    $meta_slg->[Marpa::R2::Internal::Scanless::G::TRACE_TERMINALS] = 0;
 
     return $meta_slg;
 

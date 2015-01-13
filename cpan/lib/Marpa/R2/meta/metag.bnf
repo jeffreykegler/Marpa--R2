@@ -23,8 +23,11 @@ lexeme default =
 statements ::= statement+
 statement ::= <start rule> | <empty rule>
   | <null statement> | <statement group>
-  | <priority rule> | <quantified rule> | <discard rule> | <default rule>
-  | <lexeme default statement> | <lexeme rule>
+  | <priority rule> | <quantified rule>
+  | <discard rule> | <default rule>
+  | <lexeme default statement>
+  | <discard default statement>
+  | <lexeme rule>
   | <completion event declaration>
   | <nulled event declaration>
   | <prediction event declaration>
@@ -37,10 +40,11 @@ statement ::= <start rule> | <empty rule>
 <start rule> ::= ('start' 'symbol' 'is') symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
 <lexeme default statement> ::= ('lexeme' 'default' '=') <adverb list>
+<discard default statement> ::= ('discard' 'default' '=') <adverb list>
 <priority rule> ::= lhs <op declare> priorities
 <empty rule> ::= lhs <op declare> <adverb list>
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
-<discard rule> ::= (':discard' <op declare match>) <single symbol>
+<discard rule> ::= (':discard' <op declare match>) <single symbol> <adverb list>
 <lexeme rule> ::= (':lexeme' <op declare match>) symbol <adverb list>
 <completion event declaration> ::= ('event') <event name> ('=' 'completed') <symbol name>
 <nulled event declaration> ::= ('event') <event name> ('=' 'nulled') <symbol name>
@@ -80,7 +84,12 @@ action ::= ('action' '=>') <action name>
 <null ranking constant> ::= 'low' | 'high'
 <priority specification> ::= ('priority' '=>') <signed integer>
 <pause specification> ::= ('pause' '=>') <before or after>
-<event specification> ::= ('event' '=>') <event name>
+
+<event specification> ::= ('event' '=>') <event name> <event activation specification>
+<event activation specification> ::= ('=') <on or off>
+<on or off> ::= 'on' | 'off'
+<event activation specification> ::= # empty
+
 <latm specification> ::= ('forgiving' '=>') boolean
 <latm specification> ::= ('latm' '=>') boolean
 <blessing> ::= ('bless' '=>') <blessing name>
