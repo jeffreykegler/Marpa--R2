@@ -1,3 +1,15 @@
+commit 6b0897d6f25e98e96c40f9e3dfcd24b7f92cf960
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Jan 12 21:04:17 2015 -0800
+
+    Move SLIF code out of Libmarpa
+
+commit cfb4983d486a35477ee834a14453aece4e03340d
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Jan 12 20:56:51 2015 -0800
+
+    Move SLIF code out of Libmarpa
+
 commit d6b52a4b8c5c0736103d4961fa0ca6e33206def7
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Mon Jan 12 18:09:01 2015 -0800
@@ -15,20 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Mon Jan 12 18:05:47 2015 -0800
 
     Move SLIF ops out of Libmarpa
-
-commit e3bf7285f5496d0afaae4025a8bb2855c5110a64
-Merge: 7d24437 8cf6fba
-Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Fri Jan 9 09:44:37 2015 -0800
-
-    Merge pull request #5 from rns/patch-2
-    
-    Update json.c
-
-commit 8cf6fbad491c4c9f117ff1511fc0efc573831085
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Fri Jan 9 16:26:00 2015 +0200
-
-    Update json.c
-    
-    use array returned by marpa_r_terminals_expected() rather than its index

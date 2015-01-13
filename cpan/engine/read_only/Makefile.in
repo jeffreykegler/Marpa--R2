@@ -101,7 +101,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libmarpa_la_DEPENDENCIES = $(LIBOBJS)
 am_libmarpa_la_OBJECTS = marpa.lo marpa_obs.lo marpa_avl.lo \
-	marpa_tavl.lo marpa_ami.lo marpa_codes.lo marpa_slif.lo
+	marpa_tavl.lo marpa_ami.lo marpa_codes.lo
 libmarpa_la_OBJECTS = $(am_libmarpa_la_OBJECTS)
 libmarpa_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -269,7 +269,7 @@ libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_avl.c marpa_avl.h \
     marpa_tavl.c marpa_tavl.h \
     marpa_ami.c marpa_ami.h \
-    marpa_codes.c marpa_slif.c
+    marpa_codes.c
 
 EXTRA_DIST = LIB_VERSION README.INSTALL \
   win32/marpa.def Makefile.win32 win32/do_config_h.pl
@@ -278,7 +278,7 @@ libmarpa_la_LIBADD = $(LIBOBJS)
 libmarpa_la_LDFLAGS = -release $(RELEASE)
 include_HEADERS = marpa.h \
   marpa_avl.h marpa_tavl.h marpa_ami.h \
-  marpa_slif.h marpa_obs.h
+  marpa_obs.h
 
 TEXI2PDF = texi2pdf --pdf --batch --quiet
 all: config.h
@@ -382,7 +382,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_avl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_codes.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_obs.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_slif.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_tavl.Plo@am__quote@
 
 .c.o:

@@ -25,13 +25,13 @@ libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_avl.c marpa_avl.h \
     marpa_tavl.c marpa_tavl.h \
     marpa_ami.c marpa_ami.h \
-    marpa_codes.c marpa_slif.c
+    marpa_codes.c
 EXTRA_DIST = LIB_VERSION README.INSTALL \
   win32/marpa.def Makefile.win32 win32/do_config_h.pl
 libmarpa_la_LIBADD = $(LIBOBJS)
 libmarpa_la_LDFLAGS = -release $(RELEASE)
 include_HEADERS = marpa.h \
   marpa_avl.h marpa_tavl.h marpa_ami.h \
-  marpa_slif.h marpa_obs.h
+  marpa_obs.h
 TEXI2PDF = texi2pdf --pdf --batch --quiet
 
