@@ -370,29 +370,3 @@ union marpa_slr_event_s * marpa__slr_lexeme_entry( Marpa_SLR slr, int i );
 int marpa__slif_op_id (const char* op_name );
 const char* marpa__slif_op_name (Marpa_Op op_id );
 
-
-#line 1 "./marpa_slif.h-ops"
-#define MARPA_OP_ALTERNATIVE 0
-#define MARPA_OP_BLESS 1
-#define MARPA_OP_CALLBACK 2
-#define MARPA_OP_EARLEME_COMPLETE 3
-#define MARPA_OP_END_MARKER 4
-#define MARPA_OP_INVALID_CHAR 5
-#define MARPA_OP_NOOP 6
-#define MARPA_OP_PAUSE 7
-#define MARPA_OP_PUSH_CONSTANT 8
-#define MARPA_OP_PUSH_LENGTH 9
-#define MARPA_OP_PUSH_ONE 10
-#define MARPA_OP_PUSH_SEQUENCE 11
-#define MARPA_OP_PUSH_START_LOCATION 12
-#define MARPA_OP_PUSH_UNDEF 13
-#define MARPA_OP_PUSH_VALUES 14
-#define MARPA_OP_RESULT_IS_ARRAY 15
-#define MARPA_OP_RESULT_IS_CONSTANT 16
-#define MARPA_OP_RESULT_IS_N_OF_SEQUENCE 17
-#define MARPA_OP_RESULT_IS_RHS_N 18
-#define MARPA_OP_RESULT_IS_TOKEN_VALUE 19
-#define MARPA_OP_RESULT_IS_UNDEF 20
-#define MARPA_OP_RETRY_OR_SET_LEXER 21
-#define MARPA_OP_SET_LEXER 22
-

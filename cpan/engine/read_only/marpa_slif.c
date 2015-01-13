@@ -98,59 +98,6 @@ Marpa_Op t_ops[1];
 
 /*:60*/
 
-#line 1 "./marpa_slif.c-ops"
-static struct op_data_s op_by_name_object[] = {
-  { "alternative", MARPA_OP_ALTERNATIVE },
-  { "bless", MARPA_OP_BLESS },
-  { "callback", MARPA_OP_CALLBACK },
-  { "earleme_complete", MARPA_OP_EARLEME_COMPLETE },
-  { "end_marker", MARPA_OP_END_MARKER },
-  { "invalid_char", MARPA_OP_INVALID_CHAR },
-  { "noop", MARPA_OP_NOOP },
-  { "pause", MARPA_OP_PAUSE },
-  { "push_constant", MARPA_OP_PUSH_CONSTANT },
-  { "push_length", MARPA_OP_PUSH_LENGTH },
-  { "push_one", MARPA_OP_PUSH_ONE },
-  { "push_sequence", MARPA_OP_PUSH_SEQUENCE },
-  { "push_start_location", MARPA_OP_PUSH_START_LOCATION },
-  { "push_undef", MARPA_OP_PUSH_UNDEF },
-  { "push_values", MARPA_OP_PUSH_VALUES },
-  { "result_is_array", MARPA_OP_RESULT_IS_ARRAY },
-  { "result_is_constant", MARPA_OP_RESULT_IS_CONSTANT },
-  { "result_is_n_of_sequence", MARPA_OP_RESULT_IS_N_OF_SEQUENCE },
-  { "result_is_rhs_n", MARPA_OP_RESULT_IS_RHS_N },
-  { "result_is_token_value", MARPA_OP_RESULT_IS_TOKEN_VALUE },
-  { "result_is_undef", MARPA_OP_RESULT_IS_UNDEF },
-  { "retry_or_set_lexer", MARPA_OP_RETRY_OR_SET_LEXER },
-  { "set_lexer", MARPA_OP_SET_LEXER },
-};
-static const char* op_name_by_id_object[] = {
-  "alternative",
-  "bless",
-  "callback",
-  "earleme_complete",
-  "end_marker",
-  "invalid_char",
-  "noop",
-  "pause",
-  "push_constant",
-  "push_length",
-  "push_one",
-  "push_sequence",
-  "push_start_location",
-  "push_undef",
-  "push_values",
-  "result_is_array",
-  "result_is_constant",
-  "result_is_n_of_sequence",
-  "result_is_rhs_n",
-  "result_is_token_value",
-  "result_is_undef",
-  "retry_or_set_lexer",
-  "set_lexer",
-};
-
-
 #line 1 "./marpa_slif.c.p40"
 static inline void
 slr_unref (Marpa_SLR slr);
