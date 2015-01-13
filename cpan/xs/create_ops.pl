@@ -1,5 +1,5 @@
 #!perl
-# Copyright 2014 Jeffrey Kegler
+# Copyright 2015 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
@@ -25,7 +25,7 @@ use autodie;
 # installation environment
 
 if (scalar @ARGV != 0) {
-    die("usage: $PROGRAM_NAME > marpa_slifop.xsh");
+    die("usage: $PROGRAM_NAME > marpa_slifop.h");
 }
 
 my @ops = sort { $a->[0] cmp $b->[0] }
@@ -57,7 +57,7 @@ my @ops = sort { $a->[0] cmp $b->[0] }
 
 say <<'END_OF_PREAMBLE';
 /*
- * Copyright 2014 Jeffrey Kegler
+ * Copyright 2015 Jeffrey Kegler
  * This file is part of Libmarpa.  Libmarpa is free software: you can
  * redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation,

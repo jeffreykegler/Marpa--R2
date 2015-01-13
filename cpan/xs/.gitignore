@@ -2,4 +2,4 @@ general_pattern.xsh
 libmarpa[.]a
 libmarpa_la-marpa[.]o
 libmarpa_la-marpa_obs[.]o
-marpa_slifop.xsh
+marpa_slifop.h

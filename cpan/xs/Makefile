@@ -1,4 +1,4 @@
-# Copyright 2014 Jeffrey Kegler
+# Copyright 2015 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
@@ -13,11 +13,11 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-all: general_pattern.xsh marpa_slifop.xsh
+all: general_pattern.xsh marpa_slifop.h
 
 general_pattern.xsh: gp_generate.pl
 	perl gp_generate.pl general_pattern.xsh
 
-marpa_slifop.xsh: create_ops.pl
-	perl create_ops.pl > marpa_slifop.xsh
+marpa_slifop.h: create_ops.pl
+	perl create_ops.pl > marpa_slifop.h
 

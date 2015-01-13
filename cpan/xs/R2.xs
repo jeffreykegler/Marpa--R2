@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Jeffrey Kegler
+ * Copyright 2015 Jeffrey Kegler
  * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
  * redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation,
@@ -349,7 +349,7 @@ typedef int Marpa_Op;
 
 struct op_data_s { const char *name; Marpa_Op op; };
 
-#include "marpa_slifop.xsh"
+#include "marpa_slifop.h"
 
 static const char*
 marpa__slif_op_name (Marpa_Op op_id)
