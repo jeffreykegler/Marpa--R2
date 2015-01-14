@@ -179,6 +179,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::reserved_action_name::name {
     return $self->[2];
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::reserved_event_name::name {
+    my ( $self, $parse ) = @_;
+    return $self->[2];
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::action_name::name {
     my ( $self, $parse ) = @_;
     return $self->[2]->name($parse);
@@ -471,7 +476,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_default_statement::evaluate {
     $parse->{discard_default_adverbs} = {};
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
-        if ( $key eq 'action' ) {
+        if ( $key eq 'event' ) {
             $parse->{discard_default_adverbs}->{$key} = $value;
             next ADVERB;
         }

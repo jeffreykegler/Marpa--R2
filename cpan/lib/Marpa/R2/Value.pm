@@ -957,13 +957,15 @@ sub registration_init {
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
 
-    state $op_bless         = Marpa::R2::Thin::op('bless');
-    state $op_callback      = Marpa::R2::Thin::op('callback');
-    state $op_push_constant = Marpa::R2::Thin::op('push_constant');
-    state $op_push_length   = Marpa::R2::Thin::op('push_length');
-    state $op_push_undef    = Marpa::R2::Thin::op('push_undef');
-    state $op_push_one      = Marpa::R2::Thin::op('push_one');
-    state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
+    state $op_bless          = Marpa::R2::Thin::op('bless');
+    state $op_callback       = Marpa::R2::Thin::op('callback');
+    state $op_push_constant  = Marpa::R2::Thin::op('push_constant');
+    state $op_push_g1_length = Marpa::R2::Thin::op('push_g1_length');
+    state $op_push_length    = Marpa::R2::Thin::op('push_length');
+    state $op_push_undef     = Marpa::R2::Thin::op('push_undef');
+    state $op_push_one       = Marpa::R2::Thin::op('push_one');
+    state $op_push_sequence  = Marpa::R2::Thin::op('push_sequence');
+    state $op_push_g1_start  = Marpa::R2::Thin::op('push_g1_start');
     state $op_push_start_location =
         Marpa::R2::Thin::op('push_start_location');
     state $op_push_values        = Marpa::R2::Thin::op('push_values');
@@ -1179,6 +1181,14 @@ sub registration_init {
             for my $result_descriptor ( split /[,]\s*/xms, $array_descriptor )
             {
                 $result_descriptor =~ s/^\s*|\s*$//g;
+                if ( $result_descriptor eq 'g1start' ) {
+                    push @push_ops, $op_push_g1_start;
+                    next RESULT_DESCRIPTOR;
+                }
+                if ( $result_descriptor eq 'g1length' ) {
+                    push @push_ops, $op_push_g1_length;
+                    next RESULT_DESCRIPTOR;
+                }
                 if ( $result_descriptor eq 'start' ) {
                     push @push_ops, $op_push_start_location;
                     next RESULT_DESCRIPTOR;
