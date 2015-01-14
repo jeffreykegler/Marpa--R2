@@ -454,6 +454,34 @@ sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::discard_default_statement::evaluate {
+    my ( $data, $parse ) = @_;
+    my ( $start, $length, $raw_adverb_list ) = @{$data};
+    local $Marpa::R2::Internal::SUBGRAMMAR = 'G1';
+
+    my $adverb_list = $raw_adverb_list->evaluate($parse);
+    if ( exists $parse->{discard_default_adverbs} ) {
+        my $problem_rule = $parse->substring( $start, $length );
+        Marpa::R2::exception(
+            qq{More than one discard default statement is not allowed\n},
+            qq{  This was the rule that caused the problem:\n},
+            qq{  $problem_rule\n}
+        );
+    } ## end if ( exists $parse->{discard_default_adverbs} )
+    $parse->{discard_default_adverbs} = {};
+    ADVERB: for my $key ( keys %{$adverb_list} ) {
+        my $value = $adverb_list->{$key};
+        if ( $key eq 'action' ) {
+            $parse->{discard_default_adverbs}->{$key} = $value;
+            next ADVERB;
+        }
+        Marpa::R2::exception(
+            qq{"$key" adverb not allowed as discard default"});
+    } ## end ADVERB: for my $key ( keys %{$adverb_list} )
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
+    return undef;
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::discard_default_statement::evaluate
+
 sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate {
     my ( $data, $parse ) = @_;
     my ( $start, $length, $raw_adverb_list ) = @{$data};

@@ -59,6 +59,7 @@ sub sort_bnf {
 my %cooked_parse_result = (
     character_classes      => $parse_result->{character_classes},
     symbols                => $parse_result->{symbols},
+    discard_default_adverbs => $parse_result->{discard_default_adverbs},
     lexeme_default_adverbs => $parse_result->{lexeme_default_adverbs},
     first_lhs              => $parse_result->{first_lhs},
     start_lhs              => $parse_result->{start_lhs},

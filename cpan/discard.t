@@ -36,10 +36,10 @@ use Marpa::R2;
 my $grammar = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => [values] bless => ::lhs
+:default ::= action => [g1start,g1length,name,values]
 discard default = event => ::symbol=off
-lexeme default = action => [ start, length, value ]
-    bless => ::name latm => 1
+lexeme default = action => [ g1start, g1length, start, length, value ]
+    latm => 1
 
 :start ::= Script
 Script ::= Expression+ separator => comma

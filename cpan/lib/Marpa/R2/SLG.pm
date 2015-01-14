@@ -345,6 +345,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     } ## end SYMBOL: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
     # A first phase of applying defaults
+    my $discard_default_adverbs = $hashed_source->{discard_default_adverbs};
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
     my $latm_default_value = $lexeme_default_adverbs->{latm} // 0;
