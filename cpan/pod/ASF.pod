@@ -458,6 +458,21 @@ The C<rh_values()> method accepts no arguments.
 It is a fatal error to call C<rh_values()> for a glade
 that currently points to a token alternative.
 
+=head2 all_choices()
+
+=for Marpa::R2::Display::Start
+name: ASF all_choices() traverser method example
+normalize-whitespace: 1
+partial: 1
+
+        my @results = $glade->all_choices();
+
+=for Marpa::R2::Display::End
+
+Returns a new result list produced by taking
+a Cartesian product of the parse results
+(which are a list of choices) at the current position.
+
 =head2 next()
 
 =for Marpa::R2::Display

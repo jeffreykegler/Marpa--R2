@@ -125,7 +125,13 @@ sub full_traverser {
         # The parse results at each position are a list of choices, so
         # to produce a new result list, we need to take a Cartesian
         # product of all the choices
+
+# Marpa::R2::Display::Start
+# name: ASF all_choices() traverser method example
+
         my @results = $glade->all_choices();
+
+# Marpa::R2::Display::End
 
         # Special case for the start rule: just collapse one level of lists
         if ( $symbol_name eq '[:start]' ) {
