@@ -258,7 +258,7 @@ The first argument will be a B<glade object>.
 Methods of the glade object are used to find information about
 the glade, and to move around in it.
 
-The second of the two arguments to a traverser is 
+The second of the two arguments to a traverser is
 the per-traversal object, which will be shared by all calls
 in the traversal.
 The per-traversal object
@@ -296,9 +296,9 @@ are of use.
 The L<C<symbol_id()>|/"symbol_id()"> glade method is
 also always of use,
 although its meaning varies.
-At token alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
+At token alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the
 token symbol.
-At rule alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
+At rule alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the
 ID of the LHS of the rule.
 
 At rule alternatives,
@@ -462,13 +462,13 @@ this method to control an interation
 should be careful to check for a Perl defined value,
 and not for a Perl true value.
 
-In addition, because 
-the L<C<rule_id()> method|/"rule_id()"> 
-remains constant only within a symch, and 
-the L<C<next()> method|/"next()"> may 
-change the current symch, 
+In addition, because
+the L<C<rule_id()> method|/"rule_id()">
+remains constant only within a symch, and
+the L<C<next()> method|/"next()"> may
+change the current symch,
 L<C<rule_id()> method|/"rule_id()">
-must always be called to obtain the current rule ID 
+must always be called to obtain the current rule ID
 in a C<while> loop that is controlled by
 the L<C<next()> method|/"next()">.
 

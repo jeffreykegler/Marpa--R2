@@ -32,9 +32,9 @@ my $dsl = <<'END_OF_SOURCE';
 
 S   ::= NP  VP  period  action => do_S
 
-NP  ::= NN              action => do_NP_NN      
-    |   NNS             action => do_NP_NNS   
-    |   DT  NN          action => do_NP_DT_NN   
+NP  ::= NN              action => do_NP_NN
+    |   NNS             action => do_NP_NNS
+    |   DT  NN          action => do_NP_DT_NN
     |   NN  NNS         action => do_NP_NN_NNS
     |   NNS CC NNS      action => do_NP_NNS_CC_NNS
 
@@ -76,7 +76,7 @@ my $sentence = 'a panda eats shoots and leaves.';
 
 my @actual = ();
 
-my $recce = Marpa::R2::Scanless::R->new( { 
+my $recce = Marpa::R2::Scanless::R->new( {
     grammar => $grammar,
     semantics_package => 'PennTags'
 } );
@@ -93,7 +93,7 @@ Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
 
 my $panda_grammar = Marpa::R2::Scanless::G->new(
     { source => \$dsl } );
-my $panda_recce = Marpa::R2::Scanless::R->new( 
+my $panda_recce = Marpa::R2::Scanless::R->new(
     { grammar => $panda_grammar,
       semantics_package => 'PennTags' } );
 $panda_recce->read( \$sentence );
@@ -116,7 +116,7 @@ sub full_traverser {
     if ( not defined $rule_id ) {
         return [ $glade->literal() ];
     } ## end if ( not defined $rule_id )
-    
+
     # Our result will be a list of choices
     my @return_value = ();
 
@@ -126,7 +126,7 @@ sub full_traverser {
         # to produce a new result list, we need to take a Cartesian
         # product of all the choices
         my @results = $glade->all_choices();
-        
+
         # Special case for the start rule: just collapse one level of lists
         if ( $symbol_name eq '[:start]' ) {
             return [ map { join q{}, @{$_} } @results ];
@@ -134,18 +134,18 @@ sub full_traverser {
 
         # Now we have a list of choices, as a list of lists.  Each sub list
         # is a list of parse results, which we need to pass to the rule closures
-        # and join into a single Penn-tagged element.  The result will be 
-        # to collapse one level of lists, and leave us with a list of 
+        # and join into a single Penn-tagged element.  The result will be
+        # to collapse one level of lists, and leave us with a list of
         # Penn-tagged elements.
-        
-        # First, we take the semantic action closure of the rule as defined in the 
-        # recognizer's semantic package. 
+
+        # First, we take the semantic action closure of the rule as defined in the
+        # recognizer's semantic package.
         my $closure = $panda_recce->rule_closure( $glade->rule_id() );
         # Note: $glade->rule_id() is used instead of the above $rule_id, because
         # $glade->next() must have been called and the current glade (and thus
-        # the rule) might have changed 
-        
-        # Now, we need to check if the semantic action of the rule is defined 
+        # the rule) might have changed
+
+        # Now, we need to check if the semantic action of the rule is defined
         # as a closure. For now, we just die if it is not.
         #
         # However, start, length, lhs, and values builtins can be emulated by
@@ -154,7 +154,7 @@ sub full_traverser {
         unless (defined $closure and ref $closure eq 'CODE'){
             die "The semantics of Rule #" . $glade->rule_id() . "is not defined as a closure.";
         }
-        
+
         push @return_value, map { $closure->( {}, @{$_} ) } @results;
 
         # Look at the next alternative in this glade, or end the
@@ -162,7 +162,7 @@ sub full_traverser {
         last CHOICE if not defined $glade->next();
 
     } ## end CHOICE: while (1)
-    
+
     # Return the list of Penn-tagged elements for this glade
     return \@return_value;
 } ## end sub full_traverser
@@ -192,7 +192,7 @@ sub pruning_traverser {
     }
     else{
         my $closure = $panda_recce->rule_closure($rule_id);
-        die "The semantics of Rule $rule_id is not defined as a closure." 
+        die "The semantics of Rule $rule_id is not defined as a closure."
             unless defined $closure and ref $closure eq 'CODE';
         return $closure->( {}, @return_value );
     }
