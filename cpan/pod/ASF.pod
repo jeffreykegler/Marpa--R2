@@ -442,6 +442,22 @@ returns C<undef> if the value of the C<$rh_ix> is greater than or equal to the R
 It is a fatal error to call C<rh_value()> for a glade
 that currently points to a token alternative.
 
+=head2 rh_values()
+
+=for Marpa::R2::Display::Start
+name: ASF rh_values() traverser method example
+normalize-whitespace: 1
+partial: 1
+
+    my @return_value = $glade->rh_values();
+
+=for Marpa::R2::Display::End
+
+Returns the RHS children of the current rule.
+The C<rh_values()> method accepts no arguments.
+It is a fatal error to call C<rh_values()> for a glade
+that currently points to a token alternative.
+
 =head2 next()
 
 =for Marpa::R2::Display

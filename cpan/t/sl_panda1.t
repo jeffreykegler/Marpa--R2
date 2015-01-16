@@ -184,7 +184,12 @@ sub pruning_traverser {
         return $glade->literal(); # wrap for the closure call
     }
 
+# Marpa::R2::Display::Start
+# name: ASF rh_values() traverser method example
+
     my @return_value = $glade->rh_values();
+
+# Marpa::R2::Display::End
 
     if ($symbol_name eq '[:start]'){
         # Special case for the start rule
