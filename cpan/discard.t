@@ -70,7 +70,28 @@ END_OF_SOURCE
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
 my $input = '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)';
-$recce->read(\$input);
+my $length = length $input;
+my $pos = $recce->read(\$input);
+
+my $actual_events = q{};
+READ: while (1) {
+
+    my @actual_events = ();
+
+    EVENT:
+    for my $event ( @{ $recce->events() } ) {
+        my ($name) = @{$event};
+        push @actual_events, $name;
+    }
+
+    if (@actual_events) {
+        $actual_events .= join q{ }, $pos, @actual_events;
+        $actual_events .= "\n";
+    }
+    last READ if $pos >= $length;
+    $pos = $recce->resume($pos);
+} ## end READ: while (1)
+
 my $value_ref = $recce->value();
 die "No parse was found\n" if not defined $value_ref;
 
