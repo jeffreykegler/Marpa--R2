@@ -28,9 +28,6 @@ use Marpa::R2::Test;
 
 ## no critic (ErrorHandling::RequireCarping);
 
-# Marpa::R2::Display
-# name: SLIF full synopsis
-
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
@@ -79,52 +76,7 @@ die "No parse was found\n" if not defined $value_ref;
 
 # Result will be something like "86.33... 126 125 16"
 # depending on the floating point precision
-my $result = ${$value_ref}->doit();
-
-package My_Nodes;
-
-sub My_Nodes::primary::doit { return $_[0]->[0]->doit() }
-sub My_Nodes::Number::doit  { return $_[0]->[2] }
-sub My_Nodes::paren::doit   { my ($self) = @_; $self->[1]->doit() }
-
-sub My_Nodes::add::doit {
-    my ($self) = @_;
-    $self->[0]->doit() + $self->[2]->doit();
-}
-
-sub My_Nodes::subtract::doit {
-    my ($self) = @_;
-    $self->[0]->doit() - $self->[2]->doit();
-}
-
-sub My_Nodes::multiply::doit {
-    my ($self) = @_;
-    $self->[0]->doit() * $self->[2]->doit();
-}
-
-sub My_Nodes::divide::doit {
-    my ($self) = @_;
-    $self->[0]->doit() / $self->[2]->doit();
-}
-
-sub My_Nodes::exponentiate::doit {
-    my ($self) = @_;
-    $self->[0]->doit()**$self->[2]->doit();
-}
-
-sub My_Nodes::Script::doit {
-    my ($self) = @_;
-    return join q{ }, map { $_->doit() } @{$self};
-}
-
-# Marpa::R2::Display::End
-
-package main;
-
-Test::More::like(
-    $result,
-    qr/\A 86[.]3\d+ \s+ 126 \s+ 125 \s+ 16\z/xms,
-    'Value of scannerless parse'
-);
+my $result = ${$value_ref};
+say Data::Dumper::Dumper($result);
 
 # vim: expandtab shiftwidth=4:
