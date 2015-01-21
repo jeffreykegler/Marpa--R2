@@ -421,7 +421,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::event_activation_specification::on_or_of
     my ($values) = @_;
     my $is_activated = $values->[2];
     return 1 if not defined $is_activated;
-    return $is_activated eq 'off' ? 0 : 1;
+    return $is_activated->value();
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::on_or_off::value {
+    return $_[0]->[2] eq 'off' ? 0 : 1;
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::boolean::value {
