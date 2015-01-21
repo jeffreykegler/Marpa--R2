@@ -608,6 +608,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         my $pause_value = $declarations->{pause};
         if ( defined $pause_value ) {
             $thin_slg->g1_lexeme_pause_set( $g1_lexeme_id, $pause_value );
+            $thin_slg->g1_lexeme_pause_activate( $g1_lexeme_id, 1 );
 
             if ( defined( my $event_name = $declarations->{'event'} ) ) {
                 $lexeme_events_by_id->[$g1_lexeme_id] = $event_name;

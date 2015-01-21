@@ -139,17 +139,6 @@ union marpa_slr_event_s
   {
     int event_type;
     int t_event_type;
-    int t_rule_id;
-    int t_start_of_lexeme;
-    int t_end_of_lexeme;
-    int t_current_lexer_ix;
-  } t_trace_codepoint_discarded;
-
-
-  struct
-  {
-    int event_type;
-    int t_event_type;
     int t_lexeme;
     int t_start_of_lexeme;
     int t_end_of_lexeme;
@@ -163,6 +152,16 @@ union marpa_slr_event_s
     int t_end_of_lexeme;
     int t_current_lexer_ix;
   } t_trace_lexeme_discarded;
+
+  struct
+  {
+    int event_type;
+    int t_rule_id;
+    int t_start_of_lexeme;
+    int t_end_of_lexeme;
+    int t_last_g1_location;
+    int t_current_lexer_ix;
+  } t_lexeme_discarded;
 
   struct
   {
@@ -464,14 +463,19 @@ struct symbol_g_properties {
      int priority;
      unsigned int latm:1;
      unsigned int is_lexeme:1;
-     unsigned int pause_before:1;
-     unsigned int pause_after:1;
+     unsigned int t_pause_before:1;
+     unsigned int t_pause_before_active:1;
+     unsigned int t_pause_after:1;
+     unsigned int t_pause_after_active:1;
+     unsigned int t_event_on_discard:1;
+     unsigned int t_event_on_discard_active:1;
 };
 
 struct symbol_r_properties {
      int lexeme_priority;
-     unsigned int pause_before_active:1;
-     unsigned int pause_after_active:1;
+     unsigned int t_pause_before_active:1;
+     unsigned int t_pause_after_active:1;
+     unsigned int t_event_on_discard_active:1;
 };
 
  /* Lexers are not visible at the Perl level --
@@ -2599,7 +2603,7 @@ slr_alternatives (Scanless_R * slr)
 	      lexeme_entry->t_lexeme_acceptable.t_lexeme;
 	    const struct symbol_r_properties *symbol_r_properties =
 	      slr->symbol_r_properties + lexeme_id;
-	    if (symbol_r_properties->pause_before_active)
+	    if (symbol_r_properties->t_pause_before_active)
 	      {
 		g1_lexeme = lexeme_id;
 		slr->start_of_pause_lexeme =
@@ -2692,7 +2696,7 @@ slr_alternatives (Scanless_R * slr)
 		    event->t_trace_accepted_lexeme.t_current_lexer_ix =
 		      slr->current_lexer->index;
 		  }
-		if (symbol_r_properties->pause_after_active)
+		if (symbol_r_properties->t_pause_after_active)
 		  {
 		    slr->start_of_pause_lexeme =
 		      event->t_lexeme_acceptable.t_start_of_lexeme;
@@ -5270,8 +5274,12 @@ PPCODE:
         slg->symbol_g_properties[symbol_id].priority = 0;
         slg->symbol_g_properties[symbol_id].latm = 0;
         slg->symbol_g_properties[symbol_id].is_lexeme = 0;
-        slg->symbol_g_properties[symbol_id].pause_before = 0;
-        slg->symbol_g_properties[symbol_id].pause_after = 0;
+        slg->symbol_g_properties[symbol_id].t_pause_before = 0;
+        slg->symbol_g_properties[symbol_id].t_pause_before_active = 0;
+        slg->symbol_g_properties[symbol_id].t_pause_after = 0;
+        slg->symbol_g_properties[symbol_id].t_pause_after_active = 0;
+        slg->symbol_g_properties[symbol_id].t_event_on_discard = 0;
+        slg->symbol_g_properties[symbol_id].t_event_on_discard_active = 0;
     }
   }
 
@@ -5512,22 +5520,75 @@ PPCODE:
     }
     switch (pause) {
     case 0: /* No pause */
-        g_properties->pause_after = 0;
-        g_properties->pause_before = 0;
+        g_properties->t_pause_after = 0;
+        g_properties->t_pause_before = 0;
         break;
     case 1: /* Pause after */
-        g_properties->pause_after = 1;
-        g_properties->pause_before = 0;
+        g_properties->t_pause_after = 1;
+        g_properties->t_pause_before = 0;
         break;
     case -1: /* Pause before */
-        g_properties->pause_after = 0;
-        g_properties->pause_before = 1;
+        g_properties->t_pause_after = 0;
+        g_properties->t_pause_before = 1;
         break;
     default:
       croak
         ("Problem in slg->lexeme_pause_set(%ld, %ld): value of pause must be -1,0 or 1",
          (long) g1_lexeme,
          (long) pause);
+    }
+  XSRETURN_YES;
+}
+
+void
+g1_lexeme_pause_activate( slg, g1_lexeme, activate )
+    Scanless_G *slg;
+    Marpa_Symbol_ID g1_lexeme;
+    int activate;
+PPCODE:
+{
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    struct symbol_g_properties * g_properties = slg->symbol_g_properties + g1_lexeme;
+    if (slg->precomputed)
+      {
+        croak
+          ("slg->lexeme_pause_activate(%ld, %ld) called after SLG is precomputed",
+           (long) g1_lexeme, (long) pause);
+      }
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+        ("Problem in slg->g1_lexeme_pause_activate(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+         (long) g1_lexeme,
+         (long) pause,
+         (long) g1_lexeme,
+         (long) highest_g1_symbol_id
+         );
+    }
+    if (g1_lexeme < 0) {
+      croak
+        ("Problem in slg->lexeme_pause_activate(%ld, %ld): symbol ID was %ld, a disallowed value",
+         (long) g1_lexeme,
+         (long) pause,
+         (long) g1_lexeme);
+    }
+
+    if (activate != 0 && activate != 1) {
+      croak
+        ("Problem in slg->lexeme_pause_activate(%ld, %ld): value of activate must be 0 or 1",
+         (long) g1_lexeme,
+         (long) activate);
+    }
+
+    if ( g_properties->t_pause_before ) {
+        g_properties->t_pause_before_active = activate;
+    } else if ( g_properties->t_pause_after ) {
+        g_properties->t_pause_after_active = activate;
+    } else {
+      croak
+        ("Problem in slg->lexeme_pause_activate(%ld, %ld): no pause event is enabled",
+         (long) g1_lexeme,
+         (long) activate);
     }
   XSRETURN_YES;
 }
@@ -5671,10 +5732,10 @@ PPCODE:
           slg->symbol_g_properties + symbol_id;
         slr->symbol_r_properties[symbol_id].lexeme_priority =
           g_properties->priority;
-        slr->symbol_r_properties[symbol_id].pause_before_active =
-          g_properties->pause_before;
-        slr->symbol_r_properties[symbol_id].pause_after_active =
-          g_properties->pause_after;
+        slr->symbol_r_properties[symbol_id].t_pause_before_active =
+          g_properties->t_pause_before_active;
+        slr->symbol_r_properties[symbol_id].t_pause_after_active =
+          g_properties->t_pause_after_active;
       }
   }
 
@@ -6612,14 +6673,15 @@ PPCODE:
   switch (reactivate)
     {
     case 0:
-      symbol_r_properties->pause_after_active = 0;
-      symbol_r_properties->pause_before_active = 0;
+      symbol_r_properties->t_pause_after_active = 0;
+      symbol_r_properties->t_pause_before_active = 0;
       break;
     case 1:
       {
         const struct symbol_g_properties* g_properties = slg->symbol_g_properties + g1_lexeme_id;
-        symbol_r_properties->pause_after_active = g_properties->pause_after;
-        symbol_r_properties->pause_before_active = g_properties->pause_before;
+        /* Only activate events which are enabled */
+        symbol_r_properties->t_pause_after_active = g_properties->t_pause_after;
+        symbol_r_properties->t_pause_before_active = g_properties->t_pause_before;
       }
       break;
     default:
