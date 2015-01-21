@@ -40,8 +40,8 @@ d ~ 'd'
 # name: SLIF named lexeme event synopsis
 
 :lexeme ~ <a> pause => before event => 'before a'
-:lexeme ~ <b> pause => after event => 'after b'
-:lexeme ~ <c> pause => before event => 'before c'
+:lexeme ~ <b> pause => after event => 'after b'=on
+:lexeme ~ <c> pause => before event => 'before c'=off
 :lexeme ~ <d> pause => after event => 'after d'
 
 # Marpa::R2::Display::End

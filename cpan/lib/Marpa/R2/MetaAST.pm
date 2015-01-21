@@ -363,10 +363,13 @@ sub Marpa::R2::Internal::MetaAST_Nodes::group_association::evaluate {
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::event_specification::evaluate {
-    my ($values) = @_;
-    my $child = $values->[2];
-    return bless { event => $child->name() }, $PROTO_ALTERNATIVE;
-}
+    my ($values)         = @_;
+    my $event_name       = $values->[2];
+    my $event_activation = $values->[3];
+    return bless {
+        event      => [$event_name->name(), $event_activation->on_or_off()],
+    }, $PROTO_ALTERNATIVE;
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::event_specification::evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
     my ($values) = @_;
@@ -410,6 +413,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::null_ranking_constant::value {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::before_or_after::value {
     return $_[0]->[2];
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::event_activation_specification::on_or_off
+{
+    # die Data::Dumper::Dumper(\@_);
+    my ($values) = @_;
+    my $is_activated = $values->[2];
+    return 0 if not defined $is_activated;
+    return $is_activated eq 'off' ? 0 : 1;
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::boolean::value {
@@ -1282,7 +1294,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $completion_events->{$symbol_name} )
-    $completion_events->{$symbol_name} = $event_name;
+    $completion_events->{$symbol_name} = [$event_name, 1];
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
@@ -1301,7 +1313,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate {
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $nulled_events->{$symbol_name} )
-    $nulled_events->{$symbol_name} = $event_name;
+    $nulled_events->{$symbol_name} = [$event_name, 1];
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate
@@ -1321,7 +1333,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $prediction_events->{$symbol_name} )
-    $prediction_events->{$symbol_name} = $event_name;
+    $prediction_events->{$symbol_name} = [$event_name, 1];
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
