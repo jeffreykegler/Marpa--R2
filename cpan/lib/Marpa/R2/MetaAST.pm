@@ -420,7 +420,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::event_activation_specification::on_or_of
     # die Data::Dumper::Dumper(\@_);
     my ($values) = @_;
     my $is_activated = $values->[2];
-    return 0 if not defined $is_activated;
+    return 1 if not defined $is_activated;
     return $is_activated eq 'off' ? 0 : 1;
 }
 
