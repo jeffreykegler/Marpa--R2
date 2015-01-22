@@ -2275,8 +2275,8 @@ MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_MARPA_R_UNKNOWN;
     }
 }
 
-/* Called after start_input().
- I am not sure that all these events are needed.
+/* Called after marpa_r_start_input() and
+ * marpa_r_earleme_complete().
  */
 static void
 r_convert_events (R_Wrapper * r_wrapper)
