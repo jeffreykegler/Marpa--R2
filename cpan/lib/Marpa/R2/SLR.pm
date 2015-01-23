@@ -225,15 +225,12 @@ sub Marpa::R2::Scanless::R::new {
     my $trace_file_handle = $g1_recce_args->{trace_file_handle};
     $trace_file_handle //= $thick_g1_grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE] ;
 
-# NEW
     my $thick_g1_recce =
         $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE] = bless [],
         'Marpa::R2::Recognizer';
 
     local $Marpa::R2::Internal::TRACE_FH =
         $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] = $trace_file_handle;
-
-{
 
     $thick_g1_recce->[Marpa::R2::Internal::Recognizer::GRAMMAR] = $thick_g1_grammar;
 
@@ -288,10 +285,6 @@ sub Marpa::R2::Scanless::R::new {
                 or Marpa::R2::exception("Cannot print: $ERRNO");
         }
     } ## end if ( $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS...])
-
-}
-
-# NEW
 
     my $thin_slr =
         Marpa::R2::Thin::SLR->new( $slg->[Marpa::R2::Internal::Scanless::G::C],
