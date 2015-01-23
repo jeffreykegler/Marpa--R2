@@ -48,6 +48,8 @@ d ~ 'd'
 
 END_OF_GRAMMAR
 
+$rules =~ s/=off$//gxms;
+
 # This test the order of events
 # No more than one of each event type per line
 # so that order is non-arbitrary
