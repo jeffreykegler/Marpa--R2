@@ -221,10 +221,77 @@ sub Marpa::R2::Scanless::R::new {
 
     my $thick_g1_grammar =
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
-    $g1_recce_args->{grammar} = $thick_g1_grammar;
+
+    my $trace_file_handle;
+    $trace_file_handle //= $thick_g1_grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE] ;
+
+# NEW
     my $thick_g1_recce =
-        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE] =
-        Marpa::R2::Recognizer->new($g1_recce_args);
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE] = bless [],
+        'Marpa::R2::Recognizer';
+
+    local $Marpa::R2::Internal::TRACE_FH =
+        $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] = $trace_file_handle;
+
+{
+
+    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::GRAMMAR] = $thick_g1_grammar;
+
+    my $grammar_c = $thick_g1_grammar->[Marpa::R2::Internal::Grammar::C];
+
+    my $recce_c = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::C] =
+        Marpa::R2::Thin::R->new($grammar_c);
+    if ( not defined $recce_c ) {
+        Marpa::R2::exception( $grammar_c->error() );
+    }
+
+    $recce_c->ruby_slippers_set(1);
+
+    if (   defined $thick_g1_grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
+        or defined $thick_g1_grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
+        or not defined $thick_g1_grammar->[Marpa::R2::Internal::Grammar::INTERNAL] )
+    {
+        $thick_g1_recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
+            'legacy';
+    } ## end if ( defined $grammar->[...])
+
+    if ( defined( my $value = $g1_recce_args->{'leo'} ) ) {
+            my $boolean = $value ? 1 : 0;
+            $thick_g1_recce->use_leo_set($boolean);
+            delete $g1_recce_args->{leo};
+        }
+
+    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::WARNINGS]       = 1;
+    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] = 'none';
+    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES]     = 0;
+    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS]     = 0;
+
+    # Position 0 is not used because 0 indicates an unvalued token.
+    # Position 1 is reserved for undef.
+    # Position 2 is reserved for literal tokens (used in SLIF).
+    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = [undef, undef, undef];
+
+    $thick_g1_recce->reset_evaluation();
+
+    if ( not $recce_c->start_input() ) {
+        my $error = $grammar_c->error();
+        Marpa::R2::exception( 'Recognizer start of input failed: ', $error );
+    }
+
+    $thick_g1_recce->set($g1_recce_args);
+
+    if ( $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS] > 1 ) {
+        my @terminals_expected = @{ $thick_g1_recce->terminals_expected() };
+        for my $terminal ( sort @terminals_expected ) {
+            say {$Marpa::R2::Internal::TRACE_FH}
+                qq{Expecting "$terminal" at earleme 0}
+                or Marpa::R2::exception("Cannot print: $ERRNO");
+        }
+    } ## end if ( $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS...])
+
+}
+
+# NEW
 
     my $thin_slr =
         Marpa::R2::Thin::SLR->new( $slg->[Marpa::R2::Internal::Scanless::G::C],
@@ -273,7 +340,7 @@ sub Marpa::R2::Internal::Scanless::R::set {
         )
     };
     state $new_method_args = {
-        map { ( $_, 1 ); } qw(grammar ranking_method),
+        map { ( $_, 1 ); } qw(grammar ranking_method event_is_active),
         keys %{$set_method_args}
     };
     state $series_restart_method_args = {
