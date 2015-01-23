@@ -481,12 +481,6 @@ sub Marpa::R2::Internal::Scanless::R::set {
             if not $copyable_naif_recce_args->{$arg_name};
     }
 
-    # In the new method, these items must always be set in the NAIF recce args
-    if ( $method eq 'new' ) {
-        $flat_args{trace_file_handle} //=
-            $slr->[Marpa::R2::Internal::Scanless::R::TRACE_FILE_HANDLE];
-    }
-
     return \%flat_args;
 
 } ## end sub Marpa::R2::Internal::Scanless::R::set
