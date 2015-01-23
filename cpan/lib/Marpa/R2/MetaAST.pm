@@ -365,9 +365,9 @@ sub Marpa::R2::Internal::MetaAST_Nodes::group_association::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::event_specification::evaluate {
     my ($values)         = @_;
     my $event_name       = $values->[2];
-    my $event_activation = $values->[3];
+    my $event_initializer = $values->[3];
     return bless {
-        event      => [$event_name->name(), $event_activation->on_or_off()],
+        event      => [$event_name->name(), $event_initializer->on_or_off()],
     }, $PROTO_ALTERNATIVE;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::event_specification::evaluate
 
@@ -415,7 +415,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::before_or_after::value {
     return $_[0]->[2];
 }
 
-sub Marpa::R2::Internal::MetaAST_Nodes::event_activation_specification::on_or_off
+sub Marpa::R2::Internal::MetaAST_Nodes::event_initializer::on_or_off
 {
     # die Data::Dumper::Dumper(\@_);
     my ($values) = @_;
