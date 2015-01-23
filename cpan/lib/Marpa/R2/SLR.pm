@@ -222,7 +222,7 @@ sub Marpa::R2::Scanless::R::new {
     my $thick_g1_grammar =
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
 
-    my $trace_file_handle;
+    my $trace_file_handle = $g1_recce_args->{trace_file_handle};
     $trace_file_handle //= $thick_g1_grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE] ;
 
 # NEW
