@@ -15,7 +15,7 @@
 
 Revision history for Marpa::R2
 
-2.103_001 (libmarpa 7.6.0) Thu Jan 22 19:15:22 PST 2015
+2.103_002 (libmarpa 7.6.0) Thu Jan 22 19:15:22 PST 2015
 
    * Add g1start, g1length array descriptor items
 
