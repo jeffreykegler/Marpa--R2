@@ -218,6 +218,18 @@ sub Marpa::R2::Scanless::R::new {
     my $too_many_earley_items = $g1_recce_args->{too_many_earley_items};
 
     my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
+    Marpa::R2::exception(
+        qq{Marpa::R2::Scanless::R::new() called without a "grammar" argument}
+    ) if not defined $slg;
+
+    my $slg_class = 'Marpa::R2::Scanless::G';
+    if ( not blessed $slg or not $slg->isa($slg_class) ) {
+        my $ref_type = ref $slg;
+        my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
+        Marpa::R2::exception(
+            qq{'grammar' named argument to new() is $desc\n},
+            "  It should be a ref to $slg_class\n" );
+    } ## end if ( not blessed $slg or not $slg->isa($slg_class) )
 
     my $thick_g1_grammar =
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
@@ -379,26 +391,6 @@ sub Marpa::R2::Internal::Scanless::R::set {
         );
     } ## end if ( scalar @bad_args )
 
-    if ( $method eq 'new' ) {
-        state $arg_name  = 'grammar';
-        state $slg_class = 'Marpa::R2::Scanless::G';
-        my $slg = $flat_args{$arg_name};
-        Marpa::R2::exception(
-            qq{Marpa::R2::Scanless::R::new() called without a "$arg_name" argument}
-        ) if not defined $slg;
-        if ( not blessed $slg or not $slg->isa($slg_class) ) {
-            my $ref_type = ref $slg;
-            my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
-            Marpa::R2::exception(
-                qq{'$arg_name' name argument to scanless_r->new() is $desc\n},
-                "  It should be a ref to $slg_class\n"
-            );
-        } ## end if ( not blessed $slg or not $slg->isa($slg_class) )
-
-        $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR] = $slg;
-
-    } ## end if ( $method eq 'new' )
-
     # Special SLIF (not NAIF) recce arg processing goes here
     if ( exists $flat_args{'exhaustion'} ) {
 
@@ -435,9 +427,11 @@ sub Marpa::R2::Internal::Scanless::R::set {
     # the Scanless::R class, so this maps named args to the index of the array
     # that holds the members.
     state $copy_arg_to_index = {
-        trace_file_handle => Marpa::R2::Internal::Scanless::R::TRACE_FILE_HANDLE,
-        trace_lexers      => Marpa::R2::Internal::Scanless::R::TRACE_LEXERS,
-        trace_terminals   => Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS,
+        trace_file_handle =>
+            Marpa::R2::Internal::Scanless::R::TRACE_FILE_HANDLE,
+        trace_lexers    => Marpa::R2::Internal::Scanless::R::TRACE_LEXERS,
+        trace_terminals => Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS,
+        grammar         => Marpa::R2::Internal::Scanless::R::GRAMMAR,
     };
 
     ARG: for my $arg_name ( keys %flat_args ) {
