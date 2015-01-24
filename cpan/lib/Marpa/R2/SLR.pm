@@ -213,7 +213,7 @@ sub Marpa::R2::Scanless::R::new {
     $slr->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS] = 0;
     $slr->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS] = 0;
 
-    my $g1_recce_args =
+    my ($g1_recce_args, $flat_args) =
         Marpa::R2::Internal::Scanless::R::set( $slr, "new", @args );
     my $too_many_earley_items = $g1_recce_args->{too_many_earley_items};
 
@@ -281,6 +281,23 @@ sub Marpa::R2::Scanless::R::new {
     $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = [undef, undef, undef];
 
     $thick_g1_recce->reset_evaluation();
+
+    my $symbol_ids_by_event_name_and_type =
+        $thick_g1_grammar->[
+        Marpa::R2::Internal::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE];
+    my $event_is_active_arg = $flat_args->{event_is_active} // {};
+
+    # Lexeme events are already initialized as described by
+    # the DSL.  Here we override that with the recce arg, if
+    # necessary.
+    
+    EVENT: for my $event_name ( keys %{$event_is_active_arg} ) {
+        next EVENT
+            if
+            not $symbol_ids_by_event_name_and_type->{$event_name}->{lexeme};
+        $recce_c->lexeme_event_activate( $event_name,
+            $event_is_active_arg->{$event_name} );
+    } ## end EVENT: for my $event ( keys %{$event_is_active_arg} )
 
     if ( not $recce_c->start_input() ) {
         my $error = $grammar_c->error();
@@ -470,12 +487,14 @@ sub Marpa::R2::Internal::Scanless::R::set {
 
     # Prune flat args of all those named args which are NOT to be copied
     # into the NAIF recce args
-    for my $arg_name ( keys %flat_args ) {
-        delete $flat_args{$arg_name}
-            if not $copyable_naif_recce_args->{$arg_name};
+    my %g1_recce_args = ();
+    for my $arg_name ( grep { $copyable_naif_recce_args->{$_} }
+        keys %flat_args )
+    {
+        $g1_recce_args{$arg_name} = $flat_args{$arg_name};
     }
 
-    return \%flat_args;
+    return \%g1_recce_args, \%flat_args;
 
 } ## end sub Marpa::R2::Internal::Scanless::R::set
 
@@ -1581,7 +1600,7 @@ sub Marpa::R2::Scanless::R::series_restart {
     $slr->[Marpa::R2::Internal::Scanless::R::REJECTION_ACTION] = 'fatal';
 
     $thick_g1_recce->reset_evaluation();
-    my $g1_recce_args = Marpa::R2::Internal::Scanless::R::set($slr, "series_restart", @args );
+    my ($g1_recce_args) = Marpa::R2::Internal::Scanless::R::set($slr, "series_restart", @args );
     $thick_g1_recce->set( $g1_recce_args );
     return 1;
 }
