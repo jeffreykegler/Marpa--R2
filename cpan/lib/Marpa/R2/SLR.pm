@@ -218,6 +218,7 @@ sub Marpa::R2::Scanless::R::new {
     my $too_many_earley_items = $g1_recce_args->{too_many_earley_items};
 
     my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
+
     Marpa::R2::exception(
         qq{Marpa::R2::Scanless::R::new() called without a "grammar" argument}
     ) if not defined $slg;
@@ -282,22 +283,35 @@ sub Marpa::R2::Scanless::R::new {
 
     $thick_g1_recce->reset_evaluation();
 
+    my $thin_slr =
+        Marpa::R2::Thin::SLR->new( $slg->[Marpa::R2::Internal::Scanless::G::C],
+        $thick_g1_recce->thin() );
+    $thin_slr->earley_item_warning_threshold_set($too_many_earley_items)
+        if defined $too_many_earley_items;
+    $slr->[Marpa::R2::Internal::Scanless::R::C]      = $thin_slr;
+    $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
+
     my $symbol_ids_by_event_name_and_type =
-        $thick_g1_grammar->[
+        $slg->[
         Marpa::R2::Internal::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE];
+
     my $event_is_active_arg = $flat_args->{event_is_active} // {};
+    if (ref $event_is_active_arg ne 'HASH') {
+        Marpa::R2::exception( 'event_is_active named argument must be ref to hash' );
+    }
 
     # Lexeme events are already initialized as described by
     # the DSL.  Here we override that with the recce arg, if
     # necessary.
     
     EVENT: for my $event_name ( keys %{$event_is_active_arg} ) {
-        next EVENT
-            if
-            not $symbol_ids_by_event_name_and_type->{$event_name}->{lexeme};
-        $recce_c->lexeme_event_activate( $event_name,
-            $event_is_active_arg->{$event_name} );
-    } ## end EVENT: for my $event ( keys %{$event_is_active_arg} )
+        my $symbol_ids =
+            $symbol_ids_by_event_name_and_type->{$event_name}->{lexeme};
+        next EVENT if not $symbol_ids;
+        my $is_active = $event_is_active_arg->{$event_name};
+        $thin_slr->lexeme_event_activate( $_, $is_active )
+            for @{$symbol_ids};
+    } ## end EVENT: for my $event_name ( keys %{$event_is_active_arg} )
 
     if ( not $recce_c->start_input() ) {
         my $error = $grammar_c->error();
@@ -315,13 +329,6 @@ sub Marpa::R2::Scanless::R::new {
         }
     } ## end if ( $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS...])
 
-    my $thin_slr =
-        Marpa::R2::Thin::SLR->new( $slg->[Marpa::R2::Internal::Scanless::G::C],
-        $thick_g1_recce->thin() );
-    $thin_slr->earley_item_warning_threshold_set($too_many_earley_items)
-        if defined $too_many_earley_items;
-    $slr->[Marpa::R2::Internal::Scanless::R::C]      = $thin_slr;
-    $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
     Marpa::R2::Internal::Scanless::convert_libmarpa_events($slr);
 
     return $slr;

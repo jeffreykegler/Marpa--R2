@@ -21,13 +21,13 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 12;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-my $rules = <<'END_OF_GRAMMAR';
+my $base_rules = <<'END_OF_GRAMMAR';
 :start ::= sequence
 sequence ::= char* action => OK
 char ::= a | b | c | d
@@ -48,6 +48,7 @@ d ~ 'd'
 
 END_OF_GRAMMAR
 
+my $rules = $base_rules;
 $rules =~ s/=off$//gxms;
 
 # This test the order of events
@@ -58,8 +59,8 @@ END_OF_EVENTS
 
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 
-my %expected_events;
-$expected_events{'all'} = <<'END_OF_EVENTS';
+my %base_expected_events;
+$base_expected_events{'all'} = <<'END_OF_EVENTS';
 0 before a
 1 before a
 3 after b
@@ -84,13 +85,13 @@ $expected_events{'all'} = <<'END_OF_EVENTS';
 21 before c
 23 after d
 END_OF_EVENTS
-$expected_events{'once'} = <<'END_OF_EVENTS';
+$base_expected_events{'once'} = <<'END_OF_EVENTS';
 0 before a
 3 after b
 5 before c
 9 after d
 END_OF_EVENTS
-$expected_events{'seq'} = <<'END_OF_EVENTS';
+$base_expected_events{'seq'} = <<'END_OF_EVENTS';
 0 before a
 3 after b
 5 before c
@@ -105,11 +106,12 @@ $expected_events{'seq'} = <<'END_OF_EVENTS';
 23 after d
 END_OF_EVENTS
 
+my %expected_events = %base_expected_events;
+
 sub do_test {
-    my ($test) = @_;
+    my ($slr, $test) = @_;
     state $string = q{aabbbcccdaaabccddddabcd};
     state $length = length $string;
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions' } );
     my $pos = $slr->read( \$string );
     my $actual_events = q{};
     my $deactivated_event_name;
@@ -160,15 +162,37 @@ sub do_test {
         qq{Events for test "$test"} );
 } ## end sub do_test
 
-do_test('all');
-do_test('once');
-do_test('seq');
+my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions' } );
+do_test($slr, 'all');
+$slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions' } );
+do_test($slr, 'once');
+$slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions' } );
+do_test($slr, 'seq');
 
 # Once again, but with unnamed events
 $expected_events{'all'} =~ s/^ [^\n]+ $/unnamed/gxms;
 $rules =~ s/^ ([:] lexeme \s [^\n]* ) \s+ event \s* [=][>] [^\n]* $/$1/gxms;
 $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
-do_test('all');
+$slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions' } );
+do_test($slr, 'all');
+
+# Yet another time, with initializers
+%expected_events = %base_expected_events;
+$expected_events{'all'} =~ s/^\d+ \s before \s c \n//gxms;
+$rules = $base_rules;
+$grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
+$slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions' } );
+do_test($slr, 'all');
+
+# Yet another time, with initializers
+%expected_events = %base_expected_events;
+$expected_events{'all'} =~ s/^\d+ \s after \s b \n//gxms;
+$rules = $base_rules;
+$grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
+$slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions',
+   event_is_active => { 'before c' => 1, 'after b' => 0 }
+} );
+do_test($slr, 'all');
 
 sub My_Actions::OK { return 1792 }
 
