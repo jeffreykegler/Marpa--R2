@@ -294,11 +294,38 @@ sub Marpa::R2::Scanless::R::new {
     my $symbol_ids_by_event_name_and_type =
         $slg->[
         Marpa::R2::Internal::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE];
+    my $event_starts_active = $slg->[Marpa::R2::Internal::Scanless::G::EVENT_STARTS_ACTIVE];
 
     my $event_is_active_arg = $flat_args->{event_is_active} // {};
     if (ref $event_is_active_arg ne 'HASH') {
         Marpa::R2::exception( 'event_is_active named argument must be ref to hash' );
     }
+
+    # Completion/nulled/prediction events are always initialized by
+    # Libmarpa to 'on'.  So here we need to override that if and only
+    # if we in fact want to initialize them to 'off'.
+
+    EVENT: for my $event_name ( keys %{$event_starts_active} ) {
+        my $starts_active =
+            defined $event_is_active_arg->{$event_name}
+            ? $event_is_active_arg->{$event_name}
+            : $event_starts_active->{$event_name};
+        next EVENT if $starts_active;
+        my $symbol_ids;
+        $symbol_ids =
+            $symbol_ids_by_event_name_and_type->{$event_name}->{completion}
+            // [];
+        $thin_slr->completion_symbol_activate( $_, 0 )
+            for @{$symbol_ids};
+        $symbol_ids =
+            $symbol_ids_by_event_name_and_type->{$event_name}->{nulled} // [];
+        $thin_slr->nulled_symbol_activate( $_, 0 ) for @{$symbol_ids};
+        $symbol_ids =
+            $symbol_ids_by_event_name_and_type->{$event_name}->{prediction}
+            // [];
+        $thin_slr->prediction_symbol_activate( $_, 0 )
+            for @{$symbol_ids};
+    } ## end EVENT: for my $event_name ( @{$event_starts_active} )
 
     # Lexeme events are already initialized as described by
     # the DSL.  Here we override that with the recce arg, if
