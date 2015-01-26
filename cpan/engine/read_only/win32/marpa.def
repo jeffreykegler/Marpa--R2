@@ -1,7 +1,7 @@
 ; DO NOT EDIT DIRECTLY.
 ; This file was automatically generated.
 ; This file is for the Microsoft linker.
-; Mon Jan 12 22:47:14 2015
+; Sun Jan 25 21:43:10 2015
 EXPORTS
    marpa_check_version
    marpa_version
@@ -64,15 +64,15 @@ EXPORTS
    marpa_r_latest_earley_set
    marpa_r_latest_earley_set_value_set
    marpa_r_latest_earley_set_values_set
+   marpa_r_completion_symbol_activate
    marpa_r_earley_item_warning_threshold
    marpa_r_earley_item_warning_threshold_set
    marpa_r_expected_symbol_event_set
    marpa_r_is_exhausted
-   marpa_r_terminals_expected
-   marpa_r_terminal_is_expected
-   marpa_r_completion_symbol_activate
    marpa_r_nulled_symbol_activate
    marpa_r_prediction_symbol_activate
+   marpa_r_terminals_expected
+   marpa_r_terminal_is_expected
    marpa_r_progress_report_reset
    marpa_r_progress_report_start
    marpa_r_progress_report_finish

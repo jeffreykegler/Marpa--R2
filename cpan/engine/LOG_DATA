@@ -1,29 +1,29 @@
-commit 082d19460ef76560b7f656c29e2da03ebb85d5f4
+commit 117c101082398aa2c530008d0739e89b2336b0a9
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 22:21:26 2015 -0800
+Date:   Sun Jan 25 21:38:37 2015 -0800
 
-    Update copyright notices
+    Fix problem with event activation
 
-commit e5bb0753d863e8fe88569519934da4f789859ec0
+commit dd337aa36f3a103cc60383e60a7400d0d46cac5b
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 22:01:08 2015 -0800
+Date:   Wed Jan 21 19:42:21 2015 -0800
 
-    Move SLIF code out of Libmarpa
+    Fix github issue #3
 
-commit 622f260d931829d46d2eecfb179ddfce2b391ccd
+commit a4ba2f7a30d75c32d45ac4a93752ec51b8fe514b
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 21:57:40 2015 -0800
+Date:   Wed Jan 21 19:31:43 2015 -0800
 
-    Move SLIF code out of Libmarpa
+    Update version to 7.7.0
 
-commit 4a93a30c8e240dae1360b410b5e74f05ec63bdc2
+commit 1d18603096ef0e5933be2c1a5bc93b7694b9f633
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 21:55:36 2015 -0800
+Date:   Wed Jan 21 19:31:31 2015 -0800
 
-    Move SLIF code out of Libmarpa
+    Work on API doc
 
-commit 1a34ebfe7065feb38cb15c355fa759a91e53545a
+commit 9bc6d69b252485031b9c4ac9d91e4df99de19344
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 12 21:37:52 2015 -0800
+Date:   Tue Jan 20 09:38:45 2015 -0800
 
-    Move SLIF code out of Libmarpa
+    Packaging
