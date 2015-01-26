@@ -1,4 +1,4 @@
 set history save
 set history expansion on
 set editing on
-directory $cdir:libmarpa/dev
+directory $cdir:engine/stage/work/dev

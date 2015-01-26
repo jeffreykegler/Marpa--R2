@@ -24,8 +24,11 @@ use File::Path;
 my $libmarpa_repo = 'git@github.com:jeffreykegler/libmarpa.git';
 my $stage = 'engine/stage';
 
-die "engine/stage already exists" if -e $stage;
-die "libmarpa_build already exists" if -e 'libmarpa_build';
+my $deleted_count = File::Path::remove_tree($stage);
+say "$deleted_count files deleted in $stage";
+
+$deleted_count = File::Path::remove_tree('libmarpa_build');
+say "$deleted_count files deleted in 'libmarpa_build'";
 
 if (not IPC::Cmd::run(
         command => [ qw(git clone -b r2 --depth 5), $libmarpa_repo, $stage ],
@@ -65,7 +68,7 @@ if (not IPC::Cmd::run(
     die qq{Could not make dist};
 } ## end if ( not IPC::Cmd::run( command => [ qw(git checkout)...]))
 
-my $deleted_count = File::Path::remove_tree('../read_only');
+$deleted_count = File::Path::remove_tree('../read_only');
 say "$deleted_count files deleted in ../read_only";
 
 if (not IPC::Cmd::run(
