@@ -14,8 +14,11 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Test of scannerless parsing -- predicted, nulled and completed events with 
-# deactivation and reactivation
+# Synopsis tests
+
+# Test SLIF -- predicted, nulled and completed events with 
+# deactivation and reactivation, initialization at DSL time,
+# initialization override at recce creation time
 
 use 5.010;
 use strict;
@@ -29,62 +32,47 @@ use Marpa::R2;
 
 my $rules = <<'END_OF_GRAMMAR';
 :start ::= sequence
-sequence ::= A B C D E F G  H I J K L
+sequence ::= A B C D
     action => OK
 A ::= 'a'
+A ::= # empty
 B ::= 'b'
+B ::= # empty
 C ::= 'c'
+C ::= # empty
 D ::= 'd'
-E ::=
-F ::= 'f'
-G ::=
-H ::= 'h'
-I ::= 'i'
-J ::= 'j'
-K ::=
-L ::= 'l'
+D ::= # empty
+
 # Marpa::R2::Display
 # name: SLIF predicted event statement synopsis
 
 event '^a' = predicted A
+event '^b'=off = predicted B
+event '^c'=on = predicted C
+event '^d' = predicted D
 
 # Marpa::R2::Display::End
 
-event '^b' = predicted B
-event '^c' = predicted C
-event '^d' = predicted D
-event '^e' = predicted E
-event '^f' = predicted F
-event '^g' = predicted G
-event '^h' = predicted H
-event '^i' = predicted I
-event '^j' = predicted J
-event '^k' = predicted K
-event '^l' = predicted L
+# Marpa::R2::Display
+# name: SLIF completed event statement synopsis
+
 event 'a' = completed A
-event 'b' = completed B
-event 'c' = completed C
+event 'b'=off = completed B
+event 'c'=on = completed C
 event 'd' = completed D
-event 'e' = completed E
-event 'f' = completed F
-event 'g' = completed G
-event 'h' = completed H
-event 'i' = completed I
-event 'j' = completed J
-event 'k' = completed K
-event 'l' = completed L
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLIF nulled event statement synopsis
+
 event 'a[]' = nulled A
-event 'b[]' = nulled B
-event 'c[]' = nulled C
+event 'b[]'=off = nulled B
+event 'c[]'=on = nulled C
 event 'd[]' = nulled D
-event 'e[]' = nulled E
-event 'f[]' = nulled F
-event 'g[]' = nulled G
-event 'h[]' = nulled H
-event 'i[]' = nulled I
-event 'j[]' = nulled J
-event 'k[]' = nulled K
-event 'l[]' = nulled L
+
+# Marpa::R2::Display::End
+
 END_OF_GRAMMAR
 
 # This test the order of events
@@ -95,12 +83,7 @@ my $all_events_expected = <<'END_OF_EVENTS';
 1 a ^b
 2 b ^c
 3 c ^d
-4 d e[] ^f
-5 f g[] ^h
-6 h ^i
-7 i ^j
-8 j k[] ^l
-9 l
+4 d
 END_OF_EVENTS
 
 my %pos_by_event = ();
@@ -117,16 +100,16 @@ my $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 my $location_0_event = qq{0 ^a\n} ;
 
 # Test of all events
-do_test( "all events", $grammar, q{abcdfhijl}, $all_events_expected );
+do_test( "all events", $grammar, q{abcd}, $all_events_expected );
 
 # Now deactivate all events
-do_test( "all events deactivated", $grammar, q{abcdfhijl}, $location_0_event, [] );
+do_test( "all events deactivated", $grammar, q{abcd}, $location_0_event, [] );
 
 # Now deactivate all events, and turn them back on, one at a time
 EVENT: for my $event (@events) {
     next EVENT if $event eq '^a'; # Location 0 events cannot be deactivated
     my $expected_events = $location_0_event . $pos_by_event{$event} . " $event\n";
-    do_test( qq{event "$event" reactivated}, $grammar, q{abcdfhijl}, $expected_events, [$event] );
+    do_test( qq{event "$event" reactivated}, $grammar, q{abcd}, $expected_events, [$event] );
 }
 
 sub show_last_subtext {
