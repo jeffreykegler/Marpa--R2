@@ -1,3 +1,9 @@
+commit cd11aa70521a290c6dd3160fb2760ceb6aa6467b
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Jan 25 22:00:48 2015 -0800
+
+    Fix problem with event activation
+
 commit 117c101082398aa2c530008d0739e89b2336b0a9
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sun Jan 25 21:38:37 2015 -0800
@@ -21,9 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Wed Jan 21 19:31:31 2015 -0800
 
     Work on API doc
-
-commit 9bc6d69b252485031b9c4ac9d91e4df99de19344
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Tue Jan 20 09:38:45 2015 -0800
-
-    Packaging
