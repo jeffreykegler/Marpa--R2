@@ -46,9 +46,9 @@ statement ::= <start rule> | <empty rule>
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
 <discard rule> ::= (':discard' <op declare match>) <single symbol> <adverb list>
 <lexeme rule> ::= (':lexeme' <op declare match>) symbol <adverb list>
-<completion event declaration> ::= ('event') <event name> ('=' 'completed') <symbol name>
-<nulled event declaration> ::= ('event') <event name> ('=' 'nulled') <symbol name>
-<prediction event declaration> ::= ('event') <event name> ('=' 'predicted') <symbol name>
+<completion event declaration> ::= ('event') <event initialization> ('=' 'completed') <symbol name>
+<nulled event declaration> ::= ('event') <event initialization> ('=' 'nulled') <symbol name>
+<prediction event declaration> ::= ('event') <event initialization> ('=' 'predicted') <symbol name>
 <current lexer statement> ::= ('current' 'lexer' 'is') <lexer name>
 
 <inaccessible statement> ::= ('inaccessible' 'is') <inaccessible treatment> ('by' 'default')
@@ -85,7 +85,8 @@ action ::= ('action' '=>') <action name>
 <priority specification> ::= ('priority' '=>') <signed integer>
 <pause specification> ::= ('pause' '=>') <before or after>
 
-<event specification> ::= ('event' '=>') <event name> <event initializer>
+<event specification> ::= ('event' '=>') <event initialization>
+<event initialization> ::= <event name> <event initializer>
 <event initializer> ::= ('=') <on or off>
 <on or off> ::= 'on' | 'off'
 <event initializer> ::= # empty

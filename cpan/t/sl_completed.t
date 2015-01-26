@@ -32,12 +32,8 @@ text ::= <text segment>* action => OK
 <text segment> ::= subtext
 <text segment> ::= <word>
 subtext ::= '(' text ')'
-# Marpa::R2::Display
-# name: SLIF completed event statement synopsis
 
 event subtext = completed <subtext>
-
-# Marpa::R2::Display::End
 
 word ~ [\w]+
 :discard ~ whitespace

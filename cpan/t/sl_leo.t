@@ -49,14 +49,7 @@ S ::=
 event A = completed <A>
 event C = completed <C>
 event S = completed <S>
-
-# Marpa::R2::Display
-# name: SLIF nulled event statement synopsis
-
 event 'A[]' = nulled <A>
-
-# Marpa::R2::Display::End
-
 event 'C[]' = nulled <C>
 event 'S[]' = nulled <S>
 END_OF_DSL

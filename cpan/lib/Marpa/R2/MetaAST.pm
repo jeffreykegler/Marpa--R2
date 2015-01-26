@@ -363,12 +363,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::group_association::evaluate {
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::event_specification::evaluate {
+    my ($values) = @_;
+    return bless { event => ( $values->[2]->event() ) }, $PROTO_ALTERNATIVE;
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::event_initialization::event {
     my ($values)         = @_;
     my $event_name       = $values->[2];
     my $event_initializer = $values->[3];
-    return bless {
-        event      => [$event_name->name(), $event_initializer->on_or_off()],
-    }, $PROTO_ALTERNATIVE;
+    return [$event_name->name(), $event_initializer->on_or_off()],
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::event_specification::evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
@@ -1286,8 +1289,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
 {
     my ( $values, $parse ) = @_;
-    my ( $start, $length, $raw_event_name, $raw_symbol_name ) = @{$values};
-    my $event_name        = $raw_event_name->name();
+    my ( $start, $length, $raw_event, $raw_symbol_name ) = @{$values};
     my $symbol_name       = $raw_symbol_name->name();
     my $completion_events = $parse->{completion_events} //= {};
     if ( defined $completion_events->{$symbol_name} ) {
@@ -1298,15 +1300,14 @@ sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $completion_events->{$symbol_name} )
-    $completion_events->{$symbol_name} = [$event_name, 1];
+    $completion_events->{$symbol_name} = $raw_event->event();
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate {
     my ( $values, $parse ) = @_;
-    my ( $start, $length, $raw_event_name, $raw_symbol_name ) = @{$values};
-    my $event_name    = $raw_event_name->name();
+    my ( $start, $length, $raw_event, $raw_symbol_name ) = @{$values};
     my $symbol_name   = $raw_symbol_name->name();
     my $nulled_events = $parse->{nulled_events} //= {};
     if ( defined $nulled_events->{$symbol_name} ) {
@@ -1317,7 +1318,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate {
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $nulled_events->{$symbol_name} )
-    $nulled_events->{$symbol_name} = [$event_name, 1];
+    $nulled_events->{$symbol_name} = $raw_event->event();
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate
@@ -1325,8 +1326,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
 {
     my ( $values, $parse ) = @_;
-    my ( $start, $length, $raw_event_name, $raw_symbol_name ) = @{$values};
-    my $event_name        = $raw_event_name->name();
+    my ( $start, $length, $raw_event, $raw_symbol_name ) = @{$values};
     my $symbol_name       = $raw_symbol_name->name();
     my $prediction_events = $parse->{prediction_events} //= {};
     if ( defined $prediction_events->{$symbol_name} ) {
@@ -1337,7 +1337,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $prediction_events->{$symbol_name} )
-    $prediction_events->{$symbol_name} = [$event_name, 1];
+    $prediction_events->{$symbol_name} = $raw_event->event();
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
@@ -1471,7 +1471,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
     my $character_class = $values->[2];
     my $subgrammar = $Marpa::R2::Internal::SUBGRAMMAR;
-    $DB::single = 1 if not defined $subgrammar;
     if  (( substr $subgrammar, 0, 1 ) eq 'L') {
         return Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
             $parse, $character_class );
