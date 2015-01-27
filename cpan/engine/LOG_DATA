@@ -1,3 +1,15 @@
+commit 2265bf55f530d9e2c9b9d8c11d3472ec47bb3236
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Jan 26 19:51:47 2015 -0800
+
+    Allow event activation initialization in grammar
+
+commit bbc7f56022bdaa1e8d5a0335636132d7aee0bdea
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Jan 26 19:30:55 2015 -0800
+
+    Fix docs and comments on events
+
 commit cd11aa70521a290c6dd3160fb2760ceb6aa6467b
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sun Jan 25 22:00:48 2015 -0800
@@ -15,15 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Wed Jan 21 19:42:21 2015 -0800
 
     Fix github issue #3
-
-commit a4ba2f7a30d75c32d45ac4a93752ec51b8fe514b
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Wed Jan 21 19:31:43 2015 -0800
-
-    Update version to 7.7.0
-
-commit 1d18603096ef0e5933be2c1a5bc93b7694b9f633
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Wed Jan 21 19:31:31 2015 -0800
-
-    Work on API doc
