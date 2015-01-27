@@ -1,7 +1,7 @@
 ; DO NOT EDIT DIRECTLY.
 ; This file was automatically generated.
 ; This file is for the Microsoft linker.
-; Mon Jan 26 19:57:36 2015
+; Mon Jan 26 21:04:49 2015
 EXPORTS
    marpa_check_version
    marpa_version
@@ -15,15 +15,9 @@ EXPORTS
    marpa_g_start_symbol_set
    marpa_g_highest_symbol_id
    marpa_g_symbol_is_accessible
-   marpa_g_symbol_is_completion_event
-   marpa_g_symbol_is_completion_event_set
-   marpa_g_symbol_is_nulled_event
-   marpa_g_symbol_is_nulled_event_set
    marpa_g_symbol_is_nullable
    marpa_g_symbol_is_nulling
    marpa_g_symbol_is_productive
-   marpa_g_symbol_is_prediction_event
-   marpa_g_symbol_is_prediction_event_set
    marpa_g_symbol_is_start
    marpa_g_symbol_is_terminal
    marpa_g_symbol_is_terminal_set
@@ -47,6 +41,15 @@ EXPORTS
    marpa_g_rule_rank_set
    marpa_g_rule_null_high
    marpa_g_rule_null_high_set
+   marpa_g_completion_symbol_activate
+   marpa_g_nulled_symbol_activate
+   marpa_g_prediction_symbol_activate
+   marpa_g_symbol_is_completion_event
+   marpa_g_symbol_is_completion_event_set
+   marpa_g_symbol_is_nulled_event
+   marpa_g_symbol_is_nulled_event_set
+   marpa_g_symbol_is_prediction_event
+   marpa_g_symbol_is_prediction_event_set
    marpa_g_precompute
    marpa_g_is_precomputed
    marpa_g_has_cycle
