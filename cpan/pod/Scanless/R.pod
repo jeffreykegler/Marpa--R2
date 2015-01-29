@@ -84,7 +84,7 @@ and does its own scanning,
 this document calls it
 B<external scanning>.
 An application can use
-external scanning to supplement internal 
+external scanning to supplement internal
 scanning,
 or to replace the SLIF's internal scanner entirely.
 
@@ -253,7 +253,7 @@ and the parse does not fail,
 then C<read()> will read to the end of string.
 
 The SLIF tracks a C<current location> in the physical input stream.
-On return from 
+On return from
 the C<read()> method,
 current location will depend on the reason for the return.
 If a
@@ -272,14 +272,14 @@ C<resume()>'s input string may be specified explicitly or implicitly.
 By default, the new input string runs from the current location
 to the end of the physical input stream.
 
-On successful return from the 
+On successful return from the
 L<C<resume()>|/"resume()"> method,
 the current location is set in the same way as it for the
 L<C<read()>|/"read()"> method:
 the trigger location, if an event triggered;
 otherwise, the end of string.
 The L<C<resume()>|/"resume()"> method may be called repeatedly,
-until the application considers the virtual input stream 
+until the application considers the virtual input stream
 complete.
 More details are in the reference descriptions
 of the
@@ -298,14 +298,14 @@ L<a separate document|Marpa::R2::Semantics>.
 
 =head1 External scanning
 
-External scanning is usually performed by reading lexemes using the 
+External scanning is usually performed by reading lexemes using the
 L<C<< $recce->lexeme_read() >> method|/"lexeme_read()">, which
 allows the reading of unambiguous lexemes.
 If ambiguous lexemes are needed, then
 the L<C<< $recce->lexeme_alternative() >>|/"lexeme_alternative()"> and
 L<C<< $recce->lexeme_complete() >>|/"lexeme_complete()"> methods can be used.
 
-Scanning must always begin with a call 
+Scanning must always begin with a call
 to the L<C<read()>|/"read()"> method,
 so that, in a pedantic sense, scanning always begins with internal scanning.
 But the first input string may be zero length:
@@ -379,7 +379,7 @@ and when dealing with ambiguous terminals.
 the G1 location is the G1 Earley set index.)
 
 Because lexemes may be ambiguous,
-more than one lexeme may be read 
+more than one lexeme may be read
 at a single G1 location.
 We can think of the lexemes read at a single
 G1 location as a set -- call it the B<G1 lexeme set>,
@@ -390,7 +390,7 @@ its G1 set will contain exactly one lexeme.
 G1 location can be thought of
 as location in terms of
 boundaries of G1 sets,
-so that the 
+so that the
 the first G1 set starts at G1 location 0
 and ends at G1 location 1.
 When we speak of a G1 set B<at> G1 location I<L>,
@@ -399,12 +399,12 @@ That means that there is no G1 set at
 G1 location 0.
 
 As each G1 set is read,
-G1 location 
+G1 location
 increases by one.
 B<G1 length>
 is length calculated in terms of G1 locations.
 For example, if a span of G1 locations which begin at G1 location
-42 and has length 2, 
+42 and has length 2,
 it will contain a pair of G1 locations: G1 location 42 and G1 location 43.
 
 Sometimes it is convenient to think of
@@ -595,7 +595,7 @@ B<not> be called during Evaluation Phase.
 =head2 For more details
 
 In the above, we have described the life cycle for
-recognizers which have 
+recognizers which have
 only one parse series.
 A recognizer will have only one parse series,
 unless it calls
@@ -753,7 +753,7 @@ That is, it is only allowed in calls
 of the L<C<new()>|/"Constructor">
 and L<C<series_restart()>|"series_restart()"> methods.
 The C<semantics_package> recognizer setting
-should not be confused with the 
+should not be confused with the
 L<SLIF's
 C<bless_package> grammar setting|Marpa::R2::Scanless::G/"bless_package">.
 The two are not closely related.
@@ -883,6 +883,11 @@ empty or non-empty.
 The non-empty strings are intended only for reading by
 humans -- their exact format is subject to change.
 
+When C<ambiguous()> detects an ambiguous parse and
+the application needs to get the parse values,
+L<C<series_restart()>|"series_restart()"> method
+must be called before L<C<value()>|"value()">.
+
 =head2 read()
 
 =for Marpa::R2::Display
@@ -925,7 +930,7 @@ as the start and length
 of a L<span|/"Spans"> of the physical input stream.
 The default start location is zero.
 The default length is -1.
-Negative locations and lengths are 
+Negative locations and lengths are
 interpreted as L<described above|/"Spans">.
 
 If a SLIF parse event occurs during the C<read()> method,
@@ -970,8 +975,13 @@ If an application wants an explicit recognizer setting to persist
 into a new parse series,
 it must specify that setting explicitly in the new parse series.
 C<series_restart()> is particularly useful with
-the 
+the
 C<end> and C<semantics_package> named arguments.
+
+The C<series_restart()> method
+must be called before L<C<value()>|"value()">
+when L<C<ambiguous()>|"ambiguous()">
+detects an ambiguous parse and the application needs to get the parse values.
 
 =head2 set()
 
@@ -1022,7 +1032,7 @@ type for a per-parse argument is a reference
 (blessed or unblessed) to a hash or to an array.
 The per-parse argument,
 if provided,
-will be the first argument of all 
+will be the first argument of all
 Perl semantics closures.
 When data does not conveniently fit into the bottom-up
 flow of parse tree evaluation,
@@ -1102,7 +1112,7 @@ C<activate()>
 
 Though they are not reported until the call of the
 C<read()> method,
-location 0 events are triggered in the SLIF recognizer's 
+location 0 events are triggered in the SLIF recognizer's
 constructor,
 before the C<activate()> method can be called.
 Currently there is no way to deactivate
@@ -1135,7 +1145,7 @@ normalize-whitespace: 1
 The C<lexeme_alternative()> method
 allows an external scanner to read
 ambiguous tokens.
-Most applications 
+Most applications
 will prefer the simpler L<C<lexeme_read()>|/"lexeme_read()">.
 
 C<lexeme_alternative()> takes one or two arguments.
@@ -1365,7 +1375,7 @@ the SLIF's internal scanning,
 L<as described
 above|/"Internal scanning">.
 A physical input stream must already have
-been specified using the 
+been specified using the
 L<C<< $recce->read() >> method|/"read()">.
 The C<resume()> method should only be called during the
 Reading Phase.
@@ -1407,7 +1417,7 @@ name: Scanless ambiguity_metric() synopsis
 
 =for Marpa::R2::Display::End
 
-Succeeds and 
+Succeeds and
 returns 1 if there is an unambiguous parse.
 Succeeds and
 returns 2 or greater if there is a ambiguous parse.
@@ -1589,7 +1599,7 @@ normalize-whitespace: 1
 
         my @longest_span = $recce->last_completed_span('target');
         diag( "Actual target at $pos: ", $recce->literal(@longest_span) ) if $verbose;
-        
+
 =for Marpa::R2::Display::End
 
 Returns the most recent input stream span for a completed
@@ -1655,7 +1665,7 @@ Specifically, a line ends with one of the following:
 
 a LF (line feed U+000A);
 
-=item * 
+=item *
 
 a CR (carriage return, U+000D), when it is not followed by a LF;
 
@@ -1891,7 +1901,7 @@ but the lexemes created in this way
 do not have real names.
 Instead, internal names, like
 C<[Lex-1]> are created for them,
-and these are what appear in the 
+and these are what appear in the
 list of strings
 returned by C<terminals_expected()>.
 If an application wants a quoted string
@@ -1925,12 +1935,12 @@ an event index.
 It returns a descriptor of
 the named event with that index, or a Perl C<undef>
 if there is no such event.
-For more details on events, see the 
+For more details on events, see the
 L<description of the events() method|/"events()">.
 
 =head2 last_completed_range()
 
-Use of this method is discouraged in favor of 
+Use of this method is discouraged in favor of
 L</"last_completed()">.
 Given the name of a symbol,
 C<last_completed_range()>
@@ -1945,13 +1955,13 @@ and a Perl false in scalar context.
 
 =head2 range_to_string()
 
-Use of this method is discouraged in favor of 
+Use of this method is discouraged in favor of
 L</"substring()">.
 Given a G1 start and a G1 end location,
 C<range_to_string()>
 returns the substring of the input
 stream that is between the two.
-The C<range_to_string()> method 
+The C<range_to_string()> method
 assumes that
 the application read
 the physical input stream in
