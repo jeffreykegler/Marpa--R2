@@ -1,29 +1,29 @@
-commit 7cf43e4e18b7de0057b7833b14dd167a9f9a0dbe
+commit c1cd608b39b3f5700af234dad5c785e1d307a73a
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 26 21:04:12 2015 -0800
+Date:   Wed Jan 28 22:33:58 2015 -0800
 
-    Allow event activation initialization in grammar
+    Re-fix logic for grammar event initialization
 
-commit feb1d023007a86fa74524705b353cd93aba92fa8
+commit 90b03f6e91bbe516bf337dfb0bad7b6fda7c9bb8
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 26 20:35:37 2015 -0800
+Date:   Wed Jan 28 22:21:11 2015 -0800
 
-    Allow event activation initialization in grammar
+    Fix logic for grammar event initialization
 
-commit 46a5f34a7a3b2c6e77b3329fbcbdbd5e2dbcd0f9
+commit 92c3ed2189ecbc1a9e0a8eb373ad14cf7189307e
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 26 20:23:16 2015 -0800
+Date:   Wed Jan 28 21:53:27 2015 -0800
 
-    Allow event activation initialization in grammar
+    Test for exhausted event on trivial grammar
 
-commit e9e1b6011fea03a017ab80d386310164e4ce3691
+commit de3cb7b219eb206d2ae21e30f21e60928b4b732c
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 26 20:19:57 2015 -0800
+Date:   Tue Jan 27 20:42:23 2015 -0800
 
-    Allow event activation initialization in grammar
+    Packaging
 
-commit 2265bf55f530d9e2c9b9d8c11d3472ec47bb3236
+commit be46f77373b41387a3697ee46ff6a5176daee0b4
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Jan 26 19:51:47 2015 -0800
+Date:   Tue Jan 27 20:34:39 2015 -0800
 
-    Allow event activation initialization in grammar
+    Packaging

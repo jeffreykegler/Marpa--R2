@@ -306,6 +306,7 @@ sub Marpa::R2::Scanless::R::new {
     # if we in fact want to initialize them to 'off'.
 
     EVENT: for my $event_name ( keys %{$event_starts_active} ) {
+        next EVENT if 1;
         my $starts_active =
             defined $event_is_active_arg->{$event_name}
             ? $event_is_active_arg->{$event_name}
