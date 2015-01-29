@@ -258,7 +258,7 @@ The first argument will be a B<glade object>.
 Methods of the glade object are used to find information about
 the glade, and to move around in it.
 
-The second of the two arguments to a traverser is 
+The second of the two arguments to a traverser is
 the per-traversal object, which will be shared by all calls
 in the traversal.
 The per-traversal object
@@ -296,9 +296,9 @@ are of use.
 The L<C<symbol_id()>|/"symbol_id()"> glade method is
 also always of use,
 although its meaning varies.
-At token alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
+At token alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the
 token symbol.
-At rule alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the 
+At rule alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the
 ID of the LHS of the rule.
 
 At rule alternatives,
@@ -442,6 +442,37 @@ returns C<undef> if the value of the C<$rh_ix> is greater than or equal to the R
 It is a fatal error to call C<rh_value()> for a glade
 that currently points to a token alternative.
 
+=head2 rh_values()
+
+=for Marpa::R2::Display::Start
+name: ASF rh_values() traverser method example
+normalize-whitespace: 1
+partial: 1
+
+    my @return_value = $glade->rh_values();
+
+=for Marpa::R2::Display::End
+
+Returns the RHS children of the current rule.
+The C<rh_values()> method accepts no arguments.
+It is a fatal error to call C<rh_values()> for a glade
+that currently points to a token alternative.
+
+=head2 all_choices()
+
+=for Marpa::R2::Display::Start
+name: ASF all_choices() traverser method example
+normalize-whitespace: 1
+partial: 1
+
+        my @results = $glade->all_choices();
+
+=for Marpa::R2::Display::End
+
+Returns a new result list produced by taking
+a Cartesian product of the parse results
+(which are a list of choices) at the current position.
+
 =head2 next()
 
 =for Marpa::R2::Display
@@ -462,13 +493,13 @@ this method to control an interation
 should be careful to check for a Perl defined value,
 and not for a Perl true value.
 
-In addition, because 
-the L<C<rule_id()> method|/"rule_id()"> 
-remains constant only within a symch, and 
-the L<C<next()> method|/"next()"> may 
-change the current symch, 
+In addition, because
+the L<C<rule_id()> method|/"rule_id()">
+remains constant only within a symch, and
+the L<C<next()> method|/"next()"> may
+change the current symch,
 L<C<rule_id()> method|/"rule_id()">
-must always be called to obtain the current rule ID 
+must always be called to obtain the current rule ID
 in a C<while> loop that is controlled by
 the L<C<next()> method|/"next()">.
 
