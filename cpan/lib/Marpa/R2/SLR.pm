@@ -1510,6 +1510,7 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
 
 sub Marpa::R2::Scanless::R::ambiguous {
     my ($slr) = @_;
+    local $Marpa::R2::Context::slr = $slr;
     return q{No parse} if $slr->ambiguity_metric() <= 0;
     return q{} if $slr->ambiguity_metric() == 1;
     my $asf = Marpa::R2::ASF->new( { slr => $slr } );
