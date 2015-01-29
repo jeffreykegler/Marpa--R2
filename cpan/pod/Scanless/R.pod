@@ -883,6 +883,11 @@ empty or non-empty.
 The non-empty strings are intended only for reading by
 humans -- their exact format is subject to change.
 
+When C<ambiguous()> detects an ambiguous parse and
+the application needs to get the parse values,
+L<C<series_restart()>|"series_restart()"> method
+must be called before L<C<value()>|"value()">.
+
 =head2 read()
 
 =for Marpa::R2::Display
@@ -972,6 +977,11 @@ it must specify that setting explicitly in the new parse series.
 C<series_restart()> is particularly useful with
 the
 C<end> and C<semantics_package> named arguments.
+
+The C<series_restart()> method
+must be called before L<C<value()>|"value()">
+when L<C<ambiguous()>|"ambiguous()">
+detects an ambiguous parse and the application needs to get the parse values.
 
 =head2 set()
 
