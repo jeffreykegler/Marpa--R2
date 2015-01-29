@@ -883,10 +883,19 @@ empty or non-empty.
 The non-empty strings are intended only for reading by
 humans -- their exact format is subject to change.
 
-When C<ambiguous()> detects an ambiguous parse and
-the application needs to get the parse values,
-L<C<series_restart()>|"series_restart()"> method
-must be called before L<C<value()>|"value()">.
+When C<ambiguous()> detects an ambiguous parse,
+it puts
+the recognizer into "forest mode",
+so that it can examine the parse.
+As long as the recognizer is in forest mode,
+calls to the L<C<value()>|"value()"> method
+will produce fatal errors.
+Forest mode can be cleared using the
+L<C<series_restart()>|"series_restart()"> method.
+This will start a new parse series in "tree mode",
+which will allow calls to the
+L<C<value()>|"value()"> method
+to succeed.
 
 =head2 read()
 
