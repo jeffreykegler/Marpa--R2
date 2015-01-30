@@ -22,6 +22,8 @@
 ^dist[.]errs$
 ^modulo_AHFA[.]out$
 ^bracket.t$
+^discard.t$
+^sl_evsyn2.t$
 
 # Permanent
 

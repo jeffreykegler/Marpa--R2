@@ -167,14 +167,14 @@ sub marpa_infer_xs_spec {
     $spec{archdir} =
         File::Spec->catdir( $self->blib, 'arch', 'auto', @d, $file_base );
 
-    
+
     require DynaLoader;
     my $modfname = defined &DynaLoader::mod2fname
                  ? DynaLoader::mod2fname([@d, $file_base])
                  : $file_base;
- 
+
     $spec{bs_file} = File::Spec->catfile( $spec{archdir}, "${modfname}.bs" );
- 
+
     $spec{lib_file} =
         File::Spec->catfile( $spec{archdir},
         "${modfname}." . $cf->get('dlext') );
@@ -241,7 +241,7 @@ sub process_xs {
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file, $dest_gp_xsh );
     push @xs_dependencies,
         map { File::Spec->catfile( @libmarpa_build_dir, $_ ) }
-        qw(config.h marpa.h marpa_slif.h marpa_codes.c );
+        qw(config.h marpa.h marpa_codes.c );
 
     if ( not $self->up_to_date( \@xs_dependencies, $spec->{c_file} ) ) {
         $self->verbose() and say "compiling $xs_file";
@@ -483,7 +483,7 @@ sub do_libmarpa {
 
             my @m4_files         = glob('m4/*.m4');
             my $configure_script = 'configure';
-        
+
             if (not $self->up_to_date( [ 'configure.ac', @m4_files ], 'aclocal.m4' ) )
             {
                 utime time(), time(), 'aclocal.m4';
@@ -505,20 +505,20 @@ sub do_libmarpa {
                 utime time(), time(), $configure_script;
                 utime time(), time(), 'config.h.in';
             } ## end if ( not $self->up_to_date( [ 'configure.ac', 'aclocal.m4'...]))
-        
+
             if ( $self->verbose() ) {
                 print "Configuring libmarpa\n"
                     or die "print failed: $ERRNO";
             }
             my $shell = $Config{sh};
-        
+
         ##no critic(ValuesAndExpressions::RequireInterpolationOfMetachars)
             $shell or die q{No Bourne shell available says $Config{sh}};
         ##use critic
     }
 
     local $ENV{$_} = $ENV{$_} for qw(TMPDIR PATH_SEPARATOR CONFIG_SHELL);
-    
+
     if ( $^O eq 'android' ) {
         # TMPDIR must be set due to a bug in /system/bin/sh
         # which breaks shell heredocs; this is for both
@@ -530,7 +530,7 @@ sub do_libmarpa {
         $ENV{CONFIG_SHELL}   ||= $Config{sh};
         $ENV{PATH_SEPARATOR} ||= $Config{path_sep};
     }
-    
+
     my $original_cflags = $ENV{CFLAGS};
     local $ENV{CFLAGS};
     $ENV{CFLAGS} = $original_cflags if defined $original_cflags;
@@ -549,7 +549,7 @@ sub do_libmarpa {
         push @configure_command_args,
             'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
     } ## end if ( defined $self->args('Marpa-debug') )
-        
+
     # As of this writing, only used by Config::AutoConf logic,
     # but that may change.
     my $libmarpa_version = $self->file_slurp('LIB_VERSION');
@@ -562,7 +562,7 @@ sub do_libmarpa {
         ## C.f. http://fr.slideshare.net/hashashin/building-c-and-c-libraries-with-perl
         #
         my @c = qw/marpa_ami.c marpa_avl.c marpa.c
-            marpa_codes.c marpa_obs.c marpa_slif.c marpa_tavl.c/;
+            marpa_codes.c marpa_obs.c marpa_tavl.c/;
         if (! -r 'config.h') {
             #
             ## Because Config::AutoConf can only generate #define/#undef
@@ -693,7 +693,7 @@ WriteMakefile(VERSION        => \"$libmarpa_version\",
                     or die "say failed: $ERRNO";
                 die 'Cannot run libmarpa configure';
             } ## end if ( not IPC::Cmd::run( command => [ $shell, $configure_script...]))
-        
+
     }
     if ( $self->verbose() ) {
         print "Making libmarpa: Start\n" or die "Cannot print: $ERRNO";
@@ -748,7 +748,7 @@ sub ACTION_metacheck {
 
     # does not check CPAN::Meta
     # version -- assumes updated with Module::Build
-    # this should only be run when making distributions 
+    # this should only be run when making distributions
     # not on install, so we don't have to be too paranoid
     require CPAN::Meta;
 
