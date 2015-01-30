@@ -1511,8 +1511,9 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
 sub Marpa::R2::Scanless::R::ambiguous {
     my ($slr) = @_;
     local $Marpa::R2::Context::slr = $slr;
-    return q{No parse} if $slr->ambiguity_metric() <= 0;
-    return q{} if $slr->ambiguity_metric() == 1;
+    my $ambiguity_metric = $slr->ambiguity_metric();
+    return q{No parse} if $ambiguity_metric <= 0;
+    return q{} if $ambiguity_metric == 1;
     my $asf = Marpa::R2::ASF->new( { slr => $slr } );
     die 'Could not create ASF' if not defined $asf;
     my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
