@@ -1,3 +1,15 @@
+commit d8773dec417183e738539502e387d131f800d540
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sat Jan 31 01:45:36 2015 -0800
+
+    Work on "high rank" ambiguity metric
+
+commit ccaf7eaabf4cb618c50010802d5e6b95bcbe159f
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Fri Jan 30 20:56:11 2015 -0800
+
+    Work on "high rank" ambiguity metric
+
 commit c1cd608b39b3f5700af234dad5c785e1d307a73a
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Wed Jan 28 22:33:58 2015 -0800
@@ -15,15 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Wed Jan 28 21:53:27 2015 -0800
 
     Test for exhausted event on trivial grammar
-
-commit de3cb7b219eb206d2ae21e30f21e60928b4b732c
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Tue Jan 27 20:42:23 2015 -0800
-
-    Packaging
-
-commit be46f77373b41387a3697ee46ff6a5176daee0b4
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Tue Jan 27 20:34:39 2015 -0800
-
-    Packaging
