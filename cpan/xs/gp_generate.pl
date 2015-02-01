@@ -156,6 +156,7 @@ $main::CLASS_LETTER   = 'g';
 $main::LIBMARPA_CLASS = 'Marpa_Grammar';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
+say {$out} gp_generate(qw(completion_symbol_activate Marpa_Symbol_ID sym_id int activate));
 say {$out} gp_generate(qw(error_clear));
 say {$out} gp_generate(qw(event_count));
 say {$out} gp_generate(qw(force_valued));
@@ -163,7 +164,9 @@ say {$out} gp_generate(qw(has_cycle));
 say {$out} gp_generate(qw(highest_rule_id));
 say {$out} gp_generate(qw(highest_symbol_id));
 say {$out} gp_generate(qw(is_precomputed));
+say {$out} gp_generate(qw(nulled_symbol_activate Marpa_Symbol_ID sym_id int activate));
 say {$out} gp_generate(qw(precompute));
+say {$out} gp_generate(qw(prediction_symbol_activate Marpa_Symbol_ID sym_id int activate));
 say {$out} gp_generate(qw(rule_is_accessible Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_loop Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_nullable Marpa_Rule_ID rule_id));
@@ -186,9 +189,9 @@ say {$out} gp_generate(qw(symbol_is_counted Marpa_Symbol_ID symbol_id ));
 say {$out} gp_generate(qw(symbol_is_nullable Marpa_Symbol_ID symbol_id ));
 say {$out} gp_generate(qw(symbol_is_nulled_event Marpa_Symbol_ID sym_id));
 say {$out} gp_generate(qw(symbol_is_nulled_event_set Marpa_Symbol_ID sym_id int value));
+say {$out} gp_generate(qw(symbol_is_nulling Marpa_Symbol_ID symbol_id ));
 say {$out} gp_generate(qw(symbol_is_prediction_event Marpa_Symbol_ID sym_id));
 say {$out} gp_generate(qw(symbol_is_prediction_event_set Marpa_Symbol_ID sym_id int value));
-say {$out} gp_generate(qw(symbol_is_nulling Marpa_Symbol_ID symbol_id ));
 say {$out} gp_generate(qw(symbol_is_productive Marpa_Symbol_ID symbol_id));
 say {$out} gp_generate(qw(symbol_is_start Marpa_Symbol_ID symbol_id));
 say {$out} gp_generate(qw(symbol_is_terminal Marpa_Symbol_ID symbol_id));
@@ -198,7 +201,6 @@ say {$out} gp_generate(qw(symbol_is_valued_set Marpa_Symbol_ID symbol_id int boo
 say {$out} gp_generate(qw(symbol_new));
 say {$out} gp_generate(qw(zwa_new int default_value));
 say {$out} gp_generate(qw(zwa_place Marpa_Assertion_ID zwaid Marpa_Rule_ID xrl_id int rhs_ix));
-
 $main::CLASS_LETTER   = 'r';
 $main::LIBMARPA_CLASS = 'Marpa_Recognizer';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R', "\n\n";
