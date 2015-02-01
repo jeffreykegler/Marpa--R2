@@ -1,3 +1,15 @@
+commit b9b4837cd373fd8b672c8ecbb496b424330f9836
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sat Jan 31 16:27:12 2015 -0800
+
+    Work on ambiguity metric for "high rank only"
+
+commit 7663a53642841015f85f9df62dfc0326ab38da3d
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sat Jan 31 16:09:28 2015 -0800
+
+    Work on ambiguity metric for "high rank only"
+
 commit d8773dec417183e738539502e387d131f800d540
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sat Jan 31 01:45:36 2015 -0800
@@ -15,15 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Wed Jan 28 22:33:58 2015 -0800
 
     Re-fix logic for grammar event initialization
-
-commit 90b03f6e91bbe516bf337dfb0bad7b6fda7c9bb8
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Wed Jan 28 22:21:11 2015 -0800
-
-    Fix logic for grammar event initialization
-
-commit 92c3ed2189ecbc1a9e0a8eb373ad14cf7189307e
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Wed Jan 28 21:53:27 2015 -0800
-
-    Test for exhausted event on trivial grammar
