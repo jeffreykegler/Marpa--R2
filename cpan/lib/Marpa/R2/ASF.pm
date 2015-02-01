@@ -174,7 +174,6 @@ sub set_last_choice {
     my ( $asf, $nook ) = @_;
     my $or_nodes   = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
     my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-    say STDERR "or node ID in set_last_choice is 2553" if $or_node_id == 2553;
     my $and_nodes  = $or_nodes->[$or_node_id];
     my $choice     = $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
     return if $choice > $#{$and_nodes};
@@ -247,7 +246,6 @@ sub Marpa::R2::ASF::peak {
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     die 'No Bocage' if not $bocage;
     my $augment_or_node_id  = $bocage->_marpa_b_top_or_node();
-    say STDERR "augment or node id: $augment_or_node_id";
     my $augment_and_node_id = $or_nodes->[$augment_or_node_id]->[0];
     my $start_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
@@ -419,16 +417,12 @@ sub Marpa::R2::ASF::new {
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
         my @and_node_ids =
             $ordering->_marpa_o_or_node_and_node_ids($or_node_id);
-        say STDERR "And node IDs in ordering of or node $or_node_id: ", (scalar @and_node_ids) if 1 < scalar @and_node_ids;
         last OR_NODE if not scalar @and_node_ids;
         my @sorted_and_node_ids = map { $_->[-1] } sort { $a <=> $b } map {
             [ ( $bocage->_marpa_b_and_node_predecessor($_) // -1 ), $_ ]
         } @and_node_ids;
         $or_nodes->[$or_node_id] = \@and_node_ids;
     } ## end OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ )
-
-    say STDERR "Or node 2553: ", Data::Dumper::Dumper($or_nodes->[2553]);
-    say STDERR "Or node count: ", (scalar @{$or_nodes});
 
     blessings_set($asf);
     return $asf;
@@ -618,8 +612,6 @@ sub nid_token_name {
 sub first_factoring {
     my ($choicepoint, $nid_of_choicepoint) = @_;
 
-    say STDERR "NID of choicepoint is 2553" if $nid_of_choicepoint == 2553;
-
     # Current NID of current SYMCH
     # The caller should ensure that we are never called unless the current
     # NID is for a rule.
@@ -725,7 +717,6 @@ sub factoring_finish {
         my $stack_ix_of_work_nook = $worklist[-1];
         my $work_nook    = $factoring_stack->[$stack_ix_of_work_nook];
         my $work_or_node = $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        say STDERR "Work or node is 2553" if $work_or_node == 2553;
         my $working_choice =
             $work_nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
         my $work_and_node_id = $or_nodes->[$work_or_node]->[$working_choice];
@@ -826,7 +817,6 @@ sub glade_id_factors {
         my $nook = $factoring_stack->[$factor_ix];
         next FACTOR if not nook_has_semantic_cause( $asf, $nook );
         my $or_node    = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        say STDERR "Examining or node 2553" if $or_node == 2553;
         my $and_nodes  = $or_nodes->[$or_node];
         my $cause_nids = and_nodes_to_cause_nids(
             $asf,
@@ -837,7 +827,6 @@ sub glade_id_factors {
         );
         my $base_nidset = Marpa::R2::Nidset->obtain( $asf, @{$cause_nids} );
         my $glade_id = $base_nidset->id();
-        say STDERR "$glade_id has ", (scalar @{$and_nodes}), " and nodes" if 1 < scalar @{$and_nodes};
 
         $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id]
             ->[Marpa::R2::Internal::Glade::REGISTERED] = 1;
@@ -1085,7 +1074,6 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         my $downglades = $asf->factoring_downglades( $glade, 0, 0 );
         my @problems =
             map { @{ glade_ambiguities( $asf, $_, $seen ) } } @{$downglades};
-        # say STDERR "Returning ", (scalar @problems), " from glade ambiguities";
         return \@problems;
     } ## end if ( $factoring_count <= 1 )
     my @results           = ();
@@ -1205,7 +1193,6 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
 
     } ## end SYNC_PASS: while (1)
 
-    # say STDERR "Returning ", (scalar @results), " from glade ambiguities";
     return \@results;
 
 } ## end sub Marpa::R2::Internal::ASF::glade_ambiguities

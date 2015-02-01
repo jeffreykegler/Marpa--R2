@@ -1506,8 +1506,6 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
     my $ordering = $thick_g1_recce->ordering_get();
     my $metric = $ordering ? $ordering->ambiguity_metric() : 0;
     my $bocage = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::B_C];
-    say STDERR "Bocage metric is ", $bocage->ambiguity_metric();
-    say STDERR "returning metric: $metric";
     return $metric;
 } ## end sub Marpa::R2::Scanless::R::ambiguity_metric
 
@@ -1515,13 +1513,11 @@ sub Marpa::R2::Scanless::R::ambiguous {
     my ($slr) = @_;
     local $Marpa::R2::Context::slr = $slr;
     my $ambiguity_metric = $slr->ambiguity_metric();
-    say STDERR "ambiguous got metric: $ambiguity_metric";
     return q{No parse} if $ambiguity_metric <= 0;
     return q{} if $ambiguity_metric == 1;
     my $asf = Marpa::R2::ASF->new( { slr => $slr } );
     die 'Could not create ASF' if not defined $asf;
     my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
-    say STDERR Data::Dumper::Dumper ($ambiguities);
     my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
     return Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
 } ## end sub Marpa::R2::Scanless::R::ambiguous
