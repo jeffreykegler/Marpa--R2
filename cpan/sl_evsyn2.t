@@ -107,7 +107,6 @@ do_test( "all events deactivated", $grammar, q{abcd}, $location_0_event, [] );
 
 # Now deactivate all events, and turn them back on, one at a time
 EVENT: for my $event (@events) {
-    next EVENT if $event eq '^a'; # Location 0 events cannot be deactivated
     my $expected_events = $location_0_event . $pos_by_event{$event} . " $event\n";
     do_test( qq{event "$event" reactivated}, $grammar, q{abcd}, $expected_events, [$event] );
 }

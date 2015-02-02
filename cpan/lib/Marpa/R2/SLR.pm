@@ -318,15 +318,15 @@ sub Marpa::R2::Scanless::R::new {
         $symbol_ids =
             $symbol_ids_by_event_name_and_type->{$event_name}->{completion}
             // [];
-        $recce_c->completion_symbol_activate( $_, 0 )
+        $recce_c->completion_symbol_activate( $_, $is_active )
             for @{$symbol_ids};
         $symbol_ids =
             $symbol_ids_by_event_name_and_type->{$event_name}->{nulled} // [];
-        $recce_c->nulled_symbol_activate( $_, 0 ) for @{$symbol_ids};
+        $recce_c->nulled_symbol_activate( $_, $is_active ) for @{$symbol_ids};
         $symbol_ids =
             $symbol_ids_by_event_name_and_type->{$event_name}->{prediction}
             // [];
-        $recce_c->prediction_symbol_activate( $_, 0 )
+        $recce_c->prediction_symbol_activate( $_, $is_active )
             for @{$symbol_ids};
     } ## end EVENT: for my $event_name ( keys %{$event_is_active_arg} )
 
