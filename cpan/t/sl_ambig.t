@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 11;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -129,5 +129,53 @@ else {
     Test::More::is( $glade_length, 2, qq{glade_span() length} );
 
 } ## end else [ if ( !$is_ambiguous_parse ) ]
+
+# Tests of ambiguity_metric() anb ambiguous() across all ranking methods
+$source = \(<<'END_OF_SOURCE');
+lexeme default = latm => 1
+
+top ::= unchoice rank => 1
+top ::= choice
+unchoice ::= choice1
+choice ::= choice1 | choice2
+choice1 ::= A1 B1
+choice2 ::= A2 B2
+A1 ~ 'a'
+A2 ~ 'a'
+B1 ~ 'b'
+B2 ~ 'b'
+
+:discard ~ ws
+ws ~ [\s]+
+END_OF_SOURCE
+
+$grammar = Marpa::R2::Scanless::G->new({ source => $source });
+
+$input = q{a b};
+
+for my $ranking_method ('none', 'rule', 'high_rule_only'){
+
+    $recce = Marpa::R2::Scanless::R->new({
+        grammar => $grammar,
+        ranking_method => $ranking_method,
+    } );
+
+    $recce->read(\$input);
+
+    if ($ranking_method eq 'high_rule_only'){
+        # count parses and test that there is only one
+        my $parse_count = 0;
+        while (defined $recce->value()) { ++$parse_count }
+        Test::More::is( $parse_count, 1, "$ranking_method ranking, single parse" );
+        # reset recognizer and test ambiguity methods
+        $recce->series_restart();
+        Test::More::is( $recce->ambiguous(), '', "$ranking_method ranking, single parse, ambiguous status is empty" );
+        Test::More::is( $recce->ambiguity_metric(), 1, "$ranking_method ranking, single parse, ambiguity metric is 1" );
+    }
+    else{
+        Test::More::isnt( $recce->ambiguous(), '', "$ranking_method ranking, many parses, ambiguous status isn't empty" );
+        Test::More::ok( $recce->ambiguity_metric() > 1, "$ranking_method ranking, many parses, ambiguity metric > 1" );
+    }
+} ## end for my $ranking_method ...
 
 # vim: expandtab shiftwidth=4:
