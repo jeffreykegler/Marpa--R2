@@ -190,10 +190,9 @@ use constant NULLED_EVENT_BY_ID => 9;
 use constant PREDICTION_EVENT_BY_ID => 10;
 use constant LEXEME_EVENT_BY_ID => 11;
 use constant SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE => 12;
-use constant EVENT_STARTS_ACTIVE => 13;
-use constant CACHE_RULEIDS_BY_LHS_NAME => 14;
-use constant TRACE_FILE_HANDLE => 15;
-use constant TRACE_TERMINALS => 16;
+use constant CACHE_RULEIDS_BY_LHS_NAME => 13;
+use constant TRACE_FILE_HANDLE => 14;
+use constant TRACE_TERMINALS => 15;
 
 package Marpa::R2::Internal::Scanless::R;
 use constant C => 0;

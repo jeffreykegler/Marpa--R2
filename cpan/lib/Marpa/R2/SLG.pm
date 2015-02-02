@@ -263,10 +263,9 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         # Must be done before precomputation
         $g1_thin->symbol_is_completion_event_set( $symbol_id, 1 );
+        $g1_thin->completion_symbol_activate( $symbol_id, 0 ) if not $is_active;
         $slg->[Marpa::R2::Internal::Scanless::G::COMPLETION_EVENT_BY_ID]
             ->[$symbol_id] = $event_name;
-        $slg->[Marpa::R2::Internal::Scanless::G::EVENT_STARTS_ACTIVE]
-            ->{$event_name} = $is_active;
         push
             @{ $symbol_ids_by_event_name_and_type->{$event_name}->{completion}
             }, $symbol_id;
@@ -287,10 +286,9 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         # Must be done before precomputation
         $g1_thin->symbol_is_nulled_event_set( $symbol_id, 1 );
+        $g1_thin->nulled_symbol_activate( $symbol_id, 0 ) if not $is_active;
         $slg->[Marpa::R2::Internal::Scanless::G::NULLED_EVENT_BY_ID]
             ->[$symbol_id] = $event_name;
-        $slg->[Marpa::R2::Internal::Scanless::G::EVENT_STARTS_ACTIVE]
-            ->{$event_name} = $is_active;
         push @{ $symbol_ids_by_event_name_and_type->{$event_name}->{nulled} },
             $symbol_id;
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
@@ -310,10 +308,9 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         # Must be done before precomputation
         $g1_thin->symbol_is_prediction_event_set( $symbol_id, 1 );
+        $g1_thin->prediction_symbol_activate( $symbol_id, 0 ) if not $is_active;
         $slg->[Marpa::R2::Internal::Scanless::G::PREDICTION_EVENT_BY_ID]
             ->[$symbol_id] = $event_name;
-        $slg->[Marpa::R2::Internal::Scanless::G::EVENT_STARTS_ACTIVE]
-            ->{$event_name} = $is_active;
         push
             @{ $symbol_ids_by_event_name_and_type->{$event_name}->{prediction}
             }, $symbol_id;

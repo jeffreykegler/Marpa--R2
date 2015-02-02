@@ -294,7 +294,6 @@ sub Marpa::R2::Scanless::R::new {
     my $symbol_ids_by_event_name_and_type =
         $slg->[
         Marpa::R2::Internal::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE];
-    my $event_starts_active = $slg->[Marpa::R2::Internal::Scanless::G::EVENT_STARTS_ACTIVE];
 
     my $event_is_active_arg = $flat_args->{event_is_active} // {};
     if (ref $event_is_active_arg ne 'HASH') {
@@ -305,14 +304,17 @@ sub Marpa::R2::Scanless::R::new {
     # Libmarpa to 'on'.  So here we need to override that if and only
     # if we in fact want to initialize them to 'off'.
 
-    EVENT: for my $event_name ( keys %{$event_starts_active} ) {
-        next EVENT if 1;
-        my $starts_active =
-            defined $event_is_active_arg->{$event_name}
-            ? $event_is_active_arg->{$event_name}
-            : $event_starts_active->{$event_name};
-        next EVENT if $starts_active;
-        my $symbol_ids;
+    # Events are already initialized as described by
+    # the DSL.  Here we override that with the recce arg, if
+    # necessary.
+    
+    EVENT: for my $event_name ( keys %{$event_is_active_arg} ) {
+        my $symbol_ids =
+            $symbol_ids_by_event_name_and_type->{$event_name}->{lexeme};
+        next EVENT if not $symbol_ids;
+        my $is_active = $event_is_active_arg->{$event_name};
+        $thin_slr->lexeme_event_activate( $_, $is_active )
+            for @{$symbol_ids};
         $symbol_ids =
             $symbol_ids_by_event_name_and_type->{$event_name}->{completion}
             // [];
@@ -325,19 +327,6 @@ sub Marpa::R2::Scanless::R::new {
             $symbol_ids_by_event_name_and_type->{$event_name}->{prediction}
             // [];
         $recce_c->prediction_symbol_activate( $_, 0 )
-            for @{$symbol_ids};
-    } ## end EVENT: for my $event_name ( @{$event_starts_active} )
-
-    # Lexeme events are already initialized as described by
-    # the DSL.  Here we override that with the recce arg, if
-    # necessary.
-    
-    EVENT: for my $event_name ( keys %{$event_is_active_arg} ) {
-        my $symbol_ids =
-            $symbol_ids_by_event_name_and_type->{$event_name}->{lexeme};
-        next EVENT if not $symbol_ids;
-        my $is_active = $event_is_active_arg->{$event_name};
-        $thin_slr->lexeme_event_activate( $_, $is_active )
             for @{$symbol_ids};
     } ## end EVENT: for my $event_name ( keys %{$event_is_active_arg} )
 
