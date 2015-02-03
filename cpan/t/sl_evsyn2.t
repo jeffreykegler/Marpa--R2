@@ -24,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 44;
+use Test::More tests => 4;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -78,38 +78,24 @@ END_OF_GRAMMAR
 # This test the order of events
 # No more than one of each event type per line
 # so that order is non-arbitrary
-my $all_events_expected = <<'END_OF_EVENTS';
-0 !a !c !d ^a ^c ^d
+my $location_0_events = qq{0 !a !c !d ^a ^c ^d\n};
+my $after_0_events = <<'END_OF_EVENTS';
 1 a !c !d ^c ^d
 2 !c !d ^c ^d
 3 c !d ^d
 4 d
 END_OF_EVENTS
 
-my %pos_by_event = ();
-my @events;
-for my $pos_events  (split /\n/xms, $all_events_expected)
-{
-    my ($pos, @pos_events) = split " ", $pos_events;
-    $pos_by_event{$_} = $pos for @pos_events;
-    push @events, @pos_events;
-}
-
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 
-my $location_0_event = qq{0 ^a\n} ;
+my @events = map { ( '!' . $_, '^' . $_, $_ ) } qw(a c d);
 
 # Test of all events
+my $all_events_expected = $location_0_events . $after_0_events ;
 do_test( "all events", $grammar, q{abcd}, $all_events_expected );
 
-# Now deactivate all events
-do_test( "all events deactivated", $grammar, q{abcd}, $location_0_event, [] );
-
-# Now deactivate all events, and turn them back on, one at a time
-EVENT: for my $event (@events) {
-    my $expected_events = $location_0_event . $pos_by_event{$event} . " $event\n";
-    do_test( qq{event "$event" reactivated}, $grammar, q{abcd}, $expected_events, [$event] );
-}
+my $loc0_events_expected = $location_0_events .  join "\n", (1 .. 4), q{};
+do_test( "all events deactivated", $grammar, q{abcd}, $loc0_events_expected, [] );
 
 sub show_last_subtext {
     my ($recce) = @_;
@@ -120,7 +106,6 @@ sub show_last_subtext {
 
 sub do_test {
     my ( $test, $slg, $string, $expected_events, $reactivate_events ) = @_;
-    my $actual_events = q{};
     my $recce = Marpa::R2::Scanless::R->new(
         { grammar => $grammar, semantics_package => 'My_Actions' } );
     if (defined $reactivate_events) {
@@ -139,22 +124,17 @@ sub do_test {
 # Marpa::R2::Display
 # name: SLIF events() method synopsis
 
+    my @actual_events = ();
     my $length = length $string;
     my $pos    = $recce->read( \$string );
     READ: while (1) {
 
-        my @actual_events = ();
-
         EVENT:
         for my $event ( @{ $recce->events() } ) {
             my ($name) = @{$event};
-            push @actual_events, $name;
+            push @{$actual_events[$pos]}, $name;
         }
 
-        if (@actual_events) {
-            $actual_events .= join q{ }, $pos, @actual_events;
-            $actual_events .= "\n";
-        }
         last READ if $pos >= $length;
         $pos = $recce->resume($pos);
     } ## end READ: while (1)
@@ -166,6 +146,12 @@ sub do_test {
         die "No parse\n";
     }
     my $actual_value = ${$value_ref};
+    my $actual_events = q{};
+    for (my $i = 0; $i <= $length; $i++) {
+        my $events = $actual_events[$i] // [];
+        $actual_events .= join " ", $i, @{$events};
+        $actual_events .= "\n";
+    }
     Test::More::is( $actual_value, q{1792}, qq{Value for $test} );
     Marpa::R2::Test::is( $actual_events, $expected_events,
         qq{Events for $test} );

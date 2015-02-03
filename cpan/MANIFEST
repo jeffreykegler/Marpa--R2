@@ -269,6 +269,7 @@ t/sl_durand.t
 t/sl_dyck.t
 t/sl_event.t
 t/sl_evsyn.t
+t/sl_evsyn2.t
 t/sl_exhaust.t
 t/sl_external1.t
 t/sl_fullsyn.t
