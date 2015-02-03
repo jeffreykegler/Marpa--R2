@@ -267,6 +267,7 @@ t/sl_diag.t
 t/sl_dsl.t
 t/sl_durand.t
 t/sl_dyck.t
+t/sl_evinit.t
 t/sl_event.t
 t/sl_evsyn.t
 t/sl_evsyn2.t
