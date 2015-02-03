@@ -121,9 +121,6 @@ sub do_test {
 
     }
 
-# Marpa::R2::Display
-# name: SLIF events() method synopsis
-
     my @actual_events = ();
     my $length = length $string;
     my $pos    = $recce->read( \$string );
@@ -138,8 +135,6 @@ sub do_test {
         last READ if $pos >= $length;
         $pos = $recce->resume($pos);
     } ## end READ: while (1)
-
-# Marpa::R2::Display::End
 
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
