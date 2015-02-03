@@ -311,7 +311,6 @@ sub Marpa::R2::Scanless::R::new {
     EVENT: for my $event_name ( keys %{$event_is_active_arg} ) {
         my $symbol_ids =
             $symbol_ids_by_event_name_and_type->{$event_name}->{lexeme};
-        next EVENT if not $symbol_ids;
         my $is_active = $event_is_active_arg->{$event_name};
         $thin_slr->lexeme_event_activate( $_, $is_active )
             for @{$symbol_ids};

@@ -24,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 10;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -78,24 +78,44 @@ END_OF_GRAMMAR
 # This test the order of events
 # No more than one of each event type per line
 # so that order is non-arbitrary
-my $location_0_events = qq{0 !a !c !d ^a ^c ^d\n};
+my $location_0_events = qq{0 !a !b !c !d ^a ^b ^c ^d\n};
 my $after_0_events = <<'END_OF_EVENTS';
-1 a !c !d ^c ^d
-2 !c !d ^c ^d
+1 a !b !c !d ^b ^c ^d
+2 b !c !d ^c ^d
 3 c !d ^d
 4 d
 END_OF_EVENTS
 
 my $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 
-my @events = map { ( '!' . $_, '^' . $_, $_ ) } qw(a c d);
+my @events = map { ( '!' . $_, '^' . $_, $_ ) } qw(a b c d);
 
 # Test of all events
-my $all_events_expected = $location_0_events . $after_0_events ;
-do_test( "all events", $grammar, q{abcd}, $all_events_expected );
+my $events_expected = $location_0_events . $after_0_events ;
+$events_expected =~ s/ [!^]? b \s //xmsg; # Eliminate b events
+do_test( "all events", $grammar, q{abcd}, $events_expected );
 
-my $loc0_events_expected = $location_0_events .  join "\n", (1 .. 4), q{};
-do_test( "all events deactivated", $grammar, q{abcd}, $loc0_events_expected, [] );
+$events_expected = $location_0_events . join "\n", ( 1 .. 4 ), q{};
+$events_expected =~ s/ [!^]? b \s //xmsg; # Eliminate b events
+do_test( "all events deactivated",
+    $grammar, q{abcd}, $events_expected, [] );
+
+# Add events for symbol b
+my %event_is_active = map { ( $_, 1 ) } @events;
+my $extra_recce_arg = { 'event_is_active' => \%event_is_active };
+$events_expected = $location_0_events . $after_0_events ;
+do_test( 'all events activated in $recce->new()', $grammar, q{abcd}, $events_expected, undef,
+    $extra_recce_arg );
+
+$events_expected = $location_0_events . join "\n", ( 1 .. 4 ), q{};
+do_test( 'all events activated in $recce->new(), then deactivated',
+    $grammar, q{abcd}, $events_expected, [], $extra_recce_arg );
+
+$event_is_active{$_} = 0 for keys %event_is_active;
+
+$events_expected = join "\n", (0 .. 4), q{};
+do_test( 'all events deactivated in $recce->new(), then deactivated again',
+    $grammar, q{abcd}, $events_expected, [], $extra_recce_arg );
 
 sub show_last_subtext {
     my ($recce) = @_;
@@ -105,9 +125,10 @@ sub show_last_subtext {
 }
 
 sub do_test {
-    my ( $test, $slg, $string, $expected_events, $reactivate_events ) = @_;
+    my ( $test, $slg, $string, $expected_events, $reactivate_events, $recce_args ) = @_;
+    $recce_args //= {};
     my $recce = Marpa::R2::Scanless::R->new(
-        { grammar => $grammar, semantics_package => 'My_Actions' } );
+        { grammar => $grammar, semantics_package => 'My_Actions' }, $recce_args );
     if (defined $reactivate_events) {
 
 # Marpa::R2::Display
