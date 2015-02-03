@@ -66,10 +66,10 @@ event 'd' = completed D
 # Marpa::R2::Display
 # name: SLIF nulled event statement synopsis
 
-event 'a[]' = nulled A
-event 'b[]'=off = nulled B
-event 'c[]'=on = nulled C
-event 'd[]' = nulled D
+event '!a' = nulled A
+event '!b'=off = nulled B
+event '!c'=on = nulled C
+event '!d' = nulled D
 
 # Marpa::R2::Display::End
 
@@ -79,10 +79,10 @@ END_OF_GRAMMAR
 # No more than one of each event type per line
 # so that order is non-arbitrary
 my $all_events_expected = <<'END_OF_EVENTS';
-0 ^a
-1 a ^b
-2 b ^c
-3 c ^d
+0 !a !c !d ^a ^c ^d
+1 a !c !d ^c ^d
+2 !c !d ^c ^d
+3 c !d ^d
 4 d
 END_OF_EVENTS
 

@@ -1,3 +1,9 @@
+commit 28ee7c8fb462ceeee65820c61c906184fe106e84
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Feb 2 21:45:55 2015 -0800
+
+    Add null events for trivial grammars
+
 commit 2f86d7fdcf175778be7cec0aaa81cde045f61608
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Mon Feb 2 20:33:37 2015 -0800
@@ -19,11 +25,5 @@ Date:   Sat Jan 31 16:09:28 2015 -0800
 commit d8773dec417183e738539502e387d131f800d540
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sat Jan 31 01:45:36 2015 -0800
-
-    Work on "high rank" ambiguity metric
-
-commit ccaf7eaabf4cb618c50010802d5e6b95bcbe159f
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Jan 30 20:56:11 2015 -0800
 
     Work on "high rank" ambiguity metric
