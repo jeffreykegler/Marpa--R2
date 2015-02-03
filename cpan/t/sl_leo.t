@@ -74,6 +74,7 @@ my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No parse';
 Marpa::R2::Test::is( $value,         'aaa',           'Leo SLIF parse' );
 Marpa::R2::Test::is( $event_history, <<'END_OF_TEXT', 'Event history' );
+0 S[]
 1 A[] C[] S S[]
 2 A A[] C C[] S S[]
 3 A A[] C C[] S S[]

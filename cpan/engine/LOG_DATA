@@ -1,3 +1,9 @@
+commit 2f86d7fdcf175778be7cec0aaa81cde045f61608
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Feb 2 20:33:37 2015 -0800
+
+    Fix missing null events at earleme 0
+
 commit b9b4837cd373fd8b672c8ecbb496b424330f9836
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sat Jan 31 16:27:12 2015 -0800
@@ -21,9 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Fri Jan 30 20:56:11 2015 -0800
 
     Work on "high rank" ambiguity metric
-
-commit c1cd608b39b3f5700af234dad5c785e1d307a73a
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Wed Jan 28 22:33:58 2015 -0800
-
-    Re-fix logic for grammar event initialization
