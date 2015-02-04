@@ -636,8 +636,8 @@ and L<C<series_restart()>|"series_restart()"> methods.
 
 =head2 event_is_active
 
-# Marpa::R2::Display
-# name: SLIF recce event_is_active named arg example
+=for Marpa::R2::Display
+name: SLIF recce event_is_active named arg example
 
 $slr = Marpa::R2::Scanless::R->new(
     {   grammar           => $grammar,
@@ -646,7 +646,7 @@ $slr = Marpa::R2::Scanless::R->new(
     }
 );
 
-# Marpa::R2::Display::End
+=for Marpa::R2::Display::End
 
 The C<event_is_active> recognizer setting
 changes the activation setting of events.
