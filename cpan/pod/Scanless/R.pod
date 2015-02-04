@@ -652,8 +652,8 @@ normalize-whitespace: 1
 The C<event_is_active> recognizer setting
 changes the activation setting of events.
 Its value should be a reference to a hash,
-whose keys are event names,
-and whose value is either 0 or 1.
+in whichh the key of every entry is an event name,
+and its value is either 0 or 1.
 If the value is 1,
 the event named in the hash key will be activated
 when the recognizer starts.
@@ -666,14 +666,19 @@ with the L<recognizer's C<new() method>|/"Constructor">.
 The setting in the 
 C<event_is_active> hash
 overrides the activation setting in the grammar.
-The setting will be effect at earleme 0,
-before any of the input stream is read.
-While the L<C<activate()> method|/"activate()">
-can be used to change an event's activation
-setting once a recognizer has been constructed,
+The setting will be in effect
+before events at earleme 0 are triggered,
+and before any of the input stream is read.
+The L<C<activate()> method|/"activate()">
+can also be used to change an event's activation
+setting for events that trigger after earleme 0.
+But
 events at earleme 0
-are computed by 
-the L<recognizer's C<new() method>|/"Constructor">.
+trigger during
+the L<recognizer's C<new() method>|/"Constructor"> --
+and will not be affected
+by calls of the C<activate()> method.
+
 If an event is initialized to inactive
 in the grammar,
 the C<event_is_active> recognizer setting
