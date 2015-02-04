@@ -43,13 +43,8 @@ I ::= 'i'
 J ::= 'j'
 K ::=
 L ::= 'l'
-# Marpa::R2::Display
-# name: SLIF predicted event statement synopsis
 
 event '^a' = predicted A
-
-# Marpa::R2::Display::End
-
 event '^b' = predicted B
 event '^c' = predicted C
 event '^d' = predicted D

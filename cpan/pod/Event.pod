@@ -256,7 +256,10 @@ name: SLIF completed event statement synopsis
 partial: 1
 normalize-whitespace: 1
 
-    event subtext = completed <subtext>
+    event 'a' = completed A
+    event 'b'=off = completed B
+    event 'c'=on = completed C
+    event 'd' = completed D
 
 =for Marpa::R2::Display::End
 
@@ -294,7 +297,10 @@ name: SLIF nulled event statement synopsis
 partial: 1
 normalize-whitespace: 1
 
-    event 'A[]' = nulled <A>
+    event '!a' = nulled A
+    event '!b'=off = nulled B
+    event '!c'=on = nulled C
+    event '!d' = nulled D
 
 =for Marpa::R2::Display::End
 

@@ -669,7 +669,10 @@ name: SLIF completed event statement synopsis
 partial: 1
 normalize-whitespace: 1
 
-    event subtext = completed <subtext>
+    event 'a' = completed A
+    event 'b'=off = completed B
+    event 'c'=on = completed C
+    event 'd' = completed D
 
 =for Marpa::R2::Display::End
 
@@ -678,7 +681,10 @@ name: SLIF nulled event statement synopsis
 partial: 1
 normalize-whitespace: 1
 
-    event 'A[]' = nulled <A>
+    event '!a' = nulled A
+    event '!b'=off = nulled B
+    event '!c'=on = nulled C
+    event '!d' = nulled D
 
 =for Marpa::R2::Display::End
 
@@ -688,11 +694,44 @@ partial: 1
 normalize-whitespace: 1
 
     event '^a' = predicted A
+    event '^b'=off = predicted B
+    event '^c'=on = predicted C
+    event '^d' = predicted D
 
 =for Marpa::R2::Display::End
 
 The named event statement sets up a
 SLIF parse event.
+A named event statement consists of, in order
+
+=over 4
+
+=item *
+
+The C<event> keyword.
+
+=item *
+
+An event initializer, which is an event
+name, optionally followed by an
+explicit initialization.
+
+=item *
+
+An equal sign ('C<=>').
+
+=item *
+
+A keyword, which is one of C<completed>,
+C<nulled>, or C<predicted>,
+to indicate the event type.
+
+=item *
+
+A symbol name.
+
+=back
+
 The name of an event may be either a bare name,
 or enclosed in single quotes.
 A bare event name must be one or more word characters,
@@ -707,6 +746,19 @@ a single ASCII space character.
 Names containing single quotes (which, in any case,
 are impossible to add using
 current syntax) are reserved.
+
+If there is an explicit initialization,
+it consists of the equal sign ('C<=>')
+followed by a value indicated
+the event's initial activation setting
+(C<on> or C<off>).
+If the initialization value is C<on>,
+or if there is no explicity initialization,
+the event's activation
+setting is initially on.
+If the initialization value is C<off>,
+the event's activation
+setting is initially off.
 
 The SLIF's event-triggering methods are
 L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">,
@@ -893,8 +945,8 @@ name: SLIF named lexeme event synopsis
 normalize-whitespace: 1
 
     :lexeme ~ <a> pause => before event => 'before a'
-    :lexeme ~ <b> pause => after event => 'after b'
-    :lexeme ~ <c> pause => before event => 'before c'
+    :lexeme ~ <b> pause => after event => 'after b'=on
+    :lexeme ~ <c> pause => before event => 'before c'=off
     :lexeme ~ <d> pause => after event => 'after d'
 
 =for Marpa::R2::Display::End
@@ -906,6 +958,12 @@ It names the event specified by
 the L<C<pause>|/"pause"> adverb.
 It is a fatal error to specify the C<event> adverb
 if the L<C<pause>|/"pause"> adverb is not also specified.
+
+The value of the C<event> adverb is an event
+initializer.
+Event initializers are as described above
+L<for named event
+statements|/"Named event statement">.
 
 When an event declared with the
 the L<C<pause>|/"pause"> adverb
@@ -1066,8 +1124,8 @@ name: SLIF named lexeme event synopsis
 normalize-whitespace: 1
 
     :lexeme ~ <a> pause => before event => 'before a'
-    :lexeme ~ <b> pause => after event => 'after b'
-    :lexeme ~ <c> pause => before event => 'before c'
+    :lexeme ~ <b> pause => after event => 'after b'=on
+    :lexeme ~ <c> pause => before event => 'before c'=off
     :lexeme ~ <d> pause => after event => 'after d'
 
 =for Marpa::R2::Display::End
