@@ -1,3 +1,9 @@
+commit 4abdfef9222fc87f1c319956c11f58e1cdad5a0f
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Tue Feb 3 20:18:36 2015 -0800
+
+    Bump version to 7.9.0
+
 commit 28ee7c8fb462ceeee65820c61c906184fe106e84
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Mon Feb 2 21:45:55 2015 -0800
@@ -21,9 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sat Jan 31 16:09:28 2015 -0800
 
     Work on ambiguity metric for "high rank only"
-
-commit d8773dec417183e738539502e387d131f800d540
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Jan 31 01:45:36 2015 -0800
-
-    Work on "high rank" ambiguity metric
