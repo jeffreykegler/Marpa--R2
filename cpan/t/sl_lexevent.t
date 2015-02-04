@@ -189,9 +189,19 @@ do_test($slr, 'all');
 $expected_events{'all'} =~ s/^\d+ \s after \s b \n//gxms;
 $rules = $base_rules;
 $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
-$slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions',
-   event_is_active => { 'before c' => 1, 'after b' => 0 }
-} );
+
+# Marpa::R2::Display
+# name: SLIF recce event_is_active named arg example
+
+$slr = Marpa::R2::Scanless::R->new(
+    {   grammar           => $grammar,
+        semantics_package => 'My_Actions',
+        event_is_active   => { 'before c' => 1, 'after b' => 0 }
+    }
+);
+
+# Marpa::R2::Display::End
+
 do_test($slr, 'all');
 
 sub My_Actions::OK { return 1792 }

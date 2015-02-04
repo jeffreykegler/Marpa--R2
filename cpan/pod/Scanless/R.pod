@@ -634,6 +634,62 @@ The L<C<end>|/"end"> setting is only allowed in
 the L<C<new()>|/"Constructor">
 and L<C<series_restart()>|"series_restart()"> methods.
 
+=head2 event_is_active
+
+# Marpa::R2::Display
+# name: SLIF recce event_is_active named arg example
+
+$slr = Marpa::R2::Scanless::R->new(
+    {   grammar           => $grammar,
+        semantics_package => 'My_Actions',
+        event_is_active   => { 'before c' => 1, 'after b' => 0 }
+    }
+);
+
+# Marpa::R2::Display::End
+
+The C<event_is_active> recognizer setting
+changes the activation setting of events.
+Its value should be a reference to a hash,
+whose keys are event names,
+and whose value is either 0 or 1.
+If the value is 1,
+the event named in the hash key will be activated
+when the recognizer starts.
+If the value is 0,
+the event named in the hash key will be inactive
+when the recognizer starts.
+The C<event_is_active> setting is only allowed
+with the L<recognizer's C<new() method>|/"Constructor">.
+
+The setting in the 
+C<event_is_active> hash
+overrides the activation setting in the grammar.
+The setting will be effect at earleme 0,
+before any of the input stream is read.
+While the L<C<activate()> method|/"activate()">
+can be used to change an event's activation
+setting once a recognizer has been constructed,
+events at earleme 0
+are computed by 
+the L<recognizer's C<new() method>|/"Constructor">.
+If an event is initialized to inactive
+in the grammar,
+the C<event_is_active> recognizer setting
+is the only way
+for a recognizer
+to allow that event to be active
+at earleme 0.
+Similarly,
+if an event is initialized to active
+in the grammar,
+the C<event_is_active> recognizer setting
+is the only way
+for a recognizer
+to set that event
+to be inactive
+at earleme 0.
+
 =head2 exhaustion
 
 The C<exhaustion> recognizer setting
