@@ -652,7 +652,7 @@ normalize-whitespace: 1
 The C<event_is_active> recognizer setting
 changes the activation setting of events.
 Its value should be a reference to a hash,
-in whichh the key of every entry is an event name,
+in which the key of every entry is an event name,
 and its value is either 0 or 1.
 If the value is 1,
 the event named in the hash key will be activated
@@ -676,7 +676,7 @@ But
 events at earleme 0
 trigger during
 the L<recognizer's C<new() method>|/"Constructor"> --
-and will not be affected
+they can not be affected
 by calls of the C<activate()> method.
 
 If an event is initialized to inactive
