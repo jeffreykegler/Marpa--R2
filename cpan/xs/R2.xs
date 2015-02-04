@@ -5553,14 +5553,14 @@ PPCODE:
       {
         croak
           ("slg->lexeme_pause_activate(%ld, %ld) called after SLG is precomputed",
-           (long) g1_lexeme, (long) pause);
+           (long) g1_lexeme, (long) activate);
       }
     if (g1_lexeme > highest_g1_symbol_id) 
     {
       croak
         ("Problem in slg->g1_lexeme_pause_activate(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
          (long) g1_lexeme,
-         (long) pause,
+         (long) activate,
          (long) g1_lexeme,
          (long) highest_g1_symbol_id
          );
@@ -5569,7 +5569,7 @@ PPCODE:
       croak
         ("Problem in slg->lexeme_pause_activate(%ld, %ld): symbol ID was %ld, a disallowed value",
          (long) g1_lexeme,
-         (long) pause,
+         (long) activate,
          (long) g1_lexeme);
     }
 
