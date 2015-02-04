@@ -749,11 +749,11 @@ current syntax) are reserved.
 
 If there is an explicit initialization,
 it consists of the equal sign ('C<=>')
-followed by a value indicated
+followed by a value indicating
 the event's initial activation setting
 (C<on> or C<off>).
 If the initialization value is C<on>,
-or if there is no explicity initialization,
+or if there is no explicit initialization,
 the event's activation
 setting is initially on.
 If the initialization value is C<off>,
