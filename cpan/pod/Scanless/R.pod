@@ -638,13 +638,14 @@ and L<C<series_restart()>|"series_restart()"> methods.
 
 =for Marpa::R2::Display
 name: SLIF recce event_is_active named arg example
+normalize-whitespace: 1
 
-$slr = Marpa::R2::Scanless::R->new(
-    {   grammar           => $grammar,
-        semantics_package => 'My_Actions',
-        event_is_active   => { 'before c' => 1, 'after b' => 0 }
-    }
-);
+    $slr = Marpa::R2::Scanless::R->new(
+        {   grammar           => $grammar,
+            semantics_package => 'My_Actions',
+            event_is_active   => { 'before c' => 1, 'after b' => 0 }
+        }
+    );
 
 =for Marpa::R2::Display::End
 
