@@ -766,7 +766,7 @@ L<resume()|Marpa::R2::Scanless::R/"resume()">,
 L<lexeme_complete()|Marpa::R2::Scanless::R/"lexeme_complete()">,
 and L<lexeme_read()|Marpa::R2::Scanless::R/"lexeme_read()">.
 If the condition described
-as described in the named event statement
+by the named event statement
 occurs during an event-triggering method,
 the method will return immediately,
 with the current location at the trigger location.
