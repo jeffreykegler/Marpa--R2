@@ -44,9 +44,10 @@ use constant ID => 0;
 use constant NAME => 1;
 use constant DISCARD_SEPARATION => 2;
 use constant MASK => 3;
-use constant ACTION_NAME => 4;
-use constant BLESSING => 5;
-use constant DESCRIPTION => 6;
+use constant SLIF_TAG => 4;
+use constant ACTION_NAME => 5;
+use constant BLESSING => 6;
+use constant DESCRIPTION => 7;
 
 package Marpa::R2::Internal::Grammar;
 use constant C => 0;

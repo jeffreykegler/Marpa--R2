@@ -987,6 +987,15 @@ sub Marpa::R2::Grammar::rule_name {
     return $grammar->symbol_name($lhs_id);
 } ## end sub Marpa::R2::Grammar::rule_name
 
+# Undocumented -- assumes it is called internally,
+# by the SLIF
+sub Marpa::R2::Grammar::tag {
+    my ( $grammar, $rule_id ) = @_;
+    my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $rule  = $rules->[$rule_id];
+    return $rule->[Marpa::R2::Internal::Rule::SLIF_TAG];
+} ## end sub Marpa::R2::Grammar::rule_name
+
 sub Marpa::R2::Grammar::brief_rule {
     my ( $grammar, $rule_id ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -1298,6 +1307,7 @@ sub add_user_rule {
     my $rank;
     my $null_ranking;
     my $rule_name;
+    my $slif_tag;
     my $mask;
     my $proper_separation = 0;
     my $keep_separation   = 0;
@@ -1306,6 +1316,7 @@ sub add_user_rule {
     OPTION: for my $option ( keys %{$options} ) {
         my $value = $options->{$option};
         if ( $option eq 'name' )   { $rule_name = $value; next OPTION; }
+        if ( $option eq 'tag' )    { $slif_tag = $value; next OPTION; }
         if ( $option eq 'rhs' )    { $rhs_names = $value; next OPTION }
         if ( $option eq 'lhs' )    { $lhs_name  = $value; next OPTION }
         if ( $option eq 'action' ) { $action    = $value; next OPTION }
@@ -1448,6 +1459,9 @@ sub add_user_rule {
         if ( defined $rule_name ) {
             $ordinary_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
         }
+        if ( defined $slif_tag ) {
+            $ordinary_rule->[Marpa::R2::Internal::Rule::SLIF_TAG] = $slif_tag;
+        }
 
         if ( defined $blessing ) {
             $ordinary_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
@@ -1511,6 +1525,9 @@ sub add_user_rule {
 
     if ( defined $rule_name ) {
         $original_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
+    }
+    if ( defined $slif_tag ) {
+        $original_rule->[Marpa::R2::Internal::Rule::SLIF_TAG] = $slif_tag;
     }
     if ( defined $blessing ) {
         $original_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;

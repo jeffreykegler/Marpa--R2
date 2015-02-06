@@ -395,8 +395,12 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         my %lex_lhs       = ();
         my %lex_rhs       = ();
         my %lex_separator = ();
+        my %lexer_rule_by_tag = ();
 
+        my $rule_tag = 'rule0';
         for my $lex_rule ( @{$lexer_rules} ) {
+            $lex_rule->{tag} = ++$rule_tag;
+            $lexer_rule_by_tag{$rule_tag} = $lex_rule;
             $lex_lhs{ $lex_rule->{lhs} } = 1;
             $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
             if ( defined( my $separator = $lex_rule->{separator} ) ) {
@@ -455,6 +459,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         $lex_args{rules}   = $lexer_rules;
         $lex_args{symbols} = \%this_lexer_symbols;
 
+        # Create the thick lex grammar
         my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
         $thick_grammar_by_lexer_name{$lexer_name} = $lex_grammar;
         my $lex_tracer = $lex_grammar->tracer();

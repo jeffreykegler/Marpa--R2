@@ -122,6 +122,7 @@ __DATA__
     NAME
     DISCARD_SEPARATION
     MASK { Semantic mask of RHS symbols }
+    SLIF_TAG { A tag for use by the SLIF }
     ACTION_NAME
     BLESSING
     DESCRIPTION
