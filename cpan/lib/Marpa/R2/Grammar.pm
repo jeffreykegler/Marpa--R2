@@ -70,6 +70,7 @@ sub Marpa::R2::Grammar::new {
 
     $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS]            = [];
     $grammar->[Marpa::R2::Internal::Grammar::RULES]              = [];
+    $grammar->[Marpa::R2::Internal::Grammar::RULE_ID_BY_TAG]     = {};
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C] =
         Marpa::R2::Thin::G->new( { if => 1 } );
@@ -1501,7 +1502,14 @@ sub add_user_rule {
     }
     if ( defined $slif_tag ) {
         $base_rule->[Marpa::R2::Internal::Rule::SLIF_TAG] = $slif_tag;
-    }
+        my $rule_id_by_tag =
+            $grammar->[Marpa::R2::Internal::Grammar::RULE_ID_BY_TAG];
+        if ( $rule_id_by_tag->{$slif_tag} ) {
+            Marpa::R2::exception(
+                qq{Duplicate tag in SLIF rule, tag was "$slif_tag"});
+        }
+        $rule_id_by_tag->{$slif_tag} = $base_rule_id;
+    } ## end if ( defined $slif_tag )
     if ( defined $blessing ) {
         $base_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
     }

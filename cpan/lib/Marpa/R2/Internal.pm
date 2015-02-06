@@ -53,7 +53,7 @@ package Marpa::R2::Internal::Grammar;
 use constant C => 0;
 use constant TRACER => 1;
 use constant RULES => 2;
-use constant DESCRIPTION_BY_RULE => 3;
+use constant RULE_ID_BY_TAG => 3;
 use constant SYMBOLS => 4;
 use constant ACTIONS => 5;
 use constant BLESS_PACKAGE => 6;

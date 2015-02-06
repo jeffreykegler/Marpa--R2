@@ -376,7 +376,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     my %lexer_id_by_name                          = ();
     my %thick_grammar_by_lexer_name               = ();
-    my %lexer_discard_event_by_rule_by_lexer_name = ();
+    my %event_by_lexer_name_by_rule_id = ();
     my %lexer_and_rule_to_g1_lexeme               = ();
     my %character_class_table_by_lexer_name       = ();
     state $lex_start_symbol_name = '[:start_lex]';
@@ -392,16 +392,16 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         Marpa::R2::exception("No rules for lexer $lexer_name")
             if not $lexer_rules;
-        my %lex_lhs       = ();
-        my %lex_rhs       = ();
-        my %lex_separator = ();
+        my %lex_lhs           = ();
+        my %lex_rhs           = ();
+        my %lex_separator     = ();
         my %lexer_rule_by_tag = ();
 
         my $rule_tag = 'rule0';
         for my $lex_rule ( @{$lexer_rules} ) {
-            $lex_rule->{tag} = ++$rule_tag;
+            $lex_rule->{tag}              = ++$rule_tag;
             $lexer_rule_by_tag{$rule_tag} = $lex_rule;
-            $lex_lhs{ $lex_rule->{lhs} } = 1;
+            $lex_lhs{ $lex_rule->{lhs} }  = 1;
             $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
             if ( defined( my $separator = $lex_rule->{separator} ) ) {
                 $lex_separator{$separator} = 1;
@@ -568,9 +568,23 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         # Apply defaults to determine the discard event for every
         # rule id of the lexer.
 
-        my $discard_default_adverbs  = $hashed_source->{discard_default_adverbs};
-        # RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() ) {
-        # }
+        my $discard_default_adverbs =
+            $hashed_source->{discard_default_adverbs};
+        my $default_discard_event = $discard_default_adverbs->{event};
+        RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() ) {
+            my $tag = $lex_grammar->tag($rule_id);
+            next RULE_ID if not defined $tag;
+            my $event = $lexer_rule_by_tag{$tag}->{event};
+            if ( defined $event ) {
+                $event_by_lexer_name_by_rule_id{$lexer_name}->[$rule_id] =
+                    $event;
+                next RULE_ID;
+            }
+            my $lhs_id = $lex_thin->rule_lhs($rule_id);
+            next RULE_ID if $lhs_id != $lex_discard_symbol_id;
+            $event_by_lexer_name_by_rule_id{$lexer_name}->[$rule_id] =
+                $default_discard_event;
+        } ## end RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() )
 
     } ## end for my $lexer_name (@lexer_names)
 
@@ -690,7 +704,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         $slg->[Marpa::R2::Internal::Scanless::G::LEXER_BY_NAME]
             ->{$external_lexer_name} = $lexer_id;
         $slg->[Marpa::R2::Internal::Scanless::G::LEXER_DISCARD_EVENT_BY_RULE_AND_LEXER_ID]
-            ->[$lexer_id] = $lexer_discard_event_by_rule_by_lexer_name{$lexer_name};
+            ->[$lexer_id] = $event_by_lexer_name_by_rule_id{$lexer_name};
         $slg->[Marpa::R2::Internal::Scanless::G::CHARACTER_CLASS_TABLES]
             ->[$lexer_id] = $character_class_table;
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_LEX_GRAMMARS]

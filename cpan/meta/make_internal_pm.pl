@@ -136,7 +136,7 @@ __DATA__
        indirection.
     }
     RULES { array of rule refs }
-    DESCRIPTION_BY_RULE
+    RULE_ID_BY_TAG
 
     SYMBOLS { array of symbol refs }
 
