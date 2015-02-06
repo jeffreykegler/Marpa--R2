@@ -1295,10 +1295,10 @@ sub add_user_rule {
 
     Marpa::R2::exception('Missing argument to add_user_rule')
         if not defined $grammar
-            or not defined $options;
+        or not defined $options;
 
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $tracer       = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $default_rank = $grammar_c->default_rank();
 
@@ -1316,7 +1316,7 @@ sub add_user_rule {
     OPTION: for my $option ( keys %{$options} ) {
         my $value = $options->{$option};
         if ( $option eq 'name' )   { $rule_name = $value; next OPTION; }
-        if ( $option eq 'tag' )    { $slif_tag = $value; next OPTION; }
+        if ( $option eq 'tag' )    { $slif_tag  = $value; next OPTION; }
         if ( $option eq 'rhs' )    { $rhs_names = $value; next OPTION }
         if ( $option eq 'lhs' )    { $lhs_name  = $value; next OPTION }
         if ( $option eq 'action' ) { $action    = $value; next OPTION }
@@ -1348,8 +1348,8 @@ sub add_user_rule {
     my $stuifzand_interface =
         $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] eq 'stuifzand';
 
-    my $grammar_is_internal = $stuifzand_interface ||
-        $grammar->[Marpa::R2::Internal::Grammar::INTERNAL];
+    my $grammar_is_internal = $stuifzand_interface
+        || $grammar->[Marpa::R2::Internal::Grammar::INTERNAL];
 
     my $lhs =
         $grammar_is_internal
@@ -1424,81 +1424,49 @@ sub add_user_rule {
     my @rhs_ids = map { $_->[Marpa::R2::Internal::Symbol::ID] } @{$rhs};
     my $lhs_id = $lhs->[Marpa::R2::Internal::Symbol::ID];
 
+    my $base_rule_id;
+    my $separator_id = -1;
+
     if ($is_ordinary_rule) {
 
         # Capture errors
         $grammar_c->throw_set(0);
-        my $ordinary_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
+        $base_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
         $grammar_c->throw_set(1);
 
-        if ( $ordinary_rule_id < 0 ) {
-            my $rule_description = rule_describe( $lhs_name, $rhs_names );
-            my ( $error_code, $error_string ) = $grammar_c->error();
-            $error_code //= -1;
-            my $problem_description =
-                $error_code == $Marpa::R2::Error::DUPLICATE_RULE
-                ? 'Duplicate rule'
-                : $error_string;
-            Marpa::R2::exception("$problem_description: $rule_description");
-        } ## end if ( $ordinary_rule_id < 0 )
-        shadow_rule( $grammar, $ordinary_rule_id );
-        my $ordinary_rule = $rules->[$ordinary_rule_id];
+    } ## end if ($is_ordinary_rule)
+    else {
+        Marpa::R2::exception('Only one rhs symbol allowed for counted rule')
+            if scalar @{$rhs_names} != 1;
 
-        # Only internal grammars can set a custom mask
-        if ( not defined $mask or not $grammar_is_internal ) {
-            $mask = [ (1) x scalar @rhs_ids ];
-        }
-        $ordinary_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
-        $ordinary_rule->[Marpa::R2::Internal::Rule::ACTION_NAME] = $action;
+        # create the separator symbol, if we're using one
+        if ( defined $separator_name ) {
+            my $separator =
+                $grammar_is_internal
+                ? assign_symbol( $grammar, $separator_name )
+                : assign_user_symbol( $grammar, $separator_name );
+            $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];
+        } ## end if ( defined $separator_name )
 
-        if ( defined $rank ) {
-            $grammar_c->rule_rank_set( $ordinary_rule_id, $rank );
-        }
-        $grammar_c->rule_null_high_set( $ordinary_rule_id,
-            ( $null_ranking eq 'high' ? 1 : 0 ) );
-        if ( defined $rule_name ) {
-            $ordinary_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
-        }
-        if ( defined $slif_tag ) {
-            $ordinary_rule->[Marpa::R2::Internal::Rule::SLIF_TAG] = $slif_tag;
-        }
+        $grammar_c->throw_set(0);
 
-        if ( defined $blessing ) {
-            $ordinary_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
-        }
+        # The original rule for a sequence rule is
+        # not actually used in parsing,
+        # but some of the rewritten sequence rules are its
+        # semantic equivalents.
 
-        if ( defined $description ) {
-            $ordinary_rule->[Marpa::R2::Internal::Rule::DESCRIPTION] = $description;
-        }
+        $base_rule_id = $grammar_c->sequence_new(
+            $lhs_id,
+            $rhs_ids[0],
+            {   separator => $separator_id,
+                proper    => $proper_separation,
+                min       => $min,
+            }
+        );
+        $grammar_c->throw_set(1);
+    } ## end else [ if ($is_ordinary_rule) ]
 
-        return;
-    }    # not defined $min
-
-    Marpa::R2::exception('Only one rhs symbol allowed for counted rule')
-        if scalar @{$rhs_names} != 1;
-
-    # create the separator symbol, if we're using one
-    my $separator;
-    my $separator_id = -1;
-    if ( defined $separator_name ) {
-        $separator =
-            $grammar_is_internal
-            ? assign_symbol( $grammar, $separator_name )
-            : assign_user_symbol( $grammar, $separator_name );
-        $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];
-    } ## end if ( defined $separator_name )
-
-    $grammar_c->throw_set(0);
-    my $original_rule_id = $grammar_c->sequence_new(
-        $lhs_id,
-        $rhs_ids[0],
-        {   separator => $separator_id,
-            proper    => $proper_separation,
-            min       => $min,
-        }
-    );
-    $grammar_c->throw_set(1);
-    if ( not defined $original_rule_id or $original_rule_id < 0) {
+    if ( not defined $base_rule_id or $base_rule_id < 0 ) {
         my $rule_description = rule_describe( $lhs_name, $rhs_names );
         my ( $error_code, $error_string ) = $grammar_c->error();
         $error_code //= -1;
@@ -1507,33 +1475,38 @@ sub add_user_rule {
             ? 'Duplicate rule'
             : $error_string;
         Marpa::R2::exception("$problem_description: $rule_description");
-    } ## end if ( not defined $original_rule_id )
+    } ## end if ( not defined $base_rule_id or $base_rule_id < 0 )
 
-    shadow_rule( $grammar, $original_rule_id );
+    my $base_rule = shadow_rule( $grammar, $base_rule_id );
 
-    # The original rule for a sequence rule is
-    # not actually used in parsing,
-    # but some of the rewritten sequence rules are its
-    # semantic equivalents.
-    my $original_rule = $rules->[$original_rule_id];
-    $original_rule->[Marpa::R2::Internal::Rule::ACTION_NAME] = $action;
-    $original_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
+    if ($is_ordinary_rule) {
+
+        # Only internal grammars can set a custom mask
+        if ( not defined $mask or not $grammar_is_internal ) {
+            $mask = [ (1) x scalar @rhs_ids ];
+        }
+        $base_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
+    } ## end if ($is_ordinary_rule)
+
+    $base_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
         $separator_id >= 0 && !$keep_separation;
-    $grammar_c->rule_null_high_set( $original_rule_id,
+
+    $base_rule->[Marpa::R2::Internal::Rule::ACTION_NAME] = $action;
+    $grammar_c->rule_null_high_set( $base_rule_id,
         ( $null_ranking eq 'high' ? 1 : 0 ) );
-    $grammar_c->rule_rank_set( $original_rule_id, $rank );
+    $grammar_c->rule_rank_set( $base_rule_id, $rank );
 
     if ( defined $rule_name ) {
-        $original_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
+        $base_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
     }
     if ( defined $slif_tag ) {
-        $original_rule->[Marpa::R2::Internal::Rule::SLIF_TAG] = $slif_tag;
+        $base_rule->[Marpa::R2::Internal::Rule::SLIF_TAG] = $slif_tag;
     }
     if ( defined $blessing ) {
-        $original_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
+        $base_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
     }
     if ( defined $description ) {
-        $original_rule->[Marpa::R2::Internal::Rule::DESCRIPTION] = $description;
+        $base_rule->[Marpa::R2::Internal::Rule::DESCRIPTION] = $description;
     }
 
     return;
