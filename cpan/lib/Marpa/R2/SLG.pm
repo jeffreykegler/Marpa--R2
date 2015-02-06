@@ -396,11 +396,14 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         my %lex_rhs           = ();
         my %lex_separator     = ();
         my %lexer_rule_by_tag = ();
+        my %lexer_event_by_tag = ();
 
         my $rule_tag = 'rule0';
         for my $lex_rule ( @{$lexer_rules} ) {
             $lex_rule->{tag}              = ++$rule_tag;
             $lexer_rule_by_tag{$rule_tag} = $lex_rule;
+            $lexer_event_by_tag{$rule_tag} = $lex_rule->{event};
+            delete $lex_rule->{event};
             $lex_lhs{ $lex_rule->{lhs} }  = 1;
             $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
             if ( defined( my $separator = $lex_rule->{separator} ) ) {
@@ -574,7 +577,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() ) {
             my $tag = $lex_grammar->tag($rule_id);
             next RULE_ID if not defined $tag;
-            my $event = $lexer_rule_by_tag{$tag}->{event};
+            my $event = $lexer_event_by_tag{$tag};
             if ( defined $event ) {
                 $event_by_lexer_name_by_rule_id{$lexer_name}->[$rule_id] =
                     $event;

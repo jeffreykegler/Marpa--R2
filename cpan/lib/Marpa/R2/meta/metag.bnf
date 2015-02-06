@@ -102,7 +102,7 @@ action ::= ('action' '=>') <action name>
 <event name> ::= <standard name>
     | <single quoted name>
     | <reserved event name>
-<reserved event name> ~ '::' <one or more word characters>
+<reserved event name> ~ ':symbol'
 
 <blessing name> ::= <standard name>
 <blessing name> ::= <reserved blessing name>
