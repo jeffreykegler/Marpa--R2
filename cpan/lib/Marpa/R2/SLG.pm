@@ -374,10 +374,11 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     my @lexer_names =
         grep { ( substr $_, 0, 1 ) eq 'L' } keys %grammars;
 
-    my %lexer_id_by_name                    = ();
-    my %thick_grammar_by_lexer_name         = ();
-    my %lexer_and_rule_to_g1_lexeme         = ();
-    my %character_class_table_by_lexer_name = ();
+    my %lexer_id_by_name                          = ();
+    my %thick_grammar_by_lexer_name               = ();
+    my %lexer_discard_event_by_rule_by_lexer_name = ();
+    my %lexer_and_rule_to_g1_lexeme               = ();
+    my %character_class_table_by_lexer_name       = ();
     state $lex_start_symbol_name = '[:start_lex]';
     state $discard_symbol_name   = '[:discard]';
 
@@ -458,6 +459,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         $thick_grammar_by_lexer_name{$lexer_name} = $lex_grammar;
         my $lex_tracer = $lex_grammar->tracer();
         my $lex_thin   = $lex_tracer->grammar();
+
         my $lex_discard_symbol_id =
             $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
         my @lex_lexeme_to_g1_symbol;
@@ -534,6 +536,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         } ## end RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() )
 
         Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
+
         my $character_class_hash = $hashed_source->{character_classes};
         my @class_table          = ();
 
@@ -556,6 +559,14 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         $character_class_table_by_lexer_name{$lexer_name} = \@class_table;
 
         $lexer_and_rule_to_g1_lexeme{$lexer_name} = \@lex_rule_to_g1_lexeme;
+
+        # Apply defaults to determine the discard event for every
+        # rule id of the lexer.
+
+        my $discard_default_adverbs  = $hashed_source->{discard_default_adverbs};
+        # RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() ) {
+        # }
+
     } ## end for my $lexer_name (@lexer_names)
 
     # Post-lexer G1 processing
@@ -657,6 +668,10 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     $thin_slg->precompute();
     $slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR] =
         $thick_g1_grammar;
+
+    # More lexer processing
+    # Determine events by lexer rule, applying the defaults
+
     for my $lexer_name (@lexer_names) {
         my $lexer_id = $lexer_id_by_name{$lexer_name};
         my $external_lexer_name =
@@ -669,6 +684,8 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             ->[$lexer_id] = $external_lexer_name;
         $slg->[Marpa::R2::Internal::Scanless::G::LEXER_BY_NAME]
             ->{$external_lexer_name} = $lexer_id;
+        $slg->[Marpa::R2::Internal::Scanless::G::LEXER_DISCARD_EVENT_BY_RULE_AND_LEXER_ID]
+            ->[$lexer_id] = $lexer_discard_event_by_rule_by_lexer_name{$lexer_name};
         $slg->[Marpa::R2::Internal::Scanless::G::CHARACTER_CLASS_TABLES]
             ->[$lexer_id] = $character_class_table;
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_LEX_GRAMMARS]

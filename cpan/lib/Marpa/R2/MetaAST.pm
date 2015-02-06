@@ -495,7 +495,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_default_statement::evaluate {
     $parse->{discard_default_adverbs} = {};
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
-        if ( $key eq 'event' ) {
+        if ( $key eq 'event' and defined $value ) {
             $parse->{discard_default_adverbs}->{$key} = $value;
             next ADVERB;
         }
@@ -1135,7 +1135,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
-    my ( $start, $length, $symbol ) = @{$values};
+    my ( $start, $length, $symbol, $raw_adverb_list ) = @{$values};
     my $lexer_name = $parse->{current_lexer};
     local $Marpa::R2::Internal::SUBGRAMMAR = $lexer_name;
     my $discard_lhs = '[:discard]';
@@ -1146,16 +1146,28 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
             description  => qq{Internal LHS for lexer "$lexer_name" discard}
         }
     );
-    my $rhs = $symbol->names($parse);
-    push @{ $parse->{rules}->{$lexer_name} },
-        {
+    my $rhs         = $symbol->names($parse);
+    my $adverb_list = $raw_adverb_list->evaluate($parse);
+    my $event;
+    ADVERB: for my $key ( keys %{$adverb_list} ) {
+        my $value = $adverb_list->{$key};
+        if ( $key eq 'event' ) {
+            $event = $value;
+            next ADVERB;
+        }
+        Marpa::R2::exception(
+            qq{"$key" adverb not allowed as discard default"});
+    } ## end ADVERB: for my $key ( keys %{$adverb_list} )
+    my %rule_hash = (
         description => (
             "Discard rule for " . join q{ },
             map { '<' . $_ . '>' } @{$rhs}
         ),
         lhs => $discard_lhs,
         rhs => $rhs
-        };
+    );
+    $rule_hash{event} = $event if defined $event;
+    push @{ $parse->{rules}->{$lexer_name} }, \%rule_hash;
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate
