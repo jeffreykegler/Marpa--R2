@@ -466,19 +466,20 @@ struct symbol_r_properties {
   */
 typedef struct
 {
+  int dummy;
+} Lexer;
+
+typedef struct {
+     Marpa_Grammar g1;
+     SV* g1_sv;
+     G_Wrapper* g1_wrapper;
+
+     SV *l0_sv;
+     G_Wrapper* l0_wrapper;
   Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
   Marpa_Assertion_ID *g1_lexeme_to_assertion;
   HV *per_codepoint_hash;
   IV *per_codepoint_array[128];
-} Lexer;
-
-typedef struct {
-     Lexer **lexers;
-     SV* g1_sv;
-     G_Wrapper* g1_wrapper;
-     SV *l0_sv;
-     G_Wrapper* l0_wrapper;
-     Marpa_Grammar g1;
     int precomputed;
     struct symbol_g_properties * symbol_g_properties;
 } Scanless_G;
@@ -783,61 +784,6 @@ r_unwrap (R_Wrapper * r_wrapper)
   return r;
 }
 
-/* Static Lexer methods */
-
-/* The caller must ensure that g_sv is an SV of the correct type */
-static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
-{
-  dTHX;
-  Lexer *lexer;
-  unsigned i;
-  int rule_ix;
-  Marpa_Rule_ID lexer_rule_count;
-
-  Newx (lexer, 1, Lexer);
-  lexer->per_codepoint_hash = newHV ();
-  for (i = 0; i < Dim (lexer->per_codepoint_array); i++)
-    {
-      lexer->per_codepoint_array[i] = NULL;
-    }
-  lexer_rule_count = marpa_g_highest_rule_id (slg->l0_wrapper->g) + 1;
-  Newx (lexer->lexer_rule_to_g1_lexeme, lexer_rule_count, Marpa_Symbol_ID);
-  for (rule_ix = 0; rule_ix < lexer_rule_count; rule_ix++)
-    {
-      lexer->lexer_rule_to_g1_lexeme[rule_ix] = -1;
-    }
-  {
-    int symbol_ix;
-    int g1_symbol_count =
-      marpa_g_highest_symbol_id ( slg->g1 ) + 1;
-    Newx (lexer->g1_lexeme_to_assertion, g1_symbol_count,
-	  Marpa_Assertion_ID);
-    for (symbol_ix = 0; symbol_ix < g1_symbol_count;
-	 symbol_ix++)
-      {
-	lexer->g1_lexeme_to_assertion[symbol_ix] = -1;
-      }
-  }
-  SvREFCNT_inc (g_sv);
-  slg->lexers[0] = lexer;
-  return lexer;
-}
-
-static void lexer_destroy(Lexer *lexer)
-{
-  dTHX;
-  unsigned i;
-  Safefree (lexer->lexer_rule_to_g1_lexeme);
-  Safefree (lexer->g1_lexeme_to_assertion);
-  SvREFCNT_dec (lexer->per_codepoint_hash);
-  for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
-    Safefree(lexer->per_codepoint_array[i]);
-  }
-  Safefree(lexer);
-}
-
-/* Static lexer methods */
-
 static void
 u_r0_clear (Scanless_R * slr)
 {
@@ -855,7 +801,6 @@ u_r0_new (Scanless_R * slr)
   dTHX;
   Marpa_Recce r0 = slr->r0;
   const IV trace_lexers = slr->trace_lexers;
-  Lexer *lexer = slr->current_lexer;
   G_Wrapper *lexer_wrapper = slr->slg->l0_wrapper;
   const int too_many_earley_items = slr->too_many_earley_items;
 
@@ -887,7 +832,7 @@ u_r0_new (Scanless_R * slr)
       {
 	const Marpa_Symbol_ID terminal = terminals_buffer[i];
 	const Marpa_Assertion_ID assertion =
-	  lexer->g1_lexeme_to_assertion[terminal];
+	  slr->slg->g1_lexeme_to_assertion[terminal];
 	if (assertion >= 0 && marpa_r_zwa_default_set (r0, assertion, 1) < 0)
 	  {
 	    croak
@@ -1004,7 +949,6 @@ u_read (Scanless_R * slr)
   int input_is_utf8;
 
   const IV trace_lexers = slr->trace_lexers;
-  Lexer *lexer = slr->current_lexer;
   Marpa_Recognizer r = slr->r0;
 
   if (!r)
@@ -1050,9 +994,9 @@ u_read (Scanless_R * slr)
           codepoint_length = 1;
         }
 
-      if (codepoint < Dim (lexer->per_codepoint_array))
+      if (codepoint < Dim (slr->slg->per_codepoint_array))
         {
-          ops = lexer->per_codepoint_array[codepoint];
+          ops = slr->slg->per_codepoint_array[codepoint];
           if (!ops)
             {
               slr->codepoint = codepoint;
@@ -1063,7 +1007,7 @@ u_read (Scanless_R * slr)
         {
           STRLEN dummy;
           SV **p_ops_sv =
-            hv_fetch (lexer->per_codepoint_hash, (char *) &codepoint,
+            hv_fetch (slr->slg->per_codepoint_hash, (char *) &codepoint,
                       (I32) sizeof (codepoint), 0);
           if (!p_ops_sv)
             {
@@ -2077,7 +2021,7 @@ slr_discard (Scanless_R * slr)
 	    goto NEXT_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_REPORT_ITEM;
-	  g1_lexeme = slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
+	  g1_lexeme = slr->slg->lexer_rule_to_g1_lexeme[rule_id];
 	  if (g1_lexeme == -1)
 	    goto NEXT_REPORT_ITEM;
 	  lexemes_found++;
@@ -2391,7 +2335,7 @@ slr_alternatives (Scanless_R * slr)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
-	  g1_lexeme = slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
+	  g1_lexeme = slr->slg->lexer_rule_to_g1_lexeme[rule_id];
 	  if (g1_lexeme == -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  slr->end_of_lexeme = working_pos;
@@ -5199,12 +5143,41 @@ PPCODE:
   slg->g1 = slg->g1_wrapper->g;
   slg->precomputed = 0;
 
-  # Copy and take references to the parent objects
-  Newx(slg->lexers, 1, Lexer*);
-
   slg->l0_sv = l0_sv;
+  SvREFCNT_inc (l0_sv);
+
+  # Wrapper does not need reference, because parent objects
+  # holds references to it
   SET_G_WRAPPER_FROM_G_SV (slg->l0_wrapper, l0_sv);
-  lexer_add(slg, l0_sv);
+
+  {
+    int i;
+    int lexer_rule_count;
+    slg->per_codepoint_hash = newHV ();
+    for (i = 0; i < Dim (slg->per_codepoint_array); i++)
+      {
+        slg->per_codepoint_array[i] = NULL;
+      }
+    lexer_rule_count = marpa_g_highest_rule_id (slg->l0_wrapper->g) + 1;
+    Newx (slg->lexer_rule_to_g1_lexeme, lexer_rule_count, Marpa_Symbol_ID);
+    for (i = 0; i < lexer_rule_count; i++)
+      {
+        slg->lexer_rule_to_g1_lexeme[i] = -1;
+      }
+  }
+
+  {
+    int symbol_ix;
+    int g1_symbol_count =
+      marpa_g_highest_symbol_id ( slg->g1 ) + 1;
+    Newx (slg->g1_lexeme_to_assertion, g1_symbol_count,
+	  Marpa_Assertion_ID);
+    for (symbol_ix = 0; symbol_ix < g1_symbol_count;
+	 symbol_ix++)
+      {
+	slg->g1_lexeme_to_assertion[symbol_ix] = -1;
+      }
+  }
 
   {
     Marpa_Symbol_ID symbol_id;
@@ -5233,16 +5206,16 @@ DESTROY( slg )
     Scanless_G *slg;
 PPCODE:
 {
-  int i = 0;
-  Lexer *lexer = slg->lexers[i];
-  if (lexer)
-    {
-      lexer_destroy (lexer);
-    }
-  Safefree (slg->lexers);
+  unsigned int i = 0;
   SvREFCNT_dec (slg->g1_sv);
   SvREFCNT_dec (slg->l0_sv);
   Safefree (slg->symbol_g_properties);
+  Safefree (slg->lexer_rule_to_g1_lexeme);
+  Safefree (slg->g1_lexeme_to_assertion);
+  SvREFCNT_dec (slg->per_codepoint_hash);
+  for (i = 0; i < Dim(slg->per_codepoint_array); i++) {
+    Safefree(slg->per_codepoint_array[i]);
+  }
   Safefree (slg);
 }
 
@@ -5270,9 +5243,7 @@ PPCODE:
   Marpa_Rule_ID highest_lexer_rule_id;
   Marpa_Symbol_ID highest_g1_symbol_id;
   Marpa_Assertion_ID highest_assertion_id;
-  Lexer *lexer;
 
-  lexer = slg->lexers[0];
   highest_lexer_rule_id = marpa_g_highest_rule_id (slg->l0_wrapper->g);
   highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
   highest_assertion_id = marpa_g_highest_zwa_id (slg->l0_wrapper->g);
@@ -5328,10 +5299,10 @@ PPCODE:
          (long) g1_lexeme, (long)assertion_id);
     }
   if (lexer_rule >= 0) {
-      lexer->lexer_rule_to_g1_lexeme[lexer_rule] = g1_lexeme;
+      slg->lexer_rule_to_g1_lexeme[lexer_rule] = g1_lexeme;
   }
   if (g1_lexeme >= 0) {
-      lexer->g1_lexeme_to_assertion[g1_lexeme] = assertion_id;
+      slg->g1_lexeme_to_assertion[g1_lexeme] = assertion_id;
   }
   XSRETURN_YES;
 }
@@ -5667,7 +5638,6 @@ PPCODE:
   slr->input = newSVpvn ("", 0);
   slr->end_pos = 0;
   slr->too_many_earley_items = -1;
-  slr->current_lexer = slg->lexers[0];
 
   slr->gift = marpa__slr_new();
 
@@ -6766,15 +6736,14 @@ PPCODE:
   STRLEN op_ix;
   IV *ops;
   SV *ops_sv = NULL;
-  Lexer *lexer = slr->current_lexer;
-  const unsigned array_size = Dim (lexer->per_codepoint_array);
+  const unsigned array_size = Dim (slr->slg->per_codepoint_array);
   const int use_array = codepoint < array_size;
 
   if (use_array)
     {
-      ops = lexer->per_codepoint_array[codepoint];
+      ops = slr->slg->per_codepoint_array[codepoint];
       Renew (ops, op_count, IV);
-      lexer->per_codepoint_array[codepoint] = ops;
+      slr->slg->per_codepoint_array[codepoint] = ops;
     }
   else
     {
@@ -6794,7 +6763,7 @@ PPCODE:
     }
   if (ops_sv)
     {
-      (void)hv_store (slr->current_lexer->per_codepoint_hash, (char *) &codepoint,
+      (void)hv_store (slr->slg->per_codepoint_hash, (char *) &codepoint,
                 sizeof (codepoint), ops_sv, 0);
     }
 }
