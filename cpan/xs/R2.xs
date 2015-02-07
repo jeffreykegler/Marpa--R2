@@ -5198,7 +5198,7 @@ PPCODE:
 
   {
     Marpa_Rule_ID rule_id;
-    int g1_rule_count = marpa_g_highest_rule_id (slg->g1) + 1;
+    int g1_rule_count = marpa_g_highest_rule_id (slg->l0_wrapper->g) + 1;
     Newx (slg->rule_g_properties, g1_rule_count, struct rule_g_properties);
     for (rule_id = 0; rule_id < g1_rule_count; rule_id++) {
         slg->rule_g_properties[rule_id].g1_lexeme = -1;
