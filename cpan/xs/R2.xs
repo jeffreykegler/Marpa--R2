@@ -85,7 +85,7 @@ union marpa_slr_event_s;
 #define MARPA_SLREV_SYMBOL_PREDICTED 9
 #define MARPA_SLRTR_AFTER_LEXEME 10
 #define MARPA_SLRTR_BEFORE_LEXEME 11
-#define MARPA_SLRTR_CHANGE_LEXERS 12
+/* #define MARPA_SLRTR_CHANGE_LEXERS 12 */
 #define MARPA_SLRTR_CODEPOINT_ACCEPTED 13
 #define MARPA_SLRTR_CODEPOINT_READ 14
 #define MARPA_SLRTR_CODEPOINT_REJECTED 15
@@ -114,7 +114,6 @@ union marpa_slr_event_s
     int event_type;
     int t_codepoint;
     int t_perl_pos;
-    int t_current_lexer_ix;
   } t_trace_codepoint_read;
 
   struct
@@ -123,7 +122,6 @@ union marpa_slr_event_s
     int t_codepoint;
     int t_perl_pos;
     int t_symbol_id;
-    int t_current_lexer_ix;
   } t_trace_codepoint_rejected;
 
   struct
@@ -132,7 +130,6 @@ union marpa_slr_event_s
     int t_codepoint;
     int t_perl_pos;
     int t_symbol_id;
-    int t_current_lexer_ix;
   } t_trace_codepoint_accepted;
 
   struct
@@ -150,7 +147,6 @@ union marpa_slr_event_s
     int t_rule_id;
     int t_start_of_lexeme;
     int t_end_of_lexeme;
-    int t_current_lexer_ix;
   } t_trace_lexeme_discarded;
 
   struct
@@ -160,7 +156,6 @@ union marpa_slr_event_s
     int t_start_of_lexeme;
     int t_end_of_lexeme;
     int t_last_g1_location;
-    int t_current_lexer_ix;
   } t_lexeme_discarded;
 
   struct
@@ -193,7 +188,6 @@ union marpa_slr_event_s
     int t_start_of_lexeme;
     int t_end_of_lexeme;
     int t_lexeme;
-    int t_current_lexer_ix;
   }
   t_trace_lexeme_rejected;
 
@@ -203,7 +197,6 @@ union marpa_slr_event_s
     int t_start_of_lexeme;
     int t_end_of_lexeme;
     int t_lexeme;
-    int t_current_lexer_ix;
     int t_priority;
     int t_required_priority;
   } t_trace_lexeme_acceptable;
@@ -260,7 +253,6 @@ union marpa_slr_event_s
     int t_start_of_lexeme;
     int t_end_of_lexeme;
     int t_lexeme;
-    int t_current_lexer_ix;
   }
   t_trace_accepted_lexeme;
 
@@ -270,17 +262,9 @@ union marpa_slr_event_s
     int t_start_of_lexeme;
     int t_end_of_lexeme;
     int t_lexeme;
-    int t_current_lexer_ix;
     int t_priority;
     int t_required_priority;
   } t_lexeme_acceptable;
-  struct
-  {
-    int event_type;
-    int t_perl_pos;
-    int t_old_lexer_ix;
-    int t_new_lexer_ix;
-  } t_trace_change_lexers;
   struct
   {
     int event_type;
@@ -289,13 +273,11 @@ union marpa_slr_event_s
   {
     int event_type;
     int t_perl_pos;
-    int t_current_lexer_ix;
   } t_lexer_restarted_recce;
   struct
   {
     int event_type;
     int t_perl_pos;
-    int t_current_lexer_ix;
     Marpa_Symbol_ID t_lexeme;
     Marpa_Assertion_ID t_assertion;
   } t_trace_lexeme_expected;
@@ -490,13 +472,10 @@ typedef struct
   HV *per_codepoint_hash;
   IV *per_codepoint_array[128];
  G_Wrapper* g_wrapper;
- int index; /* Index in the lexers array, for convenience */
 } Lexer;
 
 typedef struct {
      Lexer **lexers;
-     int lexer_count;
-     int lexer_buffer_size;
      SV* g1_sv;
      G_Wrapper* g1_wrapper;
      Marpa_Grammar g1;
@@ -509,10 +488,6 @@ typedef struct
   SV *slg_sv;
   SV *r1_sv;
 
-  /* |next_lexer| is to allow |current_lexer| to reflect the lexer that processed
-   * the current input.  The switch takes place just before reading new input.
-   */
-  Lexer *next_lexer;
   Lexer *current_lexer;
 
   Scanless_G *slg;
@@ -537,12 +512,6 @@ typedef struct
    */
   int is_external_scanning;
 
-  /* Make sure that, when we allow fallback_lexer to be changed, we do NOT
-   * allow that to happen while we are "hitting" the same perl_pos repeatedly --
-   * this to avoid infinite loops.
-   */
-  Lexer* fallback_lexer;
-  int perl_pos_hits;
   int last_perl_pos;
   int perl_pos;
 
@@ -825,13 +794,10 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
   unsigned i;
   int rule_ix;
   Marpa_Rule_ID lexer_rule_count;
-  int lexer_count = slg->lexer_count;
-  int lexer_buffer_size = slg->lexer_buffer_size;
 
   Newx (lexer, 1, Lexer);
   lexer->g_sv = g_sv;
   lexer->per_codepoint_hash = newHV ();
-  lexer->index = slg->lexer_count++;
   for (i = 0; i < Dim (lexer->per_codepoint_array); i++)
     {
       lexer->per_codepoint_array[i] = NULL;
@@ -857,12 +823,7 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
       }
   }
   SvREFCNT_inc (g_sv);
-  if (lexer_count >= lexer_buffer_size)
-    {
-      lexer_buffer_size = slg->lexer_buffer_size *= 2;
-      Renew (slg->lexers, lexer_buffer_size, Lexer *);
-    }
-  slg->lexers[lexer->index] = lexer;
+  slg->lexers[0] = lexer;
   return lexer;
 }
 
@@ -945,8 +906,6 @@ u_r0_new (Scanless_R * slr)
 	      marpa__slr_event_push (slr->gift);
 	    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_LEXEME_EXPECTED;
 	    event->t_trace_lexeme_expected.t_perl_pos = slr->perl_pos;
-	    event->t_trace_lexeme_expected.t_current_lexer_ix =
-	      slr->current_lexer->index;
 	    event->t_trace_lexeme_expected.t_lexeme = terminal;
 	    event->t_trace_lexeme_expected.t_assertion = assertion;
 	  }
@@ -1125,8 +1084,6 @@ if (trace_lexers >= 1)
     MARPA_SLREV_TYPE(event) = MARPA_SLRTR_CODEPOINT_READ;
     event->t_trace_codepoint_read.t_codepoint = codepoint;
     event->t_trace_codepoint_read.t_perl_pos = slr->perl_pos;
-    event->t_trace_codepoint_read.t_current_lexer_ix =
-      slr->current_lexer->index;
   }
 
       /* ops[0] is codepoint */
@@ -1177,7 +1134,6 @@ if (trace_lexers >= 1)
                         slr_event->t_trace_codepoint_rejected.t_codepoint = codepoint;
                         slr_event->t_trace_codepoint_rejected.t_perl_pos = slr->perl_pos;
                         slr_event->t_trace_codepoint_rejected.t_symbol_id = symbol_id;
-                        slr_event->t_trace_codepoint_rejected.t_current_lexer_ix = slr->current_lexer->index;
                       }
                     break;
                   case MARPA_ERR_NONE:
@@ -1188,7 +1144,6 @@ if (trace_lexers >= 1)
                         slr_event->t_trace_codepoint_accepted.t_codepoint = codepoint;
                         slr_event->t_trace_codepoint_accepted.t_perl_pos = slr->perl_pos;
                         slr_event->t_trace_codepoint_accepted.t_symbol_id = symbol_id;
-                        slr_event->t_trace_codepoint_accepted.t_current_lexer_ix = slr->current_lexer->index;
                       }
                     tokens_accepted++;
                     break;
@@ -2152,8 +2107,6 @@ slr_discard (Scanless_R * slr)
 		    slr->start_of_lexeme;
 		  slr_event->t_trace_lexeme_discarded.t_end_of_lexeme =
 		    slr->end_of_lexeme;
-		  slr_event->t_trace_lexeme_discarded.t_current_lexer_ix =
-		    slr->current_lexer->index;
 
 		}
 	      /* If there is discarded item, we are fine,
@@ -2458,8 +2411,6 @@ slr_alternatives (Scanless_R * slr)
 		slr->start_of_lexeme;
 	      lexeme_entry->t_trace_lexeme_discarded.t_end_of_lexeme =
 		slr->end_of_lexeme;
-	      lexeme_entry->t_trace_lexeme_discarded.t_current_lexer_ix =
-		slr->current_lexer->index;
 	      discarded++;
 
 	      goto NEXT_PASS1_REPORT_ITEM;
@@ -2474,9 +2425,9 @@ slr_alternatives (Scanless_R * slr)
 	      if (symbol_g_properties->latm)
 		{
 		  croak
-		    ("Internal error: Marpa recognized unexpected token @%ld-%ld: lexer=%ld, lexeme=%ld",
+		    ("Internal error: Marpa recognized unexpected token @%ld-%ld: lexeme=%ld",
 		     (long) slr->start_of_lexeme, (long) slr->end_of_lexeme,
-                     (long) slr->current_lexer->index, (long) g1_lexeme);
+                     (long) g1_lexeme);
 		}
 	      else
 		{
@@ -2487,8 +2438,6 @@ slr_alternatives (Scanless_R * slr)
 		  lexeme_entry->t_trace_lexeme_rejected.t_end_of_lexeme =
 		    slr->end_of_lexeme;
 		  lexeme_entry->t_trace_lexeme_rejected.t_lexeme = g1_lexeme;
-		  lexeme_entry->t_trace_lexeme_rejected.t_current_lexer_ix =
-		    slr->current_lexer->index;
 		  rejected++;
 		}
 	      goto NEXT_PASS1_REPORT_ITEM;
@@ -2514,8 +2463,6 @@ slr_alternatives (Scanless_R * slr)
 	    lexeme_entry->t_lexeme_acceptable.t_end_of_lexeme =
 	      slr->end_of_lexeme;
 	    lexeme_entry->t_lexeme_acceptable.t_lexeme = g1_lexeme;
-	    lexeme_entry->t_lexeme_acceptable.t_current_lexer_ix =
-	      slr->current_lexer->index;
 	    lexeme_entry->t_lexeme_acceptable.t_priority =
 	      this_lexeme_priority;
 	    /* Default to this symbol's priority, since we don't
@@ -2693,8 +2640,6 @@ slr_alternatives (Scanless_R * slr)
 		    event->t_trace_accepted_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
 		    event->t_trace_accepted_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
 		    event->t_trace_accepted_lexeme.t_lexeme = g1_lexeme;	/* lexeme */
-		    event->t_trace_accepted_lexeme.t_current_lexer_ix =
-		      slr->current_lexer->index;
 		  }
 		if (symbol_r_properties->t_pause_after_active)
 		  {
@@ -5262,8 +5207,6 @@ PPCODE:
   # Copy and take references to the parent objects
   Newx(slg->lexers, 1, Lexer*);
   # After testing, start with a larger buffer size, perhaps 8
-  slg->lexer_buffer_size = 1;
-  slg->lexer_count = 0;
   lexer_add(slg, l0_sv);
 
   {
@@ -5293,14 +5236,11 @@ DESTROY( slg )
     Scanless_G *slg;
 PPCODE:
 {
-  int i;
-  for (i = 0; i < slg->lexer_count; i++)
+  int i = 0;
+  Lexer *lexer = slg->lexers[i];
+  if (lexer)
     {
-      Lexer *lexer = slg->lexers[i];
-      if (lexer)
-        {
-          lexer_destroy (lexer);
-        }
+      lexer_destroy (lexer);
     }
   Safefree (slg->lexers);
   SvREFCNT_dec (slg->g1_sv);
@@ -5314,15 +5254,13 @@ lexer_add( slg, lexer_sv )
     SV *lexer_sv;
 PPCODE:
 {
-  Lexer *lexer;
-
   if (!sv_isa (lexer_sv, "Marpa::R2::Thin::G"))
     {
       croak ("Problem in u->new(): L0 arg is not of type Marpa::R2::Thin::G");
     }
 
-  lexer = lexer_add (slg, lexer_sv);
-  XSRETURN_IV ((IV) lexer->index);
+  lexer_add (slg, lexer_sv);
+  XSRETURN_IV ((IV) 0);
 }
 
  #  it does not create a new one
@@ -5339,9 +5277,8 @@ PPCODE:
 }
 
 void
-lexer_rule_to_g1_lexeme_set( slg, lexer_ix, lexer_rule, g1_lexeme, assertion_id )
+lexer_rule_to_g1_lexeme_set( slg, lexer_rule, g1_lexeme, assertion_id )
     Scanless_G *slg;
-    int lexer_ix;
     Marpa_Rule_ID lexer_rule;
     Marpa_Symbol_ID g1_lexeme;
     Marpa_Assertion_ID assertion_id;
@@ -5352,42 +5289,36 @@ PPCODE:
   Marpa_Assertion_ID highest_assertion_id;
   Lexer *lexer;
 
-  if (lexer_ix < 0 || lexer_ix >= slg->lexer_count)
-    {
-      croak
-        ("slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld) called for invalid lexer(%ld)",
-         (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme, (long) lexer_ix);
-    }
-  lexer = slg->lexers[lexer_ix];
+  lexer = slg->lexers[0];
   highest_lexer_rule_id = marpa_g_highest_rule_id (lexer->g_wrapper->g);
   highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
   highest_assertion_id = marpa_g_highest_zwa_id (lexer->g_wrapper->g);
   if (slg->precomputed)
     {
       croak
-        ("slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld) called after SLG is precomputed",
-         (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme);
+        ("slg->lexer_rule_to_g1_lexeme_set(%ld, %ld) called after SLG is precomputed",
+         (long) lexer_rule, (long) g1_lexeme);
     }
   if (lexer_rule > highest_lexer_rule_id)
     {
       croak
-        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): rule ID was %ld, but highest lexer rule ID = %ld",
-         (long) lexer_rule, (long) lexer_ix,
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, but highest lexer rule ID = %ld",
+         (long) lexer_rule, 
          (long) g1_lexeme, (long) lexer_rule, (long) highest_lexer_rule_id);
     }
   if (g1_lexeme > highest_g1_symbol_id)
     {
       croak
-        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
-         (long) lexer_rule, (long) lexer_ix,
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+         (long) lexer_rule,
          (long) g1_lexeme, (long) lexer_rule, (long) highest_g1_symbol_id);
     }
   if (assertion_id > highest_assertion_id)
     {
       croak
-        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld, %ld):"
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld):"
         "assertion ID was %ld, but highest assertion ID = %ld",
-         (long) lexer_rule, (long) lexer_ix,
+         (long) lexer_rule,
          (long) g1_lexeme, (long) lexer_rule,
          (long) assertion_id,
          (long) highest_assertion_id);
@@ -5395,22 +5326,22 @@ PPCODE:
   if (lexer_rule < -2)
     {
       croak
-        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): rule ID was %ld, a disallowed value",
-         (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme,
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, a disallowed value",
+         (long) lexer_rule, (long) g1_lexeme,
          (long) lexer_rule);
     }
   if (g1_lexeme < -2)
     {
       croak
-        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): symbol ID was %ld, a disallowed value",
-         (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme,
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
+         (long) lexer_rule, (long) g1_lexeme,
          (long) g1_lexeme);
     }
   if (assertion_id < -2)
     {
       croak
-        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld, %ld): assertion ID was %ld, a disallowed value",
-         (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme,
+        ("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): assertion ID was %ld, a disallowed value",
+         (long) lexer_rule, (long) g1_lexeme,
          (long) g1_lexeme, (long)assertion_id);
     }
   if (lexer_rule >= 0) {
@@ -5713,7 +5644,6 @@ PPCODE:
   slr->is_external_scanning = 0;
 
   slr->perl_pos = 0;
-  slr->perl_pos_hits = 0;
   slr->last_perl_pos = -1;
   slr->problem_pos = -1;
 
@@ -5755,8 +5685,6 @@ PPCODE:
   slr->end_pos = 0;
   slr->too_many_earley_items = -1;
   slr->current_lexer = slg->lexers[0];
-  slr->next_lexer = slr->current_lexer;
-  slr->fallback_lexer = slr->current_lexer;
 
   slr->gift = marpa__slr_new();
 
@@ -5925,26 +5853,6 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv ((IV) literal_length)));
 }
 
- #  Always returns the same SV for a given Scanless recce object -- 
-void
-lexer_set( slr, lexer_id )
-    Scanless_R *slr;
-    int lexer_id;
-PPCODE:
-{
-  const int old_lexer_id = slr->current_lexer->index;
-  const Scanless_G *slg = slr->slg;
-  const int lexer_count = slg->lexer_count;
-  if (lexer_id >= lexer_count || lexer_id < 0)
-    {
-      croak
-        ("Problem in slr->lexer_set(%ld): lexer id must be between 0 and %ld",
-         (long) lexer_id, (long) (lexer_count - 1));
-    }
-  slr->next_lexer = slg->lexers[lexer_id];
-  XSRETURN_IV ((IV) old_lexer_id);
-}
-
 void
 read(slr)
     Scanless_R *slr;
@@ -5991,20 +5899,9 @@ PPCODE:
                         union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 	      MARPA_SLREV_TYPE (event) = MARPA_SLREV_LEXER_RESTARTED_RECCE;
 	      event->t_lexer_restarted_recce.t_perl_pos = slr->perl_pos;
-	      event->t_lexer_restarted_recce.t_current_lexer_ix =
-		slr->current_lexer->index;
 	    }
 	}
 
-    if (trace_lexers >= 1 && slr->current_lexer->index != slr->next_lexer->index)
-  {
-                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
-    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_CHANGE_LEXERS;
-    event->t_trace_change_lexers.t_perl_pos = slr->perl_pos;
-    event->t_trace_change_lexers.t_old_lexer_ix = slr->current_lexer->index;
-    event->t_trace_change_lexers.t_new_lexer_ix = slr->next_lexer->index;
-  }
-      slr->current_lexer = slr->next_lexer;
       lexer_read_result = slr->lexer_read_result = u_read (slr);
       switch (lexer_read_result)
 	{
@@ -6057,32 +5954,6 @@ PPCODE:
 		}
 	    }
 
-	  /* Deal with repeated failures at the same |perl_pos| */
-	  if (slr->perl_pos == slr->last_perl_pos)
-	    {
-	      slr->perl_pos_hits++;
-	    }
-	  else
-	    {
-	      slr->last_perl_pos = slr->perl_pos;
-	      slr->perl_pos_hits = 1;
-	    }
-
-	  if (slr->perl_pos_hits >= 2)
-	    {
-	      if (slr->current_lexer->index == slr->fallback_lexer->index)
-		{
-		  if (lexer_read_result == U_READ_INVALID_CHAR)
-		    {
-		      XSRETURN_PV ("invalid char");
-		    }
-		  XSRETURN_PV ("SLIF loop");
-		}
-	      slr->next_lexer = slr->fallback_lexer;
-	      /* Start the hits count over again */
-	      slr->perl_pos_hits = 0;
-	      consume_input = 0;
-	    }
 	}
 
       if (slr->trace_terminals || slr->trace_lexers)
@@ -6168,7 +6039,6 @@ PPCODE:
             av_push (event_av, newSVpvs ("lexer reading codepoint"));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_read.t_codepoint));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_read.t_perl_pos));
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_read.t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6181,7 +6051,6 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_codepoint));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_perl_pos));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_symbol_id));
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6194,7 +6063,6 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_codepoint));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_perl_pos));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_symbol_id));
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6211,7 +6079,6 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_rule_id));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_start_of_lexeme));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_end_of_lexeme));
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6280,7 +6147,6 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_start_of_lexeme));    /* start */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_end_of_lexeme));      /* end */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_lexeme));     /* lexeme */
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6293,7 +6159,6 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_perl_pos));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_lexeme));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_assertion));
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_expected.t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6307,7 +6172,6 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_start_of_lexeme));  /* start */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_end_of_lexeme));    /* end */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_lexeme));   /* lexeme */
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_current_lexer_ix));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_priority));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_required_priority));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
@@ -6367,9 +6231,6 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_accepted_lexeme.t_start_of_lexeme));    /* start */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_accepted_lexeme.t_end_of_lexeme));      /* end */
             av_push (event_av, newSViv ((IV) slr_event->t_trace_accepted_lexeme.t_lexeme));     /* lexeme */
-            av_push (event_av,
-                     newSViv ((IV) slr_event->t_trace_accepted_lexeme.
-                              t_current_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6403,27 +6264,6 @@ PPCODE:
             av_push (event_av,
                      newSViv ((IV) slr_event->t_lexer_restarted_recce.
                               t_perl_pos));
-            av_push (event_av,
-                     newSViv ((IV) slr_event->t_lexer_restarted_recce.
-                              t_current_lexer_ix));
-            XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
-            break;
-          }
-
-        case MARPA_SLRTR_CHANGE_LEXERS:
-          {
-            AV *event_av = newAV ();
-            av_push (event_av, newSVpvs ("'trace"));
-            av_push (event_av, newSVpv ("changing lexers", 0));
-            av_push (event_av,
-                     newSViv ((IV) slr_event->t_trace_change_lexers.
-                              t_perl_pos));
-            av_push (event_av,
-                     newSViv ((IV) slr_event->t_trace_change_lexers.
-                              t_old_lexer_ix));
-            av_push (event_av,
-                     newSViv ((IV) slr_event->t_trace_change_lexers.
-                              t_new_lexer_ix));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
@@ -6974,14 +6814,6 @@ PPCODE:
       (void)hv_store (slr->current_lexer->per_codepoint_hash, (char *) &codepoint,
                 sizeof (codepoint), ops_sv, 0);
     }
-}
-
-void
-current_lexer( slr )
-     Scanless_R *slr;
-PPCODE:
-{
-  XSRETURN_IV(slr->current_lexer->index);
 }
 
   # Untested
