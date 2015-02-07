@@ -5154,7 +5154,7 @@ PPCODE:
     int i;
     int lexer_rule_count;
     slg->per_codepoint_hash = newHV ();
-    for (i = 0; i < Dim (slg->per_codepoint_array); i++)
+    for (i = 0; i < (int)Dim (slg->per_codepoint_array); i++)
       {
         slg->per_codepoint_array[i] = NULL;
       }
