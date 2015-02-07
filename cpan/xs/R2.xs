@@ -449,6 +449,10 @@ struct symbol_g_properties {
      unsigned int t_pause_before_active:1;
      unsigned int t_pause_after:1;
      unsigned int t_pause_after_active:1;
+};
+
+struct rule_g_properties {
+     Marpa_Symbol_ID g1_lexeme;
      unsigned int t_event_on_discard:1;
      unsigned int t_event_on_discard_active:1;
 };
@@ -469,19 +473,21 @@ typedef struct
   int dummy;
 } Lexer;
 
-typedef struct {
-     Marpa_Grammar g1;
-     SV* g1_sv;
-     G_Wrapper* g1_wrapper;
+typedef struct
+{
+  Marpa_Grammar g1;
+  SV *g1_sv;
+  G_Wrapper *g1_wrapper;
 
-     SV *l0_sv;
-     G_Wrapper* l0_wrapper;
+  SV *l0_sv;
+  G_Wrapper *l0_wrapper;
   Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
   Marpa_Assertion_ID *g1_lexeme_to_assertion;
   HV *per_codepoint_hash;
   IV *per_codepoint_array[128];
-    int precomputed;
-    struct symbol_g_properties * symbol_g_properties;
+  int precomputed;
+  struct symbol_g_properties *symbol_g_properties;
+  struct rule_g_properties *rule_g_properties;
 } Scanless_G;
 
 typedef struct
@@ -2313,6 +2319,7 @@ slr_alternatives (Scanless_R * slr)
       while (!end_of_earley_items)
 	{
 	  struct symbol_g_properties *symbol_g_properties;
+	  struct rule_g_properties *rule_g_properties;
 	  struct symbol_r_properties *symbol_r_properties;
 	  Marpa_Symbol_ID g1_lexeme;
 	  int this_lexeme_priority;
@@ -2355,6 +2362,7 @@ slr_alternatives (Scanless_R * slr)
 	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
 	  symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
+	  rule_g_properties = slg->rule_g_properties + rule_id;
 	  symbol_r_properties = slr->symbol_r_properties + g1_lexeme;
 	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	  if (!is_expected)
@@ -5181,7 +5189,7 @@ PPCODE:
 
   {
     Marpa_Symbol_ID symbol_id;
-    Marpa_Symbol_ID g1_symbol_count = marpa_g_highest_symbol_id (slg->g1) + 1;
+    int g1_symbol_count = marpa_g_highest_symbol_id (slg->g1) + 1;
     Newx (slg->symbol_g_properties, g1_symbol_count, struct symbol_g_properties);
     for (symbol_id = 0; symbol_id < g1_symbol_count; symbol_id++) {
         slg->symbol_g_properties[symbol_id].priority = 0;
@@ -5191,8 +5199,17 @@ PPCODE:
         slg->symbol_g_properties[symbol_id].t_pause_before_active = 0;
         slg->symbol_g_properties[symbol_id].t_pause_after = 0;
         slg->symbol_g_properties[symbol_id].t_pause_after_active = 0;
-        slg->symbol_g_properties[symbol_id].t_event_on_discard = 0;
-        slg->symbol_g_properties[symbol_id].t_event_on_discard_active = 0;
+    }
+  }
+
+  {
+    Marpa_Rule_ID rule_id;
+    int g1_rule_count = marpa_g_highest_rule_id (slg->g1) + 1;
+    Newx (slg->rule_g_properties, g1_rule_count, struct rule_g_properties);
+    for (rule_id = 0; rule_id < g1_rule_count; rule_id++) {
+        slg->rule_g_properties[rule_id].g1_lexeme = -1;
+        slg->rule_g_properties[rule_id].t_event_on_discard = 0;
+        slg->rule_g_properties[rule_id].t_event_on_discard_active = 0;
     }
   }
 
@@ -5210,6 +5227,7 @@ PPCODE:
   SvREFCNT_dec (slg->g1_sv);
   SvREFCNT_dec (slg->l0_sv);
   Safefree (slg->symbol_g_properties);
+  Safefree (slg->rule_g_properties);
   Safefree (slg->lexer_rule_to_g1_lexeme);
   Safefree (slg->g1_lexeme_to_assertion);
   SvREFCNT_dec (slg->per_codepoint_hash);
