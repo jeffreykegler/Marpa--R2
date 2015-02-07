@@ -619,13 +619,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     # Relies on default lexer being given number zero
     $lexer_id_by_name{'L0'} = 0;
 
-    LEXER: for my $lexer_name (@lexer_names) {
-        next LEXER if $lexer_name eq 'L0';
-        my $thick_g = $thick_grammar_by_lexer_name{$lexer_name};
-        my $thin_g  = $thick_g->[Marpa::R2::Internal::Grammar::C];
-        $lexer_id_by_name{$lexer_name} = $thin_slg->lexer_add($thin_g);
-    } ## end LEXER: for my $lexer_name (@lexer_names)
-
     LEXEME: for my $lexeme_name ( keys %g1_id_by_lexeme_name ) {
         Marpa::R2::exception(
             "A lexeme in G1 is not a lexeme in any of the lexers: $lexeme_name"
