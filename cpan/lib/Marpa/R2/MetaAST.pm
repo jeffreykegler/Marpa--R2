@@ -181,7 +181,9 @@ sub Marpa::R2::Internal::MetaAST_Nodes::reserved_action_name::name {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::reserved_event_name::name {
     my ( $self, $parse ) = @_;
-    return $self->[2];
+    my $name = $self->[2];
+    $name =~ s/\A : /'/xms;
+    return $name;
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::action_name::name {
@@ -1136,6 +1138,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol, $raw_adverb_list ) = @{$values};
+
     my $lexer_name = $parse->{current_lexer};
     local $Marpa::R2::Internal::SUBGRAMMAR = $lexer_name;
     my $discard_lhs = '[:discard]';
@@ -1147,6 +1150,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
         }
     );
     my $rhs         = $symbol->names($parse);
+    my $rhs_as_event         = $symbol->event_name($parse);
     my $adverb_list = $raw_adverb_list->evaluate($parse);
     my $event;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
@@ -1164,7 +1168,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
             map { '<' . $_ . '>' } @{$rhs}
         ),
         lhs => $discard_lhs,
-        rhs => $rhs
+        rhs => $rhs,
+        symbol_as_event => $rhs_as_event
     );
     $rule_hash{event} = $event if defined $event;
     push @{ $parse->{rules}->{$lexer_name} }, \%rule_hash;
@@ -1412,6 +1417,18 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::name {
     return $symbol->name($parse);
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::event_name {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $symbol ) = @{$values};
+    return $symbol->event_name($parse);
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::literal {
+    my ( $values, $parse ) = @_;
+    my ( $start, $length ) = @{$values};
+    return $parse->substring($start, $length);
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $symbol ) = @{$values};
@@ -1426,6 +1443,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::Symbol::evaluate {
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::symbol::name {
+    my ( $self, $parse ) = @_;
+    return $self->[2]->name($parse);
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::symbol::event_name {
     my ( $self, $parse ) = @_;
     return $self->[2]->name($parse);
 }
@@ -1469,14 +1491,20 @@ sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list_items::evaluate {
         @adverb_items);
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list::evaluate
 
-sub Marpa::R2::Internal::MetaAST_Nodes::character_class::name {
-    my ( $self, $parse ) = @_;
-    return $self->evaluate($parse)->name($parse);
+sub Marpa::R2::Internal::MetaAST_Nodes::character_class::event_name {
+    my ( $data,  $parse )  = @_;
+    my ( $start, $length ) = @{$data};
+    return $parse->substring( $start, $length );
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::names {
     my ( $self, $parse ) = @_;
     return [ $self->name($parse) ];
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::character_class::name {
+    my ( $self, $parse ) = @_;
+    return $self->evaluate($parse)->name($parse);
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
