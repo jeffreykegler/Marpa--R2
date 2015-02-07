@@ -481,7 +481,6 @@ typedef struct
 
   SV *l0_sv;
   G_Wrapper *l0_wrapper;
-  Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
   Marpa_Assertion_ID *g1_lexeme_to_assertion;
   HV *per_codepoint_hash;
   IV *per_codepoint_array[128];
@@ -1988,6 +1987,7 @@ slr_discard (Scanless_R * slr)
   int lexemes_found = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
+  const Scanless_G * slg = slr->slg;
 
   r0 = slr->r0;
   if (!r0)
@@ -2007,7 +2007,7 @@ slr_discard (Scanless_R * slr)
 	{
 	  croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
 		 (void *) r0, (unsigned long) earley_set,
-		 xs_g_error (slr->slg->l0_wrapper));
+		 xs_g_error (slg->l0_wrapper));
 	}
       while (1)
 	{
@@ -2019,7 +2019,7 @@ slr_discard (Scanless_R * slr)
 	  if (rule_id <= -2)
 	    {
 	      croak ("Problem in marpa_r_progress_item(): %s",
-		     xs_g_error (slr->slg->l0_wrapper));
+		     xs_g_error (slg->l0_wrapper));
 	    }
 	  if (rule_id == -1)
 	    goto NO_MORE_REPORT_ITEMS;
@@ -2027,7 +2027,7 @@ slr_discard (Scanless_R * slr)
 	    goto NEXT_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_REPORT_ITEM;
-	  g1_lexeme = slr->slg->lexer_rule_to_g1_lexeme[rule_id];
+	  g1_lexeme = slg->rule_g_properties[rule_id].g1_lexeme;
 	  if (g1_lexeme == -1)
 	    goto NEXT_REPORT_ITEM;
 	  lexemes_found++;
@@ -2342,7 +2342,8 @@ slr_alternatives (Scanless_R * slr)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
-	  g1_lexeme = slr->slg->lexer_rule_to_g1_lexeme[rule_id];
+	  rule_g_properties = slg->rule_g_properties + rule_id;
+	  g1_lexeme = rule_g_properties->g1_lexeme;
 	  if (g1_lexeme == -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  slr->end_of_lexeme = working_pos;
@@ -5160,17 +5161,10 @@ PPCODE:
 
   {
     int i;
-    int lexer_rule_count;
     slg->per_codepoint_hash = newHV ();
     for (i = 0; i < (int)Dim (slg->per_codepoint_array); i++)
       {
         slg->per_codepoint_array[i] = NULL;
-      }
-    lexer_rule_count = marpa_g_highest_rule_id (slg->l0_wrapper->g) + 1;
-    Newx (slg->lexer_rule_to_g1_lexeme, lexer_rule_count, Marpa_Symbol_ID);
-    for (i = 0; i < lexer_rule_count; i++)
-      {
-        slg->lexer_rule_to_g1_lexeme[i] = -1;
       }
   }
 
@@ -5228,7 +5222,6 @@ PPCODE:
   SvREFCNT_dec (slg->l0_sv);
   Safefree (slg->symbol_g_properties);
   Safefree (slg->rule_g_properties);
-  Safefree (slg->lexer_rule_to_g1_lexeme);
   Safefree (slg->g1_lexeme_to_assertion);
   SvREFCNT_dec (slg->per_codepoint_hash);
   for (i = 0; i < Dim(slg->per_codepoint_array); i++) {
@@ -5317,7 +5310,8 @@ PPCODE:
          (long) g1_lexeme, (long)assertion_id);
     }
   if (lexer_rule >= 0) {
-      slg->lexer_rule_to_g1_lexeme[lexer_rule] = g1_lexeme;
+      struct rule_g_properties * const rule_g_properties = slg->rule_g_properties + lexer_rule;
+      rule_g_properties->g1_lexeme = g1_lexeme;
   }
   if (g1_lexeme >= 0) {
       slg->g1_lexeme_to_assertion[g1_lexeme] = assertion_id;
@@ -5451,47 +5445,48 @@ g1_lexeme_pause_activate( slg, g1_lexeme, activate )
 PPCODE:
 {
   Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
-    struct symbol_g_properties * g_properties = slg->symbol_g_properties + g1_lexeme;
-    if (slg->precomputed)
-      {
-        croak
-          ("slg->lexeme_pause_activate(%ld, %ld) called after SLG is precomputed",
-           (long) g1_lexeme, (long) activate);
-      }
-    if (g1_lexeme > highest_g1_symbol_id) 
+  struct symbol_g_properties *g_properties =
+    slg->symbol_g_properties + g1_lexeme;
+  if (slg->precomputed)
     {
       croak
-        ("Problem in slg->g1_lexeme_pause_activate(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
-         (long) g1_lexeme,
-         (long) activate,
-         (long) g1_lexeme,
-         (long) highest_g1_symbol_id
-         );
+	("slg->lexeme_pause_activate(%ld, %ld) called after SLG is precomputed",
+	 (long) g1_lexeme, (long) activate);
     }
-    if (g1_lexeme < 0) {
+  if (g1_lexeme > highest_g1_symbol_id)
+    {
       croak
-        ("Problem in slg->lexeme_pause_activate(%ld, %ld): symbol ID was %ld, a disallowed value",
-         (long) g1_lexeme,
-         (long) activate,
-         (long) g1_lexeme);
+	("Problem in slg->g1_lexeme_pause_activate(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	 (long) g1_lexeme,
+	 (long) activate, (long) g1_lexeme, (long) highest_g1_symbol_id);
     }
-
-    if (activate != 0 && activate != 1) {
+  if (g1_lexeme < 0)
+    {
       croak
-        ("Problem in slg->lexeme_pause_activate(%ld, %ld): value of activate must be 0 or 1",
-         (long) g1_lexeme,
-         (long) activate);
+	("Problem in slg->lexeme_pause_activate(%ld, %ld): symbol ID was %ld, a disallowed value",
+	 (long) g1_lexeme, (long) activate, (long) g1_lexeme);
     }
 
-    if ( g_properties->t_pause_before ) {
-        g_properties->t_pause_before_active = activate;
-    } else if ( g_properties->t_pause_after ) {
-        g_properties->t_pause_after_active = activate;
-    } else {
+  if (activate != 0 && activate != 1)
+    {
       croak
-        ("Problem in slg->lexeme_pause_activate(%ld, %ld): no pause event is enabled",
-         (long) g1_lexeme,
-         (long) activate);
+	("Problem in slg->lexeme_pause_activate(%ld, %ld): value of activate must be 0 or 1",
+	 (long) g1_lexeme, (long) activate);
+    }
+
+  if (g_properties->t_pause_before)
+    {
+      g_properties->t_pause_before_active = activate;
+    }
+  else if (g_properties->t_pause_after)
+    {
+      g_properties->t_pause_after_active = activate;
+    }
+  else
+    {
+      croak
+	("Problem in slg->lexeme_pause_activate(%ld, %ld): no pause event is enabled",
+	 (long) g1_lexeme, (long) activate);
     }
   XSRETURN_YES;
 }
