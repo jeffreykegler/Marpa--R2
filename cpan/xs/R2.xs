@@ -466,18 +466,18 @@ struct symbol_r_properties {
   */
 typedef struct
 {
-  SV *g_sv;
   Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
   Marpa_Assertion_ID *g1_lexeme_to_assertion;
   HV *per_codepoint_hash;
   IV *per_codepoint_array[128];
- G_Wrapper* g_wrapper;
 } Lexer;
 
 typedef struct {
      Lexer **lexers;
      SV* g1_sv;
      G_Wrapper* g1_wrapper;
+     SV *l0_sv;
+     G_Wrapper* l0_wrapper;
      Marpa_Grammar g1;
     int precomputed;
     struct symbol_g_properties * symbol_g_properties;
@@ -790,21 +790,17 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
 {
   dTHX;
   Lexer *lexer;
-  G_Wrapper *g_wrapper;
   unsigned i;
   int rule_ix;
   Marpa_Rule_ID lexer_rule_count;
 
   Newx (lexer, 1, Lexer);
-  lexer->g_sv = g_sv;
   lexer->per_codepoint_hash = newHV ();
   for (i = 0; i < Dim (lexer->per_codepoint_array); i++)
     {
       lexer->per_codepoint_array[i] = NULL;
     }
-  SET_G_WRAPPER_FROM_G_SV (g_wrapper, g_sv);
-  lexer->g_wrapper = g_wrapper;
-  lexer_rule_count = marpa_g_highest_rule_id (g_wrapper->g) + 1;
+  lexer_rule_count = marpa_g_highest_rule_id (slg->l0_wrapper->g) + 1;
   Newx (lexer->lexer_rule_to_g1_lexeme, lexer_rule_count, Marpa_Symbol_ID);
   for (rule_ix = 0; rule_ix < lexer_rule_count; rule_ix++)
     {
@@ -837,7 +833,6 @@ static void lexer_destroy(Lexer *lexer)
   for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
     Safefree(lexer->per_codepoint_array[i]);
   }
-  SvREFCNT_dec (lexer->g_sv);
   Safefree(lexer);
 }
 
@@ -861,7 +856,7 @@ u_r0_new (Scanless_R * slr)
   Marpa_Recce r0 = slr->r0;
   const IV trace_lexers = slr->trace_lexers;
   Lexer *lexer = slr->current_lexer;
-  G_Wrapper *lexer_wrapper = lexer->g_wrapper;
+  G_Wrapper *lexer_wrapper = slr->slg->l0_wrapper;
   const int too_many_earley_items = slr->too_many_earley_items;
 
   if (r0)
@@ -898,7 +893,7 @@ u_r0_new (Scanless_R * slr)
 	    croak
 	      ("Problem in u_read() with assertion ID %ld and lexeme ID %ld: %s",
 	       (long) assertion, (long) terminal,
-	       xs_g_error (slr->current_lexer->g_wrapper));
+	       xs_g_error (lexer_wrapper));
 	  }
 	if (trace_lexers >= 1)
 	  {
@@ -937,7 +932,7 @@ u_convert_events (Scanless_R * slr)
 {
   dTHX;
   int event_ix;
-  Marpa_Grammar g = slr->current_lexer->g_wrapper->g;
+  Marpa_Grammar g = slr->slg->l0_wrapper->g;
   const int event_count = marpa_g_event_count (g);
   for (event_ix = 0; event_ix < event_count; event_ix++)
     {
@@ -1017,7 +1012,7 @@ u_read (Scanless_R * slr)
       r = u_r0_new (slr);
       if (!r)
         croak ("Problem in u_read(): %s",
-               xs_g_error (slr->current_lexer->g_wrapper));
+               xs_g_error (slr->slg->l0_wrapper));
     }
   input_is_utf8 = SvUTF8 (slr->input);
   input = (U8 *) SvPV (slr->input, len);
@@ -1156,7 +1151,7 @@ if (trace_lexers >= 1)
                        (long) slr->perl_pos, (long) symbol_id,
                        (unsigned long) codepoint,
                        (long) value,
-                       xs_g_error (slr->current_lexer->g_wrapper));
+                       xs_g_error (slr->slg->l0_wrapper));
                   }
               }
               break;
@@ -1187,7 +1182,7 @@ if (trace_lexers >= 1)
                 if (result == -2)
                   {
                     const int error =
-                      marpa_g_error (slr->current_lexer->g_wrapper->g, NULL);
+                      marpa_g_error (slr->slg->l0_wrapper->g, NULL);
                     if (error == MARPA_ERR_PARSE_EXHAUSTED)
                       {
                         return U_READ_EXHAUSTED_ON_FAILURE;
@@ -1197,7 +1192,7 @@ if (trace_lexers >= 1)
                   {
                     croak
                       ("Problem in r->u_read(), earleme_complete() failed: %s",
-                       xs_g_error (slr->current_lexer->g_wrapper));
+                       xs_g_error (slr->slg->l0_wrapper));
                   }
               }
               break;
@@ -2062,7 +2057,7 @@ slr_discard (Scanless_R * slr)
 	{
 	  croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
 		 (void *) r0, (unsigned long) earley_set,
-		 xs_g_error (slr->current_lexer->g_wrapper));
+		 xs_g_error (slr->slg->l0_wrapper));
 	}
       while (1)
 	{
@@ -2074,7 +2069,7 @@ slr_discard (Scanless_R * slr)
 	  if (rule_id <= -2)
 	    {
 	      croak ("Problem in marpa_r_progress_item(): %s",
-		     xs_g_error (slr->current_lexer->g_wrapper));
+		     xs_g_error (slr->slg->l0_wrapper));
 	    }
 	  if (rule_id == -1)
 	    goto NO_MORE_REPORT_ITEMS;
@@ -2368,7 +2363,7 @@ slr_alternatives (Scanless_R * slr)
 	{
 	  croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
 		 (void *) r0, (unsigned long) earley_set,
-		 xs_g_error (slr->current_lexer->g_wrapper));
+		 xs_g_error (slr->slg->l0_wrapper));
 	}
 
       while (!end_of_earley_items)
@@ -2385,7 +2380,7 @@ slr_alternatives (Scanless_R * slr)
 	  if (rule_id <= -2)
 	    {
 	      croak ("Problem in marpa_r_progress_item(): %s",
-		     xs_g_error (slr->current_lexer->g_wrapper));
+		     xs_g_error (slr->slg->l0_wrapper));
 	    }
 	  if (rule_id == -1)
 	    {
@@ -5206,7 +5201,9 @@ PPCODE:
 
   # Copy and take references to the parent objects
   Newx(slg->lexers, 1, Lexer*);
-  # After testing, start with a larger buffer size, perhaps 8
+
+  slg->l0_sv = l0_sv;
+  SET_G_WRAPPER_FROM_G_SV (slg->l0_wrapper, l0_sv);
   lexer_add(slg, l0_sv);
 
   {
@@ -5244,6 +5241,7 @@ PPCODE:
     }
   Safefree (slg->lexers);
   SvREFCNT_dec (slg->g1_sv);
+  SvREFCNT_dec (slg->l0_sv);
   Safefree (slg->symbol_g_properties);
   Safefree (slg);
 }
@@ -5275,9 +5273,9 @@ PPCODE:
   Lexer *lexer;
 
   lexer = slg->lexers[0];
-  highest_lexer_rule_id = marpa_g_highest_rule_id (lexer->g_wrapper->g);
+  highest_lexer_rule_id = marpa_g_highest_rule_id (slg->l0_wrapper->g);
   highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
-  highest_assertion_id = marpa_g_highest_zwa_id (lexer->g_wrapper->g);
+  highest_assertion_id = marpa_g_highest_zwa_id (slg->l0_wrapper->g);
   if (slg->precomputed)
     {
       croak
@@ -6554,7 +6552,7 @@ PPCODE:
     {
       croak ("Problem in r->progress_item(): No lexer recognizer");
     }
-  lexer_wrapper = slr->current_lexer->g_wrapper;
+  lexer_wrapper = slr->slg->l0_wrapper;
   gp_result = marpa_r_progress_report_start(recce, ordinal);
   if ( gp_result == -1 ) { XSRETURN_UNDEF; }
   if ( gp_result < 0 && lexer_wrapper->throw ) {
@@ -6576,7 +6574,7 @@ PPCODE:
     {
       croak ("Problem in r->progress_item(): No lexer recognizer");
     }
-  lexer_wrapper = slr->current_lexer->g_wrapper;
+  lexer_wrapper = slr->slg->l0_wrapper;
   gp_result = marpa_r_progress_report_finish(recce);
   if ( gp_result == -1 ) { XSRETURN_UNDEF; }
   if ( gp_result < 0 && lexer_wrapper->throw ) {
@@ -6600,7 +6598,7 @@ PPCODE:
     {
       croak ("Problem in r->progress_item(): No lexer recognizer");
     }
-  lexer_wrapper = slr->current_lexer->g_wrapper;
+  lexer_wrapper = slr->slg->l0_wrapper;
   rule_id = marpa_r_progress_item (recce, &position, &origin);
   if (rule_id == -1)
     {
