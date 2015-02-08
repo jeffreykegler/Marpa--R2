@@ -77,6 +77,7 @@ union marpa_slr_event_s;
 
 #define MARPA_SLREV_AFTER_LEXEME 1
 #define MARPA_SLREV_BEFORE_LEXEME 2
+#define MARPA_SLREV_LEXEME_DISCARDED 2
 #define MARPA_SLREV_LEXER_RESTARTED_RECCE 4
 #define MARPA_SLREV_MARPA_R_UNKNOWN 5
 #define MARPA_SLREV_NO_ACCEPTABLE_INPUT 6
@@ -2423,6 +2424,7 @@ slr_alternatives (Scanless_R * slr)
 
     }
 
+  /* Figure out what the result of pass 1 was */
   if (is_priority_set)
   {
      pass1_result = accept;
@@ -2433,6 +2435,13 @@ slr_alternatives (Scanless_R * slr)
   }
 
   {
+    /* In pass 1, we used a stack of tentative
+     * trace events to record which lexemes
+     * are acceptable, to be discarded, etc.
+     * At this point, if we are tracing,
+     * we convert the tentative trace
+     * events into real trace events.
+     */
     int i;
     for (i = 0; i < slr->gift->t_lexeme_count; i++)
       {
@@ -2454,30 +2463,51 @@ slr_alternatives (Scanless_R * slr)
 		      *lexeme_stack_event;
 		  }
 	      }
-	    break;
+	    goto NEXT_LEXEME_EVENT;
 	  case MARPA_SLRTR_LEXEME_REJECTED:
 	    if (slr->trace_terminals || !is_priority_set)
 	      {
 		*(marpa__slr_event_push (slr->gift)) = *lexeme_stack_event;
 	      }
-	    break;
+	    goto NEXT_LEXEME_EVENT;
 	  case MARPA_SLRTR_LEXEME_DISCARDED:
 	    if (slr->trace_terminals)
 	      {
 		*(marpa__slr_event_push (slr->gift)) = *lexeme_stack_event;
 	      }
-	    break;
+            {
+              union marpa_slr_event_s *new_event;
+              const Marpa_Rule_ID l0_rule_id =
+                lexeme_stack_event->t_trace_lexeme_discarded.t_rule_id;
+              struct l0_rule_r_properties *l0_rule_r_properties
+                = slr->l0_rule_r_properties + l0_rule_id;
+              if (!l0_rule_r_properties->t_event_on_discard_active)
+                {
+                  goto NEXT_LEXEME_EVENT;
+                }
+              new_event = marpa__slr_event_push (slr->gift);
+              MARPA_SLREV_TYPE (new_event) =
+		  MARPA_SLREV_LEXEME_DISCARDED;
+              new_event->t_lexeme_discarded.t_rule_id = l0_rule_id;
+              new_event->t_lexeme_discarded.t_start_of_lexeme =
+                lexeme_stack_event->t_trace_lexeme_discarded.t_start_of_lexeme;
+              new_event->t_lexeme_discarded.t_end_of_lexeme =
+                lexeme_stack_event->t_trace_lexeme_discarded.t_end_of_lexeme;
+              new_event->t_lexeme_discarded.t_last_g1_location =
+                marpa_r_latest_earley_set (slr->r1);
+            }
+	    goto NEXT_LEXEME_EVENT;
 	  }
+          NEXT_LEXEME_EVENT: ;
       }
   }
 
-  if (!is_priority_set)
-    {
-      if (discarded)
-	{
-	  slr->perl_pos = slr->lexer_start_pos = working_pos;
-	  return 0;
-	}
+  if (pass1_result == discard) {
+      slr->perl_pos = slr->lexer_start_pos = working_pos;
+      return 0;
+  }
+
+  if (pass1_result != accept) {
       slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
 	slr->start_of_lexeme;
       return "no lexeme";
@@ -5640,6 +5670,21 @@ PPCODE:
       }
   }
 
+  {
+    Marpa_Rule_ID l0_rule_id;
+    const Marpa_Rule_ID l0_rule_count =
+      marpa_g_highest_rule_id (slg->l0_wrapper->g) + 1;
+    Newx (slr->l0_rule_r_properties, l0_rule_count,
+          struct l0_rule_r_properties);
+    for (l0_rule_id = 0; l0_rule_id < l0_rule_count; l0_rule_id++)
+      {
+        const struct l0_rule_g_properties *g_properties =
+          slg->l0_rule_g_properties + l0_rule_id;
+        slr->l0_rule_r_properties[l0_rule_id].t_event_on_discard_active =
+          g_properties->t_event_on_discard_active;
+      }
+  }
+
   slr->lexer_start_pos = slr->perl_pos;
   slr->lexer_read_result = 0;
   slr->r1_earleme_complete_result = 0;
@@ -5680,6 +5725,7 @@ PPCODE:
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
   Safefree(slr->symbol_r_properties);
+  Safefree(slr->l0_rule_r_properties);
   if (slr->token_values)
     {
       SvREFCNT_dec ((SV *) slr->token_values);
