@@ -385,7 +385,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     my %lexer_id_by_name                    = ();
     my %thick_grammar_by_lexer_name         = ();
-    my %event_by_lexer_name_by_rule_id      = ();
+    my @discard_event_by_lexer_rule_id      = ();
     my %lexer_and_rule_to_g1_lexeme         = ();
     my %character_class_table_by_lexer_name = ();
     state $lex_start_symbol_name = '[:start_lex]';
@@ -581,7 +581,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         next RULE_ID if not defined $tag;
         my $event = $lexer_rule_by_tag{$tag}->{event};
         if ( defined $event ) {
-            $event_by_lexer_name_by_rule_id{$lexer_name}->[$rule_id] = $event;
+            $discard_event_by_lexer_rule_id[$rule_id] = $event;
             next RULE_ID;
         }
         my $lhs_id = $lex_thin->rule_lhs($rule_id);
@@ -595,15 +595,15 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 $lexer_rule_by_tag{$tag}->{symbol_as_event},
                 $default_discard_event_starts_active
             );
-            $event_by_lexer_name_by_rule_id{$lexer_name}->[$rule_id] =
+            $discard_event_by_lexer_rule_id[$rule_id] =
                 \@event;
         } ## end if ( $default_discard_event_name eq q{'symbol} )
         if ( ( substr $default_discard_event_name, 0, 1 ) ne q{'} ) {
-            $event_by_lexer_name_by_rule_id{$lexer_name}->[$rule_id] =
+            $discard_event_by_lexer_rule_id[$rule_id] =
                 $default_discard_event;
         }
         Marpa::R2::exception(
-            q{Discard event has unknown name: "$defaujlt_discard_event_name"}
+            q{Discard event has unknown name: "$default_discard_event_name"}
         );
 
     } ## end RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() )
@@ -704,8 +704,8 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         my $character_class_table =
             $character_class_table_by_lexer_name{$lexer_name};
         $slg->[
-            Marpa::R2::Internal::Scanless::G::LEXER_DISCARD_EVENT_BY_RULE_AND_LEXER_ID
-        ]->[$lexer_id] = $event_by_lexer_name_by_rule_id{$lexer_name};
+            Marpa::R2::Internal::Scanless::G::DISCARD_EVENT_BY_LEXER_RULE
+        ] = \@discard_event_by_lexer_rule_id;
         $slg->[Marpa::R2::Internal::Scanless::G::CHARACTER_CLASS_TABLES]
             ->[$lexer_id] = $character_class_table;
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_LEX_GRAMMARS]
