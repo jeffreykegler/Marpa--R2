@@ -5526,6 +5526,102 @@ PPCODE:
 }
 
 void
+discard_event_set( slg, l0_rule_id, boolean )
+    Scanless_G *slg;
+    Marpa_Rule_ID l0_rule_id;
+    int boolean;
+PPCODE:
+{
+  Marpa_Rule_ID highest_l0_rule_id = marpa_g_highest_rule_id (slg->l0_wrapper->g);
+    struct l0_rule_g_properties * g_properties = slg->l0_rule_g_properties + l0_rule_id;
+    if (slg->precomputed)
+      {
+        croak
+          ("slg->discard_event_set(%ld, %ld) called after SLG is precomputed",
+           (long) l0_rule_id, (long) boolean);
+      }
+    if (l0_rule_id > highest_l0_rule_id) 
+    {
+      croak
+        ("Problem in slg->discard_event_set(%ld, %ld): rule ID was %ld, but highest L0 rule ID = %ld",
+         (long) l0_rule_id,
+         (long) boolean,
+         (long) l0_rule_id,
+         (long) highest_l0_rule_id
+         );
+    }
+    if (l0_rule_id < 0) {
+      croak
+        ("Problem in slg->discard_event_set(%ld, %ld): rule ID was %ld, a disallowed value",
+         (long) l0_rule_id,
+         (long) boolean,
+         (long) l0_rule_id);
+    }
+    switch (boolean) {
+    case 0:
+    case 1:
+        g_properties->t_event_on_discard = boolean;
+        break;
+    default:
+      croak
+        ("Problem in slg->discard_event_set(%ld, %ld): value must be 0 or 1",
+         (long) l0_rule_id,
+         (long) boolean);
+    }
+  XSRETURN_YES;
+}
+
+void
+discard_event_activate( slg, l0_rule_id, activate )
+    Scanless_G *slg;
+    Marpa_Rule_ID l0_rule_id;
+    int activate;
+PPCODE:
+{
+  Marpa_Rule_ID highest_l0_rule_id = marpa_g_highest_rule_id (slg->l0_wrapper->g);
+  struct l0_rule_g_properties *g_properties =
+    slg->l0_rule_g_properties + l0_rule_id;
+  if (slg->precomputed)
+    {
+      croak
+	("slg->discard_event_activate(%ld, %ld) called after SLG is precomputed",
+	 (long) l0_rule_id, (long) activate);
+    }
+  if (l0_rule_id > highest_l0_rule_id)
+    {
+      croak
+	("Problem in slg->discard_event_activate(%ld, %ld): rule ID was %ld, but highest L0 rule ID = %ld",
+	 (long) l0_rule_id,
+	 (long) activate, (long) l0_rule_id, (long) highest_l0_rule_id);
+    }
+  if (l0_rule_id < 0)
+    {
+      croak
+	("Problem in slg->discard_event_activate(%ld, %ld): rule ID was %ld, a disallowed value",
+	 (long) l0_rule_id, (long) activate, (long) l0_rule_id);
+    }
+
+  if (activate != 0 && activate != 1)
+    {
+      croak
+	("Problem in slg->discard_event_activate(%ld, %ld): value of activate must be 0 or 1",
+	 (long) l0_rule_id, (long) activate);
+    }
+
+  if (g_properties->t_event_on_discard)
+    {
+      g_properties->t_event_on_discard_active = activate;
+    }
+  else
+    {
+      croak
+	("Problem in slg->discard_event_activate(%ld, %ld): discard event is not enabled",
+	 (long) l0_rule_id, (long) activate);
+    }
+  XSRETURN_YES;
+}
+
+void
 g1_lexeme_latm_set( slg, g1_lexeme, latm )
     Scanless_G *slg;
     Marpa_Symbol_ID g1_lexeme;
@@ -6500,6 +6596,50 @@ PPCODE:
 	     xs_g_error (slr->g1_wrapper));
     }
   XSRETURN_IV (0);
+}
+
+void
+discard_event_activate( slr, l0_rule_id, reactivate )
+    Scanless_R *slr;
+    Marpa_Rule_ID l0_rule_id;
+    int reactivate;
+PPCODE:
+{
+  struct l0_rule_r_properties *l0_rule_r_properties;
+  const Scanless_G *slg = slr->slg;
+  const Marpa_Rule_ID highest_l0_rule_id = marpa_g_highest_rule_id (slg->l0_wrapper->g);
+  if (l0_rule_id > highest_l0_rule_id)
+    {
+      croak
+        ("Problem in slr->discard_event_activate(..., %ld, %ld): rule ID was %ld, but highest L0 rule ID = %ld",
+         (long) l0_rule_id, (long) reactivate,
+         (long) l0_rule_id, (long) highest_l0_rule_id);
+    }
+  if (l0_rule_id < 0)
+    {
+      croak
+        ("Problem in slr->discard_event_activate(..., %ld, %ld): rule ID was %ld, a disallowed value",
+         (long) l0_rule_id, (long) reactivate, (long) l0_rule_id);
+    }
+  l0_rule_r_properties = slr->l0_rule_r_properties + l0_rule_id;
+  switch (reactivate)
+    {
+    case 0:
+      l0_rule_r_properties->t_event_on_discard_active = 0;
+      break;
+    case 1:
+      {
+        const struct l0_rule_g_properties* g_properties = slg->l0_rule_g_properties + l0_rule_id;
+        /* Only activate events which are enabled */
+        l0_rule_r_properties->t_event_on_discard_active = g_properties->t_event_on_discard;
+      }
+      break;
+    default:
+      croak
+        ("Problem in slr->discard_event_activate(..., %ld, %ld): reactivate flag is %ld, a disallowed value",
+         (long) l0_rule_id, (long) reactivate, (long) reactivate);
+    }
+  XPUSHs (sv_2mortal (newSViv (reactivate)));
 }
 
 void
