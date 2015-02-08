@@ -697,6 +697,8 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             $slg->[
                 Marpa::R2::Internal::Scanless::G::DISCARD_EVENT_BY_LEXER_RULE
             ]->[$lexer_rule_id] = $event_name;
+            push @{ $symbol_ids_by_event_name_and_type->{$event_name}
+                    ->{discard} }, $lexer_rule_id;
             $thin_slg->discard_event_set( $lexer_rule_id, 1 );
             $thin_slg->discard_event_activate( $lexer_rule_id, 1 )
                 if $is_active;

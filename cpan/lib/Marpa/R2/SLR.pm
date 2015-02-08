@@ -309,11 +309,18 @@ sub Marpa::R2::Scanless::R::new {
     # necessary.
     
     EVENT: for my $event_name ( keys %{$event_is_active_arg} ) {
+
+        my $is_active = $event_is_active_arg->{$event_name};
+
         my $symbol_ids =
             $symbol_ids_by_event_name_and_type->{$event_name}->{lexeme};
-        my $is_active = $event_is_active_arg->{$event_name};
         $thin_slr->lexeme_event_activate( $_, $is_active )
             for @{$symbol_ids};
+        my $lexer_rule_ids =
+            $symbol_ids_by_event_name_and_type->{$event_name}->{discard};
+        $thin_slr->discard_event_activate( $_, $is_active )
+            for @{$lexer_rule_ids};
+
         $symbol_ids =
             $symbol_ids_by_event_name_and_type->{$event_name}->{completion}
             // [];
