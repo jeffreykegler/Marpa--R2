@@ -461,6 +461,9 @@ struct symbol_r_properties {
      int lexeme_priority;
      unsigned int t_pause_before_active:1;
      unsigned int t_pause_after_active:1;
+};
+
+struct l0_rule_r_properties {
      unsigned int t_event_on_discard_active:1;
 };
 
@@ -522,6 +525,7 @@ typedef struct
   int end_of_pause_lexeme;
   Marpa_Symbol_ID pause_lexeme;
   struct symbol_r_properties *symbol_r_properties;
+  struct l0_rule_r_properties *l0_rule_r_properties;
   Pos_Entry *pos_db;
   int pos_db_logical_size;
   int pos_db_physical_size;
@@ -2278,6 +2282,8 @@ slr_alternatives (Scanless_R * slr)
   int discarded = 0;
   int rejected = 0;
   int working_pos = slr->start_of_lexeme;
+  enum pass1_result_type { none, discard, no_lexeme, accept };
+  enum pass1_result_type pass1_result = none;
 
   r0 = slr->r0;
   if (!r0)
@@ -2287,7 +2293,7 @@ slr_alternatives (Scanless_R * slr)
 
   marpa__slr_lexeme_clear (slr->gift);
 
-  /* Zero length lexemes are not of interest, so we do *not*
+  /* Zero length lexemes are not of interest, so we do NOT
    * search the 0'th Earley set.
    */
   for (earley_set = marpa_r_latest_earley_set (r0); earley_set > 0;
@@ -2331,8 +2337,8 @@ slr_alternatives (Scanless_R * slr)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
-	  l0_rule_g_properties = slg->l0_rule_g_properties + rule_id;
-	  g1_lexeme = l0_rule_g_properties->g1_lexeme;
+          l0_rule_g_properties = slg->l0_rule_g_properties + rule_id;
+          g1_lexeme = l0_rule_g_properties->g1_lexeme;
 	  if (g1_lexeme == -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  slr->end_of_lexeme = working_pos;
@@ -2416,6 +2422,15 @@ slr_alternatives (Scanless_R * slr)
 	break;
 
     }
+
+  if (is_priority_set)
+  {
+     pass1_result = accept;
+  } else if (discarded) {
+     pass1_result = discard;
+  } else {
+     pass1_result = no_lexeme;
+  }
 
   {
     int i;
