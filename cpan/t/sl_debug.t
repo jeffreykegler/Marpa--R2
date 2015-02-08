@@ -107,7 +107,7 @@ $progress_report = $recce->show_progress( 0, -1 );
 $eval_error =~ s/^(Marpa::R2 \s+ exception \s+ at) .*/$1\n/xms;
 Marpa::R2::Test::is($eval_error, <<'END_OF_TEXT', 'Error message before fix');
 Error in SLIF parse: No lexemes accepted at line 1, column 18
-  Rejected lexeme #0: Lexer "L0"; '*'; value="*"; length = 1
+  Rejected lexeme #0: '*'; value="*"; length = 1
 * String before error: a = 8675309 + 42\s
 * The error was at line 1, column 18, and at character 0x002a '*', ...
 * here: * 711
@@ -312,20 +312,20 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 Marpa::R2::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
 Setting trace_terminals option
 Setting trace_values option
-Lexer "L0" accepted lexeme L1c1 e1: variable; value="a"
-Lexer "L0" discarded lexeme L1c2: whitespace
-Lexer "L0" accepted lexeme L1c3 e2: '='; value="="
-Lexer "L0" discarded lexeme L1c4: whitespace
-Lexer "L0" rejected lexeme L1c5-11: number; value="8675309"
-Lexer "L0" accepted lexeme L1c5-11 e3: variable; value="8675309"
-Lexer "L0" discarded lexeme L1c12: whitespace
-Lexer "L0" rejected lexeme L1c13: '+'; value="+"
-Lexer "L0" accepted lexeme L1c13 e4: '+'; value="+"
-Lexer "L0" discarded lexeme L1c14: whitespace
-Lexer "L0" rejected lexeme L1c15-16: number; value="42"
-Lexer "L0" accepted lexeme L1c15-16 e5: variable; value="42"
-Lexer "L0" discarded lexeme L1c17: whitespace
-Lexer "L0" rejected lexeme L1c18: '*'; value="*"
+Accepted lexeme L1c1 e1: variable; value="a"
+Discarded lexeme L1c2: whitespace
+Accepted lexeme L1c3 e2: '='; value="="
+Discarded lexeme L1c4: whitespace
+Rejected lexeme L1c5-11: number; value="8675309"
+Accepted lexeme L1c5-11 e3: variable; value="8675309"
+Discarded lexeme L1c12: whitespace
+Rejected lexeme L1c13: '+'; value="+"
+Accepted lexeme L1c13 e4: '+'; value="+"
+Discarded lexeme L1c14: whitespace
+Rejected lexeme L1c15-16: number; value="42"
+Accepted lexeme L1c15-16 e5: variable; value="42"
+Discarded lexeme L1c17: whitespace
+Rejected lexeme L1c18: '*'; value="*"
 END_TRACE_OUTPUT
 
 # Marpa::R2::Display::End
