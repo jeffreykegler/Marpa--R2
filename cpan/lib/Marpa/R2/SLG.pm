@@ -597,13 +597,15 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             );
             $discard_event_by_lexer_rule_id[$rule_id] =
                 \@event;
+            next RULE_ID;
         } ## end if ( $default_discard_event_name eq q{'symbol} )
         if ( ( substr $default_discard_event_name, 0, 1 ) ne q{'} ) {
             $discard_event_by_lexer_rule_id[$rule_id] =
                 $default_discard_event;
+            next RULE_ID;
         }
         Marpa::R2::exception(
-            q{Discard event has unknown name: "$default_discard_event_name"}
+            qq{Discard event has unknown name: "$default_discard_event_name"}
         );
 
     } ## end RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() )
@@ -689,6 +691,16 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
             // -1;
         $thin_slg->lexer_rule_to_g1_lexeme_set( $lexer_rule_id,
             $g1_lexeme_id, $assertion_id );
+        my $discard_event = $discard_event_by_lexer_rule_id[$lexer_rule_id];
+        if ( defined $discard_event ) {
+            my ( $event_name, $is_active ) = @{$discard_event};
+            $slg->[
+                Marpa::R2::Internal::Scanless::G::DISCARD_EVENT_BY_LEXER_RULE
+            ]->[$lexer_rule_id] = $event_name;
+            $thin_slg->discard_event_set( $lexer_rule_id, 1 );
+            $thin_slg->discard_event_activate( $lexer_rule_id, 1 )
+                if $is_active;
+        } ## end if ( defined $discard_event )
     } ## end RULE_ID: for my $lexer_rule_id ( 0 .. $#{$lexer_rule_to_g1_lexeme...})
 
     # Second phase of G1 processing
@@ -703,9 +715,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     {
         my $character_class_table =
             $character_class_table_by_lexer_name{$lexer_name};
-        $slg->[
-            Marpa::R2::Internal::Scanless::G::DISCARD_EVENT_BY_LEXER_RULE
-        ] = \@discard_event_by_lexer_rule_id;
         $slg->[Marpa::R2::Internal::Scanless::G::CHARACTER_CLASS_TABLES]
             ->[$lexer_id] = $character_class_table;
         $slg->[Marpa::R2::Internal::Scanless::G::THICK_LEX_GRAMMARS]
