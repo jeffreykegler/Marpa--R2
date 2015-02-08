@@ -704,18 +704,11 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     # More lexer processing
     # Determine events by lexer rule, applying the defaults
 
-    for my $lexer_name (@lexer_names) {
-        my $lexer_id = $lexer_id_by_name{$lexer_name};
-        my $external_lexer_name =
-            ( substr $lexer_name, 0, 2 ) eq 'L-'
-            ? substr $lexer_name, 2
-            : $lexer_name;
+    {
+        my $lexer_id = 0;
+        my $lexer_name = 'L0';
         my $character_class_table =
             $character_class_table_by_lexer_name{$lexer_name};
-        $slg->[Marpa::R2::Internal::Scanless::G::LEXER_NAME_BY_ID]
-            ->[$lexer_id] = $external_lexer_name;
-        $slg->[Marpa::R2::Internal::Scanless::G::LEXER_BY_NAME]
-            ->{$external_lexer_name} = $lexer_id;
         $slg->[Marpa::R2::Internal::Scanless::G::LEXER_DISCARD_EVENT_BY_RULE_AND_LEXER_ID]
             ->[$lexer_id] = $event_by_lexer_name_by_rule_id{$lexer_name};
         $slg->[Marpa::R2::Internal::Scanless::G::CHARACTER_CLASS_TABLES]
@@ -783,19 +776,19 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
 sub thick_subgrammar_by_name {
     my ( $slg, $subgrammar ) = @_;
+
+    # Allow G0 as legacy synonym for L0
+    state $grammar_names = { 'G0' => 1, 'G1' => 1, 'L0' => 1 };
     $subgrammar //= 'G1';
+
+    Marpa::R2::exception(qq{No lexer named "$subgrammar"})
+        if not defined $grammar_names->{$subgrammar};
+
     return $slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR]
         if $subgrammar eq 'G1';
 
-    # Allow G0 as legacy synonym for L0
-    $subgrammar = 'L0' if $subgrammar eq 'G0';
-
-    my $lexer_id =
-        $slg->[Marpa::R2::Internal::Scanless::G::LEXER_BY_NAME]->{$subgrammar};
-    Marpa::R2::exception(qq{No lexer named "$subgrammar"})
-        if not defined $lexer_id;
     return $slg->[Marpa::R2::Internal::Scanless::G::THICK_LEX_GRAMMARS]
-        ->[$lexer_id];
+        ->[0];
 } ## end sub thick_subgrammar_by_name
 
 sub Marpa::R2::Scanless::G::start_symbol_id {
