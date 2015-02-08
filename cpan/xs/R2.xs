@@ -451,7 +451,7 @@ struct symbol_g_properties {
      unsigned int t_pause_after_active:1;
 };
 
-struct rule_g_properties {
+struct l0_rule_g_properties {
      Marpa_Symbol_ID g1_lexeme;
      unsigned int t_event_on_discard:1;
      unsigned int t_event_on_discard_active:1;
@@ -463,15 +463,6 @@ struct symbol_r_properties {
      unsigned int t_pause_after_active:1;
      unsigned int t_event_on_discard_active:1;
 };
-
- /* Lexers are not visible at the Perl level --
-  * for object ownership purposes they are simply components
-  * of an SLG.  Ownership of objects is by SLG.
-  */
-typedef struct
-{
-  int dummy;
-} Lexer;
 
 typedef struct
 {
@@ -486,15 +477,13 @@ typedef struct
   IV *per_codepoint_array[128];
   int precomputed;
   struct symbol_g_properties *symbol_g_properties;
-  struct rule_g_properties *rule_g_properties;
+  struct l0_rule_g_properties *l0_rule_g_properties;
 } Scanless_G;
 
 typedef struct
 {
   SV *slg_sv;
   SV *r1_sv;
-
-  Lexer *current_lexer;
 
   Scanless_G *slg;
   R_Wrapper *r1_wrapper;
@@ -2027,7 +2016,7 @@ slr_discard (Scanless_R * slr)
 	    goto NEXT_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_REPORT_ITEM;
-	  g1_lexeme = slg->rule_g_properties[rule_id].g1_lexeme;
+	  g1_lexeme = slg->l0_rule_g_properties[rule_id].g1_lexeme;
 	  if (g1_lexeme == -1)
 	    goto NEXT_REPORT_ITEM;
 	  lexemes_found++;
@@ -2319,7 +2308,7 @@ slr_alternatives (Scanless_R * slr)
       while (!end_of_earley_items)
 	{
 	  struct symbol_g_properties *symbol_g_properties;
-	  struct rule_g_properties *rule_g_properties;
+	  struct l0_rule_g_properties *l0_rule_g_properties;
 	  struct symbol_r_properties *symbol_r_properties;
 	  Marpa_Symbol_ID g1_lexeme;
 	  int this_lexeme_priority;
@@ -2342,8 +2331,8 @@ slr_alternatives (Scanless_R * slr)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
-	  rule_g_properties = slg->rule_g_properties + rule_id;
-	  g1_lexeme = rule_g_properties->g1_lexeme;
+	  l0_rule_g_properties = slg->l0_rule_g_properties + rule_id;
+	  g1_lexeme = l0_rule_g_properties->g1_lexeme;
 	  if (g1_lexeme == -1)
 	    goto NEXT_PASS1_REPORT_ITEM;
 	  slr->end_of_lexeme = working_pos;
@@ -2363,7 +2352,7 @@ slr_alternatives (Scanless_R * slr)
 	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
 	  symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
-	  rule_g_properties = slg->rule_g_properties + rule_id;
+	  l0_rule_g_properties = slg->l0_rule_g_properties + rule_id;
 	  symbol_r_properties = slr->symbol_r_properties + g1_lexeme;
 	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	  if (!is_expected)
@@ -5199,11 +5188,11 @@ PPCODE:
   {
     Marpa_Rule_ID rule_id;
     int g1_rule_count = marpa_g_highest_rule_id (slg->l0_wrapper->g) + 1;
-    Newx (slg->rule_g_properties, g1_rule_count, struct rule_g_properties);
+    Newx (slg->l0_rule_g_properties, g1_rule_count, struct l0_rule_g_properties);
     for (rule_id = 0; rule_id < g1_rule_count; rule_id++) {
-        slg->rule_g_properties[rule_id].g1_lexeme = -1;
-        slg->rule_g_properties[rule_id].t_event_on_discard = 0;
-        slg->rule_g_properties[rule_id].t_event_on_discard_active = 0;
+        slg->l0_rule_g_properties[rule_id].g1_lexeme = -1;
+        slg->l0_rule_g_properties[rule_id].t_event_on_discard = 0;
+        slg->l0_rule_g_properties[rule_id].t_event_on_discard_active = 0;
     }
   }
 
@@ -5221,7 +5210,7 @@ PPCODE:
   SvREFCNT_dec (slg->g1_sv);
   SvREFCNT_dec (slg->l0_sv);
   Safefree (slg->symbol_g_properties);
-  Safefree (slg->rule_g_properties);
+  Safefree (slg->l0_rule_g_properties);
   Safefree (slg->g1_lexeme_to_assertion);
   SvREFCNT_dec (slg->per_codepoint_hash);
   for (i = 0; i < Dim(slg->per_codepoint_array); i++) {
@@ -5310,8 +5299,8 @@ PPCODE:
          (long) g1_lexeme, (long)assertion_id);
     }
   if (lexer_rule >= 0) {
-      struct rule_g_properties * const rule_g_properties = slg->rule_g_properties + lexer_rule;
-      rule_g_properties->g1_lexeme = g1_lexeme;
+      struct l0_rule_g_properties * const l0_rule_g_properties = slg->l0_rule_g_properties + lexer_rule;
+      l0_rule_g_properties->g1_lexeme = g1_lexeme;
   }
   if (g1_lexeme >= 0) {
       slg->g1_lexeme_to_assertion[g1_lexeme] = assertion_id;
