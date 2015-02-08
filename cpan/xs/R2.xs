@@ -2475,6 +2475,7 @@ slr_alternatives (Scanless_R * slr)
 	      {
 		*(marpa__slr_event_push (slr->gift)) = *lexeme_stack_event;
 	      }
+            if (pass1_result == discard)
             {
               union marpa_slr_event_s *new_event;
               const Marpa_Rule_ID l0_rule_id =
