@@ -80,6 +80,7 @@ READ: while (1) {
 
     EVENT:
     for my $event ( @{ $recce->events() } ) {
+        say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
         my ($name) = @{$event};
         push @actual_events, $name;
     }
@@ -98,6 +99,6 @@ die "No parse was found\n" if not defined $value_ref;
 # Result will be something like "86.33... 126 125 16"
 # depending on the floating point precision
 my $result = ${$value_ref};
-say Data::Dumper::Dumper($result);
+# say Data::Dumper::Dumper($result);
 
 # vim: expandtab shiftwidth=4:

@@ -927,6 +927,19 @@ my $libmarpa_event_handlers = {
         return 1;
     },
 
+    'discarded lexeme' => sub {
+        my ( $slr,  $event )     = @_;
+        my ( undef, $rule_id) = @{$event};
+        my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
+        my $lexeme_event =
+            $slg->[Marpa::R2::Internal::Scanless::G::DISCARD_EVENT_BY_LEXER_RULE]
+            ->[$rule_id];
+        push @{ $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] },
+            [$lexeme_event]
+            if defined $lexeme_event;
+        return 1;
+    },
+
     'unknown g1 event' => sub {
         my ( $slr, $event ) = @_;
         Marpa::R2::exception( ( join q{ }, 'Unknown event:', @{$event} ) );

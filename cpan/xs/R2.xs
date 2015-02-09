@@ -32,6 +32,13 @@
 #undef IS_PERL_UNDEF
 #define IS_PERL_UNDEF(x) ((x) == &PL_sv_undef)
 
+#undef STRINGIFY_ARG
+#undef STRINGIFY
+#undef STRLOC
+#define STRINGIFY_ARG(contents)       #contents
+#define STRINGIFY(macro_or_string)        STRINGIFY_ARG (macro_or_string)
+#define STRLOC        __FILE__ ":" STRINGIFY (__LINE__)
+
 #undef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -77,7 +84,7 @@ union marpa_slr_event_s;
 
 #define MARPA_SLREV_AFTER_LEXEME 1
 #define MARPA_SLREV_BEFORE_LEXEME 2
-#define MARPA_SLREV_LEXEME_DISCARDED 2
+#define MARPA_SLREV_LEXEME_DISCARDED 3
 #define MARPA_SLREV_LEXER_RESTARTED_RECCE 4
 #define MARPA_SLREV_MARPA_R_UNKNOWN 5
 #define MARPA_SLREV_NO_ACCEPTABLE_INPUT 6
@@ -6204,6 +6211,18 @@ PPCODE:
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_ignored.t_lexeme));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_ignored.t_start_of_lexeme));
             av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_ignored.t_end_of_lexeme));
+            XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
+            break;
+          }
+
+        case MARPA_SLREV_LEXEME_DISCARDED:
+          {
+            AV *event_av = newAV ();
+            av_push (event_av, newSVpvs ("discarded lexeme"));
+            av_push (event_av, newSViv ((IV) slr_event->t_lexeme_discarded.t_rule_id));
+            av_push (event_av, newSViv ((IV) slr_event->t_lexeme_discarded.t_start_of_lexeme));
+            av_push (event_av, newSViv ((IV) slr_event->t_lexeme_discarded.t_end_of_lexeme));
+            av_push (event_av, newSViv ((IV) slr_event->t_lexeme_discarded.t_last_g1_location));
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
