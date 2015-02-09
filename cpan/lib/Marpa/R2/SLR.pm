@@ -929,13 +929,13 @@ my $libmarpa_event_handlers = {
 
     'discarded lexeme' => sub {
         my ( $slr,  $event )     = @_;
-        my ( undef, $rule_id) = @{$event};
+        my ( undef, $rule_id, @other_data) = @{$event};
         my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
         my $lexeme_event =
             $slg->[Marpa::R2::Internal::Scanless::G::DISCARD_EVENT_BY_LEXER_RULE]
             ->[$rule_id];
         push @{ $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] },
-            [$lexeme_event]
+            [$lexeme_event, @other_data]
             if defined $lexeme_event;
         return 1;
     },

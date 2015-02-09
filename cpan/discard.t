@@ -39,8 +39,7 @@ lexeme default = action => [ g1start, g1length, start, length, value ]
     latm => 1
 
 :start ::= Script
-Script ::= Expression+ separator => comma
-comma ~ [,]
+Script ::= Expression+
 Expression ::=
     Number bless => primary
     | '(' Expression ')' bless => paren assoc => group
@@ -52,6 +51,8 @@ Expression ::=
 
 Number ~ [\d]+
 :discard ~ whitespace event => ws=on
+:discard ~ comma event => comma=on
+comma ~ ','
 whitespace ~ [\s]+
 # allow comments
 :discard ~ <hash comment>
@@ -80,8 +81,8 @@ READ: while (1) {
 
     EVENT:
     for my $event ( @{ $recce->events() } ) {
+        my ($name, @other_stuff) = @{$event};
         say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
-        my ($name) = @{$event};
         push @actual_events, $name;
     }
 
