@@ -1,3 +1,15 @@
+commit 0681cf3591dfd357f3c7fce659998cac111cc980
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Feb 9 20:59:56 2015 -0800
+
+    Fixes to events for trivial grammars
+
+commit a51efd33a2e31a062e838f413c338d8a85e36007
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Mon Feb 9 19:31:33 2015 -0800
+
+    Fixes to events for trivial grammars
+
 commit 4abdfef9222fc87f1c319956c11f58e1cdad5a0f
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Tue Feb 3 20:18:36 2015 -0800
@@ -15,15 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Mon Feb 2 20:33:37 2015 -0800
 
     Fix missing null events at earleme 0
-
-commit b9b4837cd373fd8b672c8ecbb496b424330f9836
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Jan 31 16:27:12 2015 -0800
-
-    Work on ambiguity metric for "high rank only"
-
-commit 7663a53642841015f85f9df62dfc0326ab38da3d
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Jan 31 16:09:28 2015 -0800
-
-    Work on ambiguity metric for "high rank only"
