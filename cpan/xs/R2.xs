@@ -5981,9 +5981,10 @@ PPCODE:
   int lexer_read_result = 0;
   const int trace_lexers = slr->trace_lexers;
 
-  if (slr->is_external_scanning) {
-     XSRETURN_PV("unpermitted mix of external and internal scanning");
-  }
+  if (slr->is_external_scanning)
+    {
+      XSRETURN_PV ("unpermitted mix of external and internal scanning");
+    }
 
   slr->lexer_read_result = 0;
   slr->r1_earleme_complete_result = 0;
@@ -5993,7 +5994,7 @@ PPCODE:
 
   /* Clear event queue */
   av_clear (slr->r1_wrapper->event_queue);
-  marpa__slr_event_clear(slr->gift);
+  marpa__slr_event_clear (slr->gift);
 
   /* Application intervention resets perl_pos */
   slr->last_perl_pos = -1;
@@ -6012,7 +6013,8 @@ PPCODE:
 	  u_r0_clear (slr);
 	  if (trace_lexers >= 1)
 	    {
-                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
+	      union marpa_slr_event_s *event =
+		marpa__slr_event_push (slr->gift);
 	      MARPA_SLREV_TYPE (event) = MARPA_SLREV_LEXER_RESTARTED_RECCE;
 	      event->t_lexer_restarted_recce.t_perl_pos = slr->perl_pos;
 	    }
@@ -6042,30 +6044,31 @@ PPCODE:
 	}
 
 
-	  if (marpa_r_is_exhausted (slr->r1))
+      if (marpa_r_is_exhausted (slr->r1))
+	{
+	  int discard_result = slr_discard (slr);
+	  if (discard_result < 0)
 	    {
-	      int discard_result = slr_discard (slr);
-	      if (discard_result < 0)
-		{
-		  XSRETURN_PV ("R1 exhausted before end");
-		}
+	      XSRETURN_PV ("R1 exhausted before end");
 	    }
-	  else
+	}
+      else
+	{
+	  const char *result_string = slr_alternatives (slr);
+	  if (result_string)
 	    {
-	      int event_count;
-	      const char *result_string = slr_alternatives (slr);
-	      if (result_string)
-		{
-		  XSRETURN_PV (result_string);
-		}
-	      event_count = av_len (slr->r1_wrapper->event_queue) + 1;
-	      event_count += marpa__slr_event_count(slr->gift);
-	      if (event_count)
-		{
-		  XSRETURN_PV ("event");
-		}
+	      XSRETURN_PV (result_string);
 	    }
+	}
 
+      {
+	int event_count = av_len (slr->r1_wrapper->event_queue) + 1;
+	event_count += marpa__slr_event_count (slr->gift);
+	if (event_count)
+	  {
+	    XSRETURN_PV ("event");
+	  }
+      }
 
       if (slr->trace_terminals || slr->trace_lexers)
 	{
