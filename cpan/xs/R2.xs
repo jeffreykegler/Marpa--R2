@@ -831,7 +831,7 @@ u_r0_new (Scanless_R * slr)
     const int count = marpa_r_terminals_expected (slr->r1, terminals_buffer);
     if (count < 0)
       {
-	croak ("Problem in u_read() with terminals_expected: %s",
+	croak ("Problem in u_r0_new() with terminals_expected: %s",
 	       xs_g_error (slr->g1_wrapper));
       }
     for (i = 0; i < count; i++)
@@ -842,7 +842,7 @@ u_r0_new (Scanless_R * slr)
 	if (assertion >= 0 && marpa_r_zwa_default_set (r0, assertion, 1) < 0)
 	  {
 	    croak
-	      ("Problem in u_read() with assertion ID %ld and lexeme ID %ld: %s",
+	      ("Problem in u_r0_new() with assertion ID %ld and lexeme ID %ld: %s",
 	       (long) assertion, (long) terminal,
 	       xs_g_error (lexer_wrapper));
 	  }
@@ -6004,6 +6004,7 @@ PPCODE:
        * after a u_read()
        */
       int consume_input = 0;
+
       if (slr->lexer_start_pos >= 0)
 	{
 	  if (slr->lexer_start_pos >= slr->end_pos)
