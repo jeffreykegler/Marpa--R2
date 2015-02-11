@@ -6000,11 +6000,6 @@ PPCODE:
 
   while (1)
     {
-      /* Flag to indicate whether we should attempt to consume some of the input
-       * after a u_read()
-       */
-      int consume_input = 0;
-
       if (slr->lexer_start_pos >= 0)
 	{
 	  if (slr->lexer_start_pos >= slr->end_pos)
@@ -6037,20 +6032,16 @@ PPCODE:
 		("Internal Marpa SLIF error: u_read returned unknown code: %ld",
 		 (long) lexer_read_result);
 	    }
-	  consume_input = 1;
 	  break;
 	case U_READ_OK:
 	case U_READ_INVALID_CHAR:
 	case U_READ_REJECTED_CHAR:
 	case U_READ_EXHAUSTED_ON_FAILURE:
 	case U_READ_EXHAUSTED_ON_SUCCESS:
-	  consume_input = 1;
 	  break;
 	}
 
 
-      if (consume_input)
-	{
 	  if (marpa_r_is_exhausted (slr->r1))
 	    {
 	      int discard_result = slr_discard (slr);
@@ -6075,7 +6066,6 @@ PPCODE:
 		}
 	    }
 
-	}
 
       if (slr->trace_terminals || slr->trace_lexers)
 	{
