@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 4;
 use English qw( -no_match_vars );
 use Scalar::Util;
 
@@ -55,25 +55,25 @@ my $length = length $input;
 say "Length = $length";
 my $pos = $recce->read(\$input);
 
-my $actual_events = q{};
+my @actual_events = ();
+
 READ: while (1) {
 
-    my @actual_events = ();
 
     EVENT:
     for my $event ( @{ $recce->events() } ) {
         my ($name, @other_stuff) = @{$event};
         say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
-        push @actual_events, $name;
+        push @actual_events, $event;
     }
 
-    if (@actual_events) {
-        $actual_events .= join q{ }, $pos, @actual_events;
-        $actual_events .= "\n";
-    }
     last READ if $pos >= $length;
     $pos = $recce->resume($pos);
 } ## end READ: while (1)
+
+my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @actual_events;
+my $expected_events = join q{ }, (('ws 0') x $length);
+Test::More::is($actual_events, $expected_events, "Test of $length discarded spaces");
 
 my $value_ref = $recce->value();
 die "No parse was found\n" if not defined $value_ref;
