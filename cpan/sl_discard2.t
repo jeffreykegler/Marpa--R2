@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 7;
 use English qw( -no_match_vars );
 use Scalar::Util;
 
@@ -45,26 +45,69 @@ END_OF_SOURCE
     }
 );
 
-
 for my $input ( q{}, ' ', '  ', '   ' ) {
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $null_grammar },
-# { trace_terminals => 99 }
+    my $recce = Marpa::R2::Scanless::R->new(
+        { grammar => $null_grammar },
+    );
+
+    my $length = length $input;
+    say "Length = $length";
+    my $pos = $recce->read( \$input );
+
+    my $p_events = gather_events( $recce, $pos, $length );
+    my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
+    my $expected_events = join q{ }, ( ('ws 0') x $length );
+    Test::More::is( $actual_events, $expected_events,
+        "Test of $length discarded spaces" );
+
+    my $value_ref = $recce->value();
+    die "No parse was found\n" if not defined $value_ref;
+
+    my $result = ${$value_ref};
+    # say Data::Dumper::Dumper($result);
+} ## end for my $input ( q{}, ' ', '  ', '   ' )
+
+# Test of 2 types of events
+my $grammar2 = Marpa::R2::Scanless::G->new(
+    {   bless_package => 'My_Nodes',
+        source        => \(<<'END_OF_SOURCE'),
+:default ::= action => [g1start,g1length,name,values]
+discard default = event => :symbol=off
+lexeme default = action => [ g1start, g1length, start, length, value ]
+    latm => 1
+
+Script ::=
+:discard ~ whitespace event => ws
+whitespace ~ [\s]
+:discard ~ bracketed event => bracketed
+bracketed ~ '(' <no close bracket> ')'
+<no close bracket> ~ [^)]*
+END_OF_SOURCE
+    }
 );
 
-my $length = length $input;
-say "Length = $length";
-my $pos = $recce->read(\$input);
 
-my $p_events = gather_events($recce, $pos, $length);
-my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
-my $expected_events = join q{ }, (('ws 0') x $length);
-Test::More::is($actual_events, $expected_events, "Test of $length discarded spaces");
+for my $input ( q{ ( ) }, q{( ) }, q{ ( )})
+{
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar2 }, );
 
-my $value_ref = $recce->value();
-die "No parse was found\n" if not defined $value_ref;
+    my $length = length $input;
+    say "Length = $length";
+    my $pos = $recce->read( \$input );
 
-my $result = ${$value_ref};
-say Data::Dumper::Dumper($result);
+    my $p_events = gather_events( $recce, $pos, $length );
+    my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
+    my $expected_events = $input;
+    $expected_events =~ s/[(] \s+ [)]/bracketed 0/xms;
+    $expected_events =~ s/\A \s /ws 0 /xms;
+    $expected_events =~ s/\s \z/ ws 0/xms;
+    Test::More::is( $actual_events, $expected_events,
+        "Test of two discard types, length=$length" );
+
+    my $value_ref = $recce->value();
+    die "No parse was found\n" if not defined $value_ref;
+
+    my $result = ${$value_ref};
 }
 
 sub gather_events {
@@ -84,5 +127,4 @@ sub gather_events {
     } ## end READ: while (1)
     return \@actual_events;
 } ## end sub gather_event
-
 # vim: expandtab shiftwidth=4:
