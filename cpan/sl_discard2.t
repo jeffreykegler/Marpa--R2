@@ -55,23 +55,8 @@ my $length = length $input;
 say "Length = $length";
 my $pos = $recce->read(\$input);
 
-my @actual_events = ();
-
-READ: while (1) {
-
-
-    EVENT:
-    for my $event ( @{ $recce->events() } ) {
-        my ($name, @other_stuff) = @{$event};
-        say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
-        push @actual_events, $event;
-    }
-
-    last READ if $pos >= $length;
-    $pos = $recce->resume($pos);
-} ## end READ: while (1)
-
-my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @actual_events;
+my $p_events = gather_events($recce, $pos, $length);
+my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
 my $expected_events = join q{ }, (('ws 0') x $length);
 Test::More::is($actual_events, $expected_events, "Test of $length discarded spaces");
 
@@ -81,5 +66,23 @@ die "No parse was found\n" if not defined $value_ref;
 my $result = ${$value_ref};
 say Data::Dumper::Dumper($result);
 }
+
+sub gather_events {
+    my ($recce, $pos, $length) = @_;
+    my @actual_events;
+    READ: while (1) {
+
+        EVENT:
+        for my $event ( @{ $recce->events() } ) {
+            my ( $name, @other_stuff ) = @{$event};
+            # say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
+            push @actual_events, $event;
+        }
+
+        last READ if $pos >= $length;
+        $pos = $recce->resume($pos);
+    } ## end READ: while (1)
+    return \@actual_events;
+} ## end sub gather_event
 
 # vim: expandtab shiftwidth=4:
