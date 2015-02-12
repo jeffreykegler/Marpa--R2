@@ -1988,7 +1988,7 @@ slr_discard (Scanless_R * slr)
   int lexemes_found = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
-  const Scanless_G * slg = slr->slg;
+  const Scanless_G *slg = slr->slg;
 
   r0 = slr->r0;
   if (!r0)
@@ -2054,6 +2054,20 @@ slr_discard (Scanless_R * slr)
 		  slr_event->t_trace_lexeme_discarded.t_end_of_lexeme =
 		    slr->end_of_lexeme;
 
+		}
+	      if (slr->l0_rule_r_properties[rule_id].
+		  t_event_on_discard_active)
+		{
+		  union marpa_slr_event_s *new_event;
+		  new_event = marpa__slr_event_push (slr->gift);
+		  MARPA_SLREV_TYPE (new_event) = MARPA_SLREV_LEXEME_DISCARDED;
+		  new_event->t_lexeme_discarded.t_rule_id = rule_id;
+		  new_event->t_lexeme_discarded.t_start_of_lexeme =
+		    slr->start_of_lexeme;
+		  new_event->t_lexeme_discarded.t_end_of_lexeme =
+		    slr->end_of_lexeme;
+		  new_event->t_lexeme_discarded.t_last_g1_location =
+		    marpa_r_latest_earley_set (slr->r1);
 		}
 	      /* If there is discarded item, we are fine,
 	       * and can return success.
