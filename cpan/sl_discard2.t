@@ -46,12 +46,13 @@ END_OF_SOURCE
 );
 
 
+for my $input ( q{}, ' ', '  ', '   ' ) {
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $null_grammar },
 # { trace_terminals => 99 }
 );
 
-my $input = '  ';
 my $length = length $input;
+say "Length = $length";
 my $pos = $recce->read(\$input);
 
 my $actual_events = q{};
@@ -79,5 +80,6 @@ die "No parse was found\n" if not defined $value_ref;
 
 my $result = ${$value_ref};
 say Data::Dumper::Dumper($result);
+}
 
 # vim: expandtab shiftwidth=4:
