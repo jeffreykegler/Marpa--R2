@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 23;
 use English qw( -no_match_vars );
 use Scalar::Util;
 
@@ -51,7 +51,6 @@ for my $input ( q{}, ' ', '  ', '   ' ) {
     );
 
     my $length = length $input;
-    say "Length = $length";
     my $pos = $recce->read( \$input );
 
     my $p_events = gather_events( $recce, $pos, $length );
@@ -92,7 +91,6 @@ for my $input ( q{ ( ) }, q{( ) }, q{ ( )})
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar2 }, );
 
     my $length = length $input;
-    say "Length = $length";
     my $pos = $recce->read( \$input );
 
     my $p_events = gather_events( $recce, $pos, $length );
@@ -101,6 +99,64 @@ for my $input ( q{ ( ) }, q{( ) }, q{ ( )})
     $expected_events =~ s/[(] \s+ [)]/bracketed 0/xms;
     $expected_events =~ s/\A \s /ws 0 /xms;
     $expected_events =~ s/\s \z/ ws 0/xms;
+    Test::More::is( $actual_events, $expected_events,
+        "Test of two discard types, length=$length" );
+
+    my $value_ref = $recce->value();
+    die "No parse was found\n" if not defined $value_ref;
+
+    my $result = ${$value_ref};
+}
+
+# Discards with a non-trivial grammar
+
+my $non_trivial_grammar = Marpa::R2::Scanless::G->new(
+    {   bless_package => 'My_Nodes',
+        source        => \(<<'END_OF_SOURCE'),
+:default ::= action => [g1start,g1length,name,values]
+discard default = event => :symbol=off
+lexeme default = action => [ g1start, g1length, start, length, value ]
+    latm => 1
+
+text ::= a b c
+a ~ 'a'
+b ~ 'b'
+c ~ 'c'
+:discard ~ whitespace event => ws
+whitespace ~ [\s]
+END_OF_SOURCE
+    }
+);
+
+for my $pattern (0 .. 15)
+{
+    # use binary numbers to generate all possible
+    # space patterns
+    my @spaces = split //xms, sprintf "%04b", $pattern;
+    my @chars = qw{a b c};
+    my @input = ();
+    for my $i (0 .. 2) {
+       push @input, ' ' if $spaces[$i];
+       push @input, $chars[$i];
+    }
+    push @input, ' ' if $spaces[3];
+
+    my @expected = ();
+    for my $i (0 .. 3) {
+        push @expected, "ws $i" if $spaces[$i];
+    }
+
+    # say join q{}, '^', @input, '$';
+    my $input = join q{}, @input;
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $non_trivial_grammar }, );
+
+    my $length = length $input;
+    my $pos = $recce->read( \$input );
+
+    my $p_events = gather_events( $recce, $pos, $length );
+    my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
+    my $expected_events = join q{ }, @expected;
     Test::More::is( $actual_events, $expected_events,
         "Test of two discard types, length=$length" );
 
