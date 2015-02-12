@@ -86,7 +86,7 @@ END_OF_SOURCE
 );
 
 
-for my $input ( q{ ( ) }, q{( ) }, q{ ( )})
+for my $input ( q{ (x) }, q{(x) }, q{ (x)})
 {
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar2 }, );
 
@@ -96,7 +96,7 @@ for my $input ( q{ ( ) }, q{( ) }, q{ ( )})
     my $p_events = gather_events( $recce, $pos, $length );
     my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
     my $expected_events = $input;
-    $expected_events =~ s/[(] \s+ [)]/bracketed 0/xms;
+    $expected_events =~ s/[(] [x]+ [)]/bracketed 0/xms;
     $expected_events =~ s/\A \s /ws 0 /xms;
     $expected_events =~ s/\s \z/ ws 0/xms;
     Test::More::is( $actual_events, $expected_events,
