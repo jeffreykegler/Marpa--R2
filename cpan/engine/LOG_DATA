@@ -1,3 +1,9 @@
+commit ed67544a5bc52fa8de75fd004e80570c8e81129e
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Wed Feb 11 17:24:21 2015 -0800
+
+    Fix for trivial grammars: t+
+
 commit c2b1ae0967ec7437811ffe03d6b6b814de8bc977
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Mon Feb 9 21:37:04 2015 -0800
@@ -21,9 +27,3 @@ Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Tue Feb 3 20:18:36 2015 -0800
 
     Bump version to 7.9.0
-
-commit 28ee7c8fb462ceeee65820c61c906184fe106e84
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Feb 2 21:45:55 2015 -0800
-
-    Add null events for trivial grammars

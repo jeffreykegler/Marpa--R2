@@ -164,7 +164,7 @@
 #define MARPA_STEP_INITIAL 7
 
 /*1344:*/
-#line 16186 "./marpa.w"
+#line 16187 "./marpa.w"
 
 extern const int marpa_major_version;
 extern const int marpa_minor_version;
@@ -205,7 +205,7 @@ extern const int marpa_micro_version;
 #define marpa_v_es_id(v) ((v)->t_ys_id)
 
 /*:1046*/
-#line 16191 "./marpa.w"
+#line 16192 "./marpa.w"
 
 /*47:*/
 #line 634 "./marpa.w"
@@ -244,7 +244,7 @@ typedef struct marpa_tree*Marpa_Tree;
 struct marpa_value;
 typedef struct marpa_value*Marpa_Value;
 /*:1041*/
-#line 16192 "./marpa.w"
+#line 16193 "./marpa.w"
 
 /*91:*/
 #line 899 "./marpa.w"
@@ -315,7 +315,7 @@ typedef int Marpa_Step_Type;
 typedef const char*Marpa_Message_ID;
 
 /*:1230*/
-#line 16193 "./marpa.w"
+#line 16194 "./marpa.w"
 
 /*44:*/
 #line 594 "./marpa.w"
@@ -360,7 +360,7 @@ Marpa_Earley_Set_ID t_rule_start_ys_id;
 Marpa_Earley_Set_ID t_ys_id;
 };
 /*:1045*/
-#line 16194 "./marpa.w"
+#line 16195 "./marpa.w"
 
 /*1229:*/
 #line 14731 "./marpa.w"
@@ -368,14 +368,14 @@ Marpa_Earley_Set_ID t_ys_id;
 extern void*(*const marpa__out_of_memory)(void);
 
 /*:1229*//*1321:*/
-#line 15991 "./marpa.w"
+#line 15992 "./marpa.w"
 
 extern int marpa__default_debug_handler(const char*format,...);
 extern int(*marpa__debug_handler)(const char*,...);
 extern int marpa__debug_level;
 
 /*:1321*/
-#line 16195 "./marpa.w"
+#line 16196 "./marpa.w"
 
 
 /*:1344*/
