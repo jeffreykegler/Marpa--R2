@@ -100,7 +100,7 @@ for my $input ( q{ ( ) }, q{( ) }, q{ ( )})
     $expected_events =~ s/\A \s /ws 0 /xms;
     $expected_events =~ s/\s \z/ ws 0/xms;
     Test::More::is( $actual_events, $expected_events,
-        "Test of two discard types, length=$length" );
+        qq{Test of two discard types, input="$input"} );
 
     my $value_ref = $recce->value();
     die "No parse was found\n" if not defined $value_ref;
@@ -158,7 +158,7 @@ for my $pattern (0 .. 15)
     my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
     my $expected_events = join q{ }, @expected;
     Test::More::is( $actual_events, $expected_events,
-        "Test of two discard types, length=$length" );
+        qq{Test of non-trivial parse, input="$input"} );
 
     my $value_ref = $recce->value();
     die "No parse was found\n" if not defined $value_ref;
