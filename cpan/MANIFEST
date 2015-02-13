@@ -265,6 +265,7 @@ t/sl_completed.t
 t/sl_debug.t
 t/sl_diag.t
 t/sl_discard2.t
+t/sl_discard3.t
 t/sl_dsl.t
 t/sl_durand.t
 t/sl_dyck.t
