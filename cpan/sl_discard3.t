@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 102;
 use English qw( -no_match_vars );
 use Scalar::Util;
 
@@ -30,9 +30,10 @@ use Marpa::R2::Test;
 
 use Marpa::R2;
 
-my $null_grammar = Marpa::R2::Scanless::G->new(
-    {   bless_package => 'My_Nodes',
-        source        => \(<<'END_OF_SOURCE'),
+for my $grammar_setting ( '=on', '=off', q{} ) {
+    for my $recce_setting ( '=on', '=off', q{} ) {
+
+        my $null_dsl = <<'END_OF_SOURCE';
 :default ::= action => [g1start,g1length,name,values]
 discard default = event => :symbol=off
 lexeme default = action => [ g1start, g1length, start, length, value ]
@@ -42,35 +43,62 @@ Script ::=
 :discard ~ whitespace event => ws=on
 whitespace ~ [\s]
 END_OF_SOURCE
-    }
-);
 
-for my $input ( q{}, ' ', '  '  ) {
-    my $recce = Marpa::R2::Scanless::R->new(
-        { grammar => $null_grammar },
-    );
+       $null_dsl =~ s/ =on $ /$grammar_setting/xms;
 
-    my $length = length $input;
-    my $pos = $recce->read( \$input );
 
-    my $p_events = gather_events( $recce, $pos, $length );
-    my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
-    my $expected_events = join q{ }, ( ('ws 0') x $length );
-    Test::More::is( $actual_events, $expected_events,
-        "Test of $length discarded spaces" );
+       my $event_is_on = 1;
+       my $recce_arg = {};
+       if ($recce_setting eq '=on') {
+          $recce_arg = { event_is_active => { ws => 1}};
+       } elsif ($recce_setting eq '=off') {
+          $recce_arg = { event_is_active => { ws => 0}};
+          $event_is_on = 0;
+       } else {
+           $event_is_on = 0 if $grammar_setting eq '=off';
+       }
 
-    my $value_ref = $recce->value();
-    die "No parse was found\n" if not defined $value_ref;
+        my $null_grammar = Marpa::R2::Scanless::G->new(
+            {   bless_package => 'My_Nodes',
+                source        => \$null_dsl,
+            }
+        );
 
-    my $result = ${$value_ref};
-    # say Data::Dumper::Dumper($result);
-} ## end for my $input ( q{}, ' ', '  ', '   ' )
+        for my $input ( q{}, ' ', '  ' ) {
+
+            my $recce =
+                Marpa::R2::Scanless::R->new( { grammar => $null_grammar },
+                $recce_arg );
+
+            my $length = length $input;
+            my $pos    = $recce->read( \$input );
+
+            my $p_events = gather_events( $recce, $pos, $length );
+            my $actual_events = join q{ },
+                map { $_->[0], $_->[-1] } @{$p_events};
+
+            my $expected_events = q{};
+            if ($event_is_on) {
+                $expected_events = join q{ }, ( ('ws 0') x $length );
+            }
+
+            my $test_name = "Test of $length discarded spaces";
+            $test_name .= ' g' . $grammar_setting if $grammar_setting;
+            $test_name .= ' r' . $recce_setting if $recce_setting;
+            Test::More::is( $actual_events, $expected_events, $test_name);
+
+            my $value_ref = $recce->value();
+            die "No parse was found\n" if not defined $value_ref;
+
+            my $result = ${$value_ref};
+
+            # say Data::Dumper::Dumper($result);
+        } ## end for my $input ( q{}, ' ', '  ' )
 
 # Discards with a non-trivial grammar
 
-my $non_trivial_grammar = Marpa::R2::Scanless::G->new(
-    {   bless_package => 'My_Nodes',
-        source        => \(<<'END_OF_SOURCE'),
+        my $non_trivial_dsl =
+                <<'END_OF_SOURCE';
 :default ::= action => [g1start,g1length,name,values]
 discard default = event => :symbol=off
 lexeme default = action => [ g1start, g1length, start, length, value ]
@@ -82,46 +110,62 @@ b ~ 'b'
 :discard ~ whitespace event => ws=on
 whitespace ~ [\s]
 END_OF_SOURCE
-    }
-);
+       $non_trivial_dsl =~ s/ =on $ /$grammar_setting/xms;
 
-for my $pattern (0 .. 7)
-{
-    # use binary numbers to generate all possible
-    # space patterns
-    my @spaces = split //xms, sprintf "%03b", $pattern;
-    my @chars = qw{a b};
-    my @input = ();
-    for my $i (0 .. 1) {
-       push @input, ' ' if $spaces[$i];
-       push @input, $chars[$i];
-    }
-    push @input, ' ' if $spaces[-1];
+        my $non_trivial_grammar = Marpa::R2::Scanless::G->new(
+            {   bless_package => 'My_Nodes',
+            source => \$non_trivial_dsl
+            }
+        );
 
-    my @expected = ();
-    for my $i (0 .. $#spaces) {
-        push @expected, "ws $i" if $spaces[$i];
-    }
+        for my $pattern ( 0 .. 7 ) {
 
-    # say join q{}, '^', @input, '$';
-    my $input = join q{}, @input;
+            # use binary numbers to generate all possible
+            # space patterns
+            my @spaces = split //xms, sprintf "%03b", $pattern;
+            my @chars  = qw{a b};
+            my @input  = ();
+            for my $i ( 0 .. 1 ) {
+                push @input, ' ' if $spaces[$i];
+                push @input, $chars[$i];
+            }
+            push @input, ' ' if $spaces[-1];
 
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $non_trivial_grammar }, );
+            my @expected = ();
+            for my $i ( 0 .. $#spaces ) {
+                push @expected, "ws $i" if $spaces[$i];
+            }
 
-    my $length = length $input;
-    my $pos = $recce->read( \$input );
+            # say join q{}, '^', @input, '$';
+            my $input = join q{}, @input;
 
-    my $p_events = gather_events( $recce, $pos, $length );
-    my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
-    my $expected_events = join q{ }, @expected;
-    Test::More::is( $actual_events, $expected_events,
-        qq{Test of non-trivial parse, input="$input"} );
+            my $recce = Marpa::R2::Scanless::R->new(
+                { grammar => $non_trivial_grammar },
+                $recce_arg
+            );
 
-    my $value_ref = $recce->value();
-    die "No parse was found\n" if not defined $value_ref;
+            my $length = length $input;
+            my $pos    = $recce->read( \$input );
 
-    my $result = ${$value_ref};
-}
+            my $p_events = gather_events( $recce, $pos, $length );
+            my $actual_events = join q{ },
+                map { $_->[0], $_->[-1] } @{$p_events};
+            my $expected_events = q{};
+            if ($event_is_on) {
+                $expected_events = join q{ }, @expected;
+            }
+            my $test_name = qq{Test of non-trivial parse, input="$input"};
+            $test_name .= ' g' . $grammar_setting if $grammar_setting;
+            $test_name .= ' r' . $recce_setting if $recce_setting;
+            Test::More::is( $actual_events, $expected_events, $test_name);
+
+            my $value_ref = $recce->value();
+            die "No parse was found\n" if not defined $value_ref;
+
+            my $result = ${$value_ref};
+        } ## end for my $pattern ( 0 .. 7 )
+    } ## end for my $recce_setting ( 1, 0, -1 )
+} ## end for my $grammar_setting ( '=on', '=off', q{} )
 
 # Test of 2 types of events
 my $grammar2 = Marpa::R2::Scanless::G->new(
