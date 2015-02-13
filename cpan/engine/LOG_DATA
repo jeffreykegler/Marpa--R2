@@ -1,29 +1,35 @@
-commit ed67544a5bc52fa8de75fd004e80570c8e81129e
+commit b9fd01d65e47e7ba1a15da2019492cb5752d51f4
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Wed Feb 11 17:24:21 2015 -0800
+Date:   Thu Feb 12 19:33:12 2015 -0800
 
-    Fix for trivial grammars: t+
+    Bump Libmarpa version to 8.0.0
 
-commit c2b1ae0967ec7437811ffe03d6b6b814de8bc977
+commit 758fc7e4c73d77e0a16ff550b20b10914debf5ac
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Feb 9 21:37:04 2015 -0800
+Date:   Thu Feb 12 19:32:19 2015 -0800
 
-    Fixes to events for trivial grammars
+    Fix github issue #12
 
-commit 0681cf3591dfd357f3c7fce659998cac111cc980
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Feb 9 20:59:56 2015 -0800
+commit 13da627504c899bd9b884e4de66f18e51a3cadbe
+Merge: 2f08ac4 5109ff5
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Thu Feb 12 19:21:36 2015 -0800
 
-    Fixes to events for trivial grammars
+    Merge pull request #13 from rns/fix_pedantic_warnings
+    
+    fix warning: implicit declaration of function ‘sprintf’
 
-commit a51efd33a2e31a062e838f413c338d8a85e36007
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Feb 9 19:31:33 2015 -0800
+commit 5109ff5d9af30ac05059b3ce7c4a5a6a2f9fb612
+Author: rns <ruslan.shvedov@gmail.com>
+Date:   Thu Feb 12 22:28:31 2015 +0200
 
-    Fixes to events for trivial grammars
+    fix warning: implicit declaration of function ‘sprintf’
 
-commit 4abdfef9222fc87f1c319956c11f58e1cdad5a0f
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Tue Feb 3 20:18:36 2015 -0800
+commit 2f08ac4320e541d4f984939ecbb7a0fc5195b812
+Merge: ed67544 848c888
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Thu Feb 12 09:23:58 2015 -0800
 
-    Bump version to 7.9.0
+    Merge pull request #11 from rns/public_methods_on_trivial_grammar
+    
+    Public methods on trivial grammar
