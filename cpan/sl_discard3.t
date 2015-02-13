@@ -264,7 +264,7 @@ END_OF_SOURCE
         $test_name .= ' bracketed:g' . $bracketed_g_setting if $bracketed_g_setting;
         $test_name .= ' bracketed:r' . $bracketed_r_setting if $bracketed_r_setting;
 
-        Test::More::is( $actual_events, $expected_events, $test_name);
+        Test::More::is( $actual_events, '!test!', $test_name);
 
         my $value_ref = $recce->value();
         die "No parse was found\n" if not defined $value_ref;
