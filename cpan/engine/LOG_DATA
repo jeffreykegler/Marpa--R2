@@ -1,35 +1,37 @@
-commit b9fd01d65e47e7ba1a15da2019492cb5752d51f4
+commit 48c1e316b85fd6614a07be7977c1d427a0944e8b
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Feb 12 19:33:12 2015 -0800
+Date:   Fri Feb 13 08:37:53 2015 -0800
 
-    Bump Libmarpa version to 8.0.0
+    Fixes issues raised in github issue #19
 
-commit 758fc7e4c73d77e0a16ff550b20b10914debf5ac
+commit d3a0f37ae1a6353a7d47dee7db615169f40e21fe
+Merge: 12ff7ed 56448d9
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Feb 12 19:32:19 2015 -0800
+Date:   Fri Feb 13 08:27:54 2015 -0800
 
-    Fix github issue #12
+    Merge remote-tracking branch 'origin/master'
 
-commit 13da627504c899bd9b884e4de66f18e51a3cadbe
-Merge: 2f08ac4 5109ff5
+commit 56448d961552dc3f56c64b9df0c109562fd7801a
+Merge: 1992428 12d97e4
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Thu Feb 12 19:21:36 2015 -0800
+Date:   Fri Feb 13 08:27:27 2015 -0800
 
-    Merge pull request #13 from rns/fix_pedantic_warnings
+    Merge pull request #20 from rns/patch-10
     
-    fix warning: implicit declaration of function ‘sprintf’
+    Update api.texi
 
-commit 5109ff5d9af30ac05059b3ce7c4a5a6a2f9fb612
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Thu Feb 12 22:28:31 2015 +0200
+commit 12ff7eda645eef8ce3b1229a7aacfa3dc63e1f0a
+Merge: 1b93ef5 1992428
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Fri Feb 13 08:22:44 2015 -0800
 
-    fix warning: implicit declaration of function ‘sprintf’
+    Merge remote-tracking branch 'origin/master'
 
-commit 2f08ac4320e541d4f984939ecbb7a0fc5195b812
-Merge: ed67544 848c888
+commit 1992428b8250f56b794d68a30935f0149565ac85
+Merge: 24272eb c50bc1c
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Thu Feb 12 09:23:58 2015 -0800
+Date:   Fri Feb 13 08:21:14 2015 -0800
 
-    Merge pull request #11 from rns/public_methods_on_trivial_grammar
+    Merge pull request #19 from rns/methods_from_11.5_Rules_on_trivial_grammar
     
-    Public methods on trivial grammar
+    Methods from 11.5 rules on trivial grammar
