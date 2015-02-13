@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.103_006 (libmarpa 8.0.0) Thu Feb 12 20:04:46 PST 2015
+
+   * New Libmarpa version
+
 2.103_005 (libmarpa 7.10.0) Mon Feb  9 21:03:58 PST 2015
 
    * New Libmarpa version
