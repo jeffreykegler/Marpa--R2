@@ -71,7 +71,7 @@ END_OF_SOURCE
 
 my $input = <<'EOI';
 42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3),
-# Hardy-Ramujan number
+# Hardy-Ramanujan number
 1729, 1**3+12**3, 9**3+10**3,
 # Next highest taxibab number
 # note: weird spacing is deliberate
