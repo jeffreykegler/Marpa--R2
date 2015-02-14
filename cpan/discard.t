@@ -73,7 +73,7 @@ my $input = <<'EOI';
 42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3),
 # Hardy-Ramanujan number
 1729, 1**3+12**3, 9**3+10**3,
-# Next highest taxibab number
+# Next highest taxicab number
 # note: weird spacing is deliberate
 87539319, 1673+ 4363,2283 + 4233,2553+4143
 EOI
