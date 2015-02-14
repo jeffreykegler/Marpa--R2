@@ -34,23 +34,22 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   bless_package => 'My_Nodes',
+    {
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => [values] bless => ::lhs
-lexeme default = action => [ start, length, value ]
-    bless => ::name latm => 1
+:default ::= action => [g1start, g1length, values]
+lexeme default = latm => 1
 
-:start ::= Script
-Script ::= Expression+ separator => comma
+Script ::= Expression+ separator => comma action => do_expression
 comma ~ [,]
-Expression ::=
-    Number bless => primary
-    | '(' Expression ')' bless => paren assoc => group
-   || Expression '**' Expression bless => exponentiate assoc => right
-   || Expression '*' Expression bless => multiply
-    | Expression '/' Expression bless => divide
-   || Expression '+' Expression bless => add
-    | Expression '-' Expression bless => subtract
+Expression ::= Subexpression action => [g1start,g1length,value]
+Subexpression ::=
+    Number action => do_number
+    | ('(') Subexpression (')') assoc => group action => do_paren
+   || Subexpression ('**') Subexpression assoc => right action => do_power
+   || Subexpression ('*') Subexpression  action => do_multiply
+    | Subexpression ('/') Subexpression  action => do_divide
+   || Subexpression ('+') Subexpression  action => do_add
+    | Subexpression ('-') Subexpression  action => do_subtract
 
 Number ~ [\d]+
 :discard ~ whitespace event => ws
@@ -79,16 +78,18 @@ my $input = <<'EOI';
 87539319, 1673+ 4363,2283 + 4233,2553+4143
 EOI
 
-my $output_re = 
+my $output_re =
             qr/\A 86[.]3\d+ \s+ 126 \s+ 125 \s+ 16 \s+ 1729 \s+ 1729 \s+ 1729 .*\z/xms;
 
 
     my $length = length $input;
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar,
+    semantics_package => 'My_Nodes',
+    } );
 
     my $pos = $recce->read(\$input);
 
-    my $actual_events = q{};
+    my @events = ();
     READ: while (1) {
 
         my @actual_events = ();
@@ -97,58 +98,62 @@ my $output_re =
         for my $event ( @{ $recce->events() } ) {
             my ( $name, @other_stuff ) = @{$event};
             say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
-            push @actual_events, $name;
+            push @events, [ 'event', @{$event} ];
         }
 
-        if (@actual_events) {
-            $actual_events .= join q{ }, $pos, @actual_events;
-            $actual_events .= "\n";
-        }
         last READ if $pos >= $length;
         $pos = $recce->resume($pos);
     } ## end READ: while (1)
 
-    my $value_ref = $recce->value();
+    my $result = { values => \@events };
+    my $value_ref = $recce->value($result);
     if ( not defined $value_ref ) {
         die "No parse was found, after reading the entire input\n";
     }
-    my $value = ${$value_ref}->doit();
-Test::More::like( $value, $output_re, 'Example of discard events' );
+    say STDERR "value: ", Data::Dumper::Dumper($result);
+# Test::More::like( $value, $output_re, 'Example of discard events' );
 
 package My_Nodes;
 
-sub My_Nodes::primary::doit { return $_[0]->[0]->doit() }
-sub My_Nodes::Number::doit  { return $_[0]->[2] }
-sub My_Nodes::paren::doit   { my ($self) = @_; $self->[1]->doit() }
-
-sub My_Nodes::add::doit {
-    my ($self) = @_;
-    $self->[0]->doit() + $self->[2]->doit();
+sub My_Nodes::do_expression {
+    my ($parse, @values) = @_;
+    # say STDERR "pushing value: ", Data::Dumper::Dumper(\@_);
+    push @{$parse->{values}}, map { [ 'value', @{$_} ] } @values ;
 }
 
-sub My_Nodes::subtract::doit {
-    my ($self) = @_;
-    $self->[0]->doit() - $self->[2]->doit();
+sub My_Nodes::do_number {
+    my ($parse, $number) = @_;
+    return $number+0;
 }
 
-sub My_Nodes::multiply::doit {
-    my ($self) = @_;
-    $self->[0]->doit() * $self->[2]->doit();
+sub My_Nodes::do_paren  {
+    my ($parse, $expr) = @_;
+    return $expr;
 }
 
-sub My_Nodes::divide::doit {
-    my ($self) = @_;
-    $self->[0]->doit() / $self->[2]->doit();
+sub My_Nodes::do_add {
+    my ($parse, $right, $left) = @_;
+    return $right + $left;
 }
 
-sub My_Nodes::exponentiate::doit {
-    my ($self) = @_;
-    $self->[0]->doit()**$self->[2]->doit();
+sub My_Nodes::do_subtract {
+    my ($parse, $right, $left) = @_;
+    return $right - $left;
 }
 
-sub My_Nodes::Script::doit {
-    my ($self) = @_;
-    return join q{ }, map { $_->doit() } @{$self};
+sub My_Nodes::do_multiply {
+    my ($parse, $right, $left) = @_;
+    return $right * $left;
+}
+
+sub My_Nodes::do_divide {
+    my ($parse, $right, $left) = @_;
+    return $right / $left;
+}
+
+sub My_Nodes::do_power {
+    my ($parse, $right, $left) = @_;
+    return $right ** $left;
 }
 
 # vim: expandtab shiftwidth=4:
