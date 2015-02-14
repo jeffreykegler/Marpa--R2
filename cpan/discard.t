@@ -14,12 +14,12 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# A "full" Synopsis for the intro doc to the SLIF
+# Example of use of discard events
 
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 3;
 use English qw( -no_match_vars );
 use Scalar::Util;
 
@@ -28,18 +28,21 @@ use Marpa::R2::Test;
 
 ## no critic (ErrorHandling::RequireCarping);
 
+# Marpa::R2::Display
+# name: SLIF DSL synopsis
+
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => [g1start,g1length,name,values]
-discard default = event => :symbol=off
-lexeme default = action => [ g1start, g1length, start, length, value ]
-    latm => 1
+:default ::= action => [values] bless => ::lhs
+lexeme default = action => [ start, length, value ]
+    bless => ::name latm => 1
 
 :start ::= Script
-Script ::= Expression+
+Script ::= Expression+ separator => comma
+comma ~ [,]
 Expression ::=
     Number bless => primary
     | '(' Expression ')' bless => paren assoc => group
@@ -50,12 +53,10 @@ Expression ::=
     | Expression '-' Expression bless => subtract
 
 Number ~ [\d]+
-:discard ~ whitespace event => ws=on
-:discard ~ comma event => comma=on
-comma ~ ','
+:discard ~ whitespace event => ws
 whitespace ~ [\s]+
 # allow comments
-:discard ~ <hash comment>
+:discard ~ <hash comment> event => comment
 <hash comment> ~ <terminated hash comment> | <unterminated
    final hash comment>
 <terminated hash comment> ~ '#' <hash comment body> <vertical space char>
@@ -67,39 +68,87 @@ END_OF_SOURCE
     }
 );
 
+# Marpa::R2::Display::End
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+my $input = <<'EOI';
+42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3),
+# Hardy-Ramujan number
+1729, 1**3+12**3, 9**3+10**3,
+# Next highest taxibab number
+# note: weird spacing is deliberate
+87539319, 1673+ 4363,2283 + 4233,2553+4143
+EOI
 
-my $input = '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)';
-my $length = length $input;
-my $pos = $recce->read(\$input);
+my $output_re = 
+            qr/\A 86[.]3\d+ \s+ 126 \s+ 125 \s+ 16 \s+ 1729 \s+ 1729 \s+ 1729 .*\z/xms;
 
-my $actual_events = q{};
-READ: while (1) {
 
-    my @actual_events = ();
+    my $length = length $input;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
-    EVENT:
-    for my $event ( @{ $recce->events() } ) {
-        my ($name, @other_stuff) = @{$event};
-        say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
-        push @actual_events, $name;
+    my $pos = $recce->read(\$input);
+
+    my $actual_events = q{};
+    READ: while (1) {
+
+        my @actual_events = ();
+
+        EVENT:
+        for my $event ( @{ $recce->events() } ) {
+            my ( $name, @other_stuff ) = @{$event};
+            say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
+            push @actual_events, $name;
+        }
+
+        if (@actual_events) {
+            $actual_events .= join q{ }, $pos, @actual_events;
+            $actual_events .= "\n";
+        }
+        last READ if $pos >= $length;
+        $pos = $recce->resume($pos);
+    } ## end READ: while (1)
+
+    my $value_ref = $recce->value();
+    if ( not defined $value_ref ) {
+        die "No parse was found, after reading the entire input\n";
     }
+    my $value = ${$value_ref}->doit();
+Test::More::like( $value, $output_re, 'Example of discard events' );
 
-    if (@actual_events) {
-        $actual_events .= join q{ }, $pos, @actual_events;
-        $actual_events .= "\n";
-    }
-    last READ if $pos >= $length;
-    $pos = $recce->resume($pos);
-} ## end READ: while (1)
+package My_Nodes;
 
-my $value_ref = $recce->value();
-die "No parse was found\n" if not defined $value_ref;
+sub My_Nodes::primary::doit { return $_[0]->[0]->doit() }
+sub My_Nodes::Number::doit  { return $_[0]->[2] }
+sub My_Nodes::paren::doit   { my ($self) = @_; $self->[1]->doit() }
 
-# Result will be something like "86.33... 126 125 16"
-# depending on the floating point precision
-my $result = ${$value_ref};
-# say Data::Dumper::Dumper($result);
+sub My_Nodes::add::doit {
+    my ($self) = @_;
+    $self->[0]->doit() + $self->[2]->doit();
+}
+
+sub My_Nodes::subtract::doit {
+    my ($self) = @_;
+    $self->[0]->doit() - $self->[2]->doit();
+}
+
+sub My_Nodes::multiply::doit {
+    my ($self) = @_;
+    $self->[0]->doit() * $self->[2]->doit();
+}
+
+sub My_Nodes::divide::doit {
+    my ($self) = @_;
+    $self->[0]->doit() / $self->[2]->doit();
+}
+
+sub My_Nodes::exponentiate::doit {
+    my ($self) = @_;
+    $self->[0]->doit()**$self->[2]->doit();
+}
+
+sub My_Nodes::Script::doit {
+    my ($self) = @_;
+    return join q{ }, map { $_->doit() } @{$self};
+}
 
 # vim: expandtab shiftwidth=4:
