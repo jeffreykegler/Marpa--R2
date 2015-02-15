@@ -1,3 +1,9 @@
+commit 210b07066d55b7083e17dd0572b7bb08ec07ae81
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sat Feb 14 18:10:55 2015 -0800
+
+    Attempt to fix github issue #17
+
 commit 4376c7ba9151546d4b8d489ef8a6aa7ae8519cba
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sat Feb 14 15:29:32 2015 -0800
@@ -17,18 +23,9 @@ Date:   Sat Feb 14 09:35:32 2015 -0800
     Followup on github issue #27
 
 commit d8d451d9300dd8b5a233ae51c63c1e8d0418e9c6
-Merge: 6d58276 3dbe42a
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
 Date:   Sat Feb 14 08:33:15 2015 -0800
 
     Merge pull request #27 from rns/follow_up_on_11.4_Symbols
     
     Follow up on 11.4 symbols
-
-commit 6d5827644b71e91d0c60dd1beefb939b9643080f
-Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Sat Feb 14 08:30:12 2015 -0800
-
-    Merge pull request #25 from rns/patch-14
-    
-    Update api.texi
