@@ -1,37 +1,34 @@
-commit 48c1e316b85fd6614a07be7977c1d427a0944e8b
+commit 4376c7ba9151546d4b8d489ef8a6aa7ae8519cba
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Feb 13 08:37:53 2015 -0800
+Date:   Sat Feb 14 15:29:32 2015 -0800
 
-    Fixes issues raised in github issue #19
+    Fix github issue #26
 
-commit d3a0f37ae1a6353a7d47dee7db615169f40e21fe
-Merge: 12ff7ed 56448d9
+commit bf8381717727028f5bab17ec51ad85f96a8e9e25
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Feb 13 08:27:54 2015 -0800
+Date:   Sat Feb 14 10:02:31 2015 -0800
 
-    Merge remote-tracking branch 'origin/master'
+    Add github pull request #24 by hand
 
-commit 56448d961552dc3f56c64b9df0c109562fd7801a
-Merge: 1992428 12d97e4
+commit 6a515f1de85b4e935df4ac16260e83d4e328ac4c
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sat Feb 14 09:35:32 2015 -0800
+
+    Followup on github issue #27
+
+commit d8d451d9300dd8b5a233ae51c63c1e8d0418e9c6
+Merge: 6d58276 3dbe42a
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Fri Feb 13 08:27:27 2015 -0800
+Date:   Sat Feb 14 08:33:15 2015 -0800
 
-    Merge pull request #20 from rns/patch-10
+    Merge pull request #27 from rns/follow_up_on_11.4_Symbols
+    
+    Follow up on 11.4 symbols
+
+commit 6d5827644b71e91d0c60dd1beefb939b9643080f
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Sat Feb 14 08:30:12 2015 -0800
+
+    Merge pull request #25 from rns/patch-14
     
     Update api.texi
-
-commit 12ff7eda645eef8ce3b1229a7aacfa3dc63e1f0a
-Merge: 1b93ef5 1992428
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Feb 13 08:22:44 2015 -0800
-
-    Merge remote-tracking branch 'origin/master'
-
-commit 1992428b8250f56b794d68a30935f0149565ac85
-Merge: 24272eb c50bc1c
-Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Fri Feb 13 08:21:14 2015 -0800
-
-    Merge pull request #19 from rns/methods_from_11.5_Rules_on_trivial_grammar
-    
-    Methods from 11.5 rules on trivial grammar

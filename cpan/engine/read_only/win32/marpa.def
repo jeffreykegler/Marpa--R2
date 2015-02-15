@@ -1,7 +1,7 @@
 ; DO NOT EDIT DIRECTLY.
 ; This file was automatically generated.
 ; This file is for the Microsoft linker.
-; Fri Feb 13 09:13:01 2015
+; Sat Feb 14 18:12:53 2015
 EXPORTS
    marpa_check_version
    marpa_version
@@ -19,8 +19,8 @@ EXPORTS
    marpa_g_symbol_is_nulling
    marpa_g_symbol_is_productive
    marpa_g_symbol_is_start
-   marpa_g_symbol_is_terminal
    marpa_g_symbol_is_terminal_set
+   marpa_g_symbol_is_terminal
    marpa_g_symbol_new
    marpa_g_highest_rule_id
    marpa_g_rule_is_accessible
@@ -37,10 +37,10 @@ EXPORTS
    marpa_g_sequence_new
    marpa_g_sequence_separator
    marpa_g_symbol_is_counted
-   marpa_g_rule_rank
    marpa_g_rule_rank_set
-   marpa_g_rule_null_high
+   marpa_g_rule_rank
    marpa_g_rule_null_high_set
+   marpa_g_rule_null_high
    marpa_g_completion_symbol_activate
    marpa_g_nulled_symbol_activate
    marpa_g_prediction_symbol_activate
@@ -68,8 +68,8 @@ EXPORTS
    marpa_r_latest_earley_set_value_set
    marpa_r_latest_earley_set_values_set
    marpa_r_completion_symbol_activate
-   marpa_r_earley_item_warning_threshold
    marpa_r_earley_item_warning_threshold_set
+   marpa_r_earley_item_warning_threshold
    marpa_r_expected_symbol_event_set
    marpa_r_is_exhausted
    marpa_r_nulled_symbol_activate
@@ -106,22 +106,22 @@ EXPORTS
    marpa_g_event_count
    marpa_g_error
    marpa_g_error_clear
-   marpa_g_default_rank
    marpa_g_default_rank_set
-   marpa_g_symbol_rank
+   marpa_g_default_rank
    marpa_g_symbol_rank_set
+   marpa_g_symbol_rank
    marpa_g_zwa_new
    marpa_g_zwa_place
    marpa_r_zwa_default
    marpa_r_zwa_default_set
    marpa_g_highest_zwa_id
    marpa_r_clean
-   marpa_g_symbol_is_valued
    marpa_g_symbol_is_valued_set
-   marpa_v_symbol_is_valued
+   marpa_g_symbol_is_valued
    marpa_v_symbol_is_valued_set
-   marpa_v_rule_is_valued
+   marpa_v_symbol_is_valued
    marpa_v_rule_is_valued_set
+   marpa_v_rule_is_valued
    marpa_v_valued_force
    _marpa_g_nsy_is_start
    _marpa_g_nsy_is_nulling
