@@ -1,31 +1,40 @@
-commit 210b07066d55b7083e17dd0572b7bb08ec07ae81
+commit 5f74d09f397142bc8deb6491e5e9336f07f06f2a
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Feb 14 18:10:55 2015 -0800
+Date:   Sun Feb 15 18:19:10 2015 -0800
 
-    Attempt to fix github issue #17
+    Fixes to make trivial1 test OK
 
-commit 4376c7ba9151546d4b8d489ef8a6aa7ae8519cba
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Feb 14 15:29:32 2015 -0800
-
-    Fix github issue #26
-
-commit bf8381717727028f5bab17ec51ad85f96a8e9e25
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Feb 14 10:02:31 2015 -0800
-
-    Add github pull request #24 by hand
-
-commit 6a515f1de85b4e935df4ac16260e83d4e328ac4c
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Feb 14 09:35:32 2015 -0800
-
-    Followup on github issue #27
-
-commit d8d451d9300dd8b5a233ae51c63c1e8d0418e9c6
+commit ac8c4429db07dd9b642768827c5707c74d1f8a32
+Merge: 56dce5b 96757f6
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Sat Feb 14 08:33:15 2015 -0800
+Date:   Sun Feb 15 16:14:57 2015 -0800
 
-    Merge pull request #27 from rns/follow_up_on_11.4_Symbols
+    Merge pull request #34 from rns/patch-18
     
-    Follow up on 11.4 symbols
+    Update api.texi
+
+commit 56dce5b092b2c0a16e7b4eff60e2e19e6902dab7
+Merge: fb9fde0 cbee856
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Sun Feb 15 16:14:00 2015 -0800
+
+    Merge pull request #33 from rns/patch-17
+    
+    Update api.texi
+
+commit fb9fde06c0c7b3763e60e81edff070c481ed7fec
+Merge: 9c8e88e e15ec6f
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Sun Feb 15 16:13:30 2015 -0800
+
+    Merge pull request #32 from rns/patch-16
+    
+    Update api.texi
+
+commit 96757f6aa8716736569f6259ef5fb935a30bf02a
+Author: rns <ruslan.shvedov@gmail.com>
+Date:   Sun Feb 15 19:42:39 2015 +0200
+
+    Update api.texi
+    
+    typo fix
