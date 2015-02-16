@@ -30,10 +30,10 @@ use Marpa::R2::Test;
 
 use Marpa::R2;
 
-for my $grammar_setting ( '=on', '=off', q{} ) {
-    for my $recce_setting ( '=on', '=off', q{} ) {
+my @settings = ( '=on', '=off', q{} );
+for my $grammar_setting (@settings) {
 
-        my $null_dsl = <<'END_OF_SOURCE';
+    my $null_dsl = <<'END_OF_SOURCE';
 :default ::= action => [g1start,g1length,name,values]
 discard default = event => :symbol=off
 lexeme default = action => [ g1start, g1length, start, length, value ]
@@ -44,24 +44,28 @@ Script ::=
 whitespace ~ [\s]
 END_OF_SOURCE
 
-       $null_dsl =~ s/ =on $ /$grammar_setting/xms;
+    $null_dsl =~ s/ =on $ /$grammar_setting/xms;
 
-       my $event_is_on = 1;
-       my $recce_arg = {};
-       if ($recce_setting eq '=on') {
-          $recce_arg = { event_is_active => { ws => 1}};
-       } elsif ($recce_setting eq '=off') {
-          $recce_arg = { event_is_active => { ws => 0}};
-          $event_is_on = 0;
-       } else {
-           $event_is_on = 0 if $grammar_setting eq '=off';
-       }
+    my $null_grammar = Marpa::R2::Scanless::G->new(
+        {   bless_package => 'My_Nodes',
+            source        => \$null_dsl,
+        }
+    );
 
-        my $null_grammar = Marpa::R2::Scanless::G->new(
-            {   bless_package => 'My_Nodes',
-                source        => \$null_dsl,
-            }
-        );
+    for my $recce_setting (@settings) {
+
+        my $event_is_on = 1;
+        my $recce_arg   = {};
+        if ( $recce_setting eq '=on' ) {
+            $recce_arg = { event_is_active => { ws => 1 } };
+        }
+        elsif ( $recce_setting eq '=off' ) {
+            $recce_arg = { event_is_active => { ws => 0 } };
+            $event_is_on = 0;
+        }
+        else {
+            $event_is_on = 0 if $grammar_setting eq '=off';
+        }
 
         for my $input ( q{}, ' ', '  ' ) {
 
@@ -83,8 +87,8 @@ END_OF_SOURCE
 
             my $test_name = "Test of $length discarded spaces";
             $test_name .= ' g' . $grammar_setting if $grammar_setting;
-            $test_name .= ' r' . $recce_setting if $recce_setting;
-            Test::More::is( $actual_events, $expected_events, $test_name);
+            $test_name .= ' r' . $recce_setting   if $recce_setting;
+            Test::More::is( $actual_events, $expected_events, $test_name );
 
             my $value_ref = $recce->value();
             die "No parse was found\n" if not defined $value_ref;
@@ -96,8 +100,7 @@ END_OF_SOURCE
 
 # Discards with a non-trivial grammar
 
-        my $non_trivial_dsl =
-                <<'END_OF_SOURCE';
+        my $non_trivial_dsl = <<'END_OF_SOURCE';
 :default ::= action => [g1start,g1length,name,values]
 discard default = event => :symbol=off
 lexeme default = action => [ g1start, g1length, start, length, value ]
@@ -109,11 +112,11 @@ b ~ 'b'
 :discard ~ whitespace event => ws=on
 whitespace ~ [\s]
 END_OF_SOURCE
-       $non_trivial_dsl =~ s/ =on $ /$grammar_setting/xms;
+        $non_trivial_dsl =~ s/ =on $ /$grammar_setting/xms;
 
         my $non_trivial_grammar = Marpa::R2::Scanless::G->new(
             {   bless_package => 'My_Nodes',
-            source => \$non_trivial_dsl
+                source        => \$non_trivial_dsl
             }
         );
 
@@ -139,9 +142,7 @@ END_OF_SOURCE
             my $input = join q{}, @input;
 
             my $recce = Marpa::R2::Scanless::R->new(
-                { grammar => $non_trivial_grammar },
-                $recce_arg
-            );
+                { grammar => $non_trivial_grammar }, $recce_arg );
 
             my $length = length $input;
             my $pos    = $recce->read( \$input );
@@ -155,36 +156,23 @@ END_OF_SOURCE
             }
             my $test_name = qq{Test of non-trivial parse, input="$input"};
             $test_name .= ' g' . $grammar_setting if $grammar_setting;
-            $test_name .= ' r' . $recce_setting if $recce_setting;
-            Test::More::is( $actual_events, $expected_events, $test_name);
+            $test_name .= ' r' . $recce_setting   if $recce_setting;
+            Test::More::is( $actual_events, $expected_events, $test_name );
 
             my $value_ref = $recce->value();
             die "No parse was found\n" if not defined $value_ref;
 
             my $result = ${$value_ref};
         } ## end for my $pattern ( 0 .. 7 )
-    } ## end for my $recce_setting ( 1, 0, -1 )
+    } ## end for my $recce_setting ( '=on', '=off', q{} )
 } ## end for my $grammar_setting ( '=on', '=off', q{} )
 
 # Test of 2 types of events
 
-my @setting_a_of_a = ([]);
-{
-    my @settings = ( '=on', '=off', q{} );
-    for my $i ( 0 .. 3 ) {
-        my @new_a_of_a = ();
-        for my $array (@setting_a_of_a) {
-            for my $new_element (@settings) {
-                push @new_a_of_a, [ @{$array}, $new_element ];
-            }
-        }
-        @setting_a_of_a = @new_a_of_a;
-    } ## end for my $i ( 0 .. 3 )
-}
+for my $ws_g_setting (@settings) {
+    for my $bracketed_g_setting (@settings) {
 
-for my $setting_array (@setting_a_of_a) {
-
-            my $dsl2 = <<'END_OF_SOURCE';
+        my $dsl2 = <<'END_OF_SOURCE';
 :default ::= action => [g1start,g1length,name,values]
 discard default = event => :symbol=off
 lexeme default = action => [ g1start, g1length, start, length, value ]
@@ -198,80 +186,98 @@ bracketed ~ '(' <no close bracket> ')'
 <no close bracket> ~ [^)]*
 END_OF_SOURCE
 
-    my ($ws_g_setting,        $ws_r_setting,
-        $bracketed_g_setting, $bracketed_r_setting
-    ) = @{$setting_array};
+        $dsl2 =~ s/ ws=on $ /ws$ws_g_setting/xms;
+        $dsl2 =~ s/ bracketed=on $ /bracketed$bracketed_g_setting/xms;
 
-   $dsl2 =~ s/ ws=on $ /ws$ws_g_setting/xms;
-   $dsl2 =~ s/ bracketed=on $ /bracketed$bracketed_g_setting/xms;
+        my $grammar2 = Marpa::R2::Scanless::G->new(
+            { bless_package => 'My_Nodes', source => \$dsl2, } );
 
-       my %event_is_on = (bracketed => 1, ws => 1);
-       my %event_is_active_value = ();
-       if ($ws_r_setting eq '=on') {
-          $event_is_active_value{ws} = 1;
-       } elsif ($ws_r_setting eq '=off') {
-          $event_is_active_value{ws} = 0;
-          $event_is_on{ws} = 0;
-       } else {
-          $event_is_on{ws} = 0 if $ws_g_setting eq '=off';
-       }
-       if ($bracketed_r_setting eq '=on') {
-          $event_is_active_value{bracketed} = 1;
-       } elsif ($bracketed_r_setting eq '=off') {
-          $event_is_active_value{bracketed} = 0;
-          $event_is_on{bracketed} = 0;
-       } else {
-          $event_is_on{bracketed} = 0 if $bracketed_g_setting eq '=off';
-       }
-    my @extra_recce_args = ( { event_is_active => \%event_is_active_value } )
-        if scalar %event_is_active_value;
+        for my $ws_r_setting (@settings) {
+            for my $bracketed_r_setting (@settings) {
 
-    my $grammar2 = Marpa::R2::Scanless::G->new(
-        { bless_package => 'My_Nodes', source => \$dsl2, } );
+                my %event_is_on = ( bracketed => 1, ws => 1 );
+                my %event_is_active_value = ();
+                if ( $ws_r_setting eq '=on' ) {
+                    $event_is_active_value{ws} = 1;
+                }
+                elsif ( $ws_r_setting eq '=off' ) {
+                    $event_is_active_value{ws} = 0;
+                    $event_is_on{ws}           = 0;
+                }
+                else {
+                    $event_is_on{ws} = 0 if $ws_g_setting eq '=off';
+                }
+                if ( $bracketed_r_setting eq '=on' ) {
+                    $event_is_active_value{bracketed} = 1;
+                }
+                elsif ( $bracketed_r_setting eq '=off' ) {
+                    $event_is_active_value{bracketed} = 0;
+                    $event_is_on{bracketed}           = 0;
+                }
+                else {
+                    $event_is_on{bracketed} = 0
+                        if $bracketed_g_setting eq '=off';
+                }
+                my @extra_recce_args =
+                    ( { event_is_active => \%event_is_active_value } )
+                    if scalar %event_is_active_value;
 
-    for my $input ( q{ (x) }, q{(x) }, q{ (x)} ) {
-        my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar2 }, @extra_recce_args );
+                for my $input ( q{ (x) }, q{(x) }, q{ (x)} ) {
+                    my $recce =
+                        Marpa::R2::Scanless::R->new( { grammar => $grammar2 },
+                        @extra_recce_args );
 
-        my $length = length $input;
-        my $pos    = $recce->read( \$input );
+                    my $length = length $input;
+                    my $pos    = $recce->read( \$input );
 
-        my $p_events = gather_events( $recce, $pos, $length );
-        my $actual_events = join q{ }, map { $_->[0], $_->[-1] } @{$p_events};
-        my $expected_events = $input;
-        if ($event_is_on{bracketed}) {
-        $expected_events =~ s/[(] [x]+ [)]/bracketed 0/xms;
-        } else {
-            # Place an 'x' marker so we don't confuse initial
-            # and terminal spaces, during the coming substitutions
-            $expected_events =~ s/[(] [x]+ [)]/x/xms;
-        }
-        if ($event_is_on{ws}) {
-            $expected_events =~ s/\A \s /ws 0 /xms;
-            $expected_events =~ s/\s \z/ ws 0/xms;
-        } else {
-            $expected_events =~ s/\A \s //xms;
-            $expected_events =~ s/\s \z//xms;
-        }
-        # Clean up extra spaces and the 'x' markers
-        $expected_events =~ s/x/ /gxms;
-        $expected_events =~ s/\s+/ /gxms;
-        $expected_events =~ s/\s \z//gxms;
-        $expected_events =~ s/\A \s//gxms;
+                    my $p_events = gather_events( $recce, $pos, $length );
+                    my $actual_events = join q{ },
+                        map { $_->[0], $_->[-1] } @{$p_events};
+                    my $expected_events = $input;
+                    if ( $event_is_on{bracketed} ) {
+                        $expected_events =~ s/[(] [x]+ [)]/bracketed 0/xms;
+                    }
+                    else {
+                        # Place an 'x' marker so we don't confuse initial
+                        # and terminal spaces, during the coming substitutions
+                        $expected_events =~ s/[(] [x]+ [)]/x/xms;
+                    }
+                    if ( $event_is_on{ws} ) {
+                        $expected_events =~ s/\A \s /ws 0 /xms;
+                        $expected_events =~ s/\s \z/ ws 0/xms;
+                    }
+                    else {
+                        $expected_events =~ s/\A \s //xms;
+                        $expected_events =~ s/\s \z//xms;
+                    }
 
-        my $test_name = qq{Test of two discard types, input="$input"};
-        $test_name .= ' ws:g' . $ws_g_setting if $ws_g_setting;
-        $test_name .= ' ws:r' . $ws_r_setting if $ws_r_setting;
-        $test_name .= ' bracketed:g' . $bracketed_g_setting if $bracketed_g_setting;
-        $test_name .= ' bracketed:r' . $bracketed_r_setting if $bracketed_r_setting;
+                    # Clean up extra spaces and the 'x' markers
+                    $expected_events =~ s/x/ /gxms;
+                    $expected_events =~ s/\s+/ /gxms;
+                    $expected_events =~ s/\s \z//gxms;
+                    $expected_events =~ s/\A \s//gxms;
 
-        Test::More::is( $actual_events, $expected_events, $test_name);
+                    my $test_name =
+                        qq{Test of two discard types, input="$input"};
+                    $test_name .= ' ws:g' . $ws_g_setting if $ws_g_setting;
+                    $test_name .= ' ws:r' . $ws_r_setting if $ws_r_setting;
+                    $test_name .= ' bracketed:g' . $bracketed_g_setting
+                        if $bracketed_g_setting;
+                    $test_name .= ' bracketed:r' . $bracketed_r_setting
+                        if $bracketed_r_setting;
 
-        my $value_ref = $recce->value();
-        die "No parse was found\n" if not defined $value_ref;
+                    Test::More::is( $actual_events, $expected_events,
+                        $test_name );
 
-        my $result = ${$value_ref};
-    } ## end for my $input ( q{ (x) }, q{(x) }, q{ (x)} )
-} ## end for my $setting_array (@setting_a_of_a)
+                    my $value_ref = $recce->value();
+                    die "No parse was found\n" if not defined $value_ref;
+
+                    my $result = ${$value_ref};
+                } ## end for my $input ( q{ (x) }, q{(x) }, q{ (x)} )
+            } ## end for my $bracketed_r_setting (@settings)
+        } ## end for my $ws_r_setting (@settings)
+    } ## end for my $bracketed_g_setting (@settings)
+} ## end for my $ws_g_setting (@settings)
 
 sub gather_events {
     my ($recce, $pos, $length) = @_;
