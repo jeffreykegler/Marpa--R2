@@ -111,27 +111,39 @@ my $output_re =
     }
 
     my $event_ix = 0;
+    my $result = '';
     for my $expression (@{${$value_ref}}) {
         my ($g1start, $g1length, $value) = @{$expression};
         my $g1end = $g1start+$g1length-1;
-        say "$value @ $g1start-$g1end";
+        $result .= qq{expression: "} . $recce->substring( $g1start, $g1length-1 ) .
+            qq{" = } . round_value($value);
+        $result .= "\n";
         EVENT: while ($event_ix <= $#events) {
             my $event = $events[$event_ix];
             my $g1loc = $event->[3];
             last EVENT if $g1loc >= $g1end;
             my $type = $g1loc == $g1start ? 'preceding' : 'internal';
-            say join q{ }, $type, display_event($recce, @{$event});
+            $result .= join q{ }, $type, display_event($recce, @{$event});
+            $result .= "\n";
             $event_ix++;
         }
-        print "\n";
+        $result .= "\n";
     }
 
     EVENT: while ( $event_ix <= $#events ) {
         my $event = $events[$event_ix];
-        say join q{ }, 'trailing', display_event($recce, @{$event});
+        $result .= join q{ }, 'trailing', display_event($recce, @{$event});
+        $result .= "\n";
         $event_ix++;
     } ## end EVENT: while ( $event_ix <= $#events )
 
+
+# round value down, for testing on platforms
+# with various float precisions
+sub round_value {
+    my ( $value ) = @_;
+    return (int $value*100)/100;
+}
 
 sub display_event {
     my ( $recce, $event_name, $start, $end ) = @_;
@@ -142,6 +154,48 @@ sub display_event {
     $literal =~ s/\n/\\n/xmsg;
     return qq{$event_name: "$literal"};
 }
+
+my $expected_result = <<'END_OF_RESULT';
+expression: "42*2+7/3" = 86.33
+
+expression: "42*(2+7)/3" = 126
+preceding ws of length 1
+
+expression: "2**7-3" = 125
+preceding ws of length 1
+
+expression: "2**(7-3)" = 16
+preceding ws of length 1
+
+expression: "1729" = 1729
+preceding ws of length 1
+preceding comment: "# Hardy-Ramanujan number\n"
+
+expression: "1**3+12**3" = 1729
+preceding ws of length 1
+
+expression: "9**3+10**3" = 1729
+preceding ws of length 1
+
+expression: "87539319" = 87539319
+preceding ws of length 1
+preceding comment: "# Next highest taxicab number\n"
+preceding comment: "# note: weird spacing is deliberate\n"
+
+expression: "167**3+ 436**3" = 87539319
+preceding ws of length 1
+internal ws of length 1
+
+expression: "228**3 + 423**3" = 87539319
+internal ws of length 1
+internal ws of length 1
+
+expression: "255**3+414**3" = 87539319
+
+trailing ws of length 1
+END_OF_RESULT
+
+Marpa::R2::Test::is($result, $expected_result, "interweave of events and parse tree");
 
 package My_Nodes;
 
