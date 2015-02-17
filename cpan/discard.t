@@ -75,7 +75,7 @@ my $input = <<'EOI';
 1729, 1**3+12**3, 9**3+10**3,
 # Next highest taxicab number
 # note: weird spacing is deliberate
-87539319, 1673+ 4363,2283 + 4233,2553+4143
+87539319, 167**3+ 436**3,228**3 + 423**3,255**3+414**3
 EOI
 
 my $output_re =
@@ -97,28 +97,43 @@ my $output_re =
         EVENT:
         for my $event ( @{ $recce->events() } ) {
             my ( $name, @other_stuff ) = @{$event};
-            say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
-            push @events, [ 'event', @{$event} ];
+            # say STDERR 'Event received!!! -- ', Data::Dumper::Dumper($event);
+            push @events, $event;
         }
 
         last READ if $pos >= $length;
         $pos = $recce->resume($pos);
     } ## end READ: while (1)
 
-    my $result = { values => \@events };
-    my $value_ref = $recce->value($result);
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die "No parse was found, after reading the entire input\n";
     }
-    say STDERR "value: ", Data::Dumper::Dumper($result);
+
+    my $event_ix = 0;
+    for my $expression (@{${$value_ref}}) {
+        my ($g1start, $g1length, $value) = @{$expression};
+        my $g1end = $g1start+$g1length-1;
+        say "$value @ $g1start-$g1end";
+        EVENT: while ($event_ix <= $#events) {
+            my $event = $events[$event_ix];
+            my ($event_name, $start, $length, $g1loc) = @{$event};
+            last EVENT if $g1loc >= $g1end;
+            my $type = $g1loc == $g1start ? 'preceding' : 'internal';
+            say join " ", $type, $event_name, $start, $length, $g1loc;
+            $event_ix++;
+        }
+        print "\n";
+    }
+
 # Test::More::like( $value, $output_re, 'Example of discard events' );
 
 package My_Nodes;
 
 sub My_Nodes::do_expression {
     my ($parse, @values) = @_;
+    return \@values;
     # say STDERR "pushing value: ", Data::Dumper::Dumper(\@_);
-    push @{$parse->{values}}, map { [ 'value', @{$_} ] } @values ;
 }
 
 sub My_Nodes::do_number {
