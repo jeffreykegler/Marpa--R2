@@ -117,16 +117,31 @@ my $output_re =
         say "$value @ $g1start-$g1end";
         EVENT: while ($event_ix <= $#events) {
             my $event = $events[$event_ix];
-            my ($event_name, $start, $length, $g1loc) = @{$event};
+            my $g1loc = $event->[3];
             last EVENT if $g1loc >= $g1end;
             my $type = $g1loc == $g1start ? 'preceding' : 'internal';
-            say join " ", $type, $event_name, $start, $length, $g1loc;
+            say join q{ }, $type, display_event($recce, @{$event});
             $event_ix++;
         }
         print "\n";
     }
 
-# Test::More::like( $value, $output_re, 'Example of discard events' );
+    EVENT: while ( $event_ix <= $#events ) {
+        my $event = $events[$event_ix];
+        say join q{ }, 'trailing', display_event($recce, @{$event});
+        $event_ix++;
+    } ## end EVENT: while ( $event_ix <= $#events )
+
+
+sub display_event {
+    my ( $recce, $event_name, $start, $end ) = @_;
+    if ($event_name eq 'ws') {
+       return "ws of length " . ($end-$start);
+    }
+    my $literal = $recce->literal($start, ($end-$start));
+    $literal =~ s/\n/\\n/xmsg;
+    return qq{$event_name: "$literal"};
+}
 
 package My_Nodes;
 
