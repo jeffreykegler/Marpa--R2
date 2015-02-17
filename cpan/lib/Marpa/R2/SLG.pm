@@ -377,9 +377,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     # Lexers
 
-    my %grammars = ();
-    $grammars{$_} = 1 for keys %{ $hashed_source->{rules} };
-
     my $lexer_id   = 0;
     my $lexer_name = 'L0';
 
@@ -391,14 +388,35 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     state $lex_start_symbol_name = '[:start_lex]';
     state $discard_symbol_name   = '[:discard]';
 
-    # Need to clean up determination of lexeme status
-
+    my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
+    my $character_class_hash = $hashed_source->{character_classes};
     my $lexer_symbols = $hashed_source->{symbols}->{'L'};
 
-    my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
+    # If no lexer rules, fake a lexer
+    # Fake a lexer -- it discards symbols in character classes which
+    # never matches
+    if ( not $lexer_rules ) {
+        $character_class_hash = { '[[^\\d\\D]]' => [ '[^\\d\\D]', '' ] };
+        $lexer_rules = [
+            {   'rhs'         => [ '[[^\\d\\D]]' ],
+                'lhs'         => '[:discard]',
+                'tag'         => 'rule1',
+                'description' => 'Discard rule for <[[^\\d\\D]]>'
+            },
+        ];
+        $lexer_symbols = {
+            '[:discard]' => {
+                'display_form' => ':discard',
+                'description'  => 'Internal LHS for lexer "L0" discard'
+            },
+            '[[^\\d\\D]]' => {
+                'dsl_form'     => '[^\\d\\D]',
+                'display_form' => '[^\\d\\D]',
+                'description'  => 'Character class: [^\\d\\D]'
+            }
+        };
+    } ## end if ( not $lexer_rules )
 
-    Marpa::R2::exception("No rules for lexer $lexer_name")
-        if not $lexer_rules;
     my %lex_lhs           = ();
     my %lex_rhs           = ();
     my %lex_separator     = ();
@@ -551,7 +569,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
 
-    my $character_class_hash = $hashed_source->{character_classes};
     my @class_table          = ();
 
     CLASS_SYMBOL:
