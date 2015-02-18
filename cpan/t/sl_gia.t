@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 32;
+use Test::More tests => 34;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -132,9 +132,11 @@ INPUT
     ];
 } ## end if (0)
 
+# ===============
+
 if (1) {
-my $durand_grammar2 = Marpa::R2::Scanless::G->new(
-    {   source => \(<<'END_OF_SOURCE'),
+    my $durand_grammar2 = Marpa::R2::Scanless::G->new(
+        {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
 test ::= 'test input' NEWLINE
 WS                    ~ [ \t]
@@ -148,27 +150,27 @@ COMMENT               ~ WS_any POUND NOT_NEWLINE_any _NEWLINE
 BLANKLINE             ~ WS_any _NEWLINE
 :discard              ~ BLANKLINE
 END_OF_SOURCE
-    }
-);
+        }
+    );
 
-push @tests_data, [
-    $durand_grammar2, <<INPUT,
+    push @tests_data, [
+        $durand_grammar2, <<INPUT,
 # Comment followed by a newline
 
 # Another comment
 test input
 INPUT
-    [ 'test input', "\n" ],
-    'Parse OK',
-    'Regression test of bug found by JDD'
-];
-}
+        [ 'test input', "\n" ],
+        'Parse OK',
+        'Regression test of bug found by JDD'
+    ];
+} ## end if (1)
 
 # ===============
 
 if (1) {
-my $durand_grammar3 = Marpa::R2::Scanless::G->new(
-    {   source => \(<<'END_OF_SOURCE'),
+    my $durand_grammar3 = Marpa::R2::Scanless::G->new(
+        {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
 
 Script ::= '=' '/' 'dumb'
@@ -190,18 +192,41 @@ S_MANY ~ _S+
 :discard ~ S_MANY
 
 END_OF_SOURCE
-    }
-);
+        }
+    );
 
-push @tests_data, [
-    $durand_grammar3, <<INPUT,
+    push @tests_data, [
+        $durand_grammar3, <<INPUT,
  = / dumb
 INPUT
-    [qw(= / dumb)],
-    'Parse OK',
-    'Regression test of perl_pos bug found by JDD'
-];
-}
+        [qw(= / dumb)],
+        'Parse OK',
+        'Regression test of perl_pos bug found by JDD'
+    ];
+} ## end if (1)
+
+
+# ===============
+
+# Regression test of grammar without lexers --
+# based on one from Jean-Damien
+if (1) {
+    my $grammar = Marpa::R2::Scanless::G->new(
+        {   source => \(<<'END_OF_SOURCE'),
+:start ::= null
+null ::=
+END_OF_SOURCE
+        }
+    );
+
+    push @tests_data, [
+        $grammar, q{},
+        undef,
+        'Parse OK',
+        'Regression test of lexerless grammar, bug found by JDD'
+    ];
+
+} ## end if (1)
 
 # Test of forgiving token from Peter Stuifzand
 if (1) {
