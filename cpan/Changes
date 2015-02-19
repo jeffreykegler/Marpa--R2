@@ -15,6 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.103_007 (libmarpa 8.1.0) Thu Feb 19 10:33:52 PST 2015
+
+   * Fixed development of "discard events" -- documentation
+     not yet done.
+
 2.103_006 (libmarpa 8.0.0) Thu Feb 12 20:04:46 PST 2015
 
    * New Libmarpa version
