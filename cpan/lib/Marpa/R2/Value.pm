@@ -985,18 +985,8 @@ sub registration_init {
         $nulling_symbol_by_semantic_rule[$semantic_rule] = $nulling_symbol;
     } ## end NULLING_SYMBOL: for my $nulling_symbol ( 0 .. $#{$null_values} )
 
-    my $slr_context = $Marpa::R2::Context::slr;
-    my $start_symbol_id = $tracer->symbol_by_name('[:start]');
-    my $start_rhs_symbol_id;
-    $start_symbol_id = $tracer->symbol_by_name('[:start]') if $slr_context;
-
     my @work_list = ();
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
-
-        my ($lhs, $rhs0) = $tracer->rule_expand($rule_id);
-        if ($slr_context and $start_symbol_id == $lhs) {
-            $start_rhs_symbol_id = $rhs0 if $start_symbol_id == $lhs;
-        }
 
         my $semantics = $semantics_by_rule_id[$rule_id];
         my $blessing  = $blessing_by_rule_id[$rule_id];
@@ -1309,14 +1299,7 @@ sub registration_init {
         }
 
         if ( defined $nulling_symbol_id ) {
-            # Save the ops for the symbol on the RHS of the
-            # start pseudo-rule, so that we can use them later
-            # for the start symbol itself.
 
-            if ( $slr_context and $nulling_symbol_id == $start_rhs_symbol_id )
-            {
-                $top_nulling_ops = \@ops;
-            }
             push @registrations, [ 'nulling', $nulling_symbol_id, @ops ];
         } ## end if ( defined $nulling_symbol_id )
 
@@ -1326,12 +1309,35 @@ sub registration_init {
 
     } ## end WORK_ITEM: for my $work_item (@work_list)
 
-    if ( $slr_context and defined $top_nulling_ops ) {
-        push @registrations,
-            [ 'nulling', $start_symbol_id, @{$top_nulling_ops} ];
-        $nulling_closures[$start_symbol_id] =
-            $nulling_closures[$start_rhs_symbol_id];
-    } ## end if ( defined $top_nulling_ops and defined ...)
+    if ($Marpa::R2::Context::slr) {
+
+        # A hack for nulling SLR grammars --
+        # the nulling semantics of the start symbol should
+        # be those of the symbol on the
+        # RHS of the start rule --
+        # so copy them.
+
+        my $start_symbol_id = $tracer->symbol_by_name('[:start]');
+        my $start_rhs_symbol_id;
+        RULE: for my $rule_id ( $grammar->rule_ids() ) {
+            my ( $lhs, $rhs0 ) = $tracer->rule_expand($rule_id);
+            if ( $start_symbol_id == $lhs ) {
+                $start_rhs_symbol_id = $rhs0;
+                last RULE;
+            }
+        } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
+
+        REGISTRATION: for my $registration (@registrations) {
+            my ( $type, $nulling_symbol_id ) = @{$registration};
+            if ( $nulling_symbol_id == $start_rhs_symbol_id ) {
+                my ( undef, undef, @ops ) = @{$registration};
+                push @registrations, [ 'nulling', $start_symbol_id, @ops ];
+                $nulling_closures[$start_symbol_id] =
+                    $nulling_closures[$start_rhs_symbol_id];
+                last REGISTRATION;
+            } ## end if ( $nulling_symbol_id == $start_rhs_symbol_id )
+        } ## end for my $registration (@registrations)
+    } ## end if ($Marpa::R2::Context::slr)
 
     $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] =
         \@registrations;
