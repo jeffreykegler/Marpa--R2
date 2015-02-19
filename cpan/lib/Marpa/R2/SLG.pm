@@ -400,7 +400,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         $lexer_rules = [
             {   'rhs'         => [ '[[^\\d\\D]]' ],
                 'lhs'         => '[:discard]',
-                'tag'         => 'rule1',
+                'symbol_as_event' => '[^\\d\\D]',
                 'description' => 'Discard rule for <[[^\\d\\D]]>'
             },
         ];

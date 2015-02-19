@@ -367,7 +367,7 @@ sub code_problems {
 
 } ## end sub code_problems
 
-# Dump semnatics for diagnostics
+# Dump semantics for diagnostics
 sub show_semantics {
     my (@ops)    = @_;
     my @op_descs = ();
@@ -983,10 +983,20 @@ sub registration_init {
         my $semantic_rule = $null_values->[$nulling_symbol];
         next NULLING_SYMBOL if not defined $semantic_rule;
         $nulling_symbol_by_semantic_rule[$semantic_rule] = $nulling_symbol;
-    }
+    } ## end NULLING_SYMBOL: for my $nulling_symbol ( 0 .. $#{$null_values} )
+
+    my $slr_context = $Marpa::R2::Context::slr;
+    my $start_symbol_id = $tracer->symbol_by_name('[:start]');
+    my $start_rhs_symbol_id;
+    $start_symbol_id = $tracer->symbol_by_name('[:start]') if $slr_context;
 
     my @work_list = ();
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
+
+        my ($lhs, $rhs0) = $tracer->rule_expand($rule_id);
+        if ($slr_context and $start_symbol_id == $lhs) {
+            $start_rhs_symbol_id = $rhs0 if $start_symbol_id == $lhs;
+        }
 
         my $semantics = $semantics_by_rule_id[$rule_id];
         my $blessing  = $blessing_by_rule_id[$rule_id];
@@ -1015,6 +1025,7 @@ sub registration_init {
     # it may be best to have a separate semantics object.
     my @nulling_closures = ();
     my @registrations    = ();
+    my $top_nulling_ops;
 
     WORK_ITEM: for my $work_item (@work_list) {
         my ( $rule_id, $lexeme_id, $semantics, $blessing ) = @{$work_item};
@@ -1023,10 +1034,10 @@ sub registration_init {
             $is_discard_sequence_rule, $nulling_symbol_id );
         if ( defined $rule_id ) {
             $nulling_symbol_id = $nulling_symbol_by_semantic_rule[$rule_id];
-            $closure           = $closure_by_rule_id[$rule_id];
-            $rule              = $rules->[$rule_id];
-            $rule_length       = $grammar_c->rule_length($rule_id);
-            $is_sequence_rule  = defined $grammar_c->sequence_min($rule_id);
+            $closure          = $closure_by_rule_id[$rule_id];
+            $rule             = $rules->[$rule_id];
+            $rule_length      = $grammar_c->rule_length($rule_id);
+            $is_sequence_rule = defined $grammar_c->sequence_min($rule_id);
             $is_discard_sequence_rule = $is_sequence_rule
                 && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
         } ## end if ( defined $rule_id )
@@ -1298,22 +1309,14 @@ sub registration_init {
         }
 
         if ( defined $nulling_symbol_id ) {
+            # Save the ops for the symbol on the RHS of the
+            # start pseudo-rule, so that we can use them later
+            # for the start symbol itself.
 
-            my $slr = $Marpa::R2::Context::slr;
-            if (    defined $slr
-                and $tracer->symbol_name($nulling_symbol_id) eq '[:start]'
-                and defined(
-                    my $default_g1_start_closure =
-                        $slr->default_g1_start_closure()
-                )
-                )
+            if ( $slr_context and $nulling_symbol_id == $start_rhs_symbol_id )
             {
-                # Special case for SLIF nulling start symbol when there is a default action
-                $nulling_closures[$nulling_symbol_id] =
-                    $default_g1_start_closure;
-                @ops = ($op_callback);
-            } ## end if ( defined $slr and $tracer->symbol_name(...))
-
+                $top_nulling_ops = \@ops;
+            }
             push @registrations, [ 'nulling', $nulling_symbol_id, @ops ];
         } ## end if ( defined $nulling_symbol_id )
 
@@ -1321,14 +1324,22 @@ sub registration_init {
             push @registrations, [ 'token', $lexeme_id, @ops ];
         }
 
-        $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] =
-            \@registrations;
-        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] =
-            \@nulling_closures;
-        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] =
-            \@closure_by_rule_id;
-
     } ## end WORK_ITEM: for my $work_item (@work_list)
+
+    if ( $slr_context and defined $top_nulling_ops ) {
+        push @registrations,
+            [ 'nulling', $start_symbol_id, @{$top_nulling_ops} ];
+        $nulling_closures[$start_symbol_id] =
+            $nulling_closures[$start_rhs_symbol_id];
+    } ## end if ( defined $top_nulling_ops and defined ...)
+
+    $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] =
+        \@registrations;
+    $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] =
+        \@nulling_closures;
+    $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] =
+        \@closure_by_rule_id;
+
 } ## end sub registration_init
 
 # Returns false if no parse
@@ -1570,13 +1581,24 @@ sub Marpa::R2::Recognizer::value {
     {
         my ( $type, $id, @raw_ops ) = @{$registration};
         my @ops = ();
-        if ( $trace_values > 2 ) {
+        PRINT_TRACES: {
+            last PRINT_TRACES if $trace_values <= 2;
+            if ( $type eq 'nulling' ) {
+                say {$trace_file_handle}
+                    "Registering semantics for nulling symbol: ",
+                    $grammar->symbol_name($id),
+                    "\n", '  Semantics are ', show_semantics(@raw_ops)
+                    or
+                    Marpa::R2::exception('Cannot say to trace file handle');
+                last PRINT_TRACES;
+            } ## end if ( $type eq 'nulling' )
             say {$trace_file_handle}
                 "Registering semantics for $type: ",
                 $grammar->symbol_name($id),
                 "\n", '  Semantics are ', show_semantics(@raw_ops)
                 or Marpa::R2::exception('Cannot say to trace file handle');
-        } ## end if ( $trace_values > 2 )
+        } ## end PRINT_TRACES:
+
         OP: for my $raw_op (@raw_ops) {
             if ( ref $raw_op ) {
                 push @ops, $value->constant_register( ${$raw_op} );

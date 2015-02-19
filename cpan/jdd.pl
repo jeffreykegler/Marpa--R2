@@ -1,15 +1,24 @@
 #!env perl
 use strict;
-use warnings;
+use diagnostics;
 use Marpa::R2;
+use Data::Dumper;
+
+print "\$Marpa::R2::VERSION=$Marpa::R2::VERSION\n";
 
 my $s = do { local $/; <DATA>; };
 my $g = Marpa::R2::Scanless::G->new({source => \$s});
-# my $r = Marpa::R2::Scanless::R->new({grammar => $g, trace_terminals => 999, trace_values => 999});
-$g->parse(\'');
+print Dumper($g->parse(\'', {trace_terminals => 999, trace_values => 999}));
+
+sub nullAction {
+  return 'not null';
+}
 
 __DATA__
-# :default ::= action => ::first
-:start ::= null
+:default ::= action => [values]
+lexeme default = action => [start,length,value,name]
 
-null ::=
+:start ::= fake
+
+fake ::=          action => main::nullAction
+fake ::= 'unused'

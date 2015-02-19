@@ -24,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -51,7 +51,23 @@ Could not resolve rule action named 'nowhere'
   Rule was test ::= 'X'
   Failed resolution of action "nowhere" to My_Semantics::nowhere
 END_OF_MESSAGE
-    'Parse OK', 'Missing action' ];
+    'Missing action' ];
+}
+
+####
+
+# Test trivial grammar with action --
+# Problem found by Jean-Damien
+
+{
+    my $grammar = \(<<'END_OF_SOURCE');
+:start ::= test
+test   ::= action => main::not_null
+END_OF_SOURCE
+
+    push @tests_data, [ $grammar, q{},
+    'not null',
+    'Parse OK', 'Trivial grammar with action' ];
 }
 
 ####
@@ -153,5 +169,10 @@ for my $test_data (@tests_data) {
     Marpa::R2::Test::is( $actual_result, $expected_result,
         qq{Result of $test_name} );
 } ## end for my $test_data (@tests_data)
+
+# An example action, for tests which need one
+sub main::not_null {
+   return 'not null';
+}
 
 # vim: expandtab shiftwidth=4:
