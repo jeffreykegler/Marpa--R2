@@ -1309,7 +1309,8 @@ sub registration_init {
 
     } ## end WORK_ITEM: for my $work_item (@work_list)
 
-    if ($Marpa::R2::Context::slr) {
+    SLR_NULLING_GRAMMAR_HACK: {
+        last SLR_NULLING_GRAMMAR_HACK if not $Marpa::R2::Context::slr;
 
         # A hack for nulling SLR grammars --
         # the nulling semantics of the start symbol should
@@ -1318,6 +1319,9 @@ sub registration_init {
         # so copy them.
 
         my $start_symbol_id = $tracer->symbol_by_name('[:start]');
+        last SLR_NULLING_GRAMMAR_HACK
+            if not $grammar_c->symbol_is_nullable($start_symbol_id);
+
         my $start_rhs_symbol_id;
         RULE: for my $rule_id ( $grammar->rule_ids() ) {
             my ( $lhs, $rhs0 ) = $tracer->rule_expand($rule_id);
@@ -1336,8 +1340,8 @@ sub registration_init {
                     $nulling_closures[$start_rhs_symbol_id];
                 last REGISTRATION;
             } ## end if ( $nulling_symbol_id == $start_rhs_symbol_id )
-        } ## end for my $registration (@registrations)
-    } ## end if ($Marpa::R2::Context::slr)
+        } ## end REGISTRATION: for my $registration (@registrations)
+    } ## end SLR_NULLING_GRAMMAR_HACK:
 
     $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] =
         \@registrations;
