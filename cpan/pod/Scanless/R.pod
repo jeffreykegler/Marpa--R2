@@ -265,10 +265,11 @@ input string.
 
 The C<read()> method may only be called once for a recognizer,
 but internal scanning can be resumed with the L<C<resume()>|/"resume()"> method.
-The C<resume()> method uses a new input string to scan
-the physical input stream that was specified
-to the C<read()> method.
-C<resume()>'s input string may be specified explicitly or implicitly.
+The C<resume()> method, as the name suggests,
+resumes the internal scanning with a new input string.
+This input string must always be a substring
+of the physical input stream
+that was specified to the C<read()> method.
 By default, the new input string runs from the current location
 to the end of the physical input stream.
 
