@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -239,6 +239,45 @@ ws ~ [\s]+
 :discard ~ [,] event => comma=off
 :discard ~ [\x3B] event => :symbol=on
 :discard ~ [.] event => :symbol
+
+END_OF_DSL
+
+# Marpa::R2::Display::End
+
+    my $grammar =
+        Marpa::R2::Scanless::G->new( { source => \$dsl } );
+    my $input = "1,2; 3,42.  1729,8675309; 8675311,711.";
+    my $events = $input;
+    $events =~ s/ \s+ /!/gxms;
+    $events =~ s/ [^!;.] //gxms;
+    $events =~ s/ [.]/ [.] /gxms;
+    $events =~ s/ [;] / [\\x3B] /gxms;
+    $events =~ s/ [!] / ws /gxms;
+    $events =~ s/ \A \s+ //gxms;
+    $events =~ s/ \s+ /\n/gxms;
+
+    push @tests_data,
+        [
+        $grammar, $input,
+        $events,  'Discard events for synopsis'
+        ];
+}
+
+{
+    # Test of ':symbol' reserved event value
+    # in discard default statement
+
+    my $dsl = <<'END_OF_DSL';
+    discard default = event => :symbol
+Script ::= numbers
+numbers ::= number*
+number ~ [\d]+
+
+:discard ~ ws
+ws ~ [\s]+
+:discard ~ [,] event => comma=off
+:discard ~ [\x3B]
+:discard ~ [.]
 
 END_OF_DSL
 
