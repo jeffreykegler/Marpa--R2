@@ -539,6 +539,11 @@ There is a lot of similarity
 between pre-lexeme events and predictions,
 and the two can trigger together,
 but there are important differences.
+
+=over 4
+
+=item *
+
 A pre-lexeme event does not occur
 unless triggering lexeme is actually
 found in the input.
@@ -547,6 +552,40 @@ a prediction event is,
 as the name suggests, only a prediction --
 the triggering lexeme may never
 actually be found in the input.
+
+=item *
+
+Even though they have the same
+trigger location,
+pre-lexeme and prediction events
+do not occur at the same time,
+because pre-lexeme events
+require a scan of the lexeme,
+while prediction events do not.
+If both
+are defined for a symbol,
+the prediction event will trigger first,
+B<before> the lexeme is scanned.
+The pre-lexeme event will trigger next,
+B<after> the lexeme is scanned.
+
+=item *
+
+Pre-lexeme events can be defined only
+for lexemes.
+Prediction events can be defined for any
+symbol.
+
+=item *
+
+Prediction events will be occur together
+with the other events expected at the trigger location.
+Pre-lexeme events will not,
+because they do not happen at the trigger location --
+the trigger location is moved back to the
+start of the lexeme as a convenience.
+
+=back
 
 In the SLIF parse event descriptor returned
 by the 
