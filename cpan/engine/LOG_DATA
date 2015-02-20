@@ -1,32 +1,33 @@
-commit 5ffd0ef4faca66d61fea7746d5faa4bf49b89b73
+commit 39af7e9fc0699bfb5a5f5df535a9903226d8a560
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Feb 19 09:59:16 2015 -0800
+Date:   Fri Feb 20 11:11:24 2015 -0800
 
-    Bump Libmarpa version
+    Replace non-C89 type
 
-commit ae77715f3aa2feb236a370f985e732899f237390
+commit 25f458978e59833935439d28dd4881cd6cb0d44b
+Merge: 9443176 e1f2b56
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Feb 19 09:57:04 2015 -0800
+Date:   Fri Feb 20 11:01:20 2015 -0800
 
-    fix marpa_g_rule_rank: #39 t+
+    Merge branch 'temp'
 
-commit 3234988a4aa03034587f180d778905e87b70cbea
+commit 94431768127605349b740207f5081d1a17858c26
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Thu Feb 19 09:46:27 2015 -0800
+Date:   Fri Feb 20 10:26:55 2015 -0800
 
-    fix marpa_g_rule_null_high test: #39 t+
+    Fixes to marpa_r_earley_set_value* methods: t+
 
-commit 4578c980e170ddd5295a1db2446cbf1da51c2aea
-Merge: feb7bb2 691d6cb
+commit e1f2b569bb6bb429ede81617b03e96d0ef09d574
+Merge: 5ffd0ef 4426a73
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Thu Feb 19 09:23:44 2015 -0800
+Date:   Fri Feb 20 08:19:05 2015 -0800
 
-    Merge pull request #39 from rns/marpa_m_test
+    Merge pull request #40 from rns/trivial_and_simple_grammar_nits
     
-    marpa_m_test()
+    method census: Events, Life cycle mutators, and Location Accessors
 
-commit 691d6cb1f182374bdaab2fa2c3826915765307a3
+commit 4426a7385d23e64bc0cb6e28af5197be177a7929
 Author: rns <ruslan.shvedov@gmail.com>
-Date:   Thu Feb 19 17:48:57 2015 +0200
+Date:   Fri Feb 20 16:12:06 2015 +0200
 
-    fix marpa_g_rule_null_high() test according to the doc
+    explicit calls to marpa_r_earley_set_value (r, 0) after  marpa_r_earleme(r, 0);
