@@ -537,8 +537,7 @@ C<< $slr->lexeme_read() >> calls are discarded.
 
 There is a lot of similarity
 between pre-lexeme events and predictions,
-and the two can trigger together,
-but there are important differences.
+but there are also very important differences.
 
 =over 4
 
@@ -578,7 +577,7 @@ symbol.
 
 =item *
 
-Prediction events will be occur together
+Prediction events will occur together
 with the other events expected at the trigger location.
 Pre-lexeme events will not,
 because they do not happen at the trigger location --
