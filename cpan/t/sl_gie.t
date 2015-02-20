@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -74,7 +74,8 @@ END_OF_EXPECTED_EVENTS
 
 push @tests_data, [ $loc0_grammar, $loc0_input, $loc0_events, 'Location 0 events' ];
 
-my $reject_dup_dsl = <<'END_OF_DSL';
+{
+    my $reject_dup_dsl = <<'END_OF_DSL';
 :start ::= Script
 
 Script ::= 'x' DUP 'y'
@@ -88,10 +89,58 @@ DUP  ~ _S_ANY _S
 
 :discard ~ _S_MANY
 END_OF_DSL
-my $reject_dup_grammar = Marpa::R2::Scanless::G->new( { source  => \$reject_dup_dsl } );
-my $reject_dup_input = " x y\n\n";
-my $reject_dup_events = join "\n", 'DUP$', q{}, q{};
-push @tests_data, [ $reject_dup_grammar, $reject_dup_input, $reject_dup_events, 'Events for rejected duplicates' ];
+    my $reject_dup_grammar =
+        Marpa::R2::Scanless::G->new( { source => \$reject_dup_dsl } );
+    my $reject_dup_input = " x y\n\n";
+    my $reject_dup_events = join "\n", 'DUP$', q{}, q{};
+    push @tests_data,
+        [
+        $reject_dup_grammar, $reject_dup_input,
+        $reject_dup_events,  'Events for rejected duplicates'
+        ];
+}
+
+{
+    # Example for synopsis of discard events
+
+# Marpa::R2::Display
+# name: SLIF discard event statement synopsis 2
+
+    my $dsl = <<'END_OF_DSL';
+:start ::= Script
+
+Script ::= numbers
+numbers ::= number*
+number ~ [\d]+
+
+:discard ~ ws event => ws
+ws ~ [\s]+
+:discard ~ [,] event => comma=off
+:discard ~ [;] event => 'semicolon'=on
+:discard ~ [.] event => period
+
+END_OF_DSL
+
+# Marpa::R2::Display::End
+
+    my $grammar =
+        Marpa::R2::Scanless::G->new( { source => \$dsl } );
+    my $input = "1,2; 3,42.  1729,8675309; 8675311,711.";
+    my $events = $input;
+    $events =~ s/ \s+ /!/gxms;
+    $events =~ s/ [^!;.] //gxms;
+    $events =~ s/ [.]/ period /gxms;
+    $events =~ s/ [;] / semicolon /gxms;
+    $events =~ s/ [!] / ws /gxms;
+    $events =~ s/ \A \s+ //gxms;
+    $events =~ s/ \s+ /\n/gxms;
+
+    push @tests_data,
+        [
+        $grammar, $input,
+        $events,  'Discard events for synopsis'
+        ];
+}
 
 TEST:
 for my $test_data (@tests_data) {

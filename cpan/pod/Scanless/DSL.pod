@@ -543,6 +543,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+=for Marpa::R2::Display
+name: SLIF discard event synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :discard ~ whitespace event => ws
+
+=for Marpa::R2::Display::End
+
 A discard pseudo-rule is a rule whose LHS is
 the C<:discard> pseudo-symbol,
 and which has only one RHS alternative.
@@ -555,7 +564,16 @@ When a discarded symbol is recognized,
 it is not passed as a lexeme to the G1 parser, but is
 (as the name suggests) discarded.
 Discard pseudo-rules must be L0 rules.
-No adverbs are allowed.
+
+Only the C<event> adverb is allowed.
+Its value must be an event initializer.
+The format of an event initializer is
+as described for
+the L<named event statement|/"Named event statement">.
+If present, it defines a discard event,
+as describe in
+L<the document on SLIF parse
+events|Marpa::R2::Event/"Discard events">.
 
 =head2 Default pseudo-rule
 

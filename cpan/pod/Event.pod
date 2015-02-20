@@ -286,6 +286,30 @@ L<the C<< $slr->events() >>
 method|Marpa::R2::Scanless::R/"events()">,
 the name of completed event is the only element.
 
+=head2 Discard events
+
+=for Marpa::R2::Display
+name: SLIF discard event statement synopsis 2
+partial: 1
+normalize-whitespace: 1
+
+    :discard ~ ws event => ws
+    ws ~ [\s]+
+    :discard ~ [,] event => comma=off
+    :discard ~ [;] event => 'semicolon'=on
+    :discard ~ [.] event => period
+
+=for Marpa::R2::Display::End
+
+Discard events are specified in
+L<discard pseudo-rules|Marpa::R2::Scanless::DSL/"Discard pseudo-rule">.
+They are non-lexeme events.
+This may seem counter-intuitive,
+but a lexeme must be a symbol visible to the G1
+grammar and discarded symbols
+are discarded.
+before the G1 grammar can see them.
+
 =head2 Nulling events
 
 A nulling event is declared in the SLIF DSL
