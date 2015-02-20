@@ -592,37 +592,35 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     # Apply defaults to determine the discard event for every
     # rule id of the lexer.
 
-    my $default_discard_event   = $discard_default_adverbs->{event};
+    my $default_discard_event = $discard_default_adverbs->{event};
     RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() ) {
         my $tag = $lex_grammar->tag($rule_id);
         next RULE_ID if not defined $tag;
-        my $event = $lexer_rule_by_tag{$tag}->{event};
-        if ( defined $event ) {
+        my $event;
+        FIND_EVENT: {
+            $event = $lexer_rule_by_tag{$tag}->{event};
+            last FIND_EVENT if defined $event;
+            my $lhs_id = $lex_thin->rule_lhs($rule_id);
+            last FIND_EVENT if $lhs_id != $lex_discard_symbol_id;
+            $event = $default_discard_event;
+        } ## end FIND_EVENT:
+        next RULE_ID if not defined $event;
+
+        my ( $event_name, $event_starts_active ) = @{$event};
+        if ( $event_name eq q{'symbol} ) {
+            my @event = (
+                $lexer_rule_by_tag{$tag}->{symbol_as_event},
+                $event_starts_active
+            );
+            $discard_event_by_lexer_rule_id[$rule_id] = \@event;
+            next RULE_ID;
+        } ## end if ( $event_name eq q{'symbol} )
+        if ( ( substr $event_name, 0, 1 ) ne q{'} ) {
             $discard_event_by_lexer_rule_id[$rule_id] = $event;
             next RULE_ID;
         }
-        my $lhs_id = $lex_thin->rule_lhs($rule_id);
-        next RULE_ID if $lhs_id != $lex_discard_symbol_id;
-        next RULE_ID if not defined $default_discard_event;
-        my ( $default_discard_event_name,
-            $default_discard_event_starts_active )
-            = @{$default_discard_event};
-        if ( $default_discard_event_name eq q{'symbol} ) {
-            my @event = (
-                $lexer_rule_by_tag{$tag}->{symbol_as_event},
-                $default_discard_event_starts_active
-            );
-            $discard_event_by_lexer_rule_id[$rule_id] =
-                \@event;
-            next RULE_ID;
-        } ## end if ( $default_discard_event_name eq q{'symbol} )
-        if ( ( substr $default_discard_event_name, 0, 1 ) ne q{'} ) {
-            $discard_event_by_lexer_rule_id[$rule_id] =
-                $default_discard_event;
-            next RULE_ID;
-        }
         Marpa::R2::exception(
-            qq{Discard event has unknown name: "$default_discard_event_name"}
+            qq{Discard event has unknown name: "$event_name"}
         );
 
     } ## end RULE_ID: for my $rule_id ( 0 .. $lex_thin->highest_rule_id() )
