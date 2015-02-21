@@ -1,33 +1,32 @@
-commit 39af7e9fc0699bfb5a5f5df535a9903226d8a560
+commit 851d2faeae119c4d0261bdb1e3a345b033fea73b
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Feb 20 11:11:24 2015 -0800
+Date:   Sat Feb 21 10:32:37 2015 -0800
 
-    Replace non-C89 type
+    Bump version: t+
 
-commit 25f458978e59833935439d28dd4881cd6cb0d44b
-Merge: 9443176 e1f2b56
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Feb 20 11:01:20 2015 -0800
-
-    Merge branch 'temp'
-
-commit 94431768127605349b740207f5081d1a17858c26
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Fri Feb 20 10:26:55 2015 -0800
-
-    Fixes to marpa_r_earley_set_value* methods: t+
-
-commit e1f2b569bb6bb429ede81617b03e96d0ef09d574
-Merge: 5ffd0ef 4426a73
+commit 0eacf5e4072a64232e451baf9341c959c4efbedb
+Merge: a6967ed 5836359
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Fri Feb 20 08:19:05 2015 -0800
+Date:   Sat Feb 21 09:49:43 2015 -0800
 
-    Merge pull request #40 from rns/trivial_and_simple_grammar_nits
+    Merge pull request #43 from rns/method_census_trivial_grammar_Other_parse_status_methods
     
-    method census: Events, Life cycle mutators, and Location Accessors
+    Method census trivial grammar 12.6 Other parse status methods
 
-commit 4426a7385d23e64bc0cb6e28af5197be177a7929
+commit 583635990f97bd815f77bb99033757a6ca223379
 Author: rns <ruslan.shvedov@gmail.com>
-Date:   Fri Feb 20 16:12:06 2015 +0200
+Date:   Sat Feb 21 19:04:55 2015 +0200
 
-    explicit calls to marpa_r_earley_set_value (r, 0) after  marpa_r_earleme(r, 0);
+    fix marpa_r_terminals_expected() test: t+
+
+commit 0ce6fff1488a081fe12bf60b085a1ed4c9a59340
+Author: rns <ruslan.shvedov@gmail.com>
+Date:   Sat Feb 21 19:04:29 2015 +0200
+
+    fix marpa_r_expected_symbol_event_set() test
+
+commit 3620aa093673518d02b6b53db46ba05fcac7cce2
+Author: rns <ruslan.shvedov@gmail.com>
+Date:   Sat Feb 21 18:59:23 2015 +0200
+
+    fix marpa_r_expected_symbol_event_set() to return -2 on unused and nulling symbols
