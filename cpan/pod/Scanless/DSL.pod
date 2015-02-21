@@ -73,45 +73,19 @@ an extension of BNF.
 The SLIF DSL is used to specify other
 DSL's, and is therefore a "meta-DSL".
 
-=head1 The structure of SLIF source strings
+=head1 Lexical conventions
 
 The SLIF source string consists of a series of rules,
 pseudo-rules and statements.
-These are made up of tokens,
-as described below.
 Whitespace separates tokens, but is otherwise ignored.
+
+=head2 Comment
 
 A hash ("C<#>") character starts a comment,
 which continues to the end of the line.
 Comments are equivalent to whitespace.
 
-=head1 L0, G1 and lexemes
-
-In reading this document, it is important to keep in mind
-the distinction, on one hand, between L0 and G1 rules and,
-on the other hand, between rules and lexemes.
-G1 rules have a semantics,
-which can be specified as described
-in this document.
-L0 rules simply recognize symbols in the input.
-L0 rules do not have a semantics.
-
-Top-level L0 rules correspond to a string in the input.
-The top-level L0 rules are seen by G1 as lexemes,
-and the string to which a top-level L0 rule
-corresponds becomes the default value of the lexeme.
-The L0 grammar can be thought of as similar
-in behavior to a set of regular expressions
-with the lexemes being seen as similar to named captures.
-
-Lexemes are the symbols which form the interface between
-G1 and L0.  Lexemes, like G1 rules, have a semantics.
-The semantics of lexemes is
-specified separately from the
-semantics of G1 rules,
-as described below.
-
-=head1 Symbol names
+=head2 Symbol names
 
 Symbol names can be either "bare" or enclosed in angle brackets.
 Bare symbol names must consist entirely of Perl word characters
@@ -183,7 +157,7 @@ When a SLIF symbol needs to be
 referred to by name in Perl code,
 it is the symbol's explicit name that is used.
 
-=head1 Single-quoted strings
+=head2 Single-quoted strings
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -228,7 +202,7 @@ character class.
 Single-quoted strings are always interpreted at the
 L0 level, but they may be used in either structural
 or lexical rules.
-When a single quoted string is used in a structural rule,
+When a single-quoted string is used in a structural rule,
 Marpa creates a virtual L0 rule on behalf of the application.
 This is handy, but it does have a real disadvantage --
 the name of the virtual rule's LHS
@@ -245,7 +219,7 @@ and "C<:i>" modifier are availables.
 These have exactly the same effect -- they make the string
 match case-insensitive.
 
-=head1 Character classes
+=head2 Character classes
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -290,10 +264,112 @@ Each character class is
 passed to Perl to interpret exactly once and the result is
 memoized in a C language structure for future use.
 
-The modifiers allowed after single quoted strings are also allowed allowed after character classes.
+The modifiers allowed after single-quoted strings are also allowed allowed after character classes.
 Modifiers must appear immediately after the closing square bracket,
 with no intervening whitespace.
 For more details, see L<the section on single-quoted strings|/"Single-quoted strings">.
+
+=head2 Event name
+
+The name of an event may be either a bare name,
+a single-quoted event name,
+or an event pseudo-name.
+A bare event name must be one or more word characters,
+starting with an alphabetic character.
+
+A single-quoted event name may contain any character
+except a single quote or vertical space.
+The whitespace in single-quoted event names is normalized
+in similar fashion to the normalization of symbol names --
+leading and trailing whitespace is removed,
+and all sequences of internal whitespace are changed to
+a single ASCII space character.
+Names containing single quotes (which, in any case,
+are impossible to add using
+current syntax) are reserved for future use.
+
+A event pseudo-name is a colon,
+followed by one or more word characters.
+As present, there is only one event pseudo-name,
+C<:symbol>.
+The C<:symbol> pseudo-name is only allowed in
+L<discard pseudo-rules|/"Discard pseudo-rule">,
+and in the
+L<discard default statement|/"Discard default statement">.
+
+If the name of an event is specified as
+the C<:symbol> pseudo-name, an event's name will be
+based on the RHS of its discard rule.
+This will always be either a single symbol,
+or a character class.
+If the RHS is a single symbol,
+the actual event name will be the name
+of that symbol.
+
+If the RHS is a character class,
+the actual event name will be the string
+specifying that character class in the DSL.
+The string specifying the event name for a character
+class is taken literally from the
+text specifying the DSL.
+This means that the character classes
+"C<[\x3B]>" and "C<[:]>" will have two different
+event names,
+event though both classes
+specify exactly the same set of characters.
+
+=head1 Event initializer
+
+=for Marpa::R2::Display
+name: SLIF completed event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event 'a' = completed A
+    event 'b'=off = completed B
+    event 'c'=on = completed C
+    event 'd' = completed D
+
+=for Marpa::R2::Display::End
+
+If there is an explicit initialization,
+it consists of the equal sign ('C<=>')
+followed by a value indicating
+the event's initial activation setting
+(C<on> or C<off>).
+If the initialization value is C<on>,
+or if there is no explicit initialization,
+the event's activation
+setting is initially on.
+If the initialization value is C<off>,
+the event's activation
+setting is initially off.
+
+=head1 L0, G1 and lexemes
+
+In reading this document, it is important to keep in mind
+the distinction, on one hand, between L0 and G1 rules and,
+on the other hand, between rules and lexemes.
+G1 rules have a semantics,
+which can be specified as described
+in this document.
+L0 rules simply recognize symbols in the input.
+L0 rules do not have a semantics.
+
+Top-level L0 rules correspond to a string in the input.
+The top-level L0 rules are seen by G1 as lexemes,
+and the string to which a top-level L0 rule
+corresponds becomes the default value of the lexeme.
+The L0 grammar can be thought of as similar
+in behavior to a set of regular expressions
+with the lexemes being seen as similar to named captures.
+
+Lexemes are the symbols which form the interface between
+G1 and L0.  Lexemes, like G1 rules, have a semantics.
+The semantics of lexemes is
+specified separately from the
+semantics of G1 rules,
+as described below.
 
 =head1 Statements
 
@@ -302,14 +378,14 @@ The statements are of three kinds, as indicated by their declarator:
 
 =over 4
 
-=item * G1 rules
+=item * G1 rule
 
 The BNF operator ("C<::=>"),
 coming between the LHS and the first RHS alternative of a rule,
 indicates that the rule is
 a G1 rule.
 
-=item * L0 rules
+=item * L0 rule
 
 The match operator ("C<~>"),
 coming between the LHS and the first RHS alternative
@@ -335,7 +411,7 @@ Pseudo-rules do not correspond to BNF rules,
 but instead use the rule format as a convenient
 way to express other information.
 
-=head1 The structure of rules
+=head2 The structure of rules
 
 Every rule declaration consists of, in order:
 
@@ -355,14 +431,14 @@ the right side declaration is described in detail below.
 
 =back
 
-=head1 RHS alternatives
+=head2 RHS alternatives
 
 The right side declaration of a rule will often contain one or
 more RHS alternatives.
 A RHS alternative is a series of RHS primaries,
 where a RHS primary may be a symbol name,
 a character class,
-or a single quoted string.
+or a single-quoted string.
 A list of one or more adverbs is often
 associated with the
 RHS alternatives.
@@ -453,7 +529,7 @@ and that symbol will be the start symbol of the G1 grammar.
 No adverbs should be associated with the RHS alternative.
 Start rules must be G1 rules.
 
-=head2 Empty rules
+=head2 Empty rule
 
 An empty rule is a rule with an empty RHS.
 The empty RHS, technically, is a RHS alternative, one with zero RHS primaries.
@@ -463,7 +539,7 @@ for the empty RHS alternative,
 but no others.
 A empty rule makes its LHS symbol a nullable symbol.
 
-=head2 Quantified rules
+=head2 Quantified rule
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -491,7 +567,7 @@ L<C<bless>|/"bless">,
 L<C<proper>|/"proper"> and
 L<C<separator>|/"separator">.
 
-=head2 Prioritized rules
+=head2 Prioritized rule
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -556,8 +632,21 @@ A discard pseudo-rule is a rule whose LHS is
 the C<:discard> pseudo-symbol,
 and which has only one RHS alternative.
 The RHS alternative must contain
-exactly one symbol name,
-called the B<discarded symbol>.
+
+=over 4
+
+=item *
+
+exactly one symbol name, or
+
+=item *
+
+exactly one character class.
+
+=back
+
+The symbol specified by the RHS of a discard pseudo-rule
+is called the B<discarded symbol>.
 Discard pseudo-rules indicate that the discarded symbol is a top-level L0
 symbol, but one which is not a lexeme.
 When a discarded symbol is recognized,
@@ -568,10 +657,10 @@ Discard pseudo-rules must be L0 rules.
 Only the C<event> adverb is allowed.
 Its value must be an event initializer.
 The format of an event initializer is
-as described for
-the L<named event statement|/"Named event statement">.
+described
+L<above|/"Event initializer">.
 If present, it defines a discard event,
-as describe in
+as described in
 L<the document on SLIF parse
 events|Marpa::R2::Event/"Discard events">.
 
@@ -646,6 +735,41 @@ the result will be a fatal error.
 Applications may find this ability to "declare"
 lexemes useful for debugging,
 and for documenting grammars.
+
+=head2 Discard default statement
+
+=for Marpa::R2::Display
+name: SLIF default discard event statement synopsis 1
+partial: 1
+normalize-whitespace: 1
+
+    discard default = event => :symbol=on
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF default discard event statement synopsis 2
+partial: 1
+normalize-whitespace: 1
+
+    discard default = event => :symbol
+
+=for Marpa::R2::Display::End
+
+The discard default statement changes the defaults for
+discard pseudo-rules.
+Only the default for
+the L<C<event>|/"event">
+adverb
+can be specified in a lexeme default statement.
+Only one discard default statement is allowed in a grammar.
+
+Typically in a discard default statement,
+the event name will be the pseudo-name
+C<:symbol>.
+For details about event pseudo-names,
+see L<the section on event
+names|/"Event name">.
 
 =head2 Lexeme default statement
 
@@ -730,9 +854,9 @@ The C<event> keyword.
 
 =item *
 
-An event initializer, which is an event
-name, optionally followed by an
-explicit initialization.
+An event initializer, 
+as described in L<the section on
+event initializers|/"Event initializer">.
 
 =item *
 
@@ -749,34 +873,6 @@ to indicate the event type.
 A symbol name.
 
 =back
-
-The name of an event may be either a bare name,
-or enclosed in single quotes.
-A bare event name must be one or more word characters,
-starting with an alphabetic character.
-A single quoted event name may contain any character
-except a single quote or vertical space.
-The whitespace in single quoted event names is normalized
-in similar fashion to the normalization of symbol names --
-leading and trailing whitespace is removed,
-and all sequences of internal whitespace are changed to
-a single ASCII space character.
-Names containing single quotes (which, in any case,
-are impossible to add using
-current syntax) are reserved.
-
-If there is an explicit initialization,
-it consists of the equal sign ('C<=>')
-followed by a value indicating
-the event's initial activation setting
-(C<on> or C<off>).
-If the initialization value is C<on>,
-or if there is no explicit initialization,
-the event's activation
-setting is initially on.
-If the initialization value is C<off>,
-the event's activation
-setting is initially off.
 
 The SLIF's event-triggering methods are
 L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">,
@@ -979,9 +1075,8 @@ if the L<C<pause>|/"pause"> adverb is not also specified.
 
 The value of the C<event> adverb is an event
 initializer.
-Event initializers are as described above
-L<for named event
-statements|/"Named event statement">.
+Event initializers are as described
+L<above|/"Event initializer">.
 
 When an event declared with the
 the L<C<pause>|/"pause"> adverb

@@ -146,6 +146,9 @@ for my $default (qw(on off))
 {
     # Test of ':symbol' reserved event value
 
+# Marpa::R2::Display
+# name: SLIF default discard event statement synopsis 1
+
     my $dsl = <<'END_OF_DSL';
 discard default = event => :symbol=on
 
@@ -204,8 +207,6 @@ period ~ [.]
 
 END_OF_DSL
 
-# Marpa::R2::Display::End
-
     my $grammar =
         Marpa::R2::Scanless::G->new( { source => \$dsl } );
     my $input = "1,2; 3,42.  1729,8675309; 8675311,711.";
@@ -242,8 +243,6 @@ ws ~ [\s]+
 
 END_OF_DSL
 
-# Marpa::R2::Display::End
-
     my $grammar =
         Marpa::R2::Scanless::G->new( { source => \$dsl } );
     my $input = "1,2; 3,42.  1729,8675309; 8675311,711.";
@@ -267,8 +266,11 @@ END_OF_DSL
     # Test of ':symbol' reserved event value
     # in discard default statement
 
+# Marpa::R2::Display
+# name: SLIF default discard event statement synopsis 2
+
     my $dsl = <<'END_OF_DSL';
-    discard default = event => :symbol
+discard default = event => :symbol
 Script ::= numbers
 numbers ::= number*
 number ~ [\d]+

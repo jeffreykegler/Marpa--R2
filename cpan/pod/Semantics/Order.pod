@@ -177,7 +177,7 @@ arbitrary.
 
 Rule alternatives may be part of a single rule in the DSL --
 for example, a
-L<prioritized rule|Marpa::R2::Scanless::DSL/"Prioritized rules">.
+L<prioritized rule|Marpa::R2::Scanless::DSL/"Prioritized rule">.
 Placement with a DSL rule
 makes no difference when ranking rule alternatives.
 For example, it makes no difference if two rule alternatives
