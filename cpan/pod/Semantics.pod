@@ -470,6 +470,36 @@ array.
 
 =over 4
 
+=item C<g1length>
+
+The C<g1length> array item descriptor puts
+a single-element list into the array.
+That one element will be the length of the rule or lexeme instance,
+in G1 locations.
+
+=item C<g1start>
+
+The C<g1start> array item descriptor puts
+a single-element list into the array.
+That one element will be
+the G1 start location of the rule or lexeme instance.
+Together
+the C<g1length> and C<g1start> array item descriptors
+describe a G1 location
+L<span|Marpa::R2::Scanless::R/"Spans">.
+
+Typical applications will prefer to use
+the C<start> and C<length> array item descriptors,
+which report their results in terms of
+physical input stream locations,
+instead of G1 locations.
+G1 locations are useful in special cases,
+for example with application which do not scan
+monotonically forward in the physical input,
+but instead jump backwards in it.
+G1 locations are described in detail
+L<in another document|Marpa::R2::Scanless::R/"G1 locations">.
+
 =item C<length>
 
 The C<length> array item descriptor puts

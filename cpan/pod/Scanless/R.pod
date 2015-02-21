@@ -430,8 +430,9 @@ Except for G1 location zero,
 every G1 location I<X> corresponds
 to one or more characters
 in the physical input stream.
-We'll call the physical input stream range that corresponds to
-G1 location I<X>, [I<s(X) ... e(X)>].
+Let [I<s(X) ... e(X)>] be
+the physical input stream range that corresponds to
+G1 location I<X>.
 Only two things are guaranteed about I<s(X)> and I<e(X)> as
 a function of I<X>:
 
