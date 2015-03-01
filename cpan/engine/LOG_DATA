@@ -1,32 +1,29 @@
-commit 851d2faeae119c4d0261bdb1e3a345b033fea73b
+commit ca6d0f82458d49debde7576f8d06ad733bebdfc8
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sat Feb 21 10:32:37 2015 -0800
+Date:   Sun Mar 1 12:57:19 2015 -0800
 
-    Bump version: t+
+    Converting to MIT License
 
-commit 0eacf5e4072a64232e451baf9341c959c4efbedb
-Merge: a6967ed 5836359
-Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Sat Feb 21 09:49:43 2015 -0800
+commit 9b50a202858be0cdceb0c3e461dd443d0a2dc1bf
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Mar 1 12:37:53 2015 -0800
 
-    Merge pull request #43 from rns/method_census_trivial_grammar_Other_parse_status_methods
-    
-    Method census trivial grammar 12.6 Other parse status methods
+    Converting to MIT License
 
-commit 583635990f97bd815f77bb99033757a6ca223379
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Sat Feb 21 19:04:55 2015 +0200
+commit 059467f1822dbe07781ffc83e9d292fabff4c17b
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Mar 1 11:57:20 2015 -0800
 
-    fix marpa_r_terminals_expected() test: t+
+    Converting to MIT License
 
-commit 0ce6fff1488a081fe12bf60b085a1ed4c9a59340
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Sat Feb 21 19:04:29 2015 +0200
+commit a1041ad1c084c5881a58dbbf4a0d9a75a0d9c5a3
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Mar 1 11:39:10 2015 -0800
 
-    fix marpa_r_expected_symbol_event_set() test
+    Converting to MIT License
 
-commit 3620aa093673518d02b6b53db46ba05fcac7cce2
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Sat Feb 21 18:59:23 2015 +0200
+commit 67d032f1f167a9bc362c7482c8bb2b90df407bab
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Mar 1 11:24:35 2015 -0800
 
-    fix marpa_r_expected_symbol_event_set() to return -2 on unused and nulling symbols
+    Converting to MIT License

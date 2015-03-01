@@ -1,19 +1,24 @@
 /*
  * Copyright 2015 Jeffrey Kegler
- * This file is part of Libmarpa.  Libmarpa is free software: you can
- * redistribute it and/or modify it under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * Libmarpa is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser
- * General Public License along with Libmarpa.  If not, see
- * http://www.gnu.org/licenses/.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
+
 
 /*
  * DO NOT EDIT DIRECTLY
@@ -22,7 +27,7 @@
  */
 
 /*27:*/
-#line 490 "./marpa_ami.w"
+#line 494 "./marpa_ami.w"
 
 
 #ifndef _MARPA_AMI_H__
@@ -37,7 +42,7 @@
 #endif
 
 /*19:*/
-#line 352 "./marpa_ami.w"
+#line 356 "./marpa_ami.w"
 
 #define MARPA_OFF_DEBUG1(a)
 #define MARPA_OFF_DEBUG2(a, b)
@@ -46,7 +51,7 @@
 #define MARPA_OFF_DEBUG5(a, b, c, d, e)
 #define MARPA_OFF_ASSERT(expr)
 /*:19*//*21:*/
-#line 373 "./marpa_ami.w"
+#line 377 "./marpa_ami.w"
 
 
 #ifndef MARPA_DEBUG
@@ -94,10 +99,10 @@
 #endif
 
 /*:21*/
-#line 503 "./marpa_ami.w"
+#line 507 "./marpa_ami.w"
 
 /*22:*/
-#line 420 "./marpa_ami.w"
+#line 424 "./marpa_ami.w"
 
 
 #if     __GNUC__ >  2 || (__GNUC__ == 2 && __GNUC_MINOR__ >  4)
@@ -148,14 +153,14 @@
 #endif
 
 /*:22*/
-#line 504 "./marpa_ami.w"
+#line 508 "./marpa_ami.w"
 
 /*23:*/
-#line 470 "./marpa_ami.w"
+#line 474 "./marpa_ami.w"
 
 typedef unsigned int BITFIELD;
 /*22:*/
-#line 420 "./marpa_ami.w"
+#line 424 "./marpa_ami.w"
 
 
 #if     __GNUC__ >  2 || (__GNUC__ == 2 && __GNUC_MINOR__ >  4)
@@ -206,12 +211,12 @@ typedef unsigned int BITFIELD;
 #endif
 
 /*:22*/
-#line 472 "./marpa_ami.w"
+#line 476 "./marpa_ami.w"
 
 #define Boolean(value) ((value) ? 1 : 0)
 
 /*:23*/
-#line 505 "./marpa_ami.w"
+#line 509 "./marpa_ami.w"
 
 
 #define marpa_new(type,count) ((type*) my_malloc((sizeof(type) *((size_t) (count) ) ) ) ) 
@@ -255,33 +260,33 @@ MARPA_DSTACK_INIT((this) ,type,MAX(4,1024/sizeof(this) ) )  \
 #define MARPA_DSTACK_RESIZE(this,type,new_size)  \
 (marpa_dstack_resize((this) ,sizeof(type) ,(new_size) ) ) 
 
-#line 507 "./marpa_ami.w"
+#line 511 "./marpa_ami.w"
 
 /*14:*/
-#line 316 "./marpa_ami.w"
+#line 320 "./marpa_ami.w"
 
 struct marpa_dstack_s;
 typedef struct marpa_dstack_s*MARPA_DSTACK;
 /*:14*/
-#line 508 "./marpa_ami.w"
+#line 512 "./marpa_ami.w"
 
 
 /*:27*/
 static inline void * marpa_dstack_resize2( struct marpa_dstack_s* this, int type_bytes);
 static inline void * marpa_dstack_resize ( struct marpa_dstack_s *this, int type_bytes, int new_size);
 /*28:*/
-#line 511 "./marpa_ami.w"
+#line 515 "./marpa_ami.w"
 
 
 /*15:*/
-#line 319 "./marpa_ami.w"
+#line 323 "./marpa_ami.w"
 
 struct marpa_dstack_s{int t_count;int t_capacity;void*t_base;};
 /*:15*/
-#line 513 "./marpa_ami.w"
+#line 517 "./marpa_ami.w"
 
 /*7:*/
-#line 196 "./marpa_ami.w"
+#line 200 "./marpa_ami.w"
 
 static inline
 void my_free(void*p)
@@ -290,7 +295,7 @@ free(p);
 }
 
 /*:7*//*8:*/
-#line 203 "./marpa_ami.w"
+#line 207 "./marpa_ami.w"
 
 
 static inline
@@ -323,7 +328,7 @@ return my_malloc(size);
 }
 
 /*:8*//*16:*/
-#line 321 "./marpa_ami.w"
+#line 325 "./marpa_ami.w"
 
 static inline void*marpa_dstack_resize2(struct marpa_dstack_s*this,int type_bytes)
 {
@@ -331,7 +336,7 @@ return marpa_dstack_resize(this,type_bytes,this->t_capacity*2);
 }
 
 /*:16*//*18:*/
-#line 330 "./marpa_ami.w"
+#line 334 "./marpa_ami.w"
 
 static inline void*
 marpa_dstack_resize(struct marpa_dstack_s*this,int type_bytes,
@@ -347,7 +352,7 @@ return this->t_base;
 }
 
 /*:18*/
-#line 514 "./marpa_ami.w"
+#line 518 "./marpa_ami.w"
 
 
 #endif 

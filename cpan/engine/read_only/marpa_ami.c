@@ -1,19 +1,24 @@
 /*
  * Copyright 2015 Jeffrey Kegler
- * This file is part of Libmarpa.  Libmarpa is free software: you can
- * redistribute it and/or modify it under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * Libmarpa is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser
- * General Public License along with Libmarpa.  If not, see
- * http://www.gnu.org/licenses/.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
+
 
 /*
  * DO NOT EDIT DIRECTLY
@@ -22,20 +27,20 @@
  */
 
 /*30:*/
-#line 520 "./marpa_ami.w"
+#line 524 "./marpa_ami.w"
 
 
 #include "config.h"
 
 /*:30*//*31:*/
-#line 533 "./marpa_ami.w"
+#line 537 "./marpa_ami.w"
 
 
 #include <stdarg.h> 
 #include <stdio.h> 
 
 /*:31*//*32:*/
-#line 538 "./marpa_ami.w"
+#line 542 "./marpa_ami.w"
 
 
 #ifndef MARPA_DEBUG
@@ -46,13 +51,13 @@
 #include "marpa_ami.h"
 
 /*5:*/
-#line 180 "./marpa_ami.w"
+#line 184 "./marpa_ami.w"
 
 #define PRIVATE_NOT_INLINE static
 #define PRIVATE static inline
 
 /*:5*/
-#line 547 "./marpa_ami.w"
+#line 551 "./marpa_ami.w"
 
 
 /*:32*/
@@ -60,11 +65,11 @@
 #line 1 "./marpa_ami.c.p40"
 
 /*33:*/
-#line 552 "./marpa_ami.w"
+#line 556 "./marpa_ami.w"
 
 
 /*20:*/
-#line 361 "./marpa_ami.w"
+#line 365 "./marpa_ami.w"
 
 int marpa__default_debug_handler(const char*format,...)
 {
@@ -78,7 +83,7 @@ return 1;
 
 
 /*:20*/
-#line 554 "./marpa_ami.w"
+#line 558 "./marpa_ami.w"
 
 
 /*:33*/
