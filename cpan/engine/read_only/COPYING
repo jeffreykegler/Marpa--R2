@@ -1,7 +1,14 @@
 Copyright 2015 Jeffrey Kegler
 
-Libmarpa is licensed under the MIT License:
-http://www.opensource.org/licenses/mit-license.html
+Most of Libmarpa is licensed under the MIT License, which is given
+below and at http://www.opensource.org/licenses/mit-license.html.
+Individual libraries and source files may be under other licenses,
+including the GNU's LGPL.  For details, see those individual libraries
+and source files.
+
+===============
+The MIT License
+===============
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

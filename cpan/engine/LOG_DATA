@@ -1,3 +1,21 @@
+commit 8c3028fc37ec1154444dfb0801b23b67715c65a0
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Mar 1 16:52:56 2015 -0800
+
+    Touch up licensing, copyright dates
+
+commit 30f6de05ca803298492129140b0e666c7fe4a5cd
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Mar 1 16:40:44 2015 -0800
+
+    Fix bug with marpa_b_new and ordinal_arg
+
+commit 25fbe248fccc9c4edf6744c4fcba43ff4f6ce3ca
+Author: Jeffrey Kegler <JKEGL@cpan.org>
+Date:   Sun Mar 1 16:18:35 2015 -0800
+
+    Fix bug with marpa_b_new and ordinal_arg
+
 commit ca6d0f82458d49debde7576f8d06ad733bebdfc8
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sun Mar 1 12:57:19 2015 -0800
@@ -7,23 +25,5 @@ Date:   Sun Mar 1 12:57:19 2015 -0800
 commit 9b50a202858be0cdceb0c3e461dd443d0a2dc1bf
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Sun Mar 1 12:37:53 2015 -0800
-
-    Converting to MIT License
-
-commit 059467f1822dbe07781ffc83e9d292fabff4c17b
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 11:57:20 2015 -0800
-
-    Converting to MIT License
-
-commit a1041ad1c084c5881a58dbbf4a0d9a75a0d9c5a3
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 11:39:10 2015 -0800
-
-    Converting to MIT License
-
-commit 67d032f1f167a9bc362c7482c8bb2b90df407bab
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 11:24:35 2015 -0800
 
     Converting to MIT License
