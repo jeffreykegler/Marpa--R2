@@ -1,29 +1,32 @@
-commit 8c3028fc37ec1154444dfb0801b23b67715c65a0
+commit d215f010fe3b46b935a17ee9adde9c46f8ccb3b4
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 16:52:56 2015 -0800
+Date:   Mon Mar 2 08:43:04 2015 -0800
 
-    Touch up licensing, copyright dates
+    Address github issue #60
 
-commit 30f6de05ca803298492129140b0e666c7fe4a5cd
+commit ee1f0660e9a02d3595aebca9901d49cc5e00b100
 Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 16:40:44 2015 -0800
+Date:   Mon Mar 2 08:36:02 2015 -0800
 
-    Fix bug with marpa_b_new and ordinal_arg
+    Followup on pull request #62
 
-commit 25fbe248fccc9c4edf6744c4fcba43ff4f6ce3ca
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 16:18:35 2015 -0800
+commit 54e931b2c4f1f356be1773248309b45cf008f2ea
+Merge: 2c77a3e f6cae0c
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Mon Mar 2 08:10:45 2015 -0800
 
-    Fix bug with marpa_b_new and ordinal_arg
+    Merge pull request #62 from rns/followup_on_method_census
+    
+    Followup on method census
 
-commit ca6d0f82458d49debde7576f8d06ad733bebdfc8
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 12:57:19 2015 -0800
+commit f6cae0c66b0469b4249d7665d00bfba7b24f6f63
+Author: rns <ruslan.shvedov@gmail.com>
+Date:   Mon Mar 2 16:25:01 2015 +0200
 
-    Converting to MIT License
+    move some of marpa_g_rule_rank*()and marpa_g_rule_null_high*() to group testing
 
-commit 9b50a202858be0cdceb0c3e461dd443d0a2dc1bf
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Sun Mar 1 12:37:53 2015 -0800
+commit f472c64e482d4f398e28caa5e88a4ae2893454cf
+Author: rns <ruslan.shvedov@gmail.com>
+Date:   Mon Mar 2 15:51:16 2015 +0200
 
-    Converting to MIT License
+    move some sequence mutators to group testing
