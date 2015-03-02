@@ -53,8 +53,30 @@ http://www.gnu.org/licenses/.
 END_OF_STRING
 
 my $license = "$copyright_line\n$license_body";
-my $libmarpa_license = $license;
-$libmarpa_license =~ s/Marpa::R2/Libmarpa/gxms;
+my $marpa_r2_license = $license;
+$marpa_r2_license =~ s/Marpa::R2/Libmarpa/gxms;
+
+my $mit_license_body = <<'END_OF_STRING';
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+END_OF_STRING
+
+my $mit_license = "$copyright_line\n$mit_license_body";
 
 # License, redone as Tex input
 my $license_in_tex =
@@ -107,10 +129,11 @@ sub c_comment {
     return qq{/*\n$text */\n};
 } ## end sub c_comment
 
-my $c_license          = c_comment($libmarpa_license);
+my $c_license          = c_comment($marpa_r2_license);
+my $c_mit_license          = c_comment($mit_license);
 my $xs_license          = c_comment($license);
 my $r2_hash_license    = hash_comment($license);
-my $libmarpa_hash_license    = hash_comment($libmarpa_license);
+my $libmarpa_hash_license    = hash_comment($mit_license);
 my $xsh_hash_license    = hash_comment($license, q{ #});
 my $tex_closed_license = hash_comment( $closed_license, q{%} );
 my $tex_license        = hash_comment( $license, q{%} );
@@ -263,15 +286,15 @@ my %files_by_type = (
     'META.yml' =>
         \&ignored,    # not source, and not clear how to add license at top
     'README'                            => \&trivial,
-    'INSTALL'                            => \&trivial,
+    'INSTALL'                           => \&trivial,
     'TODO'                              => \&trivial,
     'author.t/accept_tidy'              => \&trivial,
     'author.t/critic1'                  => \&trivial,
     'author.t/perltidyrc'               => \&trivial,
     'author.t/spelling_exceptions.list' => \&trivial,
     'author.t/tidy1'                    => \&trivial,
-    'etc/pod_errors.pl' => \&trivial,
-    'etc/pod_dump.pl' => \&trivial,
+    'etc/pod_errors.pl'                 => \&trivial,
+    'etc/pod_dump.pl'                   => \&trivial,
     'etc/dovg.sh'                       => \&trivial,
     'etc/compile_for_debug.sh'          => \&trivial,
     'etc/libmarpa_test.sh'              => \&trivial,
@@ -286,10 +309,10 @@ my %files_by_type = (
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
     'html/t/no_tang.html'                    => \&ignored,
     'html/t/test.html'                       => \&ignored,
-    'engine/LOG_DATA'             => \&ignored, # not worth the trouble
-    'engine/cf/LIBMARPA_MODE' => \&trivial,
-    'engine/read_only/LIB_VERSION'             => \&trivial,
-    'engine/read_only/LIB_VERSION.in'          => \&trivial,
+    'engine/LOG_DATA'                 => \&ignored,    # not worth the trouble
+    'engine/cf/LIBMARPA_MODE'         => \&trivial,
+    'engine/read_only/LIB_VERSION'    => \&trivial,
+    'engine/read_only/LIB_VERSION.in' => \&trivial,
     'engine/read_only/Makefile.am' =>
         gen_license_problems_in_hash_file($libmarpa_hash_license),
     'engine/read_only/configure.ac' =>
@@ -302,40 +325,57 @@ my %files_by_type = (
         gen_license_problems_in_perl_file($libmarpa_hash_license),
     'etc/my_suppressions' => \&trivial,
     'xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
+    'engine/read_only/README' =>
+        gen_license_problems_in_text_file($mit_license),
     'engine/read_only/README.INSTALL' =>
         gen_license_problems_in_text_file($libmarpa_hash_license),
+    'engine/read_only/AUTHORS' => \&trivial,
+    'engine/read_only/NEWS' => \&trivial,
+    'engine/read_only/ChangeLog' => \&trivial,
+
+    ## GNU license text, leave it alone
+    'engine/read_only/COPYING.LESSER' => \&ignored,
+
+    ## GNU standard -- has their license language
+    'engine/read_only/INSTALL' => \&ignored,
+
+    'engine/read_only/COPYING' => gen_license_problems_in_text_file( $mit_license_body ),
+    'engine/read_only/README' => gen_license_problems_in_text_file( $mit_license ),
+    'engine/read_only/stamp-h1' => \&trivial,
+    'engine/read_only/stamp-1' => \&trivial,
+    'engine/read_only/stamp-vti' => \&trivial,
+    'engine/read_only/install-sh' => \&check_X_copyright,
+    'engine/read_only/config.h.in' =>
+        check_tag( 'Generated from configure.ac by autoheader', 250 ),
+
+    # Leave GNU obstack licensing as is
+    'engine/read_only/marpa_obs.c' => \&ignored,
+    'engine/read_only/marpa_obs.h' => \&ignored,
 
     # Leave Pfaff's licensing as is
+    'engine/read_only/marpa_avl.c'  => \&ignored,
+    'engine/read_only/marpa_avl.h'  => \&ignored,
     'engine/read_only/marpa_tavl.c' => \&ignored,
     'engine/read_only/marpa_tavl.h' => \&ignored,
+
+    # Libmarpa licensing
+    'engine/read_only/marpa_ami.h' =>
+        &gen_license_problems_in_c_file($c_mit_license),
+    'engine/read_only/marpa.h' =>
+        &gen_license_problems_in_c_file($c_mit_license),
+    'engine/read_only/marpa_codes.c' =>
+        &gen_license_problems_in_c_file($c_mit_license),
+    'engine/read_only/marpa.c' =>
+        &gen_license_problems_in_c_file($c_mit_license),
+    'engine/read_only/marpa_codes.h' =>
+        &gen_license_problems_in_c_file($c_mit_license),
+    'engine/read_only/marpa_ami.c' =>
+        &gen_license_problems_in_c_file($c_mit_license),
 
     # MS .def file -- contents trivial
     'engine/read_only/win32/marpa.def' => \&ignored,
 );
 
-# Common files in the GNU distributions
-for my $distlib (
-    qw(engine/read_only)
-    )
-{
-    $files_by_type{"$distlib/AUTHORS"}   = \&trivial;
-    $files_by_type{"$distlib/NEWS"}      = \&trivial;
-    $files_by_type{"$distlib/ChangeLog"} = \&trivial;
-
-    ## GNU license text, leave it alone
-    $files_by_type{"$distlib/COPYING.LESSER"} = \&ignored;
-
-    ## GNU standard -- has their license language
-    $files_by_type{"$distlib/INSTALL"} = \&ignored;
-
-    $files_by_type{"$distlib/README"}     = gen_license_problems_in_text_file( $libmarpa_license );
-    $files_by_type{"$distlib/stamp-h1"}   = \&trivial;
-    $files_by_type{"$distlib/stamp-1"}   = \&trivial;
-    $files_by_type{"$distlib/stamp-vti"}   = \&trivial;
-    $files_by_type{"$distlib/install-sh"} = \&check_X_copyright;
-    $files_by_type{"$distlib/config.h.in"} =
-        check_tag( 'Generated from configure.ac by autoheader', 250 );
-} ## end for my $distlib (...)
 
 sub file_type {
     my ($filename) = @_;
@@ -820,7 +860,7 @@ sub gen_license_problems_in_text_file {
                 or die "say failed: $ERRNO";
         }
         my @problems = ();
-        my $text     = slurp_top($filename);
+        my $text     = slurp_top($filename, (length $license)*2);
         if ( ( index ${$text}, $license ) < 0 ) {
             my $problem = "Full language missing in text file $filename\n";
             if ($verbose) {
@@ -831,8 +871,8 @@ sub gen_license_problems_in_text_file {
         } ## end if ( ( index ${$text}, $license ) < 0 )
         if ( scalar @problems and $verbose >= 2 ) {
             my $problem =
-                "=== licensing pod section for $filename should be as follows:\n"
-                . $pod_section
+                "=== licensing for $filename should be as follows:\n"
+                . $license
                 . ( q{=} x 30 );
             push @problems, $problem;
         } ## end if ( scalar @problems and $verbose >= 2 )

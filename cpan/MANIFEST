@@ -47,6 +47,7 @@ engine/README
 engine/SHARED
 engine/STATIC
 engine/read_only/AUTHORS
+engine/read_only/COPYING
 engine/read_only/COPYING.LESSER
 engine/read_only/ChangeLog
 engine/read_only/INSTALL
