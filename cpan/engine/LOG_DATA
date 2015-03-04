@@ -1,3 +1,18 @@
+commit 83a135f9aa177362156d225a0a19682d8a4fe7cb
+Merge: d215f01 f656250
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Tue Mar 3 21:47:52 2015 -0800
+
+    Merge pull request #63 from rns/fix_for_msvc
+    
+    fix missing ';' before 'const' under msvc
+
+commit f6562509faa321a55521a1116e7abdb785908a95
+Author: rns <ruslan.shvedov@gmail.com>
+Date:   Wed Mar 4 07:43:34 2015 +0200
+
+    fix missing ';' before 'const' under msvc
+
 commit d215f010fe3b46b935a17ee9adde9c46f8ccb3b4
 Author: Jeffrey Kegler <JKEGL@cpan.org>
 Date:   Mon Mar 2 08:43:04 2015 -0800
@@ -18,15 +33,3 @@ Date:   Mon Mar 2 08:10:45 2015 -0800
     Merge pull request #62 from rns/followup_on_method_census
     
     Followup on method census
-
-commit f6cae0c66b0469b4249d7665d00bfba7b24f6f63
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Mon Mar 2 16:25:01 2015 +0200
-
-    move some of marpa_g_rule_rank*()and marpa_g_rule_null_high*() to group testing
-
-commit f472c64e482d4f398e28caa5e88a4ae2893454cf
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Mon Mar 2 15:51:16 2015 +0200
-
-    move some sequence mutators to group testing

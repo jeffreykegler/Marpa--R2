@@ -14028,6 +14028,7 @@ const GRAMMAR g= G_of_R(r);
 /*:556*/
 #line 9725 "./marpa.w"
 
+const MARPA_AVL_TRAV traverser= r->t_progress_report_traverser;
 /*1216:*/
 #line 14646 "./marpa.w"
 
@@ -14036,9 +14037,8 @@ MARPA_ERROR(MARPA_ERR_RECCE_NOT_STARTED);
 return failure_indicator;
 }
 /*:1216*/
-#line 9726 "./marpa.w"
+#line 9727 "./marpa.w"
 
-const MARPA_AVL_TRAV traverser= r->t_progress_report_traverser;
 /*830:*/
 #line 9759 "./marpa.w"
 
