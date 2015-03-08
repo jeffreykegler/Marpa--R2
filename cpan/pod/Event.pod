@@ -323,7 +323,7 @@ there will be 4 elements:
 
 =item *
 
-The name of nulling event.
+The name of discard event.
 
 =item *
 
