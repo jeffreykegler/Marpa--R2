@@ -15,38 +15,23 @@
 
 Revision history for Marpa::R2
 
-2.103_010 (libmarpa 8.3.0) Tue Mar  3 21:55:28 PST 2015
-2.103_009 (libmarpa 8.3.0) Sun Mar  1 12:59:12 PST 2015
+2.105_000 (libmarpa 8.3.0) Sat Mar  7 19:19:00 PST 2015
 
-   * New Libmarpa versions
+   * New series of developer's releases.
 
-2.103_008 (libmarpa 8.2.0) Sat Feb 21 10:35:08 PST 2015
+2.104000 (libmarpa 8.3.0) Sat Mar  7 17:43:00 PST 2015
 
-   * Finished development of "discard events" w/ docs
+   * Added Discard events
 
-2.103_007 (libmarpa 8.1.0) Thu Feb 19 10:33:52 PST 2015
-2.103_006 (libmarpa 8.0.0) Thu Feb 12 20:04:46 PST 2015
-2.103_005 (libmarpa 7.10.0) Mon Feb  9 21:03:58 PST 2015
-2.103_004 (libmarpa 7.9.0) Tue Feb  3 20:19:40 PST 2015
-2.103_003 (libmarpa 7.8.0) Sun Jan 25 21:46:55 PST 2015
+   * Added g1start, g1length array descriptor items
 
-   * New Libmarpa versions
+   * Added 'event_is_active' SLIF recce named argument
 
-2.103_002 (libmarpa 7.6.0) Thu Jan 22 19:15:22 PST 2015
+   * Added event initializers
 
-   * Add g1start, g1length array descriptor items
+   * New Libmarpa version, with MIT license
 
-   * Add 'event_is_active' SLIF recce named argument
-
-   * Add event initializers
-
-2.103_001 (libmarpa 7.6.0)
-
-   * Factoring SLIF code out of Libmarpa
-
-2.103_000 (libmarpa 7.5.0) Fri Jan  9 18:46:16 PST 2015
-
-   * New series of developer's releases
+   * Factored SLIF code out of Libmarpa
 
 2.102000 (libmarpa 7.5.0) Fri Jan  9 17:04:27 PST 2015
 
