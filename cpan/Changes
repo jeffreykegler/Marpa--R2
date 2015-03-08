@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.105_000 (libmarpa 8.3.0) Sat Mar  7 19:19:00 PST 2015
+
+   * New series of developer's releases.
+
 2.104000 (libmarpa 8.3.0) Sat Mar  7 17:43:00 PST 2015
 
    * Added Discard events
