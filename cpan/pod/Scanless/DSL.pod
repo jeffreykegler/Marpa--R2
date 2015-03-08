@@ -328,15 +328,39 @@ normalize-whitespace: 1
     event 'a' = completed A
     event 'b'=off = completed B
     event 'c'=on = completed C
-    event 'd' = completed D
 
 =for Marpa::R2::Display::End
 
+=for Marpa::R2::Display
+name: SLIF discard event statement synopsis 2
+partial: 1
+normalize-whitespace: 1
+
+:discard ~ [,] event => comma=off
+:discard ~ [;] event => 'semicolon'=on
+:discard ~ [.] event => period
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF nulled event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event '!a' = nulled A
+    event '!b'=off = nulled B
+    event '!c'=on = nulled C
+
+=for Marpa::R2::Display::End
+
+An event initializer is an event name,
+optionally with an explicit initialization.
 If there is an explicit initialization,
 it consists of the equal sign ('C<=>')
 followed by a value indicating
 the event's initial activation setting
 (C<on> or C<off>).
+
 If the initialization value is C<on>,
 or if there is no explicit initialization,
 the event's activation
