@@ -336,9 +336,9 @@ name: SLIF discard event statement synopsis 2
 partial: 1
 normalize-whitespace: 1
 
-:discard ~ [,] event => comma=off
-:discard ~ [;] event => 'semicolon'=on
-:discard ~ [.] event => period
+    :discard ~ [,] event => comma=off
+    :discard ~ [;] event => 'semicolon'=on
+    :discard ~ [.] event => period
 
 =for Marpa::R2::Display::End
 
