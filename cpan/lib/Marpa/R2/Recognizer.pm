@@ -769,7 +769,7 @@ sub Marpa::R2::Recognizer::earleme_complete {
         print {$Marpa::R2::Internal::TRACE_FH} "=== Earley set $latest_set\n"
             or Marpa::R2::exception("Cannot print: $ERRNO");
         print {$Marpa::R2::Internal::TRACE_FH}
-            Marpa::R2::show_earley_set($latest_set)
+            Marpa::R2::show_earley_set($recce, $latest_set)
             or Marpa::R2::exception("Cannot print: $ERRNO");
     } ## end if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS...])
 
