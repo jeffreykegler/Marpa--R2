@@ -863,7 +863,13 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         $parse->bless_hash_rule( \%new_xs_rule, $blessing, $naming, $lhs );
 
         my $next_priority = $priority + 1;
+
+        # This is probably a mis-feature.  It probably should be
+        # $next_priority = $priority if $next_priority >= $priority_count;
+        # However, I probably will not change this, because some apps
+        # may be relying on this behavior.
         $next_priority = 0 if $next_priority >= $priority_count;
+
         my $next_exp = $parse->prioritized_symbol( $lhs, $next_priority);
 
         if ( not scalar @arity ) {
