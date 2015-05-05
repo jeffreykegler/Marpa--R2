@@ -1346,6 +1346,14 @@ sub registration_init {
 
 } ## end sub registration_init
 
+sub Marpa::R2::Recognizer::registrations {
+    my $recce = shift;
+    if (@_) {
+      $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] = shift;
+    }
+    return $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS];
+} ## end sub registrations
+
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value {
     my ( $recce, $slr, $per_parse_arg ) = @_;
