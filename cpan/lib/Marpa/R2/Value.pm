@@ -522,9 +522,9 @@ sub resolve_recce {
             } ## end if ( defined $per_parse_arg )
             $package_source = 'legacy';
         } ## end DETERMINE_RESOLVE_PACKAGE_SOURCE:
-        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
-            $package_source;
     } ## end if ( not defined $package_source )
+    $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
+        $package_source;
 
     if ( $package_source eq 'legacy' ) {
 
