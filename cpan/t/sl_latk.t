@@ -14,7 +14,9 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# the example grammar in Aycock/Horspool "Practical Earley Parsing",
+# Based on Github issue #254 -- constructor invoked
+# on per-parse argument, which should not happen.
+
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
 # in its "NNF" form
 
