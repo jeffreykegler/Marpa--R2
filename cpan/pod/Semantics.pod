@@ -950,10 +950,11 @@ This is initialized
 
 =over 4
 
-=item * To the result returned by the per-parse constructor, if there is a per-parse constructor.
-
-=item * Otherwise, to the argument to the SLIF recognizer's C<value()> method, if that
+=item * To the argument to the SLIF recognizer's C<value()> method, if that
 argument is defined.
+
+=item * Otherwise, to the result returned by the per-parse constructor,
+if there is a per-parse constructor.
 
 =item * Otherwise, as a last resort, to an empty hashref.
 
@@ -972,16 +973,13 @@ one common example of data that is best handled outside the functional model.
 
 =head1 The per-parse constructor
 
-The per-parse constructor is the C<new()> method of the semantics package.
+The per-parse constructor
+is the C<new()> method of the semantics package.
 If there is no semantics package, or if it has no C<new()> method,
 there is no per-parse constructor.
+The per-parse constructor is called with one argument:
+the name of the semantics package.
 
-The per-parse constructor is called with one argument.
-This argument is the argument of the
-SLIF recognizer's C<value()> method, if one was defined.
-Otherwise it is the name of the semantics package.
-
-The result returned by the per-parse constructor becomes the per-parse argument.
 The per-parse constructor is called
 in the
 L<Parse Tree Setup Subphase|Marpa::R2::Semantics::Phases/"Parse Tree Setup Subphase">.

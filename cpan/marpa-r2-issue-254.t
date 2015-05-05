@@ -33,24 +33,26 @@ package Class_Actions;
 
 sub new {
     my ( $class ) = @_;
-    return bless { desc => 'class ctor' }, $class;
+    return bless { ctor_desc => 'class ctor' }, $class;
 }
 
 sub do_A {
     my ( $self, $letter ) = @_;
-    return join ',', $self->{desc}, "class method", "letter=$letter";
+    my $ctor_desc = $self->{ctor_desc} // 'no ctor';
+    return join ';', $ctor_desc, "class method", "letter=$letter";
 }
 
 package Package_Actions;
 
 sub new {
     my ( $class ) = @_;
-    return bless { desc => 'package ctor' }, $class;
+    return bless { ctor_desc => 'package ctor' }, $class;
 }
 
 sub do_A {
     my ( $self, $letter ) = @_;
-    return join ';', $self->{desc}, "package method", "letter=$letter";
+    my $ctor_desc = $self->{ctor_desc} // 'no ctor';
+    return join ';', $ctor_desc, "package method", "letter=$letter";
 }
 
 package main;
@@ -60,36 +62,39 @@ my $grammar =
 
 my @tests = ();
 for my $recce_arg_desc ( 'semantics_package', 'no semantics_package' ) {
-    my $recce_arg      = {};
-    my $have_semantics = 0;
-    my $ctor_desc = 'no ctor';
-    my $method_desc = 'no method';
-    if ( $recce_arg_desc eq 'semantics_package' ) {
-        $recce_arg = { semantics_package => 'Package_Actions' };
-        $have_semantics = 1;
-        $ctor_desc = 'package ctor';
-        $method_desc = 'package method';
-    }
     PPO:
     for my $ppo_desc ( 'no', 'unblessed', 'same blessed', 'other blessed' ) {
-        my $ppo = undef;
-        if ( $ppo_desc eq 'unblessed' ) {
-            $ppo = { desc => $ppo_desc };
-            $ctor_desc = 'no ctor';
-        }
-        if ( $ppo_desc eq 'same blessed' ) {
-            $ppo = bless { desc => $ppo_desc }, 'Package_Actions';
-            $have_semantics = 1;
-            $ctor_desc = 'no ctor';
+        my $recce_arg   = {};
+        my $ctor_desc   = 'no ctor';
+        my $method_desc = undef;
+        if ( $recce_arg_desc eq 'semantics_package' ) {
+            $recce_arg   = { semantics_package => 'Package_Actions' };
+            $ctor_desc   = 'package ctor';
             $method_desc = 'package method';
         }
-        if ( $ppo_desc eq 'other blessed' ) {
-            $ppo = bless { desc => $ppo_desc }, 'Class_Actions';
-            $have_semantics = 1;
-            $ctor_desc = 'no ctor';
-            $method_desc = 'class method';
-        }
-        next PPO if not $have_semantics;
+        my $ppo = undef;
+        SET_PPO_PARMS: {
+            last SET_PPO_PARMS if $ppo_desc eq 'no';
+            if ( $ppo_desc eq 'unblessed' ) {
+                $ppo = { desc => $ppo_desc };
+                $ctor_desc = 'no ctor';
+                last SET_PPO_PARMS;
+            }
+            if ( $ppo_desc eq 'same blessed' ) {
+                $ppo         = bless { desc => $ppo_desc }, 'Package_Actions';
+                $ctor_desc   = 'no ctor';
+                $method_desc = 'package method' if not defined $method_desc;
+                last SET_PPO_PARMS;
+            } ## end if ( $ppo_desc eq 'same blessed' )
+            if ( $ppo_desc eq 'other blessed' ) {
+                $ppo         = bless { desc => $ppo_desc }, 'Class_Actions';
+                $ctor_desc   = 'no ctor';
+                $method_desc = 'class method' if not defined $method_desc;
+                last SET_PPO_PARMS;
+            } ## end if ( $ppo_desc eq 'other blessed' )
+            die;
+        } ## end SET_PPO_PARMS:
+        next PPO if not defined $method_desc;
         my $value = join ';', $ctor_desc, $method_desc, 'letter=a';
         my $desc = "$recce_arg_desc; $ppo_desc ppo";
         push @tests, [ $recce_arg, $ppo, $value, 'Parse OK', $desc ];
@@ -102,7 +107,7 @@ for my $test_data (@tests) {
         $test_name )
         = @{$test_data};
     my ( $actual_value, $actual_result ) =
-        my_parser( $grammar, $recce_arg );
+        my_parser( $grammar, $recce_arg, $ppo );
     Test::More::is(
         Data::Dumper::Dumper( \$actual_value ),
         Data::Dumper::Dumper( \$expected_value ),

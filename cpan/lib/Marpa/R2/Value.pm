@@ -85,6 +85,10 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         my $resolve_package =
             $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
         if ( not defined $resolve_package ) {
+        say STDERR
+            $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+        say STDERR
+            $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
             ${$p_error} = Marpa::R2::Internal::X->new(
                 {   message =>
                         qq{Could not fully qualify "$closure_name": no resolve package},
@@ -504,25 +508,15 @@ sub resolve_recce {
 
     my $package_source =
         $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
-    if ( not defined $package_source ) {
-        DETERMINE_RESOLVE_PACKAGE_SOURCE: {
-            if ( defined $per_parse_arg ) {
-                if ( my $arg_blessing = Scalar::Util::blessed $per_parse_arg)
-                {
-                    $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE]
-                        = $arg_blessing;
-                    $package_source = 'arg';
-                    last DETERMINE_RESOLVE_PACKAGE_SOURCE;
-                } ## end if ( my $arg_blessing = Scalar::Util::blessed ...)
-                $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
-                    $recce
-                    ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
-                $package_source = 'semantics_package';
-                last DETERMINE_RESOLVE_PACKAGE_SOURCE;
-            } ## end if ( defined $per_parse_arg )
-            $package_source = 'legacy';
-        } ## end DETERMINE_RESOLVE_PACKAGE_SOURCE:
-    } ## end if ( not defined $package_source )
+    if (    not defined $package_source
+        and defined $per_parse_arg
+        and ( my $arg_blessing = Scalar::Util::blessed $per_parse_arg) )
+    {
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
+            $arg_blessing;
+        $package_source = 'arg';
+    } ## end if ( not defined $package_source and defined $per_parse_arg...)
+    $package_source //= 'semantics_package';
     $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
         $package_source;
 
@@ -1515,9 +1509,16 @@ sub Marpa::R2::Recognizer::value {
     }
 
     my $semantics_arg0;
-    if ( my $per_parse_constructor =
-        $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] )
-    {
+    RUN_CONSTRUCTOR: {
+        # Do not run the constructor if there is a per-parse arg
+        last RUN_CONSTRUCTOR if defined $per_parse_arg;
+
+        my $per_parse_constructor =
+            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR];
+
+        # Do not run the constructor if there isn't one
+        last RUN_CONSTRUCTOR if not defined $per_parse_constructor;
+
         my $constructor_arg0;
         if ( $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE]
             eq 'legacy' )
@@ -1526,8 +1527,8 @@ sub Marpa::R2::Recognizer::value {
                 $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
         } ## end if ( $recce->[...])
         else {
-            $constructor_arg0 = $per_parse_arg
-                // $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+            $constructor_arg0 =
+                $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
         }
         my @warnings;
         my $eval_ok;
@@ -1555,7 +1556,7 @@ sub Marpa::R2::Recognizer::value {
                 }
             );
         } ## end if ( not $eval_ok or @warnings )
-    } ## end if ( my $per_parse_constructor = $recce->[...])
+    } ## end RUN_CONSTRUCTOR:
 
     $semantics_arg0 //= $per_parse_arg // {};
 
