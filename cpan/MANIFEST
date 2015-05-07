@@ -287,6 +287,7 @@ t/sl_gsyn.t
 t/sl_incremental.t
 t/sl_json.t
 t/sl_json_ast.t
+t/sl_latk.t
 t/sl_lc.t
 t/sl_leo.t
 t/sl_leo2.t
