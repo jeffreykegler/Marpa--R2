@@ -1172,14 +1172,15 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 If your application is repeatively creating a recognizer with
-always the same settings, it will benefit from this method.
+always the same settings, including up to the call ot C<value()>,
+it will benefit from this method.
 
-Internally, the C<value()> is registering semantic resolution
-the first time it is called. Re-creating a recognizer will call
-again semantic resolution. But, and this is the responsability
-of the programmer, if you know that semantic resolution will
-always produce the same result, this can be bypassed with the
-C<registration()> method, as shown above.
+Internally, the C<value()> is registering semantic resolutions
+the first time it is called, and is caching the result. But, and
+this is the responsability of the programmer, if you know that
+semantic resolutions will always produce the same result, this
+can be bypassed with the C<registrations()> method, as shown above,
+providing better performance.
 
 =head1 Mutators for external scanning
 
