@@ -254,7 +254,7 @@ alternatives:
 
 =item *
 
-A C<Term> and a C<Factor> separated by an addition operator; or
+A C<Term> and a C<Factor> separated by an multiplication operator; or
 
 =item * 
 
