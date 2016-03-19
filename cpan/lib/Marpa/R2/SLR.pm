@@ -1062,6 +1062,8 @@ sub Marpa::R2::Scanless::R::resume {
             for my $entry ( @{$character_class_table} ) {
 
                 my ( $symbol_id, $re ) = @{$entry};
+                use utf8;                      # this is scoped
+                utf8::upgrade($character);
                 if ( $character =~ $re ) {
 
                     if ( $trace_terminals >= 2 ) {
