@@ -1519,19 +1519,27 @@ name: Scanless ambiguity_metric() synopsis
 =for Marpa::R2::Display::End
 
 Succeeds and
-returns 1 if there is an unambiguous parse.
+returns 1 if there was an unambiguous parse,
+in other words if there was exactly one parse tree.
 Succeeds and
-returns 2 or greater if there is a ambiguous parse.
-Fails and returns zero if called before parsing.
-Returns zero or a negative number on other unthrown failure.
+returns 2 or greater if the parse was ambiguous,
+in other words if there was more than one parse tree.
+Succeeds and returns 0 if there are no parse trees,
+because parsing failed.
+Currently, all other failures are thrown.
 
 When the return value is 2 or greater,
-an application should not rely on the exact value, which is subject to change.
-In the future, return values of 2 or greater may represent a "metric" which
-estimates the degree of ambiguity in some useful way,
-but is cheap to compute.
-(The best metric is, of course, the exact parse count,
-but determining that can be very expensive.)
+the return value is B<not> necessarily the parse count.
+Instead, it is a value which is subject to change.
+and on which an application should not rely.
+The intent was that, some day,
+return values of 2 or greater would represent a "metric" which
+was cheap to compute,
+but which
+estimated the degree of ambiguity in some useful way.
+The best metric is, of course,
+would be the exact parse count,
+but determining that is expensive.
 
 =head2 current_g1_location()
 

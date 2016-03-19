@@ -15,9 +15,14 @@
 
 Revision history for Marpa::R2
 
-2.105_000 (libmarpa 8.3.0) Sat Mar  7 19:19:00 PST 2015
+3.001_000 (libmarpa 8.3.0) Sun May 10 01:40:42 PDT 2015
 
    * New series of developer's releases.
+
+3.000000 (libmarpa 8.3.0) Sat May  9 21:52:49 PDT 2015
+
+   * Fix bug: blessed per-parse argument to $recce->value()
+     was not being passed directly to parse.
 
 2.104000 (libmarpa 8.3.0) Sat Mar  7 17:43:00 PST 2015
 
