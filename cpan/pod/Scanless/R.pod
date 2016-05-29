@@ -1345,7 +1345,7 @@ The span will be interpreted as the section
 of the physical input stream
 that corresponds to the current G1 set.
 (As a reminder, the G1 set consists
-of the tokens read at at single G1 location.)
+of the tokens read at single G1 location.)
 This correspondence between the span and the token
 may be artificial, but a span is defined for every token,
 even if only by default.
