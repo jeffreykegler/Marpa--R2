@@ -33,6 +33,7 @@ my $input = 'yyyxxxyyyyyxxxxxyyyyxyyyyxxyyyyxxxxyyy';
 $recce->read(\$input);
 VALUE: while (1) {
   my $value_ref = $recce->value();
+  say $recce->thin()->show_earley_sets();
   last VALUE if not $value_ref;
   my $value = $$value_ref;
   my @target_desc = @{$value};

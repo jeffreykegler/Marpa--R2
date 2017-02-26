@@ -71,6 +71,7 @@
 ^errs$
 ^etc/track[.]list
 ^hide/
+^experiments/
 ^html/Build$
 ^html/MANIFEST\.SKIP$
 ^html/MYMETA.yml$

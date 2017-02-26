@@ -1,35 +1,29 @@
-commit 83a135f9aa177362156d225a0a19682d8a4fe7cb
-Merge: d215f01 f656250
+commit b8fd74b26434563e4b56599a36657a59ceea98c7
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Tue Mar 3 21:47:52 2015 -0800
+Date:   Sat Feb 25 19:35:06 2017 -0800
 
-    Merge pull request #63 from rns/fix_for_msvc
-    
-    fix missing ';' before 'const' under msvc
+    Add progress report bug fix from Marpa::R3: t+
 
-commit f6562509faa321a55521a1116e7abdb785908a95
-Author: rns <ruslan.shvedov@gmail.com>
-Date:   Wed Mar 4 07:43:34 2015 +0200
-
-    fix missing ';' before 'const' under msvc
-
-commit d215f010fe3b46b935a17ee9adde9c46f8ccb3b4
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Mar 2 08:43:04 2015 -0800
-
-    Address github issue #60
-
-commit ee1f0660e9a02d3595aebca9901d49cc5e00b100
-Author: Jeffrey Kegler <JKEGL@cpan.org>
-Date:   Mon Mar 2 08:36:02 2015 -0800
-
-    Followup on pull request #62
-
-commit 54e931b2c4f1f356be1773248309b45cf008f2ea
-Merge: 2c77a3e f6cae0c
+commit a2e19108721f78b41f59c5e9c0511505e2a4242d
 Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
-Date:   Mon Mar 2 08:10:45 2015 -0800
+Date:   Mon May 2 10:27:04 2016 -0700
 
-    Merge pull request #62 from rns/followup_on_method_census
-    
-    Followup on method census
+    "Too many YIMs" duplicate warnings elminated: t+
+
+commit 77ed0f9930a11101ed0c85e83bdda8a5fd69d27e
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Mon May 2 09:57:33 2016 -0700
+
+    update HOWTO
+
+commit 8c331df900181b14870fa8eb3c44ac912b95c37a
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Mon May 2 09:57:19 2016 -0700
+
+    realclean target
+
+commit 2e6727b0c36bc003e8aa8cbc6417b0d8f6085ca4
+Author: Jeffrey Kegler <jeffreykegler@jeffreykegler.com>
+Date:   Mon May 2 08:15:28 2016 -0700
+
+    Add a HOWTO file: t+

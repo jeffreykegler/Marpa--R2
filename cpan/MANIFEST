@@ -246,6 +246,8 @@ t/null_infinite4.t
 t/null_value.t
 t/pascal.t
 t/perl.t
+t/progress1.t
+t/progress2.t
 t/rabend.t
 t/randal.t
 t/rewrite.t
@@ -271,8 +273,8 @@ t/sl_discard3.t
 t/sl_dsl.t
 t/sl_durand.t
 t/sl_dyck.t
-t/sl_evinit.t
 t/sl_event.t
+t/sl_evinit.t
 t/sl_evsyn.t
 t/sl_evsyn2.t
 t/sl_exhaust.t

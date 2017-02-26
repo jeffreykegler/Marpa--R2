@@ -31,7 +31,7 @@ $deleted_count = File::Path::remove_tree('libmarpa_build');
 say "$deleted_count files deleted in 'libmarpa_build'";
 
 if (not IPC::Cmd::run(
-        command => [ qw(git clone -b r2 --depth 5), $libmarpa_repo, $stage ],
+        command => [ qw(git clone -b r2dev --depth 5), $libmarpa_repo, $stage ],
         verbose => 1
     )
     )
