@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 36;
+use Test::More tests => 38;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -351,6 +351,24 @@ END_OF_SOURCE
         [ qw(start X) ], 'Parse OK',
         'Bug found by Jean-Damien Durand'
         ];
+}
+
+if (1) {
+    use utf8;
+    my $grammar = \(<<'END_OF_SOURCE');
+:default ::= action => [name,values]
+<Š> ::= <Á> <Č>
+<Á> ::= a+
+<Č> ::= c
+a ~ 'a'
+c ~ 'c'
+END_OF_SOURCE
+
+    push @tests_data,
+      [
+        $grammar, 'aac', [ 'Š', [qw(Á a a)], [qw(Č c)] ],
+        'Parse OK', 'Bug in Unicode found by choroba'
+      ];
 }
 
 TEST:

@@ -1054,7 +1054,9 @@ sub Marpa::R2::Scanless::R::resume {
 
             # Recover by registering character, if we can
             my $codepoint = $thin_slr->codepoint();
-            my $character = chr($codepoint);
+            my $character = 
+                substr ${$slr->[Marpa::R2::Internal::Scanless::R::P_INPUT_STRING]},
+                   $thin_slr->pos(), 1;
             my $character_class_table =
                 $slg->[Marpa::R2::Internal::Scanless::G::CHARACTER_CLASS_TABLES]
                 ->[0];
