@@ -208,7 +208,7 @@ ITEM: while (1) {
 $recce->progress_report_finish();
 
 Test::More::is( ( join q{ }, map { @{$_} } @{$report} ),
-    '0 -1 0 0 0 0', 'progress report' );
+    '0 -1 0', 'progress report' );
 
 $recce->alternative( $symbol_sep, 1, 1 );
 $recce->earleme_complete();

@@ -214,7 +214,6 @@ for my $test_data (@tests_data) {
 
     Marpa::R2::Test::is( $show_progress_output,
         <<'END_OF_EXPECTED_OUTPUT', qq{Scanless show_progess()} );
-P0 @0-11 L1c1-19 Script -> . Calculation *
 F0 @0-11 L1c1-19 Script -> Calculation * .
 P1 @11-11 L1c19 Calculation -> . Expression
 F1 @0-11 L1c1-19 Calculation -> Expression .
@@ -274,7 +273,6 @@ END_OF_OUTPUT
         [ 4, -1, 0 ],
         [ 4, -1, 6 ],
         [ 5, -1, 0 ],
-        [ 0, 0,  0 ],
         [ 1, 0,  11 ],
         [ 2, 0,  11 ],
         [ 3, 0,  11 ],

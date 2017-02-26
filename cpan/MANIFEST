@@ -60,6 +60,7 @@ engine/read_only/NEWS
 engine/read_only/README
 engine/read_only/README.INSTALL
 engine/read_only/aclocal.m4
+engine/read_only/compile
 engine/read_only/config.guess
 engine/read_only/config.h.in
 engine/read_only/config.sub

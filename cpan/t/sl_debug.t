@@ -165,7 +165,6 @@ P8 @2-2 L1c3 expression -> . variable
 P9 @2-2 L1c3 expression -> . string
 P10 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
 P11 @2-2 L1c3 expression -> . expression '+' expression
-P0 @0-3 L1c1-11 statements -> . statement *
 F0 @0-3 L1c1-11 statements -> statement * .
 P1 @3-3 L1c5-11 statement -> . assignment
 P2 @3-3 L1c5-11 statement -> . <numeric assignment>
@@ -184,7 +183,6 @@ P8 @4-4 L1c13 expression -> . variable
 P9 @4-4 L1c13 expression -> . string
 P10 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
 R11:2 @2-4 L1c3-13 expression -> expression '+' . expression
-P0 @0-5 L1c1-16 statements -> . statement *
 F0 @0-5 L1c1-16 statements -> statement * .
 P1 @5-5 L1c15-16 statement -> . assignment
 P2 @5-5 L1c15-16 statement -> . <numeric assignment>
@@ -283,7 +281,7 @@ my $latest_report = $recce->progress();
 # end-before-line: '^END_PROGRESS_REPORT$'
 
 chomp( my $expected_default_report = <<'END_PROGRESS_REPORT');
-[[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[7,-1,4],[8,-1,4],[11,-1,2],[19,-1,0],[0,0,0],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[11,1,2]]
+[[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[7,-1,4],[8,-1,4],[11,-1,2],[19,-1,0],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[11,1,2]]
 END_PROGRESS_REPORT
 Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
     $expected_default_report, 'progress report at default location' );
@@ -291,7 +289,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 # Marpa::R2::Display::End
 
 chomp( my $expected_report3 = <<'END_PROGRESS_REPORT');
-[[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[6,-1,2],[7,-1,2],[8,-1,2],[19,-1,0],[0,0,0],[1,0,3],[2,0,3],[3,0,3],[4,0,3],[11,1,2]]
+[[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[6,-1,2],[7,-1,2],[8,-1,2],[19,-1,0],[1,0,3],[2,0,3],[3,0,3],[4,0,3],[11,1,2]]
 END_PROGRESS_REPORT
 
 # Try latest report again with explicit index
