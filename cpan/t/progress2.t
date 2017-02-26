@@ -63,16 +63,16 @@ G1 R0 S ::= SS SS
 G1 R1 SS ::= A A A A A A A
 G1 R2 A ::=
 G1 R3 A ::= 'a'
-G1 R4 [:start] ::= S
+G1 R4 :start ::= S
 EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,
     <<'EOS', 'Aycock/Horspool Symbols' );
-G1 S0 A
-G1 S1 S
-G1 S2 SS
-G1 S3 [:start]
-G1 S4 'a'
+G1 S0 :start -- Internal G1 start symbol
+G1 S1 'a' -- Internal lexical symbol for "'a'"
+G1 S2 S
+G1 S3 SS
+G1 S4 A
 EOS
 
 Marpa::R2::Test::is( $grammar->show_irls,
@@ -121,12 +121,12 @@ sub earley_set_display {
     my @data = ();
     for my $target_item (@target_items) {
         my ( $rule_id, $dot, $origin ) = @{$target_item};
+        my $cooked_dot = $dot < 0 ? $target_rule_length : $dot;
         my $desc .=
             "S:$dot " . '@'
           . "$origin-$earley_set "
-          . $grammar->show_dotted_rule( $rule_id, $dot );
-        my $raw_dot = $dot < 0 ? $target_rule_length : $dot;
-        my @datum = ( $raw_dot, $origin, $rule_id, $dot, $origin, $desc );
+          . $grammar->show_dotted_rule( $rule_id, $cooked_dot );
+        my @datum = ( $cooked_dot, $origin, $rule_id, $dot, $origin, $desc );
         push @data, \@datum;
     }
     my @sorted = map { $_->[-1] } sort { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] } @data;
