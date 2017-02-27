@@ -58,10 +58,14 @@ my %configure_requires =
     qw( CPAN::Meta::Converter Module::Build ),
     @always_required,
     @packages_for_perl_autoconf;
+$configure_requires{perl} = '5.010';
+
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( HTML::Entities HTML::Parser ),
     @always_required;
+$requires{perl} = '5.010';
+
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     ( @packages_for_perl_autoconf, qw( PPI ) );
