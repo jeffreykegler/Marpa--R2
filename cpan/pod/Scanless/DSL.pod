@@ -632,6 +632,21 @@ The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
 alternatives on each side of it have the same priority.
 Associativity is specified using adverbs, as described below.
 
+These rules are also called "precedenced" rules.
+The term "precedenced"
+has an advantage --
+it is much
+less overloaded than
+the term "prioritized".
+
+By design, a precedenced rule expresses precedence
+for all rules with the same LHS.
+Accordingly, if a symbol appears on the LHS of a precedenced
+rule, it should not be the LHS of any other rule.
+If two precedenced rules have the same LHS, they will be
+considered to be duplicate rules,
+and that duplication will be reported as a fatal error.
+
 =head2 Discard pseudo-rule
 
 =for Marpa::R2::Display
