@@ -1080,7 +1080,10 @@ Its value must be one of
 C<left>,
 C<right> or
 C<group>.
-Its effect will be as described
+C<left> is the default.
+The effect
+of the C<assoc> adverb
+will be as described
 L<below|/"Precedence">.
 
 =head2 bless
@@ -1412,7 +1415,8 @@ A separator may not be nullable.
 
 =head1 Precedence
 
-Marpa's precedence is a generalization beyond the traditional ideas of precedence.
+Marpa's precedence is the traditional one,
+but generalized.
 Traditional precedence parsing required
 the classification of operators as postfix, infix, etc.
 Marpa's precedence parsing is NOT based on
@@ -1441,7 +1445,8 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 contains one occurrence of C<Expression> and therefore has an arity of one.
-The C<< <op lparen> >> and C<< <op rparen> >> are considered operators.
+The C<< <op lparen> >> and C<< <op rparen> >> are considered
+to be operators.
 
 In the RHS alternative
 
