@@ -128,15 +128,16 @@ my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 
 sub full_traverser {
 
-    # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-    my ($glade, $scratch)     = @_;
+    # This routine converts the glade into a list of Penn-tagged elements.
+    # It is called recursively.
+    my ( $glade, $scratch ) = @_;
     my $rule_id     = $glade->rule_id();
     my $symbol_id   = $glade->symbol_id();
     my $symbol_name = $panda_grammar->symbol_name($symbol_id);
 
     # A token is a single choice, and we know enough to fully Penn-tag it
     if ( not defined $rule_id ) {
-        my $literal = $glade->literal();
+        my $literal  = $glade->literal();
         my $penn_tag = penn_tag($symbol_name);
         return ["($penn_tag $literal)"];
     } ## end if ( not defined $rule_id )
@@ -144,7 +145,7 @@ sub full_traverser {
     # Our result will be a list of choices
     my @return_value = ();
 
-    CHOICE: while (1) {
+  CHOICE: while (1) {
 
         # The results at each position are a list of choices, so
         # to produce a new result list, we need to take a Cartesian
@@ -155,7 +156,7 @@ sub full_traverser {
             my @new_results = ();
             for my $old_result (@results) {
                 my $child_value = $glade->rh_value($rh_ix);
-                for my $new_value ( @{ $child_value } ) {
+                for my $new_value ( @{$child_value} ) {
                     push @new_results, [ @{$old_result}, $new_value ];
                 }
             }
@@ -174,9 +175,11 @@ sub full_traverser {
         # elements
         my $join_ws = q{ };
         $join_ws = qq{\n   } if $symbol_name eq 'S';
-        push @return_value,
-            map { '(' . penn_tag($symbol_name) . q{ } . ( join $join_ws, @{$_} ) . ')' }
-            @results;
+        push @return_value, map {
+                '('
+              . penn_tag($symbol_name) . q{ }
+              . ( join $join_ws, @{$_} ) . ')'
+        } @results;
 
         # Look at the next alternative in this glade, or end the
         # loop if there is none
@@ -186,7 +189,7 @@ sub full_traverser {
 
     # Return the list of Penn-tagged elements for this glade
     return \@return_value;
-} ## end sub full_traverser
+}
 
 # Marpa::R2::Display::End
 
@@ -206,7 +209,7 @@ sub penn_tag {
 sub pruning_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-    my ($glade, $scratch)     = @_;
+    my ( $glade, $scratch )     = @_;
     my $rule_id     = $glade->rule_id();
     my $symbol_id   = $glade->symbol_id();
     my $symbol_name = $panda_grammar->symbol_name($symbol_id);
@@ -222,7 +225,7 @@ sub pruning_traverser {
     my @return_value = map { $glade->rh_value($_) } 0 .. $length - 1;
 
     # Special case for the start rule
-    return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
+    return ( join q{ }, @return_value ) . "\n" if  $symbol_name eq '[:start]';
 
     my $join_ws = q{ };
     $join_ws = qq{\n   } if $symbol_name eq 'S';
@@ -254,7 +257,7 @@ my $located_actual = $asf->traverse( {}, \&located_traverser );
 sub located_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-    my ($glade, $scratch)     = @_;
+    my ($glade, $scratch )     = @_;
     my $rule_id     = $glade->rule_id();
     my $symbol_id   = $glade->symbol_id();
     my $symbol_name = $panda_grammar->symbol_name($symbol_id);
@@ -270,7 +273,7 @@ sub located_traverser {
     my @return_value = map { $glade->rh_value($_) } 0 .. $rh_length - 1;
 
     # Special case for the start rule
-    return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
+    return ( join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
 
 # Marpa::R2::Display::Start
 # name: ASF span() traverser method example

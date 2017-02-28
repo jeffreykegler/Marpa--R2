@@ -25,7 +25,7 @@ We want to "diagram" the following sentence.
 name: ASF synopsis input
 normalize-whitespace: 1
 
-  my $sentence = 'a panda eats shoots and leaves.';
+    my $sentence = 'a panda eats shoots and leaves.';
 
 =for Marpa::R2::Display::End
 
@@ -37,15 +37,15 @@ partial: 1
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-  (S (NP (DT a) (NN panda))
-     (VP (VBZ eats) (NP (NNS shoots) (CC and) (NNS leaves)))
-     (. .))
-  (S (NP (DT a) (NN panda))
-     (VP (VP (VBZ eats) (NP (NNS shoots))) (CC and) (VP (VBZ leaves)))
-     (. .))
-  (S (NP (DT a) (NN panda))
-     (VP (VP (VBZ eats)) (VP (VBZ shoots)) (CC and) (VP (VBZ leaves)))
-     (. .))
+    (S (NP (DT a) (NN panda))
+       (VP (VBZ eats) (NP (NNS shoots) (CC and) (NNS leaves)))
+       (. .))
+    (S (NP (DT a) (NN panda))
+       (VP (VP (VBZ eats) (NP (NNS shoots))) (CC and) (VP (VBZ leaves)))
+       (. .))
+    (S (NP (DT a) (NN panda))
+       (VP (VP (VBZ eats)) (VP (VBZ shoots)) (CC and) (VP (VBZ leaves)))
+       (. .))
 
 =for Marpa::R2::Display::End
 
@@ -57,33 +57,33 @@ normalize-whitespace: 1
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-  :default ::= action => [ values ] bless => ::lhs
-  lexeme default = action => [ value ] bless => ::name
+    :default ::= action => [ values ] bless => ::lhs
+    lexeme default = action => [ value ] bless => ::name
 
-  S   ::= NP  VP  period  bless => S
+    S   ::= NP  VP  period  bless => S
 
-  NP  ::= NN              bless => NP
-      |   NNS          bless => NP
-      |   DT  NN          bless => NP
-      |   NN  NNS         bless => NP
-      |   NNS CC NNS  bless => NP
+    NP  ::= NN              bless => NP
+        |   NNS          bless => NP
+        |   DT  NN          bless => NP
+        |   NN  NNS         bless => NP
+        |   NNS CC NNS  bless => NP
 
-  VP  ::= VBZ NP          bless => VP
-      | VP VBZ NNS        bless => VP
-      | VP CC VP bless => VP
-      | VP VP CC VP bless => VP
-      | VBZ bless => VP
+    VP  ::= VBZ NP          bless => VP
+        | VP VBZ NNS        bless => VP
+        | VP CC VP bless => VP
+        | VP VP CC VP bless => VP
+        | VBZ bless => VP
 
-  period ~ '.'
+    period ~ '.'
 
-  :discard ~ whitespace
-  whitespace ~ [\s]+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
 
-  CC ~ 'and'
-  DT  ~ 'a' | 'an'
-  NN  ~ 'panda'
-  NNS  ~ 'shoots' | 'leaves'
-  VBZ ~ 'eats' | 'shoots' | 'leaves'
+    CC ~ 'and'
+    DT  ~ 'a' | 'an'
+    NN  ~ 'panda'
+    NNS  ~ 'shoots' | 'leaves'
+    VBZ ~ 'eats' | 'shoots' | 'leaves'
 
 =for Marpa::R2::Display::End
 
@@ -94,13 +94,13 @@ shown above, and another which "prunes" the forest down to a single tree.
 name: ASF synopsis code
 normalize-whitespace: 1
 
-  my $panda_grammar = Marpa::R2::Scanless::G->new(
-      { source => \$dsl, bless_package => 'PennTags', } );
-  my $panda_recce = Marpa::R2::Scanless::R->new( { grammar => $panda_grammar } );
-  $panda_recce->read( \$sentence );
-  my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
-  my $full_result = $asf->traverse( {}, \&full_traverser );
-  my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
+    my $panda_grammar = Marpa::R2::Scanless::G->new(
+        { source => \$dsl, bless_package => 'PennTags', } );
+    my $panda_recce = Marpa::R2::Scanless::R->new( { grammar => $panda_grammar } );
+    $panda_recce->read( \$sentence );
+    my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
+    my $full_result = $asf->traverse( {}, \&full_traverser );
+    my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 
 =for Marpa::R2::Display::End
 
@@ -111,39 +111,39 @@ The pruning code is simpler.  Here it is:
 name: ASF synopsis pruning traverser code
 normalize-whitespace: 1
 
-  sub penn_tag {
-     my ($symbol_name) = @_;
-     return q{.} if $symbol_name eq 'period';
-     return $symbol_name;
-  }
+    sub penn_tag {
+       my ($symbol_name) = @_;
+       return q{.} if $symbol_name eq 'period';
+       return $symbol_name;
+    }
 
-  sub pruning_traverser {
+    sub pruning_traverser {
 
-      # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-      my ($glade, $scratch)     = @_;
-      my $rule_id     = $glade->rule_id();
-      my $symbol_id   = $glade->symbol_id();
-      my $symbol_name = $panda_grammar->symbol_name($symbol_id);
+    # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
+        my ( $glade, $scratch ) = @_;
+        my $rule_id     = $glade->rule_id();
+        my $symbol_id   = $glade->symbol_id();
+        my $symbol_name = $panda_grammar->symbol_name($symbol_id);
 
-      # A token is a single choice, and we know enough to fully Penn-tag it
-      if ( not defined $rule_id ) {
-      my $literal = $glade->literal();
-      my $penn_tag = penn_tag($symbol_name);
-      return "($penn_tag $literal)";
-      }
+        # A token is a single choice, and we know enough to fully Penn-tag it
+        if ( not defined $rule_id ) {
+            my $literal  = $glade->literal();
+            my $penn_tag = penn_tag($symbol_name);
+            return "($penn_tag $literal)";
+        }
 
-      my $length = $glade->rh_length();
-      my @return_value = map { $glade->rh_value($_) } 0 .. $length - 1;
+        my $length = $glade->rh_length();
+        my @return_value = map { $glade->rh_value($_) } 0 .. $length - 1;
 
-      # Special case for the start rule
-      return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
+        # Special case for the start rule
+        return ( join q{ }, @return_value ) . "\n" if $symbol_name eq '[:start]';
 
-      my $join_ws = q{ };
-      $join_ws = qq{\n   } if $symbol_name eq 'S';
-      my $penn_tag = penn_tag($symbol_name);
-      return "($penn_tag " . ( join $join_ws, @return_value ) . ')';
+        my $join_ws = q{ };
+        $join_ws = qq{\n   } if $symbol_name eq 'S';
+        my $penn_tag = penn_tag($symbol_name);
+        return "($penn_tag " . ( join $join_ws, @return_value ) . ')';
 
-  }
+    }
 
 =for Marpa::R2::Display::End
 
@@ -154,9 +154,9 @@ name: ASF pruned synopsis output
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-  (S (NP (DT a) (NN panda))
-     (VP (VBZ eats) (NP (NNS shoots) (CC and) (NNS leaves)))
-     (. .))
+    (S (NP (DT a) (NN panda))
+       (VP (VBZ eats) (NP (NNS shoots) (CC and) (NNS leaves)))
+       (. .))
 
 =for Marpa::R2::Display::End
 
@@ -175,8 +175,8 @@ name: ASF low-level calls synopsis, code part 1
 normalize-whitespace: 1
 partial: 1
 
-  my $asf = Marpa::R2::ASF->new( { slr => $slr } );
-  die 'No ASF' if not defined $asf;
+    my $asf = Marpa::R2::ASF->new( { slr => $slr } );
+    die 'No ASF' if not defined $asf;
 
 =for Marpa::R2::Display::End
 
@@ -215,7 +215,7 @@ name: ASF synopsis code
 normalize-whitespace: 1
 partial: 1
 
-  my $full_result = $asf->traverse( {}, \&full_traverser );
+    my $full_result = $asf->traverse( {}, \&full_traverser );
 
 =for Marpa::R2::Display::End
 
@@ -326,7 +326,7 @@ name: ASF synopsis full traverser code
 normalize-whitespace: 1
 partial: 1
 
-  my $literal = $glade->literal();
+    my $literal = $glade->literal();
 
 =for Marpa::R2::Display::End
 
@@ -341,8 +341,8 @@ name: ASF span() traverser method example
 normalize-whitespace: 1
 partial: 1
 
-  my ( $start, $length ) = $glade->span();
-  my $end = $start + $length - 1;
+    my ( $start, $length ) = $glade->span();
+    my $end = $start + $length - 1;
 
 =for Marpa::R2::Display::End
 
@@ -389,7 +389,7 @@ name: ASF synopsis full traverser code
 normalize-whitespace: 1
 partial: 1
 
-  my $rule_id     = $glade->rule_id();
+    my $rule_id     = $glade->rule_id();
 
 =for Marpa::R2::Display::End
 
@@ -411,7 +411,7 @@ name: ASF synopsis full traverser code
 normalize-whitespace: 1
 partial: 1
 
-  my $length = $glade->rh_length();
+    my $length = $glade->rh_length();
 
 =for Marpa::R2::Display::End
 
@@ -428,7 +428,7 @@ name: ASF synopsis full traverser code
 normalize-whitespace: 1
 partial: 1
 
-  my $child_value = $glade->rh_value($rh_ix);
+    my $child_value = $glade->rh_value($rh_ix);
 
 =for Marpa::R2::Display::End
 
@@ -465,7 +465,7 @@ name: ASF all_choices() traverser method example
 normalize-whitespace: 1
 partial: 1
 
-        my @results = $glade->all_choices();
+    my @results = $glade->all_choices();
 
 =for Marpa::R2::Display::End
 
@@ -496,9 +496,9 @@ that were references to arrays of the choices:
 =for Marpa::R2::Display
 ignore: 1
 
-  [A]
-  [B,C,D]
-  [E]
+    [A]
+    [B,C,D]
+    [E]
 
 =for Marpa::R2::Display::End
 
@@ -508,9 +508,9 @@ Cartesian product:
 =for Marpa::R2::Display
 ignore: 1
 
-  [A,B,E]
-  [A,C,E]
-  [A,D,E]
+    [A,B,E]
+    [A,C,E]
+    [A,D,E]
 
 =for Marpa::R2::Display::End
 
@@ -531,7 +531,7 @@ name: ASF synopsis full traverser code
 normalize-whitespace: 1
 partial: 1
 
-  last CHOICE if not defined $glade->next();
+    last CHOICE if not defined $glade->next();
 
 =for Marpa::R2::Display::End
 
@@ -625,67 +625,70 @@ visited.
 name: ASF synopsis full traverser code
 normalize-whitespace: 1
 
-  sub full_traverser {
+    sub full_traverser {
 
-      # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-      my ($glade, $scratch)     = @_;
-      my $rule_id     = $glade->rule_id();
-      my $symbol_id   = $glade->symbol_id();
-      my $symbol_name = $panda_grammar->symbol_name($symbol_id);
+        # This routine converts the glade into a list of Penn-tagged elements.
+        # It is called recursively.
+        my ( $glade, $scratch ) = @_;
+        my $rule_id     = $glade->rule_id();
+        my $symbol_id   = $glade->symbol_id();
+        my $symbol_name = $panda_grammar->symbol_name($symbol_id);
 
-      # A token is a single choice, and we know enough to fully Penn-tag it
-      if ( not defined $rule_id ) {
-      my $literal = $glade->literal();
-      my $penn_tag = penn_tag($symbol_name);
-      return ["($penn_tag $literal)"];
-      } ## end if ( not defined $rule_id )
+        # A token is a single choice, and we know enough to fully Penn-tag it
+        if ( not defined $rule_id ) {
+            my $literal  = $glade->literal();
+            my $penn_tag = penn_tag($symbol_name);
+            return ["($penn_tag $literal)"];
+        } ## end if ( not defined $rule_id )
 
-      # Our result will be a list of choices
-      my @return_value = ();
+        # Our result will be a list of choices
+        my @return_value = ();
 
       CHOICE: while (1) {
 
-      # The results at each position are a list of choices, so
-      # to produce a new result list, we need to take a Cartesian
-      # product of all the choices
-      my $length = $glade->rh_length();
-      my @results = ( [] );
-      for my $rh_ix ( 0 .. $length - 1 ) {
-          my @new_results = ();
-          for my $old_result (@results) {
-          my $child_value = $glade->rh_value($rh_ix);
-          for my $new_value ( @{ $child_value } ) {
-              push @new_results, [ @{$old_result}, $new_value ];
-          }
-          }
-          @results = @new_results;
-      } ## end for my $rh_ix ( 0 .. $length - 1 )
+            # The results at each position are a list of choices, so
+            # to produce a new result list, we need to take a Cartesian
+            # product of all the choices
+            my $length = $glade->rh_length();
+            my @results = ( [] );
+            for my $rh_ix ( 0 .. $length - 1 ) {
+                my @new_results = ();
+                for my $old_result (@results) {
+                    my $child_value = $glade->rh_value($rh_ix);
+                    for my $new_value ( @{$child_value} ) {
+                        push @new_results, [ @{$old_result}, $new_value ];
+                    }
+                }
+                @results = @new_results;
+            } ## end for my $rh_ix ( 0 .. $length - 1 )
 
-      # Special case for the start rule
-      if ( $symbol_name eq '[:start]' ) {
-          return [ map { join q{}, @{$_} } @results ];
-      }
+            # Special case for the start rule
+            if ( $symbol_name eq '[:start]' ) {
+                return [ map { join q{}, @{$_} } @results ];
+            }
 
-      # Now we have a list of choices, as a list of lists.  Each sub list
-      # is a list of Penn-tagged elements, which we need to join into
-      # a single Penn-tagged element.  The result will be to collapse
-      # one level of lists, and leave us with a list of Penn-tagged
-      # elements
-      my $join_ws = q{ };
-      $join_ws = qq{\n   } if $symbol_name eq 'S';
-      push @return_value,
-          map { '(' . penn_tag($symbol_name) . q{ } . ( join $join_ws, @{$_} ) . ')' }
-          @results;
+            # Now we have a list of choices, as a list of lists.  Each sub list
+            # is a list of Penn-tagged elements, which we need to join into
+            # a single Penn-tagged element.  The result will be to collapse
+            # one level of lists, and leave us with a list of Penn-tagged
+            # elements
+            my $join_ws = q{ };
+            $join_ws = qq{\n   } if $symbol_name eq 'S';
+            push @return_value, map {
+                    '('
+                  . penn_tag($symbol_name) . q{ }
+                  . ( join $join_ws, @{$_} ) . ')'
+            } @results;
 
-      # Look at the next alternative in this glade, or end the
-      # loop if there is none
-      last CHOICE if not defined $glade->next();
+            # Look at the next alternative in this glade, or end the
+            # loop if there is none
+            last CHOICE if not defined $glade->next();
 
-      } ## end CHOICE: while (1)
+        } ## end CHOICE: while (1)
 
-      # Return the list of Penn-tagged elements for this glade
-      return \@return_value;
-  } ## end sub full_traverser
+        # Return the list of Penn-tagged elements for this glade
+        return \@return_value;
+    }
 
 =for Marpa::R2::Display::End
 
