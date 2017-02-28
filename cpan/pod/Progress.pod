@@ -398,7 +398,6 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P0 @0-5 L1c1-16 statements -> . statement *
     F0 @0-5 L1c1-16 statements -> statement * .
     P1 @5-5 L1c15-16 statement -> . assignment
     P2 @5-5 L1c15-16 statement -> . <numeric assignment>
@@ -1101,7 +1100,6 @@ remove-blank-last-line: 1
   P9 @2-2 L1c3 expression -> . string
   P10 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
   P11 @2-2 L1c3 expression -> . expression '+' expression
-  P0 @0-3 L1c1-11 statements -> . statement *
   F0 @0-3 L1c1-11 statements -> statement * .
   P1 @3-3 L1c5-11 statement -> . assignment
   P2 @3-3 L1c5-11 statement -> . <numeric assignment>
@@ -1120,7 +1118,6 @@ remove-blank-last-line: 1
   P9 @4-4 L1c13 expression -> . string
   P10 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
   R11:2 @2-4 L1c3-13 expression -> expression '+' . expression
-  P0 @0-5 L1c1-16 statements -> . statement *
   F0 @0-5 L1c1-16 statements -> statement * .
   P1 @5-5 L1c15-16 statement -> . assignment
   P2 @5-5 L1c15-16 statement -> . <numeric assignment>
@@ -1466,7 +1463,7 @@ name: SLIF progress() output at default location
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[7,-1,4],[8,-1,4],[11,-1,2],[19,-1,0],[0,0,0],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[11,1,2]]
+    [[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[7,-1,4],[8,-1,4],[11,-1,2],[19,-1,0],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[11,1,2]]
 
 =for Marpa::R2::Display::End
 
