@@ -1365,6 +1365,7 @@ sub Marpa::R2::Internal::ASF::Traverse::all_choices {
         my @new_results = ();
         for my $old_result (@results) {
             my $child_value = $values[$rh_ix];
+            $child_value = [ $child_value ] unless ref $child_value eq 'ARRAY';
             for my $new_value ( @{ $child_value } ) {
                 push @new_results, [ @{$old_result}, $new_value ];
             }

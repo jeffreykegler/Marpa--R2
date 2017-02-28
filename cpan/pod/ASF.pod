@@ -469,9 +469,60 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
-Returns a new result list produced by taking
-a Cartesian product of the parse results
-(which are a list of choices) at the current position.
+C<all_choices()> expects to be called by a traverser
+which always return its parse results as a reference
+to an array of choices.
+C<all_choices()>
+returns the Cartesian product of the lists of choices
+at the current position.
+
+For example, suppose there were 3 child values,
+and
+
+=over
+
+=item * C<A> was the only choice for the first child value;
+
+=item * C<B>, C<C> and C<D> were the 3 choices for the value
+of the second child; and
+
+=item * C<E> was the only choice for the third child value.
+
+=back
+
+We would then expect the traverser to return parse results
+that were references to arrays of the choices:
+
+=for Marpa::R2::Display
+ignore: 1
+
+  [A]
+  [B,C,D]
+  [E]
+
+=for Marpa::R2::Display::End
+
+and the result of C<all_choices()> would be their
+Cartesian product:
+
+=for Marpa::R2::Display
+ignore: 1
+
+  [A,B,E]
+  [A,C,E]
+  [A,D,E]
+
+=for Marpa::R2::Display::End
+
+If a parse result is not an unblessed array,
+C<all_choices()> will treat it as if it
+was the only choice for that child value.
+That is, if the parse result is C<X>,
+where C<X> is not an unblessed array,
+then effect would be the same as if C<[ X ]>,
+a reference to an array whose only
+element is C<X>,
+had been the parse result.
 
 =head2 next()
 
