@@ -6604,7 +6604,7 @@ PPCODE:
     {
       r_convert_events (slr->r1_wrapper);
       marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
-					    INT2PTR (void *, lexeme_length));
+					    INT2PTR (void *, (ptrdiff_t)lexeme_length));
       slr->perl_pos = start_pos + lexeme_length;
       XSRETURN_IV (slr->perl_pos);
     }
