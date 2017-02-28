@@ -621,6 +621,20 @@ visited.
 
 =head1 Appendix: full traverser code
 
+This code is not fully
+generalized.
+Applications will often not be able to use it
+exactly as is.
+Instead, this C<full_traverser()>,
+and the C<pruning_traverser()>,
+are intended to be used as templates.
+An application adopting this C<full_traverser()>
+will often want to introduce some pruning,
+as well as some processing of each child value.
+For example, the volumes of data processed is often
+quite large, and an application may wish to compact each
+child value in some way.
+
 =for Marpa::R2::Display
 name: ASF synopsis full traverser code
 normalize-whitespace: 1
