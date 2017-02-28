@@ -297,9 +297,9 @@ The L<C<symbol_id()>|/"symbol_id()"> glade method is
 also always of use,
 although its meaning varies.
 At token alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the
-token symbol.
+ID of the token symbol.
 At rule alteratives, the L<C<symbol_id()>|/"symbol_id()"> method returns the
-ID of the LHS of the rule.
+ID of the LHS symbol of the rule.
 
 At rule alternatives,
 the L<C<rh_length()>|/"rh_length()"> and
