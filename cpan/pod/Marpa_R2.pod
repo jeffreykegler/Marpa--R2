@@ -60,6 +60,16 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+=head1 Updates
+
+Users should consult Marpa::R2's "updates" page,
+which contains notes, errata, etc.,
+added since the most recent release.
+The "updates" page is C<UPDATES.md> in the
+current repo.
+At this point, the link is
+L<https://github.com/jeffreykegler/Marpa--R2/blob/master/UPDATES.md>.
+
 =head1 Description
 
 =head2 Overview
