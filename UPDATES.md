@@ -1,6 +1,6 @@
-= Marpa::R2 Updates
+# Marpa::R2 Updates
 
-== About this page
+## About this page
 
 This is the updates page for Marpa::R2.
 On CPAN, Marpa::R2's primary distribution mechanism,
@@ -17,6 +17,6 @@ In effect, this means new versions occur only when a serious
 bug is discovered, which (knock on wood)
 so far has happened rarely.
 
-== No updates at this point
+## No updates at this point
 
 There are no updates at this point.
