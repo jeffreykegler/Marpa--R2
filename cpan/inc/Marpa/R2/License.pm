@@ -189,6 +189,7 @@ my %GNU_file = (
         m4/ltversion.m4
         m4/lt~obsolete.m4
         missing
+        compile
         Makefile.in
     )
 );;

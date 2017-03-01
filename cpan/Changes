@@ -17,7 +17,17 @@ Revision history for Marpa::R2
 
 3.001_001 (libmarpa 8.6.0) Sat Feb 25 19:59:14 PST 2017
 
-   * New series of developer's releases.
+   * Bug fix: progress reports had both missing and
+     spurious Earley items. Problematic Earley items
+     were incomplete items with at least one proper
+     nullable. Incomplete items are those whose dot
+     is not at the end of the rule. Proper nullables
+     are symbols which are nullable but not nulling.
+     Problematic items were obscure enough so that no
+     user ever noticed the issue -- it was discovered
+     in a code review.  But it is now fixed.
+
+   * Bug fix: Unicode in DSL scripts now works correctly.
 
 3.000000 (libmarpa 8.3.0) Sat May  9 21:52:49 PDT 2015
 
