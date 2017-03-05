@@ -15,7 +15,7 @@
 
 Revision history for Marpa::R2
 
-3.001_001 (libmarpa 8.6.0) Sat Feb 25 19:59:14 PST 2017
+3.001_002 (libmarpa 8.6.0) Sat Feb 25 19:59:14 PST 2017
 
    * Bug fix: progress reports had both missing and
      spurious Earley items. Problematic Earley items
