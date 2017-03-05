@@ -474,42 +474,11 @@ sub do_libmarpa {
 
     if (! $Marpa::R2::USE_PERL_AUTOCONF) {
 
-            # This is only necessary for GNU autoconf, which is aggressive
-            # about looking for things to update
-
-            # Some files should NEVER be updated in this directory, by
-            # make or anything else.  If for some reason they are
-            # out of date, stamp them up to date
-
-            my @m4_files         = glob('m4/*.m4');
-            my $configure_script = 'configure';
-
-            if (not $self->up_to_date( [ 'configure.ac', @m4_files ], 'aclocal.m4' ) )
-            {
-                utime time(), time(), 'aclocal.m4';
-            }
-            if (not $self->up_to_date(
-                    [ 'configure.ac', 'Makefile.am', 'aclocal.m4' ],
-                    'Makefile.in'
-                )
-                )
-            {
-                utime time(), time(), 'Makefile.in';
-            } ## end if ( not $self->up_to_date( [ 'configure.ac', 'Makefile.am'...]))
-            if (not $self->up_to_date(
-                    [ 'configure.ac',    'aclocal.m4' ],
-                    [ $configure_script, 'config.h.in' ]
-                )
-                )
-            {
-                utime time(), time(), $configure_script;
-                utime time(), time(), 'config.h.in';
-            } ## end if ( not $self->up_to_date( [ 'configure.ac', 'aclocal.m4'...]))
-
             if ( $self->verbose() ) {
                 print "Configuring libmarpa\n"
                     or die "print failed: $ERRNO";
             }
+
             my $shell = $Config{sh};
 
         ##no critic(ValuesAndExpressions::RequireInterpolationOfMetachars)
@@ -537,7 +506,7 @@ sub do_libmarpa {
 
     # We need PIC, but do not want the overhead of building the shared library
     my @configure_command_args = ();
-    push @configure_command_args, qw(--with-pic --disable-shared);
+    push @configure_command_args, qw(--with-pic --disable-shared --disable-maintainer-mode);
 
     my @debug_flags = ();
     if ( defined $self->args('Marpa-debug') ) {

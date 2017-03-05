@@ -44,8 +44,8 @@ $base_time += 0;
 
 my %inc = (
   'engine/read_only/aclocal.m4' => 1,
-  'engine/read_only/configure' => 2,
-  'engine/read_only/Makefile.in' => 3,
+  'engine/read_only/Makefile.in' => 2,
+  'engine/read_only/configure' => 3,
   'engine/read_only/config.h.in' => 3
 );
 
