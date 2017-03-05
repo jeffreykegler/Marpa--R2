@@ -28,6 +28,8 @@
 # Permanent
 
 # LC_ALL=C sort
+etc/libmarpa_basestamp_create[.]pl$
+etc/libmarpa_timestamp[.]pl$
 /[.]gdb_history$
 /[.]gitignore$
 /errs$

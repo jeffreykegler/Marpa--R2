@@ -46,6 +46,7 @@ engine/LOG_DATA
 engine/README
 engine/SHARED
 engine/STATIC
+engine/base.time-stamp
 engine/read_only/AUTHORS
 engine/read_only/COPYING
 engine/read_only/COPYING.LESSER

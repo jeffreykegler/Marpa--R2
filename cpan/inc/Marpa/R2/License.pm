@@ -314,6 +314,7 @@ my %files_by_type = (
     'engine/cf/LIBMARPA_MODE'         => \&trivial,
     'engine/read_only/LIB_VERSION'    => \&trivial,
     'engine/read_only/LIB_VERSION.in' => \&trivial,
+    'engine/base.time-stamp' => \&trivial,
     'engine/read_only/Makefile.am' =>
         gen_license_problems_in_hash_file($libmarpa_hash_license),
     'engine/read_only/configure.ac' =>
