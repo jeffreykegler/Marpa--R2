@@ -1154,6 +1154,34 @@ if that per-parse argument is blessed into a different package.
 
 =back
 
+=head2 registrations()
+
+=for Marpa::R2::Display
+name: SLIF recognizer registrations() synopsis
+normalize-whitespace: 1
+
+    state $registrations;
+    if (defined($registrations)) {
+        $r->registrations($registrations);
+    }
+    my $value_ref = $r->value;
+    if (! defined($registrations)) {
+      $registrations = $r->registrations();
+    }
+
+=for Marpa::R2::Display::End
+
+If your application is repeatively creating a recognizer with
+always the same settings, including up to the call ot C<value()>,
+it will benefit from this method.
+
+Internally, the C<value()> is registering semantic resolutions
+the first time it is called, and is caching the result. But, and
+this is the responsability of the programmer, if you know that
+semantic resolutions will always produce the same result, this
+can be bypassed with the C<registrations()> method, as shown above,
+providing better performance.
+
 =head1 Mutators for external scanning
 
 =head2 activate()
