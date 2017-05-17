@@ -1563,6 +1563,13 @@ sub Marpa::R2::Scanless::R::value {
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
 
+sub Marpa::R2::Scanless::R::registrations {
+    my $slr = shift;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    return $thick_g1_recce->registrations(@_);
+} ## end sub Marpa::R2::Scanless::R::registrations
+
 sub Marpa::R2::Scanless::R::series_restart {
     my ( $slr , @args ) = @_;
     my $thick_g1_recce =
