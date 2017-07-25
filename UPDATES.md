@@ -41,3 +41,14 @@ The build of Marpa::R2 does not fail smoothly, but instead builds (successfully)
 and then fails in the test phase.
 If there is a next version of Marpa::R2, it should refuse to attempt installation
 on Perl 5.10.0.
+
+## Progress reports fail on trivial grammars
+
+A trivial grammar is one which allows only null parses.
+Trivial grammars are not very useful, but Marpa::R2 is documented to support them
+in all respects, including tracing and progress reports.
+In fact, progress reports for trivial grammars are empty.
+
+This is considered a minor bug.
+(It was not discovered by a user, but was only noticed by Jeffrey when re-reading Libmarpa's internals.)
+Because Marpa::R2 is now stable, it will only be fixed if a serious bug forces a new release.
