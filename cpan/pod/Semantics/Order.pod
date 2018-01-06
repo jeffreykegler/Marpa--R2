@@ -1,4 +1,4 @@
-# Copyright 2015 Jeffrey Kegler
+# Marpa::R2 is Copyright (C) 2017, Jeffrey Kegler.
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
@@ -34,36 +34,6 @@ trees of an ambiguous parse.
 It also describes ways to exclude selected parse trees
 from the parse series.
 
-=head2 Duplicate parses are eliminated
-
-When evaluating the parse trees in a parse series,
-Marpa never evaluates the same parse tree twice.
-What this means probably matches the programmer's
-intuition of what it should mean.
-Marpa considers two parse trees to be the same if they are
-B<semantic equivalents>.
-
-Two parse trees are semantic equivalents if
-and only if
-a recursive, top-down evaluation of each
-applies
-the same rules
-in the same order
-at the same G1 locations.
-If the semantics are deterministic,
-and if two parse trees are
-semantic equivalents according to this definition,
-the two parse trees will always produce the same parse result.
-
-The two parse trees are called semantic equivalents,
-because from the point
-of view of a deterministic semantics they are indistinguishable.
-When the Marpa documentation refers to duplicate
-parses,
-unless otherwise stated,
-it means that the two
-are semantic equivalents.
-
 =head2 Default parse order
 
 By calling
@@ -91,6 +61,31 @@ For example, the order may
 change each time
 the parse series is traversed.
 
+=head2 Choicepoints
+
+When ranking, the logic traverses each node
+of the parse bocage.
+In this context, the nodes are also called "choicepoints".
+From the point of view of the individual parse trees,
+the traversal will be top-down
+and left-to-right.
+
+Each choicepoint has one or more "choices".
+Often a choicepoint has only a single choice,
+in which case the choicepoint is called "trivial".
+For two rule instances to be choices of the same
+choicepoint,
+they must end at the same location,
+and their rules must have the same LHS.
+
+The terms "choicepoint" and "choice"
+are defined carefully
+in L<a separate
+document|Marpa::R2::Semantics::Rank>.
+That document also gives several examples
+of ranking,
+which are explained in detail.
+
 =head2 Ranking methods
 
 SLIF recognizer objects have a L<C<ranking_method> named
@@ -113,39 +108,21 @@ If no numeric rank is specified, the numeric rank is 0.
 =head2 The C<high_rule_only> ranking method
 
 The C<high_rule_only> ranking method is similar to the
-C<rule> ranking method, except that, at every choice point,
+C<rule> ranking method, except that, at every choicepoint,
 it discards all of the choices which
 have a rank lower than that of the highest ranked choice.
 
-The C<high_rule_only> ranking method 
+The C<high_rule_only> ranking method
 can reduce the ambiguity of a parse,
 but it does not necessarily do so.
-This is because, at each choice point among the parse trees,
+This is because, at each choicepoint among the parse trees,
 it is possible that several of the choices,
 or all of them, will have the same rank
 as the highest ranked choice.
 
 =head2 Rule ranking
 
-A parse series is kept in a structure called a B<parse bocage>.
-The parse bocage is a tree-like structure, whose root node
-is the common root of all the parse trees of the parse series.
-In an unambiguous parse,
-there will be only one parse tree,
-and the parse bocage will be equivalent
-to that parse tree.
-In an ambiguous parse,
-there will be B<choice points> in the parse bocage.
-At the choice points, there will be two or more
-B<alternatives> -- choices which
-result in different parse trees.
-
-When ranking, the logic traverses the parse bocage,
-looking for choice points.
-From the point of view of the individual parse trees,
-this traversal will be top-down
-and left-to-right.
-At the choice points,
+At each choicepoint,
 the choices
 are ranked as follows:
 
@@ -153,24 +130,24 @@ are ranked as follows:
 
 =item * B<Different numeric ranks>:
 
-If the two choices have different numeric ranks,
+If the two parse choices have different numeric ranks,
 they must also have different rule alternatives.
-The choice whose rule alternative has the higher numeric rank
+The parse choice whose rule alternative has the higher numeric rank
 will rank high.
 
 =item * B<Same rule alternative>:
 
-If the two choices have the same rule alternative,
+If the two parse choices have the same rule alternative,
 they rank as described
 under L<"Null variant ranking">.
 
 =item * B<Same numeric rank, different rule alternatives>:
 
 Two different rule alternatives can have the same numeric rank.
-If the two choices are for
+If the two parse choices are for
 rule alternatives that are different,
 but that have the same numeric rank,
-the relative order of the two choices is
+the relative order of the two parse choices is
 arbitrary.
 
 =back
@@ -178,7 +155,7 @@ arbitrary.
 Rule alternatives may be part of a single rule in the DSL --
 for example, a
 L<prioritized rule|Marpa::R2::Scanless::DSL/"Prioritized rule">.
-Placement with a DSL rule
+Lexical order within a DSL rule
 makes no difference when ranking rule alternatives.
 For example, it makes no difference if two rule alternatives
 come from the same prioritized rule;
@@ -245,11 +222,47 @@ In practice, ambiguity tends to get out of hand very easily.
 Producing and sorting all the parses can take a very
 long time.
 
-=head1 A formal definition
+=head1 Details
 
-This section is a restatement of earlier definition in more formal language.
-It is recorded here for those who find it helpful.
-Most readers will want to ignore this.
+This section contains additional explanations, not essential to understanding
+the rest of this document.
+Often they are formal or mathematical.
+While some people find these helpful, others find them distracting,
+which is why
+they are segregated here.
+
+=head2 Duplicate parses
+
+When evaluating the parse trees in a parse series,
+Marpa never evaluates the same parse tree twice.
+What this means probably matches the programmer's
+intuition of what it should mean.
+Marpa considers two parse trees to be the same if they are
+B<semantic equivalents>.
+
+Two parse trees are semantic equivalents if
+and only if
+a recursive, top-down evaluation of each
+applies
+the same rules
+in the same order
+at the same G1 locations.
+If the semantics are deterministic,
+and if two parse trees are
+semantic equivalents according to this definition,
+the two parse trees will always produce the same parse result.
+
+The two parse trees are called semantic equivalents,
+because from the point
+of view of a deterministic semantics they are indistinguishable.
+When the Marpa documentation refers to duplicate
+parses,
+unless otherwise stated,
+it means that the two
+are semantic equivalents.
+
+Formally,
+B<semantic equivalence> is defined as follows:
 Call the set of parse trees, C<T>.
 B<Semantic equivalence> is an equivalence relation
 on C<T>.
@@ -266,7 +279,7 @@ which are strict total orders of C<E>.
 =for Marpa::R2::Display
 ignore: 1
 
-  Copyright 2015 Jeffrey Kegler
+  Marpa::R2 is Copyright (C) 2017, Jeffrey Kegler.
   This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
@@ -285,9 +298,4 @@ ignore: 1
 
 =cut
 
-# Local Variables:
-#   mode: cperl
-#   cperl-indent-level: 4
-#   fill-column: 100
-# End:
 # vim: expandtab shiftwidth=4:

@@ -198,6 +198,7 @@ pod/Semantics.pod
 pod/Semantics/Null.pod
 pod/Semantics/Order.pod
 pod/Semantics/Phases.pod
+pod/Semantics/Rank.pod
 pod/Support.pod
 pod/Tracing.pod
 pod/Tutorial2.pod
@@ -206,6 +207,8 @@ pperl/Marpa/R2/Perl.pm
 pperl/Marpa/R2/Perl/.gitignore
 t/.gitignore
 t/00-load.t
+t/50d-giarank.t
+t/50d-ranksyn.t
 t/ah2.t
 t/ah_numeric.t
 t/asf_syn.t
