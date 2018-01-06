@@ -5,6 +5,11 @@ perl:
   - "5.24-shrplib"  # at least one perl with threading support
   - "5.10"  # minimum supported version
 
+branches:
+  only:
+  - travis
+
+# install prerequisites
 # install prerequisites
 install:
   # for debugging, output available perls
