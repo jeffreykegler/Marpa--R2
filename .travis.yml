@@ -25,3 +25,6 @@ script:
   - (cd cpan/ && ./Build test)
 
 sudo: false  # faster builds using containers
+
+notifications:
+  irc: "irc.freenode.net#marpa"
