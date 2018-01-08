@@ -119,25 +119,66 @@ Rule ranking plays a role in parse ordering,
 which is described in L<a separate
 document|Marpa::R2::Semantics::Order>.
 
-=head1 Dotted Productions
+=head1 Lexeme locations and fenceposts
+
+The lexeme locations are an ordered set
+of sets of lexemes.
+Numbering of lexeme locations is 0-based.
+
+It is also useful to use an idea of locations
+B<between> lexeme locations --
+This is the classic "fencepost" issue -- sometimes
+you want to count sections of fence,
+and in other cases it is more convenient to count
+fenceposts.
+
+Let the lexeme locations be from 0 to C<N>.
+If C<I> is greater than 1 and less than C<N>,
+then lexeme fencepost C<I> is before lexeme location C<I>
+and after lexeme location C<I-1>.
+lexeme fencepost C<0> is before lexeme location 0.
+lexeme fencepost C<N> is after lexeme location C<N>
+
+The above implies that
+
+=over 4
+
+=item *
+
+If there are C<N> lexeme locations,
+there are C<N+1> lexeme fenceposts.
+
+=item *
+
+lexeme location C<I> is always between
+lexeme fencepost C<I> and
+lexeme fencepost C<I+1>.
+
+=back
+
+Lexeme locations and fenceposts are closely related
+to G1
+L<locations|"Marpa::R2::Scanless::R/G1 locations">.
+
+=head1 Dotted Rules
 
 To understand this document,
-it is important to understand what a dotted production is.
+it is important to understand what a dotted rule is.
 An acquaintance with
-dotted productions is also important in understanding
+dotted rules is also important in understanding
 Marpa's progress reports.
-Dotted productions
+Dotted rules
 are thoroughly described
 L<in the progress report
 documentation|Marpa::R2::Progress>.
 This section repeats the main ideas
 from the perspective of this document.
 
-Recall that a production is a B<LHS> (left hand side)
+Recall that a rule is a B<LHS> (left hand side)
 and a B<RHS> (right hand side).
 The B<LHS> is always exactly one symbol.
 The B<RHS> is zero or more symbols.
-Consider the following example of a production,
+Consider the following example of a rule,
 given in the syntax of Marpa's DSL.
 
 =for Marpa::R2::Display
@@ -147,9 +188,9 @@ ignore: 1
 
 =for Marpa::R2::Display
 
-Dotted productions are used to track the
-progress of a parse through a production.
-They consist of a production and a B<dot position>,
+Dotted rules are used to track the
+progress of a parse through a rule.
+They consist of a rule and a B<dot position>,
 which marks the point in the RHS which scanning
 has reached.
 It is called the B<dot position> because,
@@ -158,7 +199,7 @@ the position is represented by a dot.
 The symbol before the dot is called
 the B<predot symbol>.
 
-The following is an example of a dotted production.
+The following is an example of a dotted rule.
 (The dot of a dotted rule is not part of Marpa's DSL but,
 when it is useful for illustration,
 we will use it in the notation in this document.)
@@ -170,11 +211,11 @@ ignore: 1
 
 =for Marpa::R2::Display
 
-In this production, B<B> is the B<predot symbol>.
+In this rule, B<B> is the B<predot symbol>.
 
 When the dot is after the last symbol of the RHS,
-the dotted production is called a B<completion>.
-Here is the completion for the above production:
+the dotted rule is called a B<completion>.
+Here is the completion for the above rule:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -187,8 +228,8 @@ In this completion example, the symbol B<C>
 is the predot symbol.
 
 When the dot is before the first symbol of the RHS,
-the production is called a B<prediction>.
-Here is the prediction of the production we've been
+the rule is called a B<prediction>.
+Here is the prediction of the rule we've been
 using for our examples:
 
 =for Marpa::R2::Display
@@ -222,27 +263,27 @@ In this triple,
 
 =item *
 
-C<dp> is a dotted production.
+C<dp> is a dotted rule.
 The predot symbol of C<dp>
 is the B<predot symbol> of the choicepoint --
 if C<dp> is a prediction,
 there is no predot symbol.
-The production of C<dp>
-is the B<production> of the choicepoint.
+The rule of C<dp>
+is the B<rule> of the choicepoint.
 The
 dot position of C<dp>
 is the B<dot position> of the choicepoint.
 
 =item *
 
-C<start> is the G1 location where the dotted
-production begins.
+C<start> is the lexeme location where the dotted
+rule begins.
 C<start> is sometimes called the B<origin> of the
 choicepoint.
 
 =item *
 
-C<current> is the G1 location corresponding to the dot
+C<current> is the lexeme location corresponding to the dot
 in C<dp>.
 C<current> is sometimes
 called the C<current location> of the choicepoint.
@@ -254,10 +295,10 @@ C<dp> is a prediction.
 The choicepoint is a token choicepoint if
 it is not a prediction choicepoint and
 the predot symbol of C<dp> is a token symbol.
-The choicepoint is a production choicepoint if
+The choicepoint is a rule choicepoint if
 it is not a prediction choicepoint and
-the predot symbol of C<dp> is the LHS of a production.
-(Token symbols are never the LHS of a production,
+the predot symbol of C<dp> is the LHS of a rule.
+(Token symbols are never the LHS of a rule,
 and vice versa.)
 
 =head1 Parse choices
@@ -276,10 +317,10 @@ If all of the choicepoints of a parse
 are trivial,
 the parse is unambiguous.
 
-Every production choicepoint,
+Every rule choicepoint,
 and therefore every non-trivial choicepoint,
 has a set of parse choices associated with it.
-For a production choicepoint,
+For a rule choicepoint,
 each parse choice is a duple: C<(predecessor, cause)>,
 where
 C<cause> and C<predecesor> are also choicepoints.
@@ -290,7 +331,7 @@ The second element of the duple is the B<cause choicepoint>,
 or B<cause>
 of the parse choice.
 
-Let C<res> be a production choicepoint
+Let C<res> be a rule choicepoint
 and let C<(pred, cuz)> be one of the
 parse choices of C<res>.
 Then we say that C<res> is the B<result>
@@ -358,32 +399,32 @@ B<middle location> of the parse choice.
 
 =item *
 
-The dotted production of C<cuz> will be a completion.
+The dotted rule of C<cuz> will be a completion.
 
 =item *
 
-The LHS of the dotted production of C<cuz> will be
+The LHS of the dotted rule of C<cuz> will be
 the predot symbol of C<res>.
 
 =back
 
 Summing up the above,
-the causes of a production choicepoint
+the causes of a rule choicepoint
 vary only by
 middle position
-and production RHS.
-The causes of a production choicepoint
-always share the same current G1 location
-and production LHS,
-and their dotted productions
+and rule RHS.
+The causes of a rule choicepoint
+always share the same current lexeme location
+and rule LHS,
+and their dotted rules
 are always completions.
 
 =head1 Rank is by Cause
 
 The rank of a parse choice is that of its cause.
-The rank of a cause is the rank of its production.
+The rank of a cause is the rank of its rule.
 Therefore, the rank of a parse choice is the rank
-of the production of its cause.
+of the rule of its cause.
 That last sentence
 is the most important sentence of this document,
 so we will repeat it:
@@ -392,17 +433,17 @@ so we will repeat it:
 ignore: 1
 
     The rank of a parse choice is
-    the rank of the production of its cause.
+    the rank of the rule of its cause.
 
 =for Marpa::R2::Display::End
 
 =head1 Motivation
 
 By the definition of the previous section,
-the production of the choicepoint itself plays no
+the rule of the choicepoint itself plays no
 direct role in ranking.
 Instead,
-the ranking is based on the productions of one
+the ranking is based on the rules of one
 of the choicepoint's
 child nodes.
 At first,
@@ -412,21 +453,21 @@ but on reflection,
 it will make sense.
 
 Ranking cannot be based
-directly on the rank of the choicepoint's production
+directly on the rank of the choicepoint's rule
 because every parse choice for that choicepoint shares
-the choicepoint's production.
+the choicepoint's rule.
 We have not examined the internal structure of
 predecessors, but ranking is not based on them
 for the same reason:
-the production of a predecessor is always
-the same as the production of its result choicepoint,
-and therefore the production of its predecessor
+the rule of a predecessor is always
+the same as the rule of its result choicepoint,
+and therefore the rule of its predecessor
 is the same for every parse choice of a choicepoint.
 
 On the other hand,
 the causes of parse choices can and often do
-differ in their productions.
-Therefore ranking is based on the productions of
+differ in their rules.
+Therefore ranking is based on the rules of
 the causes of a choicepoint.
 
 Note that ranking is only by B<direct> causes.
@@ -436,7 +477,7 @@ look at causes of causes.
 Or why not resolve ties by looking at causes of
 predecessors?
 
-Marpa's built-in production ranking
+Marpa's built-in rule ranking
 was chosen to be the most powerful system
 that could be implemented with effectively
 zero cost.
@@ -512,7 +553,7 @@ C<< <Item3> >>,
 C<< <Item2> >> and
 C<< <Item1> >>.
 The "longest" choice is considered to be the one
-with the most tokens.
+with the most lexemes.
 Working this idea out for this grammar,
 we see that the items
 should rank,
@@ -527,7 +568,7 @@ Several examples and their results are shown
 in the synopsis.
 If you study the grammar, you will see that
 the non-trivial choicepoints
-will be for the dotted productions:
+will be for the dotted rules:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -540,17 +581,17 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 The above are all of the potential
-dotted productions for B<result> choicepoints.
+dotted rules for B<result> choicepoints.
 
 =head3 The cause choicepoints
 
-In all of these dotted productions,
+In all of these dotted rules,
 the predot symbol is C<< <List> >>.
 Recall that cause choicepoints are always completions.
 Since the predot symbol
 of all the non-trivial choicepoints
 is C<< <List> >>,
-the dotted production of a cause
+the dotted rule of a cause
 of the non-trivial choicepoints
 may be any of
 
@@ -599,11 +640,11 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-The production
+The rule
 C<List ::= Item3>
 has rank 3,
 and it obviously outranks
-the production
+the rule
 C<List ::= Item1>,
 which has rank 1.
 Our example uses C<high_rank_only>
@@ -632,7 +673,7 @@ Again examining the grammar, we see that
 the second and subsequent non-trivial choices will
 all be between
 parse choices whose causes have these two dotted
-productions:
+rules:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -642,11 +683,11 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-The production
+The rule
 C<List ::= List Item3>
 has rank 3,
 and it obviously outranks
-the production
+the rule
 C<List ::= List Item1>,
 which has rank 1.
 Our example uses C<high_rank_only>
@@ -805,7 +846,7 @@ where "var-bounded" means the substring is
 delimited by the start of the string,
 the end of the string,
 or the fencepost between
-two C<< <VAR> >> tokens.
+two C<< <VAR> >> lexemes.
 
 =head3 Longest highest as pure BNF
 
@@ -984,7 +1025,7 @@ We will often use the basic theorem
 of Earley parsing.
 As a reminder,
 the theorem states
-that an instance of a dotted production is present
+that an instance of a dotted rule is present
 in a parse,
 if and
 only if that instance is valid for the input so far.
@@ -1026,7 +1067,7 @@ we have all of the following:
 
 1a.
 C<eitem> is an instance of a dotted
-production, which we will treat
+rule, which we will treat
 as a triple:
 C<dp, origin, current>.
 In the literature,
@@ -1035,7 +1076,7 @@ an "Earley item".
 
 1b.
 C<dp> is the dotted
-production
+rule
 C<< <A> ::= beta . gamma> >>.
 
 Statement set 2 is true if and only if
@@ -1085,7 +1126,7 @@ Here we make our idea of "longest highest"
 explicit and justify it.
 
 What "longest highest" means locally is reasonably obvious --
-if C<item3> has more tokens than C<item1>,
+if C<item3> has more lexemes than C<item1>,
 then C<item3> is "longer" than C<item1>.
 It is less clear what it means globally.
 Items might overlap,
@@ -1115,7 +1156,7 @@ we say that C<lh> is a "longest highest" parse.
 To conveniently represent token strings
 we will represent them as literal strings
 where
-"C<v>" stands for a C<< <VAR> >> tokens
+"C<v>" stands for a C<< <VAR> >> lexemes
 and equal signs represent themselves.
 For example, we might represent the token
 string
@@ -1179,7 +1220,7 @@ a "factoring".
 B<(3) "Independence">:
 Let C<seq1> and C<seq2> be two factorings
 of C<W> into items.
-Let C<first> and C<last> be two G1 locations
+Let C<first> and C<last> be two lexeme locations
 such that C<< first <= last >>.
 
 Let C<sub1> be a subsequence of one or more
@@ -1209,22 +1250,22 @@ We claimed that C<seq3> must be a factoring of C<W>,
 and we can see that our claim is correct.
 
 B<(4)>:
-Recall the L<discussion of G1
-fenceposts|Marpa::R2::Recognizer/"G1 Fenceposts">.
-We will say that a G1 fencepost C<fp>
+Recall the L<discussion of lexeme
+fenceposts|Marpa::R2::Recognizer/"Lexeme locations and fenceposts">.
+We will say that a lexeme fencepost C<fp>
 is a "factoring barrier"
 if it is not properly contained in any item.
 More formally,
-let C<First(it1)> be first G1 location of
+let C<First(it1)> be first lexeme location of
 an item C<it1>,
-and let C<Last(it1)> be last G1 location of
+and let C<Last(it1)> be last lexeme location of
 C<it1>.
 Let C<i>
-be a G1 fencepost C<i> such that,
+be a lexeme fencepost C<i> such that,
 for every item C<it>,
 either C<< i <= First(it)  >> or
 C<< i > Last(it)  >>.
-Then G1 fencepost C<i> is a factoring barrier.
+Then lexeme fencepost C<i> is a factoring barrier.
 
 B<(5)>:
 Where C<|W|> is the length of C<W>,
@@ -1234,7 +1275,7 @@ is a factoring barrier.
 
 B<(6)>:
 Also from (4) we see that
-G1 fencepost 0 is a factoring barrier.
+lexeme fencepost 0 is a factoring barrier.
 
 B<(7)>:
 Let a "subfactoring" be a sequence of
@@ -1254,7 +1295,7 @@ that two C<VAR>s never occur
 together in the same item.
 This means that wherever we do find two
 C<VAR>s in a row,
-the G1 fencepost between them is
+the lexeme fencepost between them is
 a factoring barrier.
 
 B<(10)>:
@@ -1272,7 +1313,7 @@ B<(12)>:
 Every minimal subfactoring start with
 a C<< <VAR> >> token and
 alternates
-equal signs and C<< <VAR> >> tokens:
+equal signs and C<< <VAR> >> lexemes:
 that is, it has the pattern
 "C<v=v=v= ...>".
 This follows from (9) and (11).
@@ -1324,7 +1365,7 @@ Call the next item C<it2>.
 B<(15c)>:
 By (10),
 all items start with
-C<< <VAR> >> tokens,
+C<< <VAR> >> lexemes,
 so that C<it2> starts with a
 C<< <VAR> >> token.
 
@@ -1337,7 +1378,7 @@ and
 C<it2> starts with a
 C<< <VAR> >> token,
 so that there are two
-C<< <VAR> >> tokens
+C<< <VAR> >> lexemes
 at the fencepost between C<it1>
 and C<it2>.
 
@@ -1390,7 +1431,7 @@ It follows from the definition of unbounded minimal subfactoring
 (14), that C<u>
 ends in an equal sign.
 Both C<< <Item1> >> and
-C<< <Item3> >> end in C<< <VAR> >> tokens,
+C<< <Item3> >> end in C<< <VAR> >> lexemes,
 so that no
 C<< <Item1> >> or
 C<< <Item3> >> can be the last item
@@ -1444,16 +1485,16 @@ We next show the consequences of ranking.
 
 B<(20)>:
 A completed instance of C<List ::= Item1>
-can only be found at G1 location 1.
+can only be found at lexeme location 1.
 We know this from C<G> and (EARLEY).
 
 B<(21)>:
 A completed instance of C<List ::= List Item1>
-can only be found at G1 location 2 or after.
+can only be found at lexeme location 2 or after.
 We know this from C<G> and (EARLEY).
 
 B<(22)>
-At most one dotted production with C<Item1> as its last item
+At most one dotted rule with C<Item1> as its last item
 appears in a cause at any choicepoint.
 We know this because all choices of a choicepoint
 must be completions with the same current location,
@@ -1461,16 +1502,16 @@ and from (20) and (21).
 
 B<(23)>:
 A completed instance of C<List ::= Item3>
-can only be found at G1 location 3.
+can only be found at lexeme location 3.
 We know this from C<G> and (EARLEY).
 
 B<(24)>:
 A completed instance of C<List ::= List Item3>
-can only be found at G1 location 4 or after.
+can only be found at lexeme location 4 or after.
 We know this from C<G> and (EARLEY).
 
 B<(25)>
-At most one dotted production with C<Item3> as its last item
+At most one dotted rule with C<Item3> as its last item
 appears in a cause at any choicepoint.
 We know this because all choices of a choicepoint
 must be completions with the same current location,
@@ -1478,13 +1519,13 @@ and from (23) and (24).
 
 B<(26)>:
 Consider the ambiguity shown in
-(19) and let C<current> be the G1 fencepost at its end.
-An item also ends at G1 so from C<G> and (EARLEY),
-we know that there is at least one dotted production instance
+(19) and let C<current> be the lexeme fencepost at its end.
+An item also ends at C<current> so from C<G> and (EARLEY),
+we know that there is at least one dotted rule instance
 whose predot symbol is C<List> and whose current
 location is C<current>.
 The choicepoint can
-have one of these dotted productions
+have one of these dotted rules:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -1505,7 +1546,7 @@ Of the choicepoints fulfilling the criteria,
 we arbitrarily pick one.
 We call this choicepoint C<result>.
 We will see as we proceed that,
-while the choicepoints may have different dotted productions,
+while the choicepoints may have different dotted rules,
 our choice of one of them for C<result> makes no difference in
 the ranking logic.
 The only properties of the C<result>
@@ -1523,7 +1564,7 @@ is always the origin of its cause.
 From (26) we see that,
 for every possible rule in C<result>,
 the predot symbol is the first symbol of the
-dotted production.
+dotted rule.
 This means that the origin of the causes of
 C<result>
 must be the same as the origin of C<result>.
@@ -1555,12 +1596,12 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 B<(29)>:
-From (19) and (EARLEY) we know that dotted productions
+From (19) and (EARLEY) we know that dotted rules
 ending in C<Item2> are not valid choices at location C<current>.
 
 B<(30)>:
 From (19), (22), (28) and (EARLEY) we know
-that exactly one of the following two dotted productions
+that exactly one of the following two dotted rules
 is the cause of a parse choice for C<result>:
 
 =for Marpa::R2::Display
@@ -1573,7 +1614,7 @@ ignore: 1
 
 B<(31)>:
 From (19), (25), (28) and (EARLEY) we know
-that exactly one of the following two dotted productions
+that exactly one of the following two dotted rules
 is the cause of a parse choice for C<result>:
 
 =for Marpa::R2::Display

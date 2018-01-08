@@ -41,3 +41,12 @@ The build of Marpa::R2 does not fail smoothly, but instead builds (successfully)
 and then fails in the test phase.
 If there is a next version of Marpa::R2, it should refuse to attempt installation
 on Perl 5.10.0.
+
+## Improved documentation of rule ranking
+
+The documentation of rule ranking was incomplete,
+and in some respects wrong.
+It has been rewritten.
+In particular, the
+[Semantics::Rank pod](https://github.com/jeffreykegler/Marpa--R2/blob/master/cpan/pod/Semantics/Rank.pod)
+document is completely new.
