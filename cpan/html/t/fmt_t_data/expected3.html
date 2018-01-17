@@ -1,0 +1,15 @@
+<html>
+  <!-- 
+      Reproduce bug using this command:
+      marpa_r2_html_fmt --no-added-tag-comment --no-ws-ok-after-start-tag
+  -->
+  <head>
+  </head>
+  <body>
+    <p>
+      <a>Some Tag</a>,
+      this line was duplicated in the bug
+    </p>
+    <hr>
+  </body>
+</html>

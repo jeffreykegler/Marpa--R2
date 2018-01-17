@@ -36,7 +36,7 @@ BEGIN {
 
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
-BEGIN { Test::More::plan tests => 2; }
+BEGIN { Test::More::plan tests => 3; }
 
 use lib 'tool/lib';
 use Marpa::R2::Test;
@@ -46,7 +46,7 @@ my $script_dir = File::Spec->catdir( $blib, 'script' );
 
 my @data_dir   = qw( html t fmt_t_data );
 
-for my $test (qw(1 2)) {
+for my $test (qw(1 2 3)) {
     my $expected;
     my $output = Marpa::R2::HTML::Test::Util::run_command(
         File::Spec->catfile( $script_dir, 'marpa_r2_html_fmt' ),
