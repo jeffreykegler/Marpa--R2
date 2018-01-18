@@ -478,7 +478,7 @@ sub Marpa::R2::Grammar::precompute {
             my @counted_nullable_messages = map {
                       q{Nullable symbol "}
                     . $_
-                    . qq{" is on rhs of counted rule\n}
+                    . qq{" is on RHS of counted rule\n}
             } @counted_nullables;
             Marpa::R2::exception( @counted_nullable_messages,
                 'Counted nullables confuse Marpa -- please rewrite the grammar'
@@ -700,7 +700,7 @@ sub Marpa::R2::Internal::Grammar::slif_precompute {
             my @counted_nullable_messages = map {
                       q{Nullable symbol "}
                     . $_
-                    . qq{" is on rhs of counted rule\n}
+                    . qq{" is on RHS of counted rule\n}
             } @counted_nullables;
             Marpa::R2::exception( @counted_nullable_messages,
                 'Counted nullables confuse Marpa -- please rewrite the grammar'
