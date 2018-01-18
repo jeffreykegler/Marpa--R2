@@ -24,7 +24,7 @@ script:
   - (cd cpan/ && ./Build)
   - (cd cpan/ && ./Build test)
   - (cd cpan/ && ./Build distmeta)
-  - (cd cpan/ && ./Build distcheck)
+  # - (cd cpan/ && ./Build distcheck)
   - (cd cpan/ && ./Build disttest)
   # - (cd cpan/ && MARPA_USE_PERL_AUTOCONF=1 ./Build disttest)
   - (cd cpan/ && ./Build dist)
