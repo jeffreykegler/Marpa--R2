@@ -50,3 +50,12 @@ It has been rewritten.
 In particular, the
 [Semantics::Rank pod](https://github.com/jeffreykegler/Marpa--R2/blob/master/cpan/pod/Semantics/Rank.pod)
 document is completely new.
+
+## Bug fix in html_fmt utility
+
+There was an bug in `marpa_r2_html_fmt` that caused it, in rare circumstances,
+to duplicate text.  The duplications would occur as text added
+after an empty tag, for example, after an `<hr>` tag.  An example
+of an HTML file which had the problem is in the Github repo as
+`cpan/html/t/fmt_t_data/input3.html`.
+This problem is now fixed.
