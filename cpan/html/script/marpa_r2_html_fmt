@@ -446,13 +446,21 @@ sub do_default {
     my $start_tag = Marpa::R2::HTML::start_tag();
     my $end_tag   = Marpa::R2::HTML::end_tag();
     my $is_empty_element  = Marpa::R2::HTML::is_empty_element();
+    if ($is_empty_element) {
+        if ( defined $start_tag ) {
+            push @new_line_data, [ 'empty element', 0, $start_tag ];
+        }
+        else {
+            push @new_line_data, [ 'empty element', 0, '<' . $tagname . '>' ];
+            push @new_line_data,
+                [ 'msg: empty element missing start tag', 0, 'preceeding', $tagname ]
+                if $main::ADDED_TAG_COMMENT_FLAG;
+        } ## end else [ if ( defined $start_tag ) ]
+        return \@new_line_data;
+    }
+
     {
-        ## no critic(Variables::ProhibitPackageVars)
-        my $tag_type =
-            $is_empty_element
-            ? 'empty element'
-            : 'start tag';
-        ##use critic
+        my $tag_type = 'start tag';
         if ( defined $start_tag ) {
             push @new_line_data, [ $tag_type, 0, $start_tag ];
         }
