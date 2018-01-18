@@ -9,7 +9,9 @@ branches:
   only:
   - travis
 
-# install prerequisites
+before_install:
+    - cpanm Config::AutoConf # optional dependency
+
 # install prerequisites
 install:
   # for debugging, output available perls
@@ -24,9 +26,9 @@ script:
   - (cd cpan/ && ./Build)
   - (cd cpan/ && ./Build test)
   - (cd cpan/ && ./Build distmeta)
-  # - (cd cpan/ && ./Build distcheck)
+  - (cd cpan/ && ./Build distcheck)
   - (cd cpan/ && ./Build disttest)
-  # - (cd cpan/ && MARPA_USE_PERL_AUTOCONF=1 ./Build disttest)
+  - (cd cpan/ && MARPA_USE_PERL_AUTOCONF=1 ./Build disttest)
   - (cd cpan/ && ./Build dist)
 
 sudo: false  # faster builds using containers
