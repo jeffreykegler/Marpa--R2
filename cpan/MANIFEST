@@ -130,8 +130,10 @@ html/t/examples.t
 html/t/fmt.t
 html/t/fmt_t_data/expected1.html
 html/t/fmt_t_data/expected2.html
+html/t/fmt_t_data/expected3.html
 html/t/fmt_t_data/input1.html
 html/t/fmt_t_data/input2.html
+html/t/fmt_t_data/input3.html
 html/t/fmt_t_data/score_expected1.html
 html/t/fmt_t_data/score_expected2.html
 html/t/missing.t
