@@ -504,7 +504,8 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         my $g1_symbol_id = $g1_id_by_lexeme_name{$lexeme_name};
         if ( not defined $g1_symbol_id ) {
             Marpa::R2::exception(
-                'An L0 lexeme cannot appear on the RHS of an L0 rule'
+                qq{<$lexeme_name> is an L0 lexeme but it also appears on the RHS of an L0 rule:\n},
+                qq{   That is not allowed.\n}
             );
         }
         if ( not $g1_thin->symbol_is_accessible($g1_symbol_id) ) {
