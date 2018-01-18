@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Fatal qw(open close mkdir chdir);
@@ -58,13 +58,13 @@ my %configure_requires =
     qw( CPAN::Meta::Converter Module::Build ),
     @always_required,
     @packages_for_perl_autoconf;
-$configure_requires{perl} = '5.010';
+$configure_requires{perl} = '5.010001';
 
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( HTML::Entities HTML::Parser ),
     @always_required;
-$requires{perl} = '5.010';
+$requires{perl} = '5.010001';
 
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }

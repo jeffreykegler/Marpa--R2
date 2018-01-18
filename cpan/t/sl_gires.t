@@ -20,7 +20,7 @@
 # The intent is that this file will contain tests of the
 # valuator's resolution phase
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

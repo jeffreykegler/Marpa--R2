@@ -21,7 +21,7 @@
 # counter.  A very expensive way to do it, but a
 # good test of the ranking logic.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

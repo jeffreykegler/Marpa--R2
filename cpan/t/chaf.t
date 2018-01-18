@@ -16,7 +16,7 @@
 
 # Regression test for a chaf bug
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

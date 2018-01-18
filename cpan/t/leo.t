@@ -18,7 +18,7 @@
 # Make sure I have a CHAF example!
 #
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

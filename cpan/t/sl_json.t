@@ -17,7 +17,7 @@
 # Test using a JSON parser
 # Inspired by a parser written by Peter Stuifzand
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Test::More tests => 14;

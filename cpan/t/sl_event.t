@@ -17,7 +17,7 @@
 # Test of scannerless parsing -- predicted, nulled and completed events with 
 # deactivation and reactivation
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

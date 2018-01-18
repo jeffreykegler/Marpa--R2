@@ -17,7 +17,7 @@ package Marpa::R2::HTML::Test::Util;
 
 # This code was based on study of the test suite in Andy Lester's Ack package
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

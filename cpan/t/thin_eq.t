@@ -17,7 +17,7 @@
 # Testing an ambiguous equation
 # using the thin interface
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

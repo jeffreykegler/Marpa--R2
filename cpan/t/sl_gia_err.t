@@ -19,7 +19,7 @@
 #
 # Uses include tests of parsing of the SLIF DSL itself.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

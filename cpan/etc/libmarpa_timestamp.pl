@@ -22,7 +22,7 @@
 # only and hopefully very-near-future timestamps are
 # not a issue.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use autodie;

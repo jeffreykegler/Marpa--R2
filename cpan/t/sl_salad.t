@@ -23,7 +23,7 @@
 # In the literature, this is called a supersequence
 # search.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Marpa::R2 2.097_002;

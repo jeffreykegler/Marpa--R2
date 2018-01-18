@@ -17,7 +17,7 @@
 # under the same terms as the Perl 5 programming language system
 # itself.
 
-use 5.010;
+use 5.010001;
 use warnings;
 use strict;
 

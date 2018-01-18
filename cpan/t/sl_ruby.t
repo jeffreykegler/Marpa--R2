@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Marpa::R2 2.097_002;

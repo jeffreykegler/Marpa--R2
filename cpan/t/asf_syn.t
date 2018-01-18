@@ -16,7 +16,7 @@
 
 # The low-level ASF synopses and related tests
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

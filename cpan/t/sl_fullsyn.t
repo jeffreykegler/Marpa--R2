@@ -16,7 +16,7 @@
 
 # A "full" Synopsis for the intro doc to the SLIF
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Test::More tests => 1;

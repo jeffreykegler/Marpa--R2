@@ -17,7 +17,7 @@
 # Rewriting tests, to check the accuracy of the
 # tracing documentation.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

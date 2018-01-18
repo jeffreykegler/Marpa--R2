@@ -20,7 +20,7 @@
 # deactivation and reactivation, initialization at DSL time,
 # initialization override at recce creation time
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

@@ -18,7 +18,7 @@
 # (Day 18 2013) by Dwarring, adapted to Marpa by Jean-Damien
 # Durand.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use English qw( -no_match_vars );

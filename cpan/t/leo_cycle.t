@@ -19,7 +19,7 @@
 # augmented to test Leo prediction items,
 # as well as a long cycle of Leo items
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use English qw( -no_match_vars );

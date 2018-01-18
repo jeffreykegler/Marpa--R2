@@ -16,7 +16,7 @@
 
 # Various that share a calculator semantics
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Test::More tests => 6;

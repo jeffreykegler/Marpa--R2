@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Carp;
@@ -91,7 +91,7 @@ $HEADER = <<'END_OF_HEADER';
 
 package Marpa::R2::Internal;
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Carp;

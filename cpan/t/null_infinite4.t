@@ -15,7 +15,7 @@
 # http://www.gnu.org/licenses/.
 # A CHAF rule which starts with nullables, and cycle.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

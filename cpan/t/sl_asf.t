@@ -17,7 +17,7 @@
 # Tests of glade traversal from rns
 # Originally to report github issue #184
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

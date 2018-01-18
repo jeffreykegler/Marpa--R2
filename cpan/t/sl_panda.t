@@ -18,7 +18,7 @@
 # is Penn Treebank's syntactic bracketing tags.  For details, see
 # http://www.cis.upenn.edu/~treebank/
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use English qw( -no_match_vars );

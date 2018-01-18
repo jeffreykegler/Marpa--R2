@@ -16,7 +16,7 @@
 
 # Tests of the sequence in the Marpa::R2::Grammar doc
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

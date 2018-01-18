@@ -15,7 +15,7 @@
 
 package Marpa::R2::Display;
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Fatal qw(open close);

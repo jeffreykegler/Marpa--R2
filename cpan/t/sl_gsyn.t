@@ -16,7 +16,7 @@
 
 # Synopsis for Scannerless version of Stuizand interface
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Test::More tests => 5;

@@ -17,7 +17,7 @@
 # Tests of ambiguity detection in the target grammar
 # (as opposed to the SLIF DSL itself).
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

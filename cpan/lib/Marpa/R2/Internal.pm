@@ -18,7 +18,7 @@
 
 package Marpa::R2::Internal;
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Carp;

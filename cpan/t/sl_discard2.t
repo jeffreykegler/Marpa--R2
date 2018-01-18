@@ -16,7 +16,7 @@
 
 # Tests of the SLIF's discard events
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Test::More tests => 23;

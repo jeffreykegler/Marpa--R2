@@ -17,7 +17,7 @@
 # Test of the actions, focusing on the various types --
 # CODE, ref to scalar/hash/array, etc.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

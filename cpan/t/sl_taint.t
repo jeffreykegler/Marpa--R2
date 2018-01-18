@@ -16,7 +16,7 @@
 
 # Test of scannerless parsing for tainted grammars
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

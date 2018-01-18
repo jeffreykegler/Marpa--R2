@@ -19,7 +19,7 @@
 # and minimium count (0, 1, 3);
 # keep vs. no-keep.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

@@ -17,7 +17,7 @@
 # Tests which require only a GIF combination-- a grammar (G),
 # input (I), and an (F) ASF output, with no semantics
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

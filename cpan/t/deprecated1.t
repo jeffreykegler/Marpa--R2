@@ -19,7 +19,7 @@
 # Please DO NOT USE IT AS AN EXAMPLE
 # Thanks
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 

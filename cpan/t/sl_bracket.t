@@ -28,7 +28,7 @@
 # recent instance of that symbol.  If more than one begins at the most
 # recent location, it returns the longest.
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Marpa::R2 2.098000;

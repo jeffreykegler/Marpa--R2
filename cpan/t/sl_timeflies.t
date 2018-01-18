@@ -42,7 +42,7 @@
 # The permalink is:
 # http://en.wikipedia.org/w/index.php?title=Time_flies_like_an_arrow&oldid=311163283
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
