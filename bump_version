@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings FATAL => 'all';
 use autodie;
