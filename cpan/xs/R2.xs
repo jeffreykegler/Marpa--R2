@@ -1194,9 +1194,7 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
 
   /* Application level intervention resets |perl_pos| */
   slr->last_perl_pos = -1;
-  new_perl_pos = new_perl_pos;
   slr->perl_pos = new_perl_pos;
-  new_end_pos = new_end_pos;
   slr->end_pos = new_end_pos;
   return old_perl_pos;
 }
