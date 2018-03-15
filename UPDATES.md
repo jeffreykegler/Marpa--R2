@@ -42,6 +42,11 @@ and then fails in the test phase.
 If there is a next version of Marpa::R2, it should refuse to attempt installation
 on Perl 5.10.0.
 
+## No support for cperl and other Perl variants
+
+There is no support for anything but standard Perl.  A bug with a Perl variant will be rejected
+if the bug cannot be duplicated in standard Perl.
+
 ## Improved documentation of rule ranking
 
 The documentation of rule ranking was incomplete,
