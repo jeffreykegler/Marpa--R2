@@ -172,7 +172,7 @@ described above for ranges.
 The range corresponding to the span
 [I<S, L>] is [I<S ... (S+L)-1>].
 The span corresponding to the range
-[I<S ... E>] is [I<S, (S-E)+1>].
+[I<S ... E>] is [I<S, (E-S)+1>].
 A span with
 a negative length
 is interpreted as if it was the range
