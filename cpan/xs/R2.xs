@@ -807,6 +807,7 @@ u_r0_new (Scanless_R * slr)
   dTHX;
   Marpa_Recce r0 = slr->r0;
   const IV trace_lexers = slr->trace_lexers;
+  const IV trace_terminals = slr->trace_terminals;
   G_Wrapper *lexer_wrapper = slr->slg->l0_wrapper;
   const int too_many_earley_items = slr->too_many_earley_items;
 
@@ -846,7 +847,7 @@ u_r0_new (Scanless_R * slr)
 	       (long) assertion, (long) terminal,
 	       xs_g_error (lexer_wrapper));
 	  }
-	if (trace_lexers >= 1)
+	if (trace_lexers >= 1 || trace_terminals > 2)
 	  {
 	    union marpa_slr_event_s *event =
 	      marpa__slr_event_push (slr->gift);
