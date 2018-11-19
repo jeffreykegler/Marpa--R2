@@ -1,4 +1,4 @@
-/* Copyright 2015 Jeffrey Kegler */
+/* Copyright 2018 Jeffrey Kegler */
 
 /* This file is a modification of one of the versions of the GNU obstack.h
  * which was LGPL 2.1.  Here is the copyright notice from that file:

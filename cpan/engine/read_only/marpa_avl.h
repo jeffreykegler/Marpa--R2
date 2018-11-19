@@ -1,4 +1,4 @@
-/* Copyright 2015 Jeffrey Kegler */
+/* Copyright 2018 Jeffrey Kegler */
 
 /* This is a modification of avl.h, from Ben Pfaff's libavl,
    which was under the LGPL 3.  Here is the copyright notice

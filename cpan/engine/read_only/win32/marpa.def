@@ -1,7 +1,7 @@
 ; DO NOT EDIT DIRECTLY.
 ; This file was automatically generated.
 ; This file is for the Microsoft linker.
-; Thu Nov  8 18:33:02 2018
+; Mon Nov 19 13:30:19 2018
 EXPORTS
    marpa_check_version
    marpa_version
