@@ -5930,9 +5930,11 @@ pos_set( slr, start_pos_sv, length_sv )
      SV* length_sv;
 PPCODE:
 {
-  int start_pos = SvIOK(start_pos_sv) ? SvIV(start_pos_sv) : slr->perl_pos;
-  int length = SvIOK(length_sv) ? SvIV(length_sv) : -1;
+  int start_pos = SvIV(start_pos_sv);
+  int length = SvIV(length_sv);
+
   u_pos_set(slr, "slr->pos_set", start_pos, length);
+
   slr->lexer_start_pos = slr->perl_pos;
   XSRETURN_YES;
 }

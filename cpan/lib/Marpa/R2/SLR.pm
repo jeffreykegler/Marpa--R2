@@ -982,7 +982,7 @@ sub Marpa::R2::Scanless::R::resume {
         $slr->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS];
     my $trace_lexers = $slr->[Marpa::R2::Internal::Scanless::R::TRACE_LEXERS];
 
-    $thin_slr->pos_set( $start_pos, $length );
+    $thin_slr->pos_set( ($start_pos // $thin_slr->pos()), ($length // -1));
     $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
     my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
     my $thin_slg = $slg->[Marpa::R2::Internal::Scanless::G::C];
@@ -990,6 +990,7 @@ sub Marpa::R2::Scanless::R::resume {
     OUTER_READ: while (1) {
 
         my $problem_code = $thin_slr->read();
+
         last OUTER_READ if not $problem_code;
         my $pause =
             Marpa::R2::Internal::Scanless::convert_libmarpa_events($slr);
@@ -1781,7 +1782,13 @@ sub Marpa::R2::Scanless::R::lexeme_complete {
     my ( $slr, $start, $length ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Internal::Scanless::R::C];
     $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
-    my $return_value = $thin_slr->g1_lexeme_complete( $start, $length );
+    my $thin_pos = $thin_slr->pos();
+    $start //= $thin_pos;
+    if (not defined $length) {
+        my ($pause_start, $pause_length) = $thin_slr->pause_span();
+        $length = ($pause_start == $thin_pos) ? $pause_length : -1;
+    }
+    my $return_value = $thin_slr->g1_lexeme_complete($start, $length);
     Marpa::R2::Internal::Scanless::convert_libmarpa_events($slr);
     die q{} . $thin_slr->g1()->error() if $return_value == 0;
     return $return_value;
