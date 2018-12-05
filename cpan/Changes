@@ -15,26 +15,13 @@
 
 Revision history for Marpa::R2
 
+7.001_000 (libmarpa 8.6.2) Wed Dec  5 12:23:23 EST 2018
+
+   * Developer's version
+
 6.000000 (libmarpa 8.6.2) Sun Dec  2 13:53:38 EST 2018
 
    * Improved diagnostics, doc fixes.
-
-5.045_000 (libmarpa 8.6.2) Mon Nov 19 14:20:53 EST 2018
-
-   * Update libmarpa to 8.6.2
-
-5.044_000 (libmarpa 8.6.1) Thu Nov  8 18:36:44 EST 2018
-
-   * Improved diagnostics, doc fixes.
-
-5.043_043 (libmarpa 8.6.0) Thu Jan 18 15:59:29 PST 2018
-
-   * Developer's version.  Minor and micro number jumped to
-     prevent confusion with minium Perl requirement.
-
-5.001_000 (libmarpa 8.6.0) Sat Jan  6 16:28:05 PST 2018
-
-   * Developer's version
 
 4.000000 (libmarpa 8.6.0) Mon Mar 13 16:02:45 PDT 2017
 
