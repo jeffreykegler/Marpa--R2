@@ -2,7 +2,8 @@
 
 ## About this page
 
-This is the updates page for Marpa::R2.
+This is the updates page for Marpa::R2,
+version 4.000000.
 This page carries information which does not justify
 a full new distribution,
 but which it is useful for the user to know.
