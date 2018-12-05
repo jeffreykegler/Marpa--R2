@@ -5924,17 +5924,13 @@ PPCODE:
 }
 
 void
-pos_set( slr, start_pos_sv, length_sv )
+pos_set( slr, start_pos, length )
     Scanless_R *slr;
-     SV* start_pos_sv;
-     SV* length_sv;
+     int start_pos;
+     int length;
 PPCODE:
 {
-  int start_pos = SvIV(start_pos_sv);
-  int length = SvIV(length_sv);
-
   u_pos_set(slr, "slr->pos_set", start_pos, length);
-
   slr->lexer_start_pos = slr->perl_pos;
   XSRETURN_YES;
 }
@@ -6556,16 +6552,14 @@ PPCODE:
 
  # Returns current position on success, 0 on unthrown failure
 void
-g1_lexeme_complete (slr, start_pos_sv, length_sv)
+g1_lexeme_complete (slr, start_pos_arg, lexeme_length_arg)
     Scanless_R *slr;
-     SV* start_pos_sv;
-     SV* length_sv;
+    int start_pos_arg;
+    int lexeme_length_arg;
 PPCODE:
 {
   int result;
   const int input_length = slr->pos_db_logical_size;
-  const int start_pos_arg = SvIV (start_pos_sv);
-  const int lexeme_length_arg = SvIV (length_sv);
   int start_pos = start_pos_arg;
   int lexeme_length = lexeme_length_arg;
 
