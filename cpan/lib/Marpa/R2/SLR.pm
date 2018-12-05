@@ -1780,6 +1780,14 @@ sub Marpa::R2::Scanless::R::lexeme_alternative {
 # Returns 0 on unthrown failure, current location on success
 sub Marpa::R2::Scanless::R::lexeme_complete {
     my ( $slr, $start, $length ) = @_;
+    Marpa::R2::exception( q{Bad call to $recce->lexeme_complete(): },
+        qq{start "$start" is not numeric})
+            if defined $start 
+               and not Scalar::Util::looks_like_number( $start );
+    Marpa::R2::exception( q{Bad call to $recce->lexeme_complete(): },
+        qq{length "$length" is not numeric})
+            if defined $length
+            and not Scalar::Util::looks_like_number( $length );
     my $thin_slr = $slr->[Marpa::R2::Internal::Scanless::R::C];
     $slr->[Marpa::R2::Internal::Scanless::R::EVENTS] = [];
     my $thin_pos = $thin_slr->pos();

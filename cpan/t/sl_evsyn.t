@@ -124,7 +124,7 @@ READ: while (1) {
         my ($name) = @{$event};
         if ($name eq 'insert d') {
            my (undef, $length) = $slr->pause_span();
-           $next_lexeme = ['real d', 'd', $length];
+           $next_lexeme = ['real d', undef, $length];
         }
         push @actual_events, $name;
     }
