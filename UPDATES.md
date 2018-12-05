@@ -15,18 +15,18 @@ there is no way to have true "meta" information --
 even a small doc always is part of the distribution itself
 and requires the creation of a completely new version.
 
-Because Marpa is now "stable", new versions are released only
-when they benefit its current users.
+Marpa is now "stable", and new features are not added to it.
+New versions are released only when they benefit current users.
 In effect, this means new versions occur only when a serious
-bug is discovered, which (knock on wood)
-happens rarely.
+bug is discovered.
 
 ## No support for Perl 5.10.0
 
 Marpa::R2 no longer supports Perl 5.10.0.
-Perl 5.10.0 is so rare it is hard to find testing of it,
-and there does not appear to be any Marpa::R2 users
+There do not appear to be any Marpa::R2 users
 of Perl 5.10.0.
+And, in the cloud,
+Perl 5.10.0 is so rare it is hard to find testing for it.
 
 ## No support for cperl and other Perl variants
 
