@@ -5,8 +5,7 @@
 This is the updates page for Marpa::R2,
 version 6.000000.
 The updates page for version 4.000000 can be found
-[here]
-(https://github.com/jeffreykegler/Marpa--R2/blob/f2a676b760de8fd0e41669806744503253d76bd6/UPDATES.md).
+[here](https://github.com/jeffreykegler/Marpa--R2/blob/f2a676b760de8fd0e41669806744503253d76bd6/UPDATES.md).
 This page carries information which does not justify
 a full new distribution,
 but which it is useful for the user to know.
