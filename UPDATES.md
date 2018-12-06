@@ -70,10 +70,13 @@ Perl 5.10.0 is so rare it is hard to find testing for it.
 
 ### No support for cperl and other Perl variants
 
-There is no support for anything but standard Perl.  A bug with a Perl variant will be rejected
+We are happy to see experimentation with Perl,
+but unfortunately we do not have
+the resources to support anything but standard Perl.
+A bug with a Perl variant will be rejected
 if the bug cannot be duplicated in standard Perl.
 
-## Updates pages for previous version of Marpa::R2
+## Updates pages for previous versions
 
 The updates page for version 4.000000 can be found
 [here](https://github.com/jeffreykegler/Marpa--R2/blob/f2a676b760de8fd0e41669806744503253d76bd6/UPDATES.md).
