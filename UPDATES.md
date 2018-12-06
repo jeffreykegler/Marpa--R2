@@ -5,9 +5,10 @@
 This is the updates page for Marpa::R2,
 version 6.000000.
 (For the updates pages for previous versions, see below.)
-This page carries information which does not justify
-a full new distribution,
-but which it is useful for the user to know.
+It may contain descriptions of bugs for which a fix
+is in preparation.
+It also carries notices which are useful to current users,
+but which do not justify a full new distribution,
 
 On CPAN, Marpa::R2's primary distribution mechanism,
 there is no way to have true "meta" information --
@@ -15,11 +16,14 @@ even a small doc always is part of the distribution itself
 and requires the creation of a completely new version.
 
 Marpa is now "stable", and new features are not added to it.
-New versions are released only when they benefit current users.
-In effect, this means new versions occur only when a serious
+New versions are released only when they benefit users
+of the current functionality in a major way.
+New versions usually occur only when a serious
 bug is discovered.
 
-## Integer arguments of lexeme_complete() and resume() sometimes ignored
+## Bugs
+
+### Integer arguments of lexeme_complete() and resume() sometimes ignored
 
 In Perl 5.18 and higher, the integer arguments of
 $recce->lexeme_complete() and $recce->resume() may be ignored if Perl
@@ -54,7 +58,9 @@ A description of the change can be found in the Perl
 documents
 [here](https://perldoc.perl.org/perlguts.html#What's-Really-Stored-in-an-SV%3f).
 
-## No support for Perl 5.10.0
+## Notices
+
+### No support for Perl 5.10.0
 
 Marpa::R2 no longer supports Perl 5.10.0.
 There do not appear to be any Marpa::R2 users
@@ -62,7 +68,7 @@ of Perl 5.10.0.
 And, in the cloud,
 Perl 5.10.0 is so rare it is hard to find testing for it.
 
-## No support for cperl and other Perl variants
+### No support for cperl and other Perl variants
 
 There is no support for anything but standard Perl.  A bug with a Perl variant will be rejected
 if the bug cannot be duplicated in standard Perl.
