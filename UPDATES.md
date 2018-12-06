@@ -4,8 +4,7 @@
 
 This is the updates page for Marpa::R2,
 version 6.000000.
-The updates page for version 4.000000 can be found
-[here](https://github.com/jeffreykegler/Marpa--R2/blob/f2a676b760de8fd0e41669806744503253d76bd6/UPDATES.md).
+(For the updates pages for previous versions, see below.)
 This page carries information which does not justify
 a full new distribution,
 but which it is useful for the user to know.
@@ -45,7 +44,7 @@ Most integers are not tied but,
 for example, as of this writing,
 the value of @LAST_MATCH_START
 (see
-[perlvars](https://perldoc.perl.org/perlvar.html#Variables-related-to-regular-expressions)
+[perlvars](https://perldoc.perl.org/perlvar.html#Variables-related-to-regular-expressions))
 is "tied".
 
 The problem occurred because of a change in the
@@ -68,3 +67,7 @@ Perl 5.10.0 is so rare it is hard to find testing for it.
 There is no support for anything but standard Perl.  A bug with a Perl variant will be rejected
 if the bug cannot be duplicated in standard Perl.
 
+## Updates pages for previous version of Marpa::R2
+
+The updates page for version 4.000000 can be found
+[here](https://github.com/jeffreykegler/Marpa--R2/blob/f2a676b760de8fd0e41669806744503253d76bd6/UPDATES.md).
