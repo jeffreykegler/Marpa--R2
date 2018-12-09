@@ -55,9 +55,9 @@ sub testIt {
 
 }
 
-Test::More::diag( "Marpa::R2 file: ", $INC{'Marpa/R2.pm'} );
-Test::More::diag( "Marpa::R2 version: ", $Marpa::R2::VERSION );
-Test::More::diag( "Perl version $^V" );
+# Test::More::diag( "Marpa::R2 file: ", $INC{'Marpa/R2.pm'} );
+# Test::More::diag( "Marpa::R2 version: ", $Marpa::R2::VERSION );
+# Test::More::diag( "Perl version $^V" );
 
 # Need to repeat code here because I am trying to preserve
 # the internal flags in $resumePos, and I do not want to
@@ -88,7 +88,7 @@ TEST: {
     pos $input = 1;
     $input =~ /\Gx+/;
     my $resumePos = $LAST_MATCH_END[0];
-    Test::More::diag("$^V resume pos: $resumePos");
+    # Test::More::diag("$^V resume pos: $resumePos");
     my $ok = eval { $recce->resume( int($resumePos) ); 1 };
     if (not $ok) {
          diag($EVAL_ERROR);
