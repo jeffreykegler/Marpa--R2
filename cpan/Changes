@@ -15,6 +15,12 @@
 
 Revision history for Marpa::R2
 
+8.000000 (libmarpa 8.6.2) Sun Dec 16 16:02:45 EST 2018
+
+   * Fix bug which, under unusual conditions, causes
+     $recce->resume(), $recce->lexeme_complete() integer
+     arguments to be ignored.
+
 7.001_000 (libmarpa 8.6.2) Wed Dec  5 12:23:23 EST 2018
 
    * Developer's version
