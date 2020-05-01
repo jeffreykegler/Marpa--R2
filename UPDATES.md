@@ -76,6 +76,11 @@ the resources to support anything but standard Perl.
 A bug with a Perl variant will be rejected
 if the bug cannot be duplicated in standard Perl.
 
+### Limited support for AIX
+
+Some work has been done on supporting AIX.  See
+[the AIX.README file](https://github.com/jeffreykegler/Marpa--R2/blob/master/AIX.README).
+
 ## Updates pages for previous versions
 
 The updates page for version 4.000000 can be found

@@ -1,2 +1,4 @@
 Most users will want to install Marpa as a CPAN module.  For the more
 adventurous, there is an install target in the Makefile.
+
+Installing AIX requires some hackery: see AIX.README.
