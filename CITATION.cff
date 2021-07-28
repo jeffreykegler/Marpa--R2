@@ -1,0 +1,8 @@
+cff-version: 1.1.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Kegler
+    given-names: Jeffrey
+title: "Marpa--R2"
+version: 8.000000
+date-released: 2021-07-28
