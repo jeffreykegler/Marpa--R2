@@ -3,7 +3,7 @@
 ## About this page
 
 This is the updates page as of Marpa::R2,
-version 6.000000.
+version 8.000000.
 (For the updates pages for previous versions, see below.)
 It may contain descriptions of bugs for which a fix
 is in preparation.
@@ -23,40 +23,10 @@ bug is discovered.
 
 ## Bugs
 
-### Integer arguments of lexeme_complete() and resume() sometimes ignored
+### No known bugs
 
-In Perl 5.18 and higher, the integer arguments of
-$recce->lexeme_complete() and $recce->resume() may be ignored if Perl
-considers them to be "tied".
-This problem does not occur in Perl version 5.16 or older.
-Most integers are not "tied", but see below.
-
-The
-[int Perl function](https://perldoc.perl.org/functions/int.html)
-can be used to convert the integer to an
-"untied" version.
-This can be used as a workaround.
-
-A fix to this problem has been found.
-This is being treated as a serious bug,
-and a new indexed release of Marpa::R2 is being prepared which
-will include this fix.
-
-"Tied" in the sense it is used in this context
-is a Perl internals concept.
-Most integers are not tied but,
-for example, as of this writing,
-the value of @LAST_MATCH_START
-(see
-[perlvars](https://perldoc.perl.org/perlvar.html#Variables-related-to-regular-expressions))
-is "tied".
-
-The problem occurred because of a change in the
-[Perl API](https://perldoc.perl.org/perlapi.html)
-as of Perl 5.18.
-A description of the change can be found in the Perl
-documents
-[here](https://perldoc.perl.org/perlguts.html#What's-Really-Stored-in-an-SV%3f).
+As of this writing, there are no known bugs
+in Marpa::R2, version 8.000000.
 
 ## Notices
 
