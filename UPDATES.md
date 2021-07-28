@@ -2,7 +2,7 @@
 
 ## About this page
 
-This is the updates page for Marpa::R2,
+This is the updates page as of Marpa::R2,
 version 6.000000.
 (For the updates pages for previous versions, see below.)
 It may contain descriptions of bugs for which a fix
