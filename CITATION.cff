@@ -6,4 +6,5 @@ authors:
 title: "Marpa--R2"
 version: "8.000000"
 date-released: 2021-07-28
-url: https://github.com/jeffreykegler/Marpa--R2
+url: "https://github.com/jeffreykegler/Marpa--R2"
+license: "LGPL-3.0-or-later"
