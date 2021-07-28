@@ -4,5 +4,5 @@ authors:
   - family-names: Kegler
     given-names: Jeffrey
 title: "Marpa--R2"
-version: 8.000000
+version: "8.000000"
 date-released: 2021-07-28
