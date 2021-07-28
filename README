@@ -3,7 +3,7 @@ This is a working repository for RELEASE 2 of the Marpa.
 NOTICE to CONTRIBUTORS: Marpa::R2 is not completely frozen, but it is
 largely closed to new features.  In making exceptions, the welfare of
 the current application base is primary -- new features should be fully
-compatible and to have a low-risk of introducing new problems.
+compatible and have a low-risk of introducing new problems.
 
 Bug fixes to Marpa::R2 are welcome, and get the Marpa projects highest
 priority.
