@@ -83,8 +83,6 @@ Some work has been done on supporting AIX.  See
 
 ## Updates pages for previous versions
 
-[Updates page for version 6.000000]
-(https://github.com/jeffreykegler/Marpa--R2/blob/master/etc/old_updates/UPDATES-6.000000.md)
+[Updates page for version 6.000000](https://github.com/jeffreykegler/Marpa--R2/blob/master/etc/old_updates/UPDATES-6.000000.md).
 
-[Updates page for version 4.000000]
-(https://github.com/jeffreykegler/Marpa--R2/blob/master/etc/old_updates/UPDATES-4.000000.md)
+[Updates page for version 4.000000](https://github.com/jeffreykegler/Marpa--R2/blob/master/etc/old_updates/UPDATES-4.000000.md).
