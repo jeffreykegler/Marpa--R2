@@ -36,6 +36,10 @@ repository.  Instructions on how to build Libmarpa can be found beginning
 in the INSTALL file at the top level of the Libmarpa repository.
 Libmarpa's repository is here: https://github.com/jeffreykegler/libmarpa
 
+When you build the shared library, you must ensure that it includes
+not only the contents of the default libmarpa static library, but
+marpa_codes.o, as well.  See the "STATIC" document for explanations.
+
 3.) Install the external shared library.  Where and how you install it
 is up to you.  The Libmarpa distribution is set up to use autoconf.
 Instructions on how to install using autoconf can be found in the
