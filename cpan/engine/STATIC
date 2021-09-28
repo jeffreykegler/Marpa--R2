@@ -21,11 +21,17 @@ the INSTALL document at the top level of the Marpa::R2 CPAN directory.
 
 Here are the steps:
 
-1.) Be sure the library that you are building is a match to the one
-that Marpa::R2 expects.  The expected version can be found in the
-core/read_only/LIB_VERSION file.  Do *NOT* edit this file.  This version
-number must match exactly the version number of your external static
-library.
+1.) Be sure the library that you are building is a match to the one that
+Marpa::R2 expects.  The version of libmarpa can be found in the its
+LIB_VERSION file.  This version number must match exactly the version
+number of your external static library.
+
+Do *NOT* change libmarpa's LIB_VERSION file unless, of course, you
+are actually creating a new version of libmarpa.  To fix a discrepancy
+between expected and actual version, change Marpa::R2's expectation.
+Marpa::R2's expected version number is currently set within the R2.xs
+file by the EXPECTED_LIBMARPA_MAJOR, EXPECTED_LIBMARPA_MINOR, and
+EXPECTED_LIBMARPA_MICRO macros.
 
 2.) Build an external static library using the separate Libmarpa
 repository.  Instructions on how to build Libmarpa can be found beginning
@@ -40,11 +46,13 @@ you have installed the external static library in /tmp/libmarpa.a.
 
 4.) Build Marpa::R2 to use the external static library.
 
-   ./Build code --libmarpa-external=/tmp/libmarpa.a
+   ./Build code --libmarpa-external="/tmp/libmarpa.a ./libmarpa_build/marpa_codes.o"
 
 or, to build and test
 
-   ./Build test --libmarpa-external=/tmp/libmarpa.a
+   ./Build test --libmarpa-external="/tmp/libmarpa.a ./libmarpa_build/marpa_codes.o"
+
+Note that the marpa_codes.o file is necessary.  See below for an explanation.
 
 5.)  Once, you've switched to an external Libmarpa, a
 "--libmarpa-external" option *must* be specified every time you use
@@ -77,3 +85,19 @@ arguments to the linker, after being split on whitespace.  This means
 it is not restricted to being only the name of the static library to
 be linked.  It can also be used to pass other kinds of arguments to
 the linker.
+
+THE TABLES OF CODES
+===================
+
+The marpa_codes.o file contains tables of codes (error codes, event
+codes, valuator step codes) and messages.  These tables have a special
+"half in, half out" status with respect to libmarpa.  Libmarpa itself
+is fully language independent -- libmarpa's only string it an "out
+of memory" error message.  And in theory you could build a Libmarpa app
+without these tables.
+
+But, on the other hand, Marpa::R2 requires them, and most applications
+are likely also to require these tables, and to use the same default
+messages as they contain.  However, if anyone ever wanted to "localize"
+the messages, they would do so by creating their own version of these
+tables.
