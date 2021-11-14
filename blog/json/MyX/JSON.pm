@@ -1,10 +1,10 @@
-package MyX::EJSON;
+package MyX::JSON;
 
 use 5.010;
 use strict;
 use warnings;
 
-use MarpaX::ESLIF;
+use Marpa::R2 2.060000;
 
 sub new {
     my ($class) = @_;
@@ -121,7 +121,7 @@ sub parse {
 
 sub parse_json {
     my ($string) = @_;
-    my $parser = MarpaX::JSON->new();
+    my $parser = MyX::JSON->new();
     return $parser->parse($string);
 }
 
