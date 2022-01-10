@@ -13,31 +13,15 @@ use 5.010;
 use strict;
 use warnings;
 
-use Carp qw/croak/;
-use Log::Log4perl qw/:easy/;
-use Log::Any::Adapter;
-use Log::Any qw/$log/;
 use MarpaX::ESLIF;
 use SUPER;
 
-#
-# Init log
-#
-our $defaultLog4perlConf = '
-log4perl.rootLogger              = INFO, Screen
-log4perl.appender.Screen         = Log::Log4perl::Appender::Screen
-log4perl.appender.Screen.stderr  = 0
-log4perl.appender.Screen.layout  = PatternLayout
-log4perl.appender.Screen.layout.ConversionPattern = %d %-5p %6P %m{chomp}%n
-';
-Log::Log4perl::init(\$defaultLog4perlConf);
-Log::Any::Adapter->set('Log4perl');
-
 sub new {
+    my ($class, $log) = @_;
 
-    my $eslif = MarpaX::ESLIF->new($log);
-    my $dsl   = do { local $/; <DATA> };
-    my $eslifJson = MarpaX::ESLIF::Grammar->new($eslif, $dsl);
+    my $eslif = MarpaX::ESLIF->new($log); # This is a multiton
+    my $eslifJson = MarpaX::ESLIF::Grammar->new($eslif, do { local $/; <DATA> });
+
     return $eslifJson;
 }
 

@@ -5,7 +5,7 @@
 #
 # Streaming interface
 #
-package MyRecognizerInterface;
+package MyX::EJSONPP::MyRecognizerInterface;
 use Moo;
 use strictures 2;
 use namespace::clean;
@@ -23,7 +23,7 @@ has 'isWithTrack'            => ( is => 'ro', default => sub { 0 } ); # Do not t
 #
 # Value interface
 #
-package MyValueInterface;
+package MyX::EJSONPP::MyValueInterface;
 use JSON::Any; # For true/false
 use Moo;
 use strictures 2;
@@ -256,41 +256,26 @@ use strict;
 use warnings;
 
 use Carp qw/croak/;
-use Log::Log4perl qw/:easy/;
-use Log::Any::Adapter;
-use Log::Any qw/$log/;
 use MarpaX::ESLIF;
 
-#
-# Init log
-#
-our $defaultLog4perlConf = '
-log4perl.rootLogger              = INFO, Screen
-log4perl.appender.Screen         = Log::Log4perl::Appender::Screen
-log4perl.appender.Screen.stderr  = 0
-log4perl.appender.Screen.layout  = PatternLayout
-log4perl.appender.Screen.layout.ConversionPattern = %d %-5p %6P %m{chomp}%n
-';
-Log::Log4perl::init(\$defaultLog4perlConf);
-Log::Any::Adapter->set('Log4perl');
-
 sub new {
+    my ($class, $log) = @_;
 
-    my $eslif = MarpaX::ESLIF->new($log);
-    my $dsl   = do { local $/; <DATA> };
-    my $eslifJson = MarpaX::ESLIF::Grammar->new($eslif, $dsl);
+    my $eslif = MarpaX::ESLIF->new($log); # This is a multiton
+    my $eslifJson = MarpaX::ESLIF::Grammar->new($eslif, do { local $/; <DATA> });
+
     return $eslifJson;
 }
 
 sub doparse {
     my ($self, $input) = @_;
 
-    my $recognizerInterface = MyRecognizerInterface->new(data => $input);
-    my $valueInterface      = MyValueInterface->new();
+    my $recognizerInterface = MyX::EJSONPP::MyRecognizerInterface->new(data => $input);
+    my $valueInterface      = MyX::EJSONPP::MyValueInterface->new();
 
     croak 'Parse failure' unless $self->parse($recognizerInterface, $valueInterface);
 
-    return 1
+    return $valueInterface->getResult;
 }
 
 1;
