@@ -19,6 +19,7 @@
 use 5.010001;
 use strict;
 use warnings;
+use Data::Dumper;
 use Test::More tests => 1;
 
 use lib 'inc';
@@ -51,7 +52,7 @@ associated__type__decl_1 ::= '=' whitespace__opt type__expr
 associated__type__decl_1__opt ::=
 associated__type__decl_1__opt ::= associated__type__decl_1
 associated__type__decl ::= associated__type__head whitespace__opt associated__type__constraints__opt whitespace__opt associated__type__decl_1__opt
-associated__type__head ::= 'type' whitespace__opt identifier
+associated__type__head ::= TYPE whitespace__opt identifier
 async__type__expr ::= 'async' whitespace__opt type__expr
 binding__annotation ::= ':' whitespace__opt type__expr
 binding__initializer__opt ::=
@@ -79,7 +80,7 @@ boolean__literal ::= 'true'
 boolean__literal ::= 'false'
 stmt__list__opt ::=
 stmt__list__opt ::= stmt__list
-brace__stmt ::= '{' whitespace__opt stmt__list__opt whitespace__opt '}'
+brace__stmt ::= LBRACE whitespace__opt stmt__list__opt whitespace__opt RBRACE
 buffer__component__list_1 ::= ',' whitespace__opt expr
 buffer__component__list_1__list ::=
 buffer__component__list_1__list ::= buffer__component__list_1__list whitespace__opt buffer__component__list_1
@@ -128,7 +129,7 @@ conformance__body_1 ::= conformance__member__decl
 conformance__body_1 ::= ';'
 conformance__body_1__list ::=
 conformance__body_1__list ::= conformance__body_1__list whitespace__opt conformance__body_1
-conformance__body ::= '{' whitespace__opt conformance__body_1__list whitespace__opt '}'
+conformance__body ::= LBRACE whitespace__opt conformance__body_1__list whitespace__opt RBRACE
 conformance__constraint ::= name__type__expr whitespace__opt ':' whitespace__opt trait__composition
 conformance__decl ::= conformance__head whitespace__opt conformance__body
 access__modifier__opt_1 ::=
@@ -173,13 +174,13 @@ extension__body_1 ::= extension__member__decl
 extension__body_1 ::= ';'
 extension__body_1__list ::=
 extension__body_1__list ::= extension__body_1__list whitespace__opt extension__body_1
-extension__body ::= '{' whitespace__opt extension__body_1__list whitespace__opt '}'
+extension__body ::= LBRACE whitespace__opt extension__body_1__list whitespace__opt RBRACE
 extension__decl ::= extension__head whitespace__opt extension__body
 access__modifier__opt_2 ::=
 access__modifier__opt_2 ::= access__modifier
 where__clause__opt_3 ::=
 where__clause__opt_3 ::= where__clause
-extension__head ::= access__modifier__opt_2 whitespace__opt 'extension' whitespace__opt type__expr whitespace__opt where__clause__opt_3
+extension__head ::= access__modifier__opt_2 whitespace__opt EXTENSION whitespace__opt type__expr whitespace__opt where__clause__opt_3
 extension__member__decl ::= function__decl
 extension__member__decl ::= subscript__decl
 extension__member__decl ::= product__type__decl
@@ -194,10 +195,10 @@ function__body ::= function__bundle__body
 function__body ::= brace__stmt
 method__impl__list ::= method__impl
 method__impl__list ::= method__impl__list whitespace__opt method__impl
-function__bundle__body ::= '{' whitespace__opt method__impl__list whitespace__opt '}'
+function__bundle__body ::= LBRACE whitespace__opt method__impl__list whitespace__opt RBRACE
 call__argument__list__opt ::=
 call__argument__list__opt ::= call__argument__list
-function__call__expr ::= expr whitespace__opt '(' whitespace__opt call__argument__list__opt whitespace__opt ')'
+function__call__expr ::= expr whitespace__opt LPAREN whitespace__opt call__argument__list__opt whitespace__opt RPAREN
 function__decl ::= memberwise__ctor__decl
 function__body__opt ::=
 function__body__opt ::= function__body
@@ -213,14 +214,14 @@ capture__list__opt ::= capture__list
 function__head ::= access__modifier__opt_3 whitespace__opt member__modifier__list_1 whitespace__opt function__identifier whitespace__opt generic__clause__opt whitespace__opt capture__list__opt
 function__identifier ::= 'init'
 function__identifier ::= 'deinit'
-function__identifier ::= 'fun' whitespace__opt identifier
-function__identifier ::= operator__notation whitespace__opt 'fun' whitespace__opt operator
+function__identifier ::= FUN whitespace__opt identifier
+function__identifier ::= operator__notation whitespace__opt FUN whitespace__opt operator
 parameter__list__opt ::=
 parameter__list__opt ::= parameter__list
 function__signature_1 ::= '__>' whitespace__opt type__expr
 function__signature_1__opt ::=
 function__signature_1__opt ::= function__signature_1
-function__signature ::= '(' whitespace__opt parameter__list__opt whitespace__opt ')' whitespace__opt function__signature_1__opt
+function__signature ::= LPAREN whitespace__opt parameter__list__opt whitespace__opt RPAREN whitespace__opt function__signature_1__opt
 generic__clause_1 ::= ',' whitespace__opt generic__parameter
 generic__clause_1__list ::=
 generic__clause_1__list ::= generic__clause_1__list whitespace__opt generic__clause_1
@@ -276,7 +277,7 @@ lambda__body ::= brace__stmt
 lambda__environment ::= '[' whitespace__opt type__expr whitespace__opt ']'
 capture__list__opt_1 ::=
 capture__list__opt_1 ::= capture__list
-lambda__expr ::= 'fun' whitespace__opt capture__list__opt_1 whitespace__opt function__signature whitespace__opt lambda__body
+lambda__expr ::= FUN whitespace__opt capture__list__opt_1 whitespace__opt function__signature whitespace__opt lambda__body
 call__argument_1__opt_1 ::=
 call__argument_1__opt_1 ::= call__argument_1
 lambda__parameter ::= call__argument_1__opt_1 whitespace__opt type__expr
@@ -288,7 +289,7 @@ lamda__parameter__list__opt ::=
 lamda__parameter__list__opt ::= lamda__parameter__list
 lambda__receiver__effect__opt ::=
 lambda__receiver__effect__opt ::= lambda__receiver__effect
-lambda__type__expr ::= lambda__environment__opt whitespace__opt '(' whitespace__opt lamda__parameter__list__opt whitespace__opt ')' whitespace__opt lambda__receiver__effect__opt whitespace__opt '__>' whitespace__opt type__expr
+lambda__type__expr ::= lambda__environment__opt whitespace__opt LPAREN whitespace__opt lamda__parameter__list__opt whitespace__opt RPAREN whitespace__opt lambda__receiver__effect__opt whitespace__opt '__>' whitespace__opt type__expr
 lamda__parameter__list_1 ::= ',' whitespace__opt lambda__parameter
 lamda__parameter__list_1__list ::=
 lamda__parameter__list_1__list ::= lamda__parameter__list_1__list whitespace__opt lamda__parameter__list_1
@@ -311,7 +312,7 @@ match__expr_1 ::= match__case
 match__expr_1 ::= ';'
 match__expr_1__list ::=
 match__expr_1__list ::= match__expr_1__list whitespace__opt match__expr_1
-match__expr ::= 'match' whitespace__opt expr whitespace__opt '{' whitespace__opt match__expr_1__list whitespace__opt '}'
+match__expr ::= 'match' whitespace__opt expr whitespace__opt LBRACE whitespace__opt match__expr_1__list whitespace__opt RBRACE
 member__modifier ::= receiver__modifier
 member__modifier ::= static__modifier
 memberwise__ctor__decl ::= 'memberwise' whitespace__opt 'init'
@@ -343,7 +344,7 @@ type__argument__list__opt ::= type__argument__list
 name__type__expr ::= name__type__expr_1__opt whitespace__opt type__identifier whitespace__opt type__argument__list__opt
 module__scope__decl__list ::=
 module__scope__decl__list ::= module__scope__decl__list whitespace__opt module__scope__decl
-namespace__body ::= '{' whitespace__opt module__scope__decl__list whitespace__opt '}'
+namespace__body ::= LBRACE whitespace__opt module__scope__decl__list whitespace__opt RBRACE
 namespace__decl ::= namespace__head whitespace__opt namespace__body
 access__modifier__opt_4 ::=
 access__modifier__opt_4 ::= access__modifier
@@ -403,7 +404,7 @@ product__type__body_1 ::= product__type__member__decl
 product__type__body_1 ::= ';'
 product__type__body_1__list ::=
 product__type__body_1__list ::= product__type__body_1__list whitespace__opt product__type__body_1
-product__type__body ::= '{' whitespace__opt product__type__body_1__list whitespace__opt '}'
+product__type__body ::= LBRACE whitespace__opt product__type__body_1__list whitespace__opt RBRACE
 product__type__decl ::= product__type__head whitespace__opt product__type__body
 access__modifier__opt_5 ::=
 access__modifier__opt_5 ::= access__modifier
@@ -411,7 +412,7 @@ generic__clause__opt_1 ::=
 generic__clause__opt_1 ::= generic__clause
 conformance__list__opt_1 ::=
 conformance__list__opt_1 ::= conformance__list
-product__type__head ::= access__modifier__opt_5 whitespace__opt 'type' whitespace__opt identifier whitespace__opt generic__clause__opt_1 whitespace__opt conformance__list__opt_1
+product__type__head ::= access__modifier__opt_5 whitespace__opt TYPE whitespace__opt identifier whitespace__opt generic__clause__opt_1 whitespace__opt conformance__list__opt_1
 product__type__member__decl ::= function__decl
 product__type__member__decl ::= subscript__decl
 product__type__member__decl ::= property__decl
@@ -459,7 +460,7 @@ string__literal ::= multiline__string
 subscript__body ::= brace__stmt
 subscript__impl__list ::= subscript__impl
 subscript__impl__list ::= subscript__impl__list whitespace__opt subscript__impl
-subscript__body ::= '{' whitespace__opt subscript__impl__list whitespace__opt '}'
+subscript__body ::= LBRACE whitespace__opt subscript__impl__list whitespace__opt RBRACE
 call__argument__list__opt_1 ::=
 call__argument__list__opt_1 ::= call__argument__list
 subscript__call__expr ::= expr whitespace__opt '[' whitespace__opt call__argument__list__opt_1 whitespace__opt ']'
@@ -486,7 +487,7 @@ parameter__list__opt_1 ::=
 parameter__list__opt_1 ::= parameter__list
 q_var_q__opt ::=
 q_var_q__opt ::= 'var'
-subscript__signature ::= '(' whitespace__opt parameter__list__opt_1 whitespace__opt ')' whitespace__opt ':' whitespace__opt q_var_q__opt whitespace__opt type__expr
+subscript__signature ::= LPAREN whitespace__opt parameter__list__opt_1 whitespace__opt RPAREN whitespace__opt ':' whitespace__opt q_var_q__opt whitespace__opt type__expr
 suffix__expr ::= compound__expr
 suffix__expr ::= suffix__expr operator
 trait__annotation ::= ':' whitespace__opt trait__composition
@@ -494,7 +495,7 @@ trait__body_1 ::= trait__requirement__decl
 trait__body_1 ::= ';'
 trait__body_1__list ::=
 trait__body_1__list ::= trait__body_1__list whitespace__opt trait__body_1
-trait__body ::= '{' whitespace__opt trait__body_1__list whitespace__opt '}'
+trait__body ::= LBRACE whitespace__opt trait__body_1__list whitespace__opt RBRACE
 
 trait__composition_1 ::= AMPERSAND whitespace__opt name__type__expr
 trait__composition_1__list ::= trait__composition_1__list whitespace__opt trait__composition_1
@@ -515,7 +516,7 @@ trait__requirement__decl ::= associated__decl
 trait__requirement__decl ::= function__decl
 trait__requirement__decl ::= subscript__decl
 trait__requirement__decl ::= property__decl
-tuple__expr ::= '(' whitespace__opt tuple__expr__element__list whitespace__opt ')'
+tuple__expr ::= LPAREN whitespace__opt tuple__expr__element__list whitespace__opt RPAREN
 call__argument_1__opt_2 ::=
 call__argument_1__opt_2 ::= call__argument_1
 tuple__expr__element ::= call__argument_1__opt_2 whitespace__opt expr
@@ -523,7 +524,7 @@ tuple__expr__element__list_1 ::= ',' whitespace__opt tuple__expr__element
 tuple__expr__element__list_1__opt ::=
 tuple__expr__element__list_1__opt ::= tuple__expr__element__list_1
 tuple__expr__element__list ::= tuple__expr__element whitespace__opt tuple__expr__element__list_1__opt
-tuple__pattern ::= '(' whitespace__opt tuple__pattern__element__list whitespace__opt ')'
+tuple__pattern ::= LPAREN whitespace__opt tuple__pattern__element__list whitespace__opt RPAREN
 call__argument_1__opt_3 ::=
 call__argument_1__opt_3 ::= call__argument_1
 tuple__pattern__element ::= call__argument_1__opt_3 whitespace__opt pattern
@@ -538,7 +539,7 @@ tuple__type__element__list_1 ::= ',' whitespace__opt tuple__type__element
 tuple__type__element__list_1__opt ::=
 tuple__type__element__list_1__opt ::= tuple__type__element__list_1
 tuple__type__element__list ::= tuple__type__element whitespace__opt tuple__type__element__list_1__opt
-tuple__type__expr ::= '(' whitespace__opt tuple__type__element__list whitespace__opt ')'
+tuple__type__expr ::= LPAREN whitespace__opt tuple__type__element__list whitespace__opt RPAREN
 type__alias__body ::= '=' whitespace__opt type__expr
 type__alias__body ::= '=' whitespace__opt union__decl
 type__alias__decl ::= type__alias__head whitespace__opt type__alias__body
@@ -601,6 +602,13 @@ wildcard__type__expr ::= '_'
 
 unicorn ~ [^\d\D]
 AMPERSAND ~ unicorn
+TYPE ~ unicorn
+FUN ~ unicorn
+EXTENSION ~ unicorn
+LBRACE ~ unicorn
+RBRACE ~ unicorn
+LPAREN ~ unicorn
+RPAREN ~ unicorn
 
 # Lexemes from original
   simple__string ~ unicorn
@@ -639,16 +647,43 @@ my $grammar = Marpa::R2::Scanless::G->new(
 # ')' hspace '{' '}' newlines hspace '}'
 # 
 my @terminals = (
-#    [ Number   => qr/\d+/xms,    "Number" ],
-#    [ 'op pow' => qr/[\^]/xms,   'Exponentiation operator' ],
-#    [ 'op pow' => qr/[*][*]/xms, 'Exponentiation' ],          # order matters!
-#    [ 'op times' => qr/[*]/xms, 'Multiplication operator' ],  # order matters!
-#    [ 'op divide'   => qr/[\/]/xms, 'Division operator' ],
-#    [ 'op add'      => qr/[+]/xms,  'Addition operator' ],
-#    [ 'op subtract' => qr/[-]/xms,  'Subtraction operator' ],
-#    [ 'op lparen'   => qr/[(]/xms,  'Left parenthesis' ],
-#    [ 'op rparen'   => qr/[)]/xms,  'Right parenthesis' ],
-#    [ 'op comma'    => qr/[,]/xms,  'Comma operator' ],
+     [ 'TYPE', "'type'" ],
+     [ 'hspace', 'hspace' ],
+     [ 'identifier__token', 'A' ],
+     [ 'hspace', 'hspace' ],
+     [ 'LBRACE', '{' ],
+     [ 'newlines', 'newlines' ],
+     [ 'hspace', 'hspace' ],
+     [ 'FUN', "'fun'" ],
+     [ 'identifier__token', 'foo' ],
+     [ 'LPAREN', '(' ],
+     [ 'RPAREN', ')' ],
+     [ 'hspace', 'hspace' ],
+     [ 'LBRACE', '{' ],
+     [ 'RBRACE', '}' ],
+     [ 'newlines', 'newlines' ],
+     [ 'hspace', 'hspace' ],
+     [ 'RBRACE', '}' ],
+     [ 'newlines', 'newlines' ],
+     [ 'hspace', 'hspace' ],
+     [ 'EXTENSION', "'extension'" ],
+     [ 'hspace', 'hspace' ],
+     [ 'hspace', 'hspace' ],
+     [ 'identifier__token', 'A' ],
+     [ 'hspace', 'hspace' ],
+     [ 'LBRACE', '{' ],
+     [ 'newlines', 'newlines' ],
+     [ 'hspace', 'hspace' ],
+     [ 'FUN', "'fun'" ],
+     [ 'identifier__token', 'bar' ],
+     [ 'LPAREN', '(' ],
+     [ 'RPAREN', ')' ],
+     [ 'hspace', 'hspace' ],
+     [ 'LBRACE', '{' ],
+     [ 'RBRACE', '}' ],
+     [ 'newlines', 'newlines' ],
+     [ 'hspace', 'hspace' ],
+     [ 'RBRACE', '}' ],
 );
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
@@ -666,34 +701,25 @@ $recce->read( \$string, 0, 0 );
 
 my $length = length $string;
 pos $string = 0;
-TOKEN: while (1) {
-    my $start_of_lexeme = pos $string;
-    last TOKEN if $start_of_lexeme >= $length;
-    next TOKEN if $string =~ m/\G\s+/gcxms;    # skip whitespace
-    TOKEN_TYPE: for my $t (@terminals) {
-        my ( $token_name, $regex, $long_name ) = @{$t};
-        next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
-        my $lexeme = $1;
 
-        if ( not defined $recce->lexeme_alternative($token_name) ) {
-            die
-                qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
-                substr( $string, $start_of_lexeme, 40 ), q{"};
-        }
-        next TOKEN
-            if $recce->lexeme_complete( $start_of_lexeme,
-                    ( length $lexeme ) );
-
-    } ## end TOKEN_TYPE: for my $t (@terminals)
-    die qq{No token found at position $start_of_lexeme, before "},
-        substr( $string, pos $string, 40 ), q{"};
-} ## end TOKEN: while (1)
+TOKEN: for my $t (@terminals) {
+    my ( $token_name, $long_name ) = @{$t};
+    my $lexeme = $1;
+    if ( not defined $recce->lexeme_read( $token_name, undef, 1, $long_name ) ) {
+        die qq{Parser rejected token "$long_name"};
+    }
+}
 
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
 }
 
-Test::More::is( ${$value_ref}, '', 'Value of parse' );
+my $expected_value = [];
+Test::More::is(
+    Data::Dumper::Dumper($value_ref),
+    Data::Dumper::Dumper($expected_value),
+    'Value of parse'
+);
 
 # vim: expandtab shiftwidth=4:
