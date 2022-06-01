@@ -638,8 +638,6 @@ my $grammar = Marpa::R2::Scanless::G->new(
     }
 );
 
-say join ' ', __FILE__, __LINE__;
-
 # 
 # Token sequence:
 # 
@@ -690,8 +688,6 @@ my @terminals = (
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
-say join ' ', __FILE__, __LINE__;
-
 my $string = <<'EOS';
     type A {
       fun foo() {}
@@ -719,7 +715,47 @@ if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
 }
 
-my $expected_value = [];
+my $expected_value = \[
+    [
+        [
+            [ '\'type\'', 'hspace', 'A' ],
+            'hspace',
+            [
+                '{',
+                [
+                    [ 'newlines', 'hspace' ],
+                    [
+                        [ '\'fun\'', 'foo' ],
+                        [ '(',       ')' ],
+                        'hspace',
+                        [ '{', '}' ]
+                    ]
+                ],
+                [ 'newlines', 'hspace' ],
+                '}'
+            ]
+        ],
+        [ 'newlines', 'hspace' ],
+        [
+            [ '\'extension\'', [ [ 'hspace', 'hspace' ], 'A' ] ],
+            'hspace',
+            [
+                '{',
+                [
+                    [ 'newlines', 'hspace' ],
+                    [
+                        [ '\'fun\'', 'bar' ],
+                        [ '(',       ')' ],
+                        'hspace',
+                        [ '{', '}' ]
+                    ]
+                ],
+                [ 'newlines', 'hspace' ],
+                '}'
+            ]
+        ]
+    ]
+];
 
 Test::More::is(
     Data::Dumper::Dumper($value_ref),
