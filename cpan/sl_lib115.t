@@ -67,10 +67,10 @@ member__modifier__list ::=
 member__modifier__list ::= member__modifier__list member__modifier
 binding__head ::= access__modifier__opt member__modifier__list binding__pattern
 binding__initializer ::= '=' expr
-binding__introducer ::= 'let'
+binding__introducer ::= LET
 binding__introducer ::= VAR
 binding__introducer ::= 'sink'
-binding__introducer ::= 'inout'
+binding__introducer ::= INOUT
 binding__annotation__opt ::=
 binding__annotation__opt ::= binding__annotation
 binding__pattern ::= binding__introducer pattern binding__annotation__opt
@@ -276,7 +276,7 @@ lambda__parameter_1 ::= identifier COLON
 lambda__parameter_1__opt ::=
 lambda__parameter_1__opt ::= lambda__parameter_1
 lambda__parameter ::= lambda__parameter_1__opt type__expr
-lambda__receiver__effect ::= 'inout'
+lambda__receiver__effect ::= INOUT
 lambda__receiver__effect ::= 'sink'
 lambda__environment__opt ::=
 lambda__environment__opt ::= lambda__environment
@@ -314,9 +314,9 @@ memberwise__ctor__decl ::= 'memberwise' 'init'
 brace__stmt__opt ::=
 brace__stmt__opt ::= brace__stmt
 method__impl ::= method__introducer brace__stmt__opt
-method__introducer ::= 'let'
+method__introducer ::= LET
 method__introducer ::= 'sink'
-method__introducer ::= 'inout'
+method__introducer ::= INOUT
 module__definition_1 ::= module__scope__decl
 module__definition_1 ::= import__statement
 module__definition_1__list ::=
@@ -366,8 +366,8 @@ parameter__list_1 ::= ',' parameter__decl
 parameter__list_1__list ::=
 parameter__list_1__list ::= parameter__list_1__list parameter__list_1
 parameter__list ::= parameter__decl parameter__list_1__list
-parameter__passing__convention ::= 'let'
-parameter__passing__convention ::= 'inout'
+parameter__passing__convention ::= LET
+parameter__passing__convention ::= INOUT
 parameter__passing__convention ::= 'sink'
 parameter__passing__convention ::= 'yielded'
 parameter__passing__convention__opt ::=
@@ -422,7 +422,7 @@ member__modifier__list_2 ::=
 member__modifier__list_2 ::= member__modifier__list_2 member__modifier
 property__head ::= member__modifier__list_2 'property' identifier
 receiver__modifier ::= 'sink'
-receiver__modifier ::= 'inout'
+receiver__modifier ::= INOUT
 receiver__modifier ::= 'yielded'
 scalar__literal ::= boolean__literal
 scalar__literal ::= integer__literal
@@ -438,8 +438,8 @@ stmt ::= loop__stmt
 stmt ::= jump__stmt
 stmt ::= decl__stmt
 stmt ::= expr
-stored__projection__capability ::= 'let'
-stored__projection__capability ::= 'inout'
+stored__projection__capability ::= LET
+stored__projection__capability ::= INOUT
 stored__projection__capability ::= 'yielded'
 stored__projection__type__expr ::= '[' stored__projection__capability type__expr ']'
 string__literal ::= simple__string
@@ -466,9 +466,9 @@ subscript__identifier ::= operator__notation 'subscript' operator
 brace__stmt__opt_1 ::=
 brace__stmt__opt_1 ::= brace__stmt
 subscript__impl ::= subscript__introducer brace__stmt__opt_1
-subscript__introducer ::= 'let'
+subscript__introducer ::= LET
 subscript__introducer ::= 'sink'
-subscript__introducer ::= 'inout'
+subscript__introducer ::= INOUT
 subscript__introducer ::= 'set'
 parameter__list__opt_1 ::=
 parameter__list__opt_1 ::= parameter__list
@@ -589,6 +589,8 @@ unicorn ~ [^\d\D]
 TYPE ~ unicorn
 FUN ~ unicorn
 VAR ~ unicorn
+LET ~ unicorn
+INOUT ~ unicorn
 LBRACE ~ unicorn
 RBRACE ~ unicorn
 LPAREN ~ unicorn
@@ -667,7 +669,23 @@ my @terminals = (
      [ 'identifier__token', 'Int' ],
      [ 'LBRACE', '{' ],
 
-     # Incomplete
+     [ 'LET', 'let' ],
+     [ 'LBRACE', '{' ],
+     [ 'identifier__token', 'a' ],
+     [ 'operator', '+' ],
+     [ 'identifier__token', 'b' ],
+     [ 'RBRACE', '}' ],
+
+     [ 'INOUT', 'inout' ],
+     [ 'LBRACE', '{' ],
+     [ 'identifier__token', 'b' ],
+     [ 'operator', '+=' ],
+     [ 'identifier__token', 'a' ],
+     [ 'RBRACE', '}' ],
+
+     [ 'RBRACE', '}' ],
+
+     [ 'RBRACE', '}' ],
 
 );
 
@@ -696,6 +714,8 @@ TOKEN: for my $t (@terminals) {
         die qq{Parser rejected token "$long_name"};
     }
 }
+
+say $recce->show_progress();
 
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
