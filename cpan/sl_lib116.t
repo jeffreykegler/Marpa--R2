@@ -19,6 +19,7 @@
 use 5.010001;
 use strict;
 use warnings;
+use Scalar::Util;
 use Data::Dumper;
 use Test::More tests => 1;
 
@@ -30,7 +31,7 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $source = <<'END_OF_SOURCE';
-:default ::= action => ::array
+:default ::= action => main::dwim
 :start ::= module__definition 
 access__modifier ::= 'public'
 associated__decl ::= associated__type__decl
@@ -500,7 +501,7 @@ trait__body ::= LBRACE whitespace__opt trait__body_1__list whitespace__opt RBRAC
 trait__composition_1 ::= AMPERSAND whitespace__opt name__type__expr
 trait__composition_1__list ::= trait__composition_1__list whitespace__opt trait__composition_1
 # Missing rule in original?
-trait__composition_1__list ::= trait__composition_1
+# trait__composition_1__list ::= trait__composition_1
 
 trait__composition ::= name__type__expr whitespace__opt trait__composition_1__list
 trait__decl ::= trait__head whitespace__opt trait__body
@@ -637,6 +638,7 @@ my $grammar = Marpa::R2::Scanless::G->new(
     }
 );
 
+say join ' ', __FILE__, __LINE__;
 
 # 
 # Token sequence:
@@ -688,6 +690,8 @@ my @terminals = (
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
+say join ' ', __FILE__, __LINE__;
+
 my $string = <<'EOS';
     type A {
       fun foo() {}
@@ -716,10 +720,32 @@ if ( not defined $value_ref ) {
 }
 
 my $expected_value = [];
+
 Test::More::is(
     Data::Dumper::Dumper($value_ref),
     Data::Dumper::Dumper($expected_value),
     'Value of parse'
 );
+
+sub main::dwim {
+    my @result = ();
+    shift;
+    ARG: for my $v ( @_ ) {
+        next ARG if not $v;
+        my $type = Scalar::Util::reftype $v;
+        if (not $type or $type ne 'ARRAY') {
+           push @result, $v;
+           next ARG;
+        }
+        my $size = scalar @{$v};
+        next ARG if $size == 0;
+        if ($size == 1) {
+           push @result, ${$v}[0];
+           next ARG;
+        }
+        push @result, $v;
+    }
+    return [@result];
+}
 
 # vim: expandtab shiftwidth=4:
