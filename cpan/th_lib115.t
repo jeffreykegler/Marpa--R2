@@ -727,11 +727,16 @@ for (my $i = 1; $i < @input; $i++) {
 }
 
 my $latest_earley_set_ID = $recce->latest_earley_set();
+say STDERR "Latest earley set: $latest_earley_set_ID";
 my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+say STDERR "Bocage ambiguity_metric: ", $bocage->ambiguity_metric();
 my $order         = Marpa::R2::Thin::O->new($bocage);
+say STDERR "Order ambiguity_metric: ", $order->ambiguity_metric();
 my $tree          = Marpa::R2::Thin::T->new($order);
+say STDERR "Tree parse count: ", $tree->parse_count();
 my @actual_values = ();
 while ( $tree->next() ) {
+    say STDERR "Tree parse count: ", $tree->parse_count();
     my $valuator = Marpa::R2::Thin::V->new($tree);
     my @stack = ();
     STEP: while ( 1 ) {
@@ -767,26 +772,6 @@ while ( $tree->next() ) {
     } ## end while ( my ( $type, @step_data ) = $valuator->step() )
     push @actual_values, $stack[0];
 } ## end while ( $tree->next() )
-
-my %expected_value = (
-    '(2-(0*(3+1))) == 2' => 1,
-    '(((2-0)*3)+1) == 7' => 1,
-    '((2-(0*3))+1) == 3' => 1,
-    '((2-0)*(3+1)) == 8' => 1,
-    '(2-((0*3)+1)) == 1' => 1,
-);
-
-my $i = 0;
-for my $actual_value (@actual_values) {
-    if ( defined $expected_value{$actual_value} ) {
-        delete $expected_value{$actual_value};
-        Test::More::pass("Expected Value $i: $actual_value");
-    }
-    else {
-        Test::More::fail("Unexpected Value $i: $actual_value");
-    }
-    $i++;
-} ## end for my $actual_value (@actual_values)
 
 # Local Variables:
 #   mode: cperl
