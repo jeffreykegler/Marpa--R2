@@ -649,7 +649,7 @@ my @name = ();
    }
    for my $rule (@{$rules}) {
       my ($lhs, @rhs) = @{$rule};
-      say STDERR "Adding $lhs ::= ", (join ' ', @rhs);
+      # say STDERR "Adding $lhs ::= ", (join ' ', @rhs);
       # say STDERR join ' ', 'Adding', $lhs, '::=', (map {$id{$_}} @rhs);
       $grammar->rule_new( $id{$lhs}, [map {$id{$_}} @rhs] );
    }
@@ -731,6 +731,10 @@ say STDERR "Latest earley set: $latest_earley_set_ID";
 my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
 say STDERR "Bocage ambiguity_metric: ", $bocage->ambiguity_metric();
 my $order         = Marpa::R2::Thin::O->new($bocage);
+say STDERR "Order is null: ", $order->is_null();
+# say STDERR "Order high rank only: ", $order->high_rank_only_set(0);
+# $order->rank();
+say STDERR "Order high rank only: ", $order->high_rank_only();
 say STDERR "Order ambiguity_metric: ", $order->ambiguity_metric();
 my $tree          = Marpa::R2::Thin::T->new($order);
 say STDERR "Tree parse count: ", $tree->parse_count();
