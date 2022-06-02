@@ -617,7 +617,7 @@ DOT ~ unicorn
 END_OF_SOURCE
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   bless_package => 'My_Nodes',
+    {  
         source          => \$source,
     }
 );
