@@ -663,30 +663,68 @@ $grammar->precompute();
 my $recce = Marpa::R2::Thin::R->new($grammar);
 $recce->start_input();
 
-# The numbers from 1 to 3 are themselves --
-# that is, they index their own token value.
-# Important: zero cannot be itself!
+my @input = (
+     [ 'DUMMY', 'DUMMY' ], # Avoid use of zero location
+     [ q{'type'}, "'type'" ],
+     [ 'identifier-token', 'A' ],
+     [ q['{'], '{' ],
+     [ q{'var'}, "'var'" ],
+     [ 'identifier-token', 'a' ],
+     [ q{':'}, ':' ],
+     [ 'identifier-token', 'Int' ],
 
-my @token_values         = ( 0 .. 3 );
-my $zero                 = -1 + push @token_values, 0;
-my $minus_token_value    = -1 + push @token_values, q{-};
-my $plus_token_value     = -1 + push @token_values, q{+};
-my $multiply_token_value = -1 + push @token_values, q{*};
+     [ q{'fun'}, "'fun'" ],
+     [ 'identifier-token', 'foo' ],
+     [ q{'('}, '(' ],
+     [ 'identifier-token', 'a' ],
+     [ q{':'}, ':' ],
+     [ 'identifier-token', 'Int' ],
+     [ q{')'}, ')' ],
+     [ q['{'], '{' ],
+     [ 'identifier-token', 'a' ],
+     [ q{'.'}, '.' ],
+     [ 'identifier-token', 'Int' ],
+     [ q{'('}, '(' ],
+     [ q{')'}, ')' ],
+     [ q['}'], '}' ],
 
-# $recce->alternative( $symbol_number, 2, 1 );
-# $recce->earleme_complete();
-# $recce->alternative( $symbol_op, $minus_token_value, 1 );
-# $recce->earleme_complete();
-# $recce->alternative( $symbol_number, $zero, 1 );
-# $recce->earleme_complete();
-# $recce->alternative( $symbol_op, $multiply_token_value, 1 );
-# $recce->earleme_complete();
-# $recce->alternative( $symbol_number, 3, 1 );
-# $recce->earleme_complete();
-# $recce->alternative( $symbol_op, $plus_token_value, 1 );
-# $recce->earleme_complete();
-# $recce->alternative( $symbol_number, 1, 1 );
-# $recce->earleme_complete();
+     [ q{'fun'}, "'fun'" ],
+     [ 'identifier-token', 'foo' ],
+     [ q{'('}, '(' ],
+     [ 'identifier-token', 'a' ],
+     [ q{':'}, ':' ],
+     [ 'identifier-token', 'Int' ],
+     [ q{')'}, ')' ],
+     [ q{'->'}, '->' ],
+     [ 'identifier-token', 'Int' ],
+     [ q['{'], '{' ],
+
+     [ q{'let'}, 'let' ],
+     [ q['{'], '{' ],
+     [ 'identifier-token', 'a' ],
+     [ 'operator', '+' ],
+     [ 'identifier-token', 'b' ],
+     [ q['}'], '}' ], # right brace
+
+     [ q{'inout'}, 'inout' ],
+     [ q['{'], '{' ],
+     [ 'identifier-token', 'b' ],
+     [ 'operator', '+=' ],
+     [ 'identifier-token', 'a' ],
+     [ q['}'], '}' ], # right brace
+
+     [ q['}'], '}' ], # right brace
+
+     [ q['}'], '}' ], # right brace
+
+);
+
+for (my $i = 1; $i < @input; $i++) {
+    my ($tokenName, $value) = @{$input[$i]};
+    say STDERR "Reading $tokenName; $value";
+    $recce->alternative( $id{$tokenName}, $i, 1 );
+    $recce->earleme_complete();
+}
 
 my $latest_earley_set_ID = $recce->latest_earley_set();
 my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
@@ -701,7 +739,7 @@ while ( $tree->next() ) {
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = $token_values[$token_value_ix];
+            $stack[$arg_n] = ${$input[$token_value_ix]}[1];
             next STEP;
         }
         if ( $type eq 'MARPA_STEP_RULE' ) {
