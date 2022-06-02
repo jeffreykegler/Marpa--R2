@@ -61,7 +61,7 @@ END_OF_BNF_OF_BNF
 
 sub My_Actions::do_rule {
     my ( undef, $t1, undef, $t2 ) = @_;
-    return [$t1, $t2];
+    return [$t1, @{$t2}];
 }
 
 my $bnf = <<'EOBNF';
@@ -634,15 +634,26 @@ EOINPUT
 
 my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 $grammar->force_valued();
-my $symbol_S = $grammar->symbol_new();
-my $symbol_E = $grammar->symbol_new();
-$grammar->start_symbol_set($symbol_S);
-my $symbol_op     = $grammar->symbol_new();
-my $symbol_number = $grammar->symbol_new();
-my $start_rule_id = $grammar->rule_new( $symbol_S, [$symbol_E] );
-my $op_rule_id =
-    $grammar->rule_new( $symbol_E, [ $symbol_E, $symbol_op, $symbol_E ] );
-my $number_rule_id = $grammar->rule_new( $symbol_E, [$symbol_number] );
+my %id = ();
+my @name = ();
+{
+   my @syms = ();
+   my $rules = $$bnfValueRef;
+   push @syms, @{$_} for @{$rules};
+   %id = (map {($_, 1)} @syms);
+   my @keys = keys %id;
+   for my $key (@keys) {
+      my $id = $grammar->symbol_new();
+      $id{key} = $id;
+      $name[$id] = $key;
+   }
+}
+
+
+say STDERR Data::Dumper::Dumper( \%id );
+
+$grammar->start_symbol_set($id{'module-definition'});
+# my $number_rule_id = $grammar->rule_new( $symbol_E, [$symbol_number] );
 $grammar->precompute();
 
 my $recce = Marpa::R2::Thin::R->new($grammar);
@@ -658,20 +669,20 @@ my $minus_token_value    = -1 + push @token_values, q{-};
 my $plus_token_value     = -1 + push @token_values, q{+};
 my $multiply_token_value = -1 + push @token_values, q{*};
 
-$recce->alternative( $symbol_number, 2, 1 );
-$recce->earleme_complete();
-$recce->alternative( $symbol_op, $minus_token_value, 1 );
-$recce->earleme_complete();
-$recce->alternative( $symbol_number, $zero, 1 );
-$recce->earleme_complete();
-$recce->alternative( $symbol_op, $multiply_token_value, 1 );
-$recce->earleme_complete();
-$recce->alternative( $symbol_number, 3, 1 );
-$recce->earleme_complete();
-$recce->alternative( $symbol_op, $plus_token_value, 1 );
-$recce->earleme_complete();
-$recce->alternative( $symbol_number, 1, 1 );
-$recce->earleme_complete();
+# $recce->alternative( $symbol_number, 2, 1 );
+# $recce->earleme_complete();
+# $recce->alternative( $symbol_op, $minus_token_value, 1 );
+# $recce->earleme_complete();
+# $recce->alternative( $symbol_number, $zero, 1 );
+# $recce->earleme_complete();
+# $recce->alternative( $symbol_op, $multiply_token_value, 1 );
+# $recce->earleme_complete();
+# $recce->alternative( $symbol_number, 3, 1 );
+# $recce->earleme_complete();
+# $recce->alternative( $symbol_op, $plus_token_value, 1 );
+# $recce->earleme_complete();
+# $recce->alternative( $symbol_number, 1, 1 );
+# $recce->earleme_complete();
 
 my $latest_earley_set_ID = $recce->latest_earley_set();
 my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
@@ -691,36 +702,16 @@ while ( $tree->next() ) {
         }
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            if ( $rule_id == $start_rule_id ) {
-                my ( $string, $value ) = @{ $stack[$arg_n] };
-                $stack[$arg_0] = "$string == $value";
-                next STEP;
-            }
-            if ( $rule_id == $number_rule_id ) {
-                my $number = $stack[$arg_0];
-                $stack[$arg_0] = [ $number, $number ];
-                next STEP;
-            }
-            if ( $rule_id == $op_rule_id ) {
-                my $op = $stack[ $arg_0 + 1 ];
-                my ( $right_string, $right_value ) = @{ $stack[$arg_n] };
-                my ( $left_string,  $left_value )  = @{ $stack[$arg_0] };
-                my $value;
-                my $text = '(' . $left_string . $op . $right_string . ')';
-                if ( $op eq q{+} ) {
-                    $stack[$arg_0] = [ $text, $left_value + $right_value ];
-                    next STEP;
-                }
-                if ( $op eq q{-} ) {
-                    $stack[$arg_0] = [ $text, $left_value - $right_value ];
-                    next STEP;
-                }
-                if ( $op eq q{*} ) {
-                    $stack[$arg_0] = [ $text, $left_value * $right_value ];
-                    next STEP;
-                }
-                die "Unknown op: $op";
-            } ## end if ( $rule_id == $op_rule_id )
+            # if ( $rule_id == $start_rule_id ) {
+                # my ( $string, $value ) = @{ $stack[$arg_n] };
+                # $stack[$arg_0] = "$string == $value";
+                # next STEP;
+            # }
+            # if ( $rule_id == $number_rule_id ) {
+                # my $number = $stack[$arg_0];
+                # $stack[$arg_0] = [ $number, $number ];
+                # next STEP;
+            # }
             die "Unknown rule $rule_id";
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
         die "Unexpected step type: $type";
