@@ -619,7 +619,7 @@ EOBNF
 my $BnfGrammar = Marpa::R2::Scanless::G->new( { source => \$bnfOfBNF } );
 my $bnfValueRef = $BnfGrammar->parse( \$bnf, 'My_Actions' );
 
-say STDERR Data::Dumper::Dumper( \$bnfValueRef );
+# say STDERR Data::Dumper::Dumper( \$bnfValueRef );
 
 my $input = <<'EOINPUT';
     type A {
@@ -644,16 +644,20 @@ my @name = ();
    my @keys = keys %id;
    for my $key (@keys) {
       my $id = $grammar->symbol_new();
-      $id{key} = $id;
+      $id{$key} = $id;
       $name[$id] = $key;
+   }
+   for my $rule (@{$rules}) {
+      my ($lhs, @rhs) = @{$rule};
+      say STDERR "Adding $lhs ::= ", (join ' ', @rhs);
+      # say STDERR join ' ', 'Adding', $lhs, '::=', (map {$id{$_}} @rhs);
+      $grammar->rule_new( $id{$lhs}, [map {$id{$_}} @rhs] );
    }
 }
 
-
-say STDERR Data::Dumper::Dumper( \%id );
+# say STDERR Data::Dumper::Dumper( \%id );
 
 $grammar->start_symbol_set($id{'module-definition'});
-# my $number_rule_id = $grammar->rule_new( $symbol_E, [$symbol_number] );
 $grammar->precompute();
 
 my $recce = Marpa::R2::Thin::R->new($grammar);
