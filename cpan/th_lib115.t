@@ -29,6 +29,45 @@ use English qw( -no_match_vars );
 use Fatal qw( close open );
 use Marpa::R2;
 
+my $bnfOfBNF = <<'END_OF_BNF_OF_BNF';
+:default ::= action => [name,values]
+lexeme default = latm => 1
+
+Rules ::= Rule*
+Rule  ::= Symbol '::=' SymbolList
+SymbolList ::= Symbol*
+
+# Factor ::= Number action => ::first
+# Term ::=
+#     Term '*' Factor action => do_multiply
+#     | Factor action => ::first
+# Expression ::=
+#     Expression '+' Term action => do_add
+#     | Term action => ::first
+
+:discard ~ whitespace
+whitespace ~ [\s]+
+Symbol ~ PieceList
+PieceList ~ Piece
+PieceList ~ PieceList '-' Piece
+Piece ~ QuotedPiece
+Piece ~ NormalPiece
+NormalPiece ~ [0-9A-Za-z_]+
+QuotedPiece ~ Quote QuoteInterior Quote
+Quote ~ [']
+QuoteInterior ~ [^\s']*
+END_OF_BNF_OF_BNF
+
+sub My_Actions::do_add {
+    my ( undef, $t1, undef, $t2 ) = @_;
+    return $t1 + $t2;
+}
+
+sub My_Actions::do_multiply {
+    my ( undef, $t1, undef, $t2 ) = @_;
+    return $t1 * $t2;
+}
+
 my $bnf = <<'EOBNF';
 access-modifier ::= 'public'
 associated-decl ::= associated-type-decl
@@ -580,6 +619,9 @@ while-stmt ::= 'while' while-condition-list brace-stmt
 wildcard-pattern ::= '_'
 wildcard-type-expr ::= '_'
 EOBNF
+
+my $BnfGrammar = Marpa::R2::Scanless::G->new( { source => \$bnfOfBNF } );
+my $bnfValueRef = $BnfGrammar->parse( \$bnf, 'My_Actions' );
 
 my $input = <<'EOINPUT';
     type A {
