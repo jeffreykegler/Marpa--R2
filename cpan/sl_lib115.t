@@ -648,7 +648,7 @@ my %DAname = ();
    for my $rule (@{$DArules}) {
       my ($lhs, @rhs) = @{$rule};
       my $rule =  join " ", $R2name{$lhs}, q{::=}, (map {$R2name{$_}} @rhs);
-      say STDERR "Adding rule: $rule";
+      # say STDERR "Adding rule: $rule";
       $rule .= "\n";
       push @source, $rule;
    }
@@ -810,14 +810,14 @@ unicode_x2d_scalar_x2d_literal
         my $r2terminal = $R2name{$terminal};
         $seen{$r2terminal} = 1;
         my $line = "$r2terminal ~ unicorn\n";
-        print STDERR "Adding $line";
+        # print STDERR "Adding $line";
         push @source, $line;
     }
     TERMINAL: for my $terminal (@terminals) {
         # die "No R2 name for $terminal" if not defined $R2name{$terminal};
         next TERMINAL if $seen{$terminal};
         my $line = $terminal . " ~ unicorn\n";
-        print STDERR "Adding $line";
+        # print STDERR "Adding $line";
         push @source, $line;
     }
 }
@@ -869,7 +869,7 @@ TOKEN: for (my $i = 1; $i < @input; $i++) {
 }
 
 say "Ambiguity Metric: ", $recce->ambiguity_metric();
-say "Ambiguity: ", $recce->ambiguous();
+# say "Ambiguity: ", $recce->ambiguous();
 # say $recce->show_progress();
 
 my $value_ref = $recce->value();
