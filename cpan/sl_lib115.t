@@ -861,9 +861,8 @@ $recce->read( \$string, 0, 0 );
 my $length = length $string;
 pos $string = 0;
 
-TOKEN: for my $t (@input) {
-    my ( $token_name, $long_name ) = @{$t};
-    my $lexeme = $1;
+TOKEN: for (my $i = 1; $i < @input; $i++) {
+    my ( $token_name, $long_name ) = @{$input[$i]};
     if ( not defined $recce->lexeme_read( $R2name{$token_name}, undef, 1, $long_name ) ) {
         die qq{Parser rejected token "$long_name"};
     }
