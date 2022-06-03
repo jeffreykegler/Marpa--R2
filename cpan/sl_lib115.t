@@ -656,59 +656,61 @@ my %DAname = ();
 
 # say STDERR Data::Dumper::Dumper( \%R2name );
 
+# The start byte locations are from vim, and are 1-based,
+# while Marpa is 0-based
 my @input = (
      [ 'DUMMY', 'DUMMY' ], # Avoid use of zero location
-     [ q{'type'}, "'type'" ],
-     [ 'identifier-token', 'A' ],
-     [ q['{'], '{' ],
-     [ q{'var'}, "'var'" ],
-     [ 'identifier-token', 'a' ],
-     [ q{':'}, ':' ],
-     [ 'identifier-token', 'Int' ],
+     [ q{'type'}, "'type'", 5, 4 ],
+     [ 'identifier-token', 'A', 10, 1 ],
+     [ q['{'], '{', 12,  1 ],
+     [ q{'var'}, "'var'", 20, 3 ],
+     [ 'identifier-token', 'a', 24, 1 ],
+     [ q{':'}, ':', 25, 1 ],
+     [ 'identifier-token', 'Int', 27, 3 ],
 
-     [ q{'fun'}, "'fun'" ],
-     [ 'identifier-token', 'foo' ],
-     [ q{'('}, '(' ],
-     [ 'identifier-token', 'a' ],
-     [ q{':'}, ':' ],
-     [ 'identifier-token', 'Int' ],
-     [ q{')'}, ')' ],
-     [ q['{'], '{' ],
-     [ 'identifier-token', 'a' ],
-     [ q{'.'}, '.' ],
-     [ 'identifier-token', 'Int' ],
-     [ q{'('}, '(' ],
-     [ q{')'}, ')' ],
-     [ q['}'], '}' ],
+     [ q{'fun'}, "'fun'", 37, 3 ],
+     [ 'identifier-token', 'foo', 41, 3 ],
+     [ q{'('}, '(', 44, 1 ],
+     [ 'identifier-token', 'a', 45, 1 ],
+     [ q{':'}, ':', 46, 1 ],
+     [ 'identifier-token', 'Int', 48, 3 ],
+     [ q{')'}, ')', 51, 1 ],
+     [ q['{'], '{', 53, 1 ],
+     [ 'identifier-token', 'a', 55, 1 ],
+     [ q{'.'}, '.', 56, 1 ],
+     [ 'identifier-token', 'copy', 57, 4 ],
+     [ q{'('}, '(', 61, 1 ],
+     [ q{')'}, ')', 62, 1],
+     [ q['}'], '}', 64, 1 ],
 
-     [ q{'fun'}, "'fun'" ],
-     [ 'identifier-token', 'foo' ],
-     [ q{'('}, '(' ],
-     [ 'identifier-token', 'a' ],
-     [ q{':'}, ':' ],
-     [ 'identifier-token', 'Int' ],
-     [ q{')'}, ')' ],
-     [ q{'->'}, '->' ],
-     [ 'identifier-token', 'Int' ],
-     [ q['{'], '{' ],
+     [ q{'fun'}, "'fun'", 72, 3 ],
+     [ 'identifier-token', 'foo', 76, 3 ],
+     [ q{'('}, '(', 79, 1 ],
+     [ 'identifier-token', 'b', 80, 1 ],
+     [ q{':'}, ':', 81, 1 ],
+     [ 'identifier-token', 'Int', 83, 3 ],
+     [ q{')'}, ')', 86, 1 ],
+     [ q{'->'}, '->', 88, 2 ],
+     [ 'identifier-token', 'Int', 91, 3 ],
+     [ q['{'], '{', 95, 1 ],
 
-     [ q{'let'}, 'let' ],
-     [ q['{'], '{' ],
-     [ 'identifier-token', 'a' ],
-     [ 'operator', '+' ],
-     [ 'identifier-token', 'b' ],
-     [ q['}'], '}' ], # right brace
+     [ q{'let'}, 'let', 105, 3 ],
+     [ q['{'], '{', 111, 1 ],
+     [ 'identifier-token', 'a', 113, 1 ],
+     [ 'operator', '+', 115, 1 ],
+     [ 'identifier-token', 'b', 117, 1 ],
+     [ q['}'], '}', 119, 1 ], # right brace
 
-     [ q{'inout'}, 'inout' ],
-     [ q['{'], '{' ],
-     [ 'identifier-token', 'b' ],
-     [ 'operator', '+=' ],
-     [ 'identifier-token', 'a' ],
-     [ q['}'], '}' ], # right brace
+     [ q{'inout'}, 'inout', 129, 5 ],
+     [ q['{'], '{', 135, 1 ],
+     [ 'identifier-token', 'b', 137, 1 ],
+     [ 'operator', '+=', 139, 2 ],
+     [ 'identifier-token', 'a', 142, 1 ],
+     [ q['}'], '}', 144, 1 ], # right brace
 
-     [ q['}'], '}' ], # right brace
+     [ q['}'], '}', 152, 1 ], # right brace
 
-     [ q['}'], '}' ], # right brace
+     [ q['}'], '}', 158, 1 ], # right brace
 
 );
 
@@ -862,8 +864,8 @@ my $length = length $string;
 pos $string = 0;
 
 TOKEN: for (my $i = 1; $i < @input; $i++) {
-    my ( $token_name, $long_name ) = @{$input[$i]};
-    if ( not defined $recce->lexeme_read( $R2name{$token_name}, undef, 1, $long_name ) ) {
+    my ( $token_name, $long_name, $start, $length ) = @{$input[$i]};
+    if ( not defined $recce->lexeme_read( $R2name{$token_name}, $start-1, $length, $long_name ) ) {
         die qq{Parser rejected token "$long_name"};
     }
 }
