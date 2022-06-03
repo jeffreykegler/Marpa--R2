@@ -740,7 +740,7 @@ my $tree          = Marpa::R2::Thin::T->new($order);
 say STDERR "Tree parse count: ", $tree->parse_count();
 my @actual_values = ();
 while ( $tree->next() ) {
-    say STDERR "Nook or node: ", $tree->_marpa_t_nook_or_node(0);
+    # say STDERR "Nook or node: ", $tree->_marpa_t_nook_or_node(0);
     say STDERR "Tree parse count: ", $tree->parse_count();
     my $valuator = Marpa::R2::Thin::V->new($tree);
     my @stack = ();
@@ -778,7 +778,7 @@ while ( $tree->next() ) {
     push @actual_values, $stack[0];
 } ## end while ( $tree->next() )
 
-    say STDERR "Nook or node: ", $tree->_marpa_t_nook_or_node(0);
+    # say STDERR "Nook or node: ", $tree->_marpa_t_nook_or_node(0);
     say STDERR "Tree parse count: ", $tree->parse_count();
 
 # Local Variables:
