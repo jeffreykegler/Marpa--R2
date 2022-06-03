@@ -625,7 +625,7 @@ my $bnfValueRef = $BnfGrammar->parse( \$bnf, 'My_Actions' );
 my @source = ();
 push @source, <<'END_OF_SOURCE';
 :default ::= action => main::dwim
-:start ::= module_x2ddefinition 
+:start ::= module_x2d_definition 
 unicorn ~ [^\d\D]
 END_OF_SOURCE
 
@@ -638,7 +638,7 @@ my %DAname = ();
    DA_SYM: for my $DAsym (@DAsyms) {
       next DA_SYM if defined $R2name{$DAsym};
       my $r2name = $DAsym;
-      $r2name =~ s/([^0-9A-Za-z])/sprintf("_x%02x", ord($1) )/ge;
+      $r2name =~ s/([^0-9A-Za-z])/sprintf("_x%02x_", ord($1) )/ge;
       die "Duplicate R2 name: $r2name for both $DAsym and ", $DAname{$r2name}
           if defined $DAname{$r2name};
       $DAname{$r2name} = $DAsym;
@@ -712,14 +712,118 @@ my @input = (
 
 );
 
-for (my $i = 1; $i < @input; $i++) {
-    my ($tokenName, $value) = @{$input[$i]};
-    say STDERR "Reading $tokenName; $value";
-    my $line = $R2name{$tokenName} . " ~ unicorn\n";
-    push @source, $line;
+my @terminals = qw(
+_x27_any_x27_
+_x27_as_x21__x27_
+_x27_as_x27_
+_x27_async_x27_
+_x27_await_x27_
+_x27_break_x27_
+_x27_conformance_x27_
+_x27_continue_x27_
+_x27_deinit_x27_
+_x27_do_x27_
+_x27_else_x27_
+_x27_extension_x27_
+_x27_false_x27_
+_x27_for_x27_
+_x27_fun_x27_
+_x27_if_x27_
+_x27_import_x27_
+_x27_indirect_x27_
+_x27_infix_x27_
+_x27_init_x27_
+_x27_inout_x27_
+_x27_in_x27_
+_x27_let_x27_
+_x27_match_x27_
+_x27_memberwise_x27_
+_x27_mutating_x27_
+_x27_namespace_x27_
+_x27_nil_x27_
+_x27_postfix_x27_
+_x27_prefix_x27_
+_x27_property_x27_
+_x27_public_x27_
+_x27_return_x27_
+_x27_set_x27_
+_x27_sink_x27_
+_x27_size_x27_
+_x27_some_x27_
+_x27_static_x27_
+_x27_subscript_x27_
+_x27_trait_x27_
+_x27_true_x27_
+_x27_typealias_x27_
+_x27_type_x27_
+_x27_var_x27_
+_x27_where_x27_
+_x27_while_x27_
+_x27__x26__x27_
+_x27__x28__x27_
+_x27__x29__x27_
+_x27__x2c__x27_
+_x27__x2d__x3e__x27_
+_x27__x2e__x27_
+_x27__x2e__x2e__x2e__x27_
+_x27__x2e__x2e__x3c__x27_
+_x27__x3a__x27_
+_x27__x3a__x3a__x27_
+_x27__x3b__x27_
+_x27__x3c__x27_
+_x27__x3d__x27_
+_x27__x3d__x3d__x27_
+_x27__x3e__x27_
+_x27__x3f__x3f__x27_
+_x27__x5b__x27_
+_x27__x5d__x27_
+_x27__x5f_as_x21__x21__x27_
+_x27__x5f__x27_
+_x27__x7b__x27_
+_x27__x7c__x27_
+_x27__x7d__x27_
+_x27_yielded_x27_
+_x27_yield_x27_
+binary_x2d_literal
+decimal_x2d_floating_x2d_point_x2d_literal
+decimal_x2d_literal
+function_x2d_entity_x2d_identifier
+hexadecimal_x2d_literal
+identifier_x2d_token
+impl_x2d_identifier
+multiline_x2d_string
+octal_x2d_literal
+operator_x2d_entity_x2d_identifier
+simple_x2d_string
+unicode_x2d_scalar_x2d_literal
+);
+
+{
+    my %seen = ();
+    my @hashElements = ();
+    for (my $i = 1; $i < @input; $i++) {
+        push @hashElements, ${$input[$i]}[0], 1;
+    }
+    my %terminalHash = @hashElements;
+    for my $terminal (keys %terminalHash) {
+        die "No R2 name for $terminal" if not defined $R2name{$terminal};
+        my $r2terminal = $R2name{$terminal};
+        $seen{$r2terminal} = 1;
+        my $line = "$r2terminal ~ unicorn\n";
+        print STDERR "Adding $line";
+        push @source, $line;
+    }
+    TERMINAL: for my $terminal (@terminals) {
+        # die "No R2 name for $terminal" if not defined $R2name{$terminal};
+        next TERMINAL if $seen{$terminal};
+        my $line = $terminal . " ~ unicorn\n";
+        print STDERR "Adding $line";
+        push @source, $line;
+    }
 }
 
 my $source = join '', @source;
+
 my $grammar = Marpa::R2::Scanless::G->new(
     {  
         source          => \$source,
