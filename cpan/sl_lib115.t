@@ -715,12 +715,13 @@ TOKEN: for my $t (@terminals) {
     }
 }
 
-say $recce->show_progress();
+# say $recce->show_progress();
 
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
 }
+
 
 my $expected_value = \[
 ];
