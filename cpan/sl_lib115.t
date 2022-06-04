@@ -870,9 +870,9 @@ TOKEN: for (my $i = 1; $i < @input; $i++) {
     }
 }
 
+# say $recce->show_progress(5);
 say "Ambiguity Metric: ", $recce->ambiguity_metric();
 # say "Ambiguity: ", $recce->ambiguous();
-# say $recce->show_progress();
 
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
