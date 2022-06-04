@@ -675,44 +675,45 @@ my %DAname = ();
 # The start byte locations are from vim, and are 1-based,
 # while Marpa is 0-based
 my @input = (
-     [ 'DUMMY', 'DUMMY' ], # Avoid use of zero location
-     [ q{'type'}, "'type'" ],
-     [ 'hspace', 'hspace' ],
-     [ 'identifier-token', 'A' ],
-     [ 'hspace', 'hspace' ],
-     [ q['{'], '{' ],
-     [ 'newlines', 'newlines' ],
-     [ 'hspace', 'hspace' ],
-     [ q{'fun'}, "'fun'" ],
-     [ 'identifier-token', 'foo' ],
-     [ q{'('}, '(' ],
-     [ q{')'}, ')' ],
-     [ 'hspace', 'hspace' ],
-     [ q['{'], '{' ],
-     [ q['}'], '}' ],
-     [ 'newlines', 'newlines' ],
-     [ 'hspace', 'hspace' ],
-     [ q['}'], '}' ],
-     [ 'newlines', 'newlines' ],
-     [ 'hspace', 'hspace' ],
-     [ q{'extension'}, "'extension'" ],
-     [ 'hspace', 'hspace' ],
-     [ 'hspace', 'hspace' ],
-     [ 'identifier-token', 'A' ],
-     [ 'hspace', 'hspace' ],
-     [ q['{'], '{' ],
-     [ 'newlines', 'newlines' ],
-     [ 'hspace', 'hspace' ],
-     [ q{'fun'}, "'fun'" ],
-     [ 'identifier-token', 'bar' ],
-     [ q{'('}, '(' ],
-     [ q{')'}, ')' ],
-     [ 'hspace', 'hspace' ],
-     [ q['{'], '{' ],
-     [ q['}'], '}' ],
-     [ 'newlines', 'newlines' ],
-     [ 'hspace', 'hspace' ],
-     [ q['}'], '}' ],
+     [ 'DUMMY', 'DUMMY', 0, 1 ], # Avoid use of zero location
+     [ q{'type'}, "'type'", 5, 4  ],
+     [ 'hspace', 'hspace', 9, 1 ],
+     [ 'identifier-token', 'A', 10, 1 ],
+     [ 'hspace', 'hspace', 11, 1 ],
+     [ q['{'], '{', 12, 1 ],
+     [ 'newlines', 'newlines', 13, 1 ],
+     [ 'hspace', 'hspace', 14, 6 ],
+     [ q{'fun'}, "'fun'", 20, 3 ],
+     [ 'hspace', 'hspace', 23, 1 ],
+     [ 'identifier-token', 'foo', 24, 3 ],
+     [ q{'('}, '(', 27, 1 ],
+     [ q{')'}, ')', 28, 1 ],
+     [ 'hspace', 'hspace', 29, 1 ],
+     [ q['{'], '{', 30, 1 ],
+     [ q['}'], '}', 31, 1 ],
+     [ 'newlines', 'newlines', 32, 1 ],
+     [ 'hspace', 'hspace', 33, 4 ],
+     [ q['}'], '}', 37, 1 ],
+     [ 'newlines', 'newlines', 38, 1 ],
+     [ 'hspace', 'hspace', 39, 4 ],
+     [ q{'extension'}, "'extension'", 43, 9 ],
+     [ 'hspace', 'hspace', 52, 1 ],
+     [ 'identifier-token', 'A', 53, 1 ],
+     [ 'hspace', 'hspace', 54, 1 ],
+     [ q['{'], '{', 55, 1 ],
+     [ 'newlines', 'newlines', 56, 1 ],
+     [ 'hspace', 'hspace', 57, 6 ],
+     [ q{'fun'}, "'fun'", 63, 3 ],
+     [ 'hspace', 'hspace', 66, 1 ],
+     [ 'identifier-token', 'bar', 67, 3 ],
+     [ q{'('}, '(', 70, 1 ],
+     [ q{')'}, ')', 71, 1 ],
+     [ 'hspace', 'hspace', 72, 1 ],
+     [ q['{'], '{', 73, 1 ],
+     [ q['}'], '}', 74, 1 ],
+     [ 'newlines', 'newlines', 75, 1 ],
+     [ 'hspace', 'hspace', 76, 4 ],
+     [ q['}'], '}', 80, 1 ],
 );
 
 push @terminals, qw(
@@ -805,94 +806,45 @@ if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
 }
 
-
 my $expected_value = \[
+    [
+        [
+            [ '\'type\'', 'hspace', 'A' ],
+            'hspace',
             [
-              [
+                '{',
                 [
-                  '\'type\'',
-                  'hspace',
-                  'A'
-                ],
-                'hspace',
-                [
-                  '{',
-                  [
+                    [ 'newlines', 'hspace' ],
                     [
-                      'newlines',
-                      'hspace'
-                    ],
-                    [
-                      [
-                        '\'fun\'',
-                        'foo'
-                      ],
-                      [
-                        '(',
-                        ')'
-                      ],
-                      'hspace',
-                      [
-                        '{',
-                        '}'
-                      ]
+                        [ '\'fun\'', 'hspace', 'foo' ],
+                        [ '(', ')' ],
+                        'hspace', [ '{', '}' ]
                     ]
-                  ],
-                  [
-                    'newlines',
-                    'hspace'
-                  ],
-                  '}'
-                ]
-              ],
-              [
-                'newlines',
-                'hspace'
-              ],
-              [
-                [
-                  '\'extension\'',
-                  [
-                    [
-                      'hspace',
-                      'hspace'
-                    ],
-                    'A'
-                  ]
                 ],
-                'hspace',
-                [
-                  '{',
-                  [
-                    [
-                      'newlines',
-                      'hspace'
-                    ],
-                    [
-                      [
-                        '\'fun\'',
-                        'bar'
-                      ],
-                      [
-                        '(',
-                        ')'
-                      ],
-                      'hspace',
-                      [
-                        '{',
-                        '}'
-                      ]
-                    ]
-                  ],
-                  [
-                    'newlines',
-                    'hspace'
-                  ],
-                  '}'
-                ]
-              ]
+                [ 'newlines', 'hspace' ],
+                '}'
             ]
-          ];
+        ],
+        [ 'newlines', 'hspace' ],
+        [
+            [ '\'extension\'', [ 'hspace', 'A' ] ],
+            'hspace',
+            [
+                '{',
+                [
+                    [ 'newlines', 'hspace' ],
+                    [
+                        [ '\'fun\'', 'hspace', 'bar' ],
+                        [ '(', ')' ],
+                        'hspace', [ '{', '}' ]
+                    ]
+                ],
+                [ 'newlines', 'hspace' ],
+                '}'
+            ]
+        ]
+    ]
+];
 
 Test::More::is(
     Data::Dumper::Dumper($value_ref),
