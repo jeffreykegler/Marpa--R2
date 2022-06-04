@@ -629,6 +629,7 @@ push @source, <<'END_OF_SOURCE';
 unicorn ~ [^\d\D]
 END_OF_SOURCE
 
+my @terminals = ();
 my %R2name = ();
 my %DAname = ();
 {
@@ -641,6 +642,7 @@ my %DAname = ();
       $r2name =~ s/([^0-9A-Za-z])/sprintf("_x%02x_", ord($1) )/ge;
       die "Duplicate R2 name: $r2name for both $DAsym and ", $DAname{$r2name}
           if defined $DAname{$r2name};
+      push @terminals, $r2name if $DAsym =~ /^'.*'$/;
       $DAname{$r2name} = $DAsym;
       $R2name{$DAsym} = $r2name;
    }
@@ -714,78 +716,7 @@ my @input = (
 
 );
 
-my @terminals = qw(
-_x27_any_x27_
-_x27_as_x21__x27_
-_x27_as_x27_
-_x27_async_x27_
-_x27_await_x27_
-_x27_break_x27_
-_x27_conformance_x27_
-_x27_continue_x27_
-_x27_deinit_x27_
-_x27_do_x27_
-_x27_else_x27_
-_x27_extension_x27_
-_x27_false_x27_
-_x27_for_x27_
-_x27_fun_x27_
-_x27_if_x27_
-_x27_import_x27_
-_x27_indirect_x27_
-_x27_infix_x27_
-_x27_init_x27_
-_x27_inout_x27_
-_x27_in_x27_
-_x27_let_x27_
-_x27_match_x27_
-_x27_memberwise_x27_
-_x27_mutating_x27_
-_x27_namespace_x27_
-_x27_nil_x27_
-_x27_postfix_x27_
-_x27_prefix_x27_
-_x27_property_x27_
-_x27_public_x27_
-_x27_return_x27_
-_x27_set_x27_
-_x27_sink_x27_
-_x27_size_x27_
-_x27_some_x27_
-_x27_static_x27_
-_x27_subscript_x27_
-_x27_trait_x27_
-_x27_true_x27_
-_x27_typealias_x27_
-_x27_type_x27_
-_x27_var_x27_
-_x27_where_x27_
-_x27_while_x27_
-_x27__x26__x27_
-_x27__x28__x27_
-_x27__x29__x27_
-_x27__x2c__x27_
-_x27__x2d__x3e__x27_
-_x27__x2e__x27_
-_x27__x2e__x2e__x2e__x27_
-_x27__x2e__x2e__x3c__x27_
-_x27__x3a__x27_
-_x27__x3a__x3a__x27_
-_x27__x3b__x27_
-_x27__x3c__x27_
-_x27__x3d__x27_
-_x27__x3d__x3d__x27_
-_x27__x3e__x27_
-_x27__x3f__x3f__x27_
-_x27__x5b__x27_
-_x27__x5d__x27_
-_x27__x5f_as_x21__x21__x27_
-_x27__x5f__x27_
-_x27__x7b__x27_
-_x27__x7c__x27_
-_x27__x7d__x27_
-_x27_yielded_x27_
-_x27_yield_x27_
+push @terminals, qw(
 binary_x2d_literal
 decimal_x2d_floating_x2d_point_x2d_literal
 decimal_x2d_literal
@@ -858,27 +789,22 @@ my $string = <<'EOS';
     }
 EOS
 
-$recce->read( \$string, 0, 0 );
-
-my $length = length $string;
-pos $string = 0;
-
-TOKEN: for (my $i = 1; $i < @input; $i++) {
-    my ( $token_name, $long_name, $start, $length ) = @{$input[$i]};
-    if ( not defined $recce->lexeme_read( $R2name{$token_name}, $start-1, $length, $long_name ) ) {
-        die qq{Parser rejected token "$long_name"};
-    }
-}
+read_input();
 
 # say $recce->show_progress(5);
 say "Ambiguity Metric: ", $recce->ambiguity_metric();
-# say "Ambiguity: ", $recce->ambiguous();
+say "Ambiguity: ", $recce->ambiguous();
+
+# Start a new recognizer, because we cannot call
+# $r->ambiguous() and $r->value() on the same recognizer
+$recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+read_input();
+say "Ambiguity Metric: ", $recce->ambiguity_metric();
 
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
 }
-
 
 my $expected_value = \[
 ];
@@ -888,6 +814,25 @@ Test::More::is(
     Data::Dumper::Dumper($expected_value),
     'Value of parse'
 );
+
+sub read_input {
+    $recce->read( \$string, 0, 0 );
+
+    my $length = length $string;
+    pos $string = 0;
+
+  TOKEN: for ( my $i = 1 ; $i < @input ; $i++ ) {
+        my ( $token_name, $long_name, $start, $length ) = @{ $input[$i] };
+        if (
+            not defined $recce->lexeme_read(
+                $R2name{$token_name}, $start - 1, $length, $long_name
+            )
+          )
+        {
+            die qq{Parser rejected token "$long_name"};
+        }
+    }
+}
 
 sub main::dwim {
     my @result = ();
