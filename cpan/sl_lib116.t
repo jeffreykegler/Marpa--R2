@@ -643,6 +643,7 @@ push @source, <<'END_OF_SOURCE';
 unicorn ~ [^\d\D]
 END_OF_SOURCE
 
+my @terminals = ();
 my %R2name = ();
 my %DAname = ();
 {
@@ -655,6 +656,7 @@ my %DAname = ();
       $r2name =~ s/([^0-9A-Za-z])/sprintf("_x%02x_", ord($1) )/ge;
       die "Duplicate R2 name: $r2name for both $DAsym and ", $DAname{$r2name}
           if defined $DAname{$r2name};
+      push @terminals, $r2name if $DAsym =~ /^'.*'$/;
       $DAname{$r2name} = $DAsym;
       $R2name{$DAsym} = $r2name;
    }
@@ -674,129 +676,63 @@ my %DAname = ();
 # while Marpa is 0-based
 my @input = (
      [ 'DUMMY', 'DUMMY' ], # Avoid use of zero location
-     [ 'TYPE', "'type'" ],
+     [ q{'type'}, "'type'" ],
      [ 'hspace', 'hspace' ],
-     [ 'identifier__token', 'A' ],
+     [ 'identifier-token', 'A' ],
      [ 'hspace', 'hspace' ],
-     [ 'LBRACE', '{' ],
+     [ q['{'], '{' ],
      [ 'newlines', 'newlines' ],
      [ 'hspace', 'hspace' ],
-     [ 'FUN', "'fun'" ],
-     [ 'identifier__token', 'foo' ],
-     [ 'LPAREN', '(' ],
-     [ 'RPAREN', ')' ],
+     [ q{'fun'}, "'fun'" ],
+     [ 'identifier-token', 'foo' ],
+     [ q{'('}, '(' ],
+     [ q{')'}, ')' ],
      [ 'hspace', 'hspace' ],
-     [ 'LBRACE', '{' ],
-     [ 'RBRACE', '}' ],
+     [ q['{'], '{' ],
+     [ q['}'], '}' ],
      [ 'newlines', 'newlines' ],
      [ 'hspace', 'hspace' ],
-     [ 'RBRACE', '}' ],
+     [ q['}'], '}' ],
      [ 'newlines', 'newlines' ],
      [ 'hspace', 'hspace' ],
-     [ 'EXTENSION', "'extension'" ],
+     [ q{'extension'}, "'extension'" ],
      [ 'hspace', 'hspace' ],
      [ 'hspace', 'hspace' ],
-     [ 'identifier__token', 'A' ],
+     [ 'identifier-token', 'A' ],
      [ 'hspace', 'hspace' ],
-     [ 'LBRACE', '{' ],
+     [ q['{'], '{' ],
      [ 'newlines', 'newlines' ],
      [ 'hspace', 'hspace' ],
-     [ 'FUN', "'fun'" ],
-     [ 'identifier__token', 'bar' ],
-     [ 'LPAREN', '(' ],
-     [ 'RPAREN', ')' ],
+     [ q{'fun'}, "'fun'" ],
+     [ 'identifier-token', 'bar' ],
+     [ q{'('}, '(' ],
+     [ q{')'}, ')' ],
      [ 'hspace', 'hspace' ],
-     [ 'LBRACE', '{' ],
-     [ 'RBRACE', '}' ],
+     [ q['{'], '{' ],
+     [ q['}'], '}' ],
      [ 'newlines', 'newlines' ],
      [ 'hspace', 'hspace' ],
-     [ 'RBRACE', '}' ],
+     [ q['}'], '}' ],
 );
 
-my @terminals = qw(
-_x27_any_x27_
-_x27_as_x21__x27_
-_x27_as_x27_
-_x27_async_x27_
-_x27_await_x27_
-_x27_break_x27_
-_x27_conformance_x27_
-_x27_continue_x27_
-_x27_deinit_x27_
-_x27_do_x27_
-_x27_else_x27_
-_x27_extension_x27_
-_x27_false_x27_
-_x27_for_x27_
-_x27_fun_x27_
-_x27_if_x27_
-_x27_import_x27_
-_x27_indirect_x27_
-_x27_infix_x27_
-_x27_init_x27_
-_x27_inout_x27_
-_x27_in_x27_
-_x27_let_x27_
-_x27_match_x27_
-_x27_memberwise_x27_
-_x27_mutating_x27_
-_x27_namespace_x27_
-_x27_nil_x27_
-_x27_postfix_x27_
-_x27_prefix_x27_
-_x27_property_x27_
-_x27_public_x27_
-_x27_return_x27_
-_x27_set_x27_
-_x27_sink_x27_
-_x27_size_x27_
-_x27_some_x27_
-_x27_static_x27_
-_x27_subscript_x27_
-_x27_trait_x27_
-_x27_true_x27_
-_x27_typealias_x27_
-_x27_type_x27_
-_x27_var_x27_
-_x27_where_x27_
-_x27_while_x27_
-_x27__x26__x27_
-_x27__x28__x27_
-_x27__x29__x27_
-_x27__x2c__x27_
-_x27__x2d__x3e__x27_
-_x27__x2e__x27_
-_x27__x2e__x2e__x2e__x27_
-_x27__x2e__x2e__x3c__x27_
-_x27__x3a__x27_
-_x27__x3a__x3a__x27_
-_x27__x3b__x27_
-_x27__x3c__x27_
-_x27__x3d__x27_
-_x27__x3d__x3d__x27_
-_x27__x3e__x27_
-_x27__x3f__x3f__x27_
-_x27__x5b__x27_
-_x27__x5d__x27_
-_x27__x5f_as_x21__x21__x27_
-_x27__x5f__x27_
-_x27__x7b__x27_
-_x27__x7c__x27_
-_x27__x7d__x27_
-_x27_yielded_x27_
-_x27_yield_x27_
-binary_x2d_literal
-decimal_x2d_floating_x2d_point_x2d_literal
-decimal_x2d_literal
-function_x2d_entity_x2d_identifier
-hexadecimal_x2d_literal
-identifier_x2d_token
-impl_x2d_identifier
-multiline_x2d_string
-octal_x2d_literal
-operator_x2d_entity_x2d_identifier
-simple_x2d_string
-unicode_x2d_scalar_x2d_literal
+push @terminals, qw(
+  simple_x2d_string
+  decimal_x2d_literal
+  impl_x2d_identifier
+  newlines
+  identifier_x2d_token
+  hspace
+  binary_x2d_literal
+  unicode_x2d_scalar_x2d_literal
+  decimal_x2d_floating_x2d_point_x2d_literal
+  operator_x2d_entity_x2d_identifier
+  function_x2d_entity_x2d_identifier
+  operator
+  hexadecimal_x2d_literal
+  multiline_x2d_string
+  block_x2d_comment_x2d_open
+  octal_x2d_literal
+  single_x2d_line_x2d_comment
 );
 
 {
