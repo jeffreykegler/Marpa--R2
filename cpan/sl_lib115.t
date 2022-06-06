@@ -801,6 +801,7 @@ $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 read_input();
 say "Ambiguity Metric: ", $recce->ambiguity_metric();
 
+Marpa::R2::Thin::debug_level_set(1);
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
