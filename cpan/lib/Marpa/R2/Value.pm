@@ -2045,12 +2045,49 @@ sub Marpa::R2::Recognizer::verbose_or_node {
     my $origin_earleme  = $recce_c->earleme($origin);
     my $current_earleme = $recce_c->earleme($set);
     my $text =
-          "OR-node #$or_node_id: R$irl_id" . q{:}
-        . $position . q{@}
-        . $origin_earleme . q{-}
-        . $current_earleme . "\n";
-    $text .= ( q{ } x 4 )
-        . $tracer->show_dotted_irl( $irl_id, $position ) . "\n";
+        "OR-node #$or_node_id: R$irl_id" . q{:}
+      . $position . q{@}
+      . $origin_earleme . q{-}
+      . $current_earleme . "\n";
+    $text .=
+      ( q{ } x 4 ) . $tracer->show_dotted_irl( $irl_id, $position ) . "\n";
+
+    for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+        .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+    {
+        my $parent      = $bocage->_marpa_b_and_node_parent($and_node_id);
+        my $predecessor = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+        my $cause       = $bocage->_marpa_b_and_node_cause($and_node_id);
+        my $symbol      = $bocage->_marpa_b_and_node_symbol($and_node_id);
+        last AND_NODE if not defined $parent;
+        my $origin            = $bocage->_marpa_b_or_node_origin($parent);
+        my $set               = $bocage->_marpa_b_or_node_set($parent);
+        my $irl_id            = $bocage->_marpa_b_or_node_irl($parent);
+        my $position          = $bocage->_marpa_b_or_node_position($parent);
+        my $origin_earleme    = $recce_c->earleme($origin);
+        my $current_earleme   = $recce_c->earleme($set);
+        my $middle_earley_set = $bocage->_marpa_b_and_node_middle($and_node_id);
+        my $middle_earleme    = $recce_c->earleme($middle_earley_set);
+
+#<<<  perltidy introduces trailing space on this
+        my $desc =
+              "And-node #$and_node_id: R"
+            . $irl_id . q{:}
+            . $position . q{@}
+            . $origin_earleme . q{-}
+            . $current_earleme;
+#>>>
+        my $cause_rule = -1;
+        if ( defined $cause ) {
+            my $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause);
+            $desc .= 'C' . $cause_irl_id;
+        }
+        else {
+            $desc .= 'S' . $symbol;
+        }
+        $desc .= q{@} . $middle_earleme;
+        $text .= "    $desc\n";
+    }
     return $text;
 } ## end sub Marpa::R2::Recognizer::verbose_or_node
 

@@ -1922,6 +1922,27 @@ sub Marpa::R2::Scanless::R::earley_set_size {
         ->earley_set_size($set_id);
 }
 
+sub Marpa::R2::Scanless::R::verbose_or_nodes {
+    my ( $slr ) = @_;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    return $thick_g1_recce->verbose_or_nodes();
+}
+
+sub Marpa::R2::Scanless::R::show_and_nodes {
+    my ( $slr ) = @_;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    return $thick_g1_recce->show_and_nodes();
+}
+
+sub Marpa::R2::Scanless::R::show_bocage {
+    my ( $slr ) = @_;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    return $thick_g1_recce->show_bocage();
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:
