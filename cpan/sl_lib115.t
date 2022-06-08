@@ -31,6 +31,8 @@ use Marpa::R2::Test;
 
 use Marpa::R2;
 
+say 'Libmarpa tag: ' . Marpa::R2::Thin::tag();
+
 my $bnfOfBNF = <<'END_OF_BNF_OF_BNF';
 :default ::= action => [values]
 lexeme default = latm => 1
@@ -800,7 +802,14 @@ say "Ambiguity: ", $recce->ambiguous();
 $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 read_input();
 say "Ambiguity Metric: ", $recce->ambiguity_metric();
+say $grammar->show_rules();
+say "=== ISYs ===\n", $grammar->show_isys();
+say $grammar->show_irls();
+say "=== And nodes ===\n", $recce->show_and_nodes();
+say "=== Or nodes ===\n", $recce->verbose_or_nodes();
+say "=== Bocage ===\n", $recce->show_bocage();
 
+Marpa::R2::Thin::debug_level_set(1);
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";

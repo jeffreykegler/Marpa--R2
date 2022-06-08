@@ -1075,6 +1075,11 @@ sub Marpa::R2::Scanless::G::show_irls {
     return thick_subgrammar_by_name($slg, $subgrammar)->show_irls();
 }
 
+sub Marpa::R2::Scanless::G::show_isys {
+    my ($slg, $subgrammar) = @_;
+    return thick_subgrammar_by_name($slg, $subgrammar)->show_isys();
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:
