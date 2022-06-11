@@ -793,7 +793,7 @@ EOS
 
 read_input();
 
-# say $recce->show_progress(5);
+say 'Progress@15:', "\n", $recce->show_progress(15);
 say "Ambiguity Metric: ", $recce->ambiguity_metric();
 say "Ambiguity: ", $recce->ambiguous();
 
@@ -805,7 +805,7 @@ say "Ambiguity Metric: ", $recce->ambiguity_metric();
 say $grammar->show_rules();
 say "=== ISYs ===\n", $grammar->show_isys();
 say $grammar->show_irls();
-say "=== And nodes ===\n", $recce->show_and_nodes();
+say "=== And nodes ===\n", $recce->show_and_nodes(1);
 say "=== Or nodes ===\n", $recce->verbose_or_nodes();
 say "=== Bocage ===\n", $recce->show_bocage();
 
