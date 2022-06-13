@@ -477,57 +477,57 @@ Marpa::R2::Test::is( $recce->show_or_nodes(), $or_node_output,
 
 my $and_node_output = <<'END_OF_TEXT';
 And-node #0: R2:1@0-0S3@0
-And-node #3: R0:1@0-1C9@0
-And-node #2: R3:1@0-1C9@0
 And-node #1: R9:1@0-1S4@0
-And-node #19: R0:2@0-3C5@1
-And-node #20: R0:2@0-3C3@1
-And-node #16: R2:2@0-3C3@0
-And-node #15: R3:2@0-3C6@1
-And-node #17: R10:1@0-3C2@0
-And-node #18: R10:1@0-3C0@0
+And-node #2: R3:1@0-1C9@0
+And-node #3: R0:1@0-1C9@0
 And-node #4: R5:1@1-1S3@1
+And-node #5: R9:1@1-2S4@1
 And-node #6: R3:1@1-2C9@1
 And-node #7: R6:1@1-2C9@1
-And-node #5: R9:1@1-2S4@1
-And-node #21: R3:2@1-3C7@2
-And-node #22: R3:2@1-3C8@2
-And-node #14: R5:2@1-3C6@1
-And-node #13: R6:2@1-3C9@2
 And-node #8: R8:1@2-2S3@2
+And-node #9: R9:1@2-3S4@2
+And-node #10: R8:2@2-3C9@2
 And-node #11: R7:1@2-3C9@2
 And-node #12: R7:2@2-3S3@3
-And-node #10: R8:2@2-3C9@2
-And-node #9: R9:1@2-3S4@2
+And-node #13: R6:2@1-3C9@2
+And-node #14: R5:2@1-3C6@1
+And-node #15: R3:2@0-3C6@1
+And-node #16: R2:2@0-3C3@0
+And-node #17: R10:1@0-3C2@0
+And-node #18: R10:1@0-3C0@0
+And-node #19: R0:2@0-3C5@1
+And-node #20: R0:2@0-3C3@1
+And-node #21: R3:2@1-3C7@2
+And-node #22: R3:2@1-3C8@2
 END_OF_TEXT
 
 Marpa::R2::Test::is( $recce->show_and_nodes(),
     $and_node_output, 'XS And nodes' );
 
 my $bocage_output = <<'END_OF_TEXT';
-0: 0=R2:1@0-0 - S3
-1: 1=R9:1@0-1 - S4
-2: 2=R3:1@0-1 - R9:1@0-1
-3: 3=R0:1@0-1 - R9:1@0-1
-4: 4=R5:1@1-1 - S3
-5: 5=R9:1@1-2 - S4
-6: 6=R3:1@1-2 - R9:1@1-2
-7: 7=R6:1@1-2 - R9:1@1-2
-8: 8=R8:1@2-2 - S3
-9: 9=R9:1@2-3 - S4
-10: 10=R8:2@2-3 R8:1@2-2 R9:1@2-3
-11: 11=R7:1@2-3 - R9:1@2-3
-12: 12=R7:2@2-3 R7:1@2-3 S3
-13: 13=R6:2@1-3 R6:1@1-2 R9:1@2-3
-14: 14=R5:2@1-3 R5:1@1-1 R6:2@1-3
-15: 15=R3:2@0-3 R3:1@0-1 R6:2@1-3
-16: 16=R2:2@0-3 R2:1@0-0 R3:2@0-3
-17: 17=R10:1@0-3 - R2:2@0-3
-18: 17=R10:1@0-3 - R0:2@0-3
-19: 18=R0:2@0-3 R0:1@0-1 R5:2@1-3
-20: 18=R0:2@0-3 R0:1@0-1 R3:2@1-3
-21: 19=R3:2@1-3 R3:1@1-2 R7:2@2-3
-22: 19=R3:2@1-3 R3:1@1-2 R8:2@2-3
+AND#0: parent=OR#0=R2:1@0-0 pred=- cause=S3
+AND#1: parent=OR#1=R9:1@0-1 pred=- cause=S4
+AND#2: parent=OR#2=R3:1@0-1 pred=- cause=OR#1=R9:1@0-1
+AND#3: parent=OR#3=R0:1@0-1 pred=- cause=OR#1=R9:1@0-1
+AND#4: parent=OR#4=R5:1@1-1 pred=- cause=S3
+AND#5: parent=OR#5=R9:1@1-2 pred=- cause=S4
+AND#6: parent=OR#6=R3:1@1-2 pred=- cause=OR#5=R9:1@1-2
+AND#7: parent=OR#7=R6:1@1-2 pred=- cause=OR#5=R9:1@1-2
+AND#8: parent=OR#8=R8:1@2-2 pred=- cause=S3
+AND#9: parent=OR#9=R9:1@2-3 pred=- cause=S4
+AND#10: parent=OR#10=R8:2@2-3 pred=OR#8=R8:1@2-2 cause=OR#9=R9:1@2-3
+AND#11: parent=OR#11=R7:1@2-3 pred=- cause=OR#9=R9:1@2-3
+AND#12: parent=OR#12=R7:2@2-3 pred=OR#11=R7:1@2-3 cause=S3
+AND#13: parent=OR#13=R6:2@1-3 pred=OR#7=R6:1@1-2 cause=OR#9=R9:1@2-3
+AND#14: parent=OR#14=R5:2@1-3 pred=OR#4=R5:1@1-1 cause=OR#13=R6:2@1-3
+AND#15: parent=OR#15=R3:2@0-3 pred=OR#2=R3:1@0-1 cause=OR#13=R6:2@1-3
+AND#16: parent=OR#16=R2:2@0-3 pred=OR#0=R2:1@0-0 cause=OR#15=R3:2@0-3
+AND#17: parent=OR#17=R10:1@0-3 pred=- cause=OR#16=R2:2@0-3
+AND#18: parent=OR#17=R10:1@0-3 pred=- cause=OR#18=R0:2@0-3
+AND#19: parent=OR#18=R0:2@0-3 pred=OR#3=R0:1@0-1 cause=OR#14=R5:2@1-3
+AND#20: parent=OR#18=R0:2@0-3 pred=OR#3=R0:1@0-1 cause=OR#19=R3:2@1-3
+AND#21: parent=OR#19=R3:2@1-3 pred=OR#6=R3:1@1-2 cause=OR#12=R7:2@2-3
+AND#22: parent=OR#19=R3:2@1-3 pred=OR#6=R3:1@1-2 cause=OR#10=R8:2@2-3
 END_OF_TEXT
 
 Marpa::R2::Test::is( $recce->show_bocage(), $bocage_output, 'XS Bocage' );
