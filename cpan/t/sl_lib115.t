@@ -93,14 +93,13 @@ say "=== And nodes ===\n", $recce->show_and_nodes(1);
 say "=== Or nodes ===\n", $recce->verbose_or_nodes();
 say "=== Bocage ===\n", $recce->show_bocage();
 
-Marpa::R2::Thin::debug_level_set(1);
+# Marpa::R2::Thin::debug_level_set(1);
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
 }
 
-my $expected_value = \[
-];
+my $expected_value = \[ [], [ [ [], ['Arg1'] ], 'Arg2' ] ];
 
 Test::More::is(
     Data::Dumper::Dumper($value_ref),
