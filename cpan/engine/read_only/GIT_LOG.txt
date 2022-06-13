@@ -1,0 +1,35 @@
+This file contains the output of a `git log -n 5`, performed when the
+distribution was created.  It is for convenience in identifying the commit
+for this distribution.
+
+commit 05f1760d4d14f6c8b45839fcca92edce14f63bf6
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Mon Jun 13 16:32:03 2022 -0400
+
+    Work on #115
+
+commit ed6b08cf2a1e93168db0cf37fa846217c7786e79
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Mon Jun 13 15:41:54 2022 -0400
+
+    Work on #115
+
+commit 63b39783c6cea59eacb548415757ef323640b9f2
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Mon Jun 13 15:06:28 2022 -0400
+
+    Work on #115
+
+commit 4a1b4aa2f917a95ce22e8cd7c74c80c65bbe8a72
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Mon Jun 13 14:41:36 2022 -0400
+
+    Work on #115
+
+commit b8d144768d7efb2ed8fd3b97cadb40cad2d4716a
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Sun Jun 12 22:16:51 2022 -0400
+
+    Work on #115
+    
+    Adding a proof of correctness.

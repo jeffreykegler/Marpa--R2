@@ -30,8 +30,14 @@ libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_tavl.c marpa_tavl.h \
     marpa_ami.c marpa_ami.h \
     marpa_codes.c
-EXTRA_DIST = LIB_VERSION README.INSTALL \
-  win32/marpa.def Makefile.win32 win32/do_config_h.pl
+EXTRA_DIST = README.INSTALL README.AIX libmarpa.pc GIT_LOG.txt \
+  win32/marpa.def Makefile.win32 win32/do_config_h.pl \
+  internals/libmarpa_ami.pdf internals/libmarpa_core.pdf \
+  api_docs/libmarpa_api.pdf api_docs/libmarpa_api.html api_docs/api_html.tar \
+  api_docs/libmarpa_api.info \
+  error_codes.table events.table steps.table \
+  version.m4 libmarpa_version.sh
+
 libmarpa_la_LIBADD = $(LIBOBJS)
 libmarpa_la_LDFLAGS = -release $(RELEASE)
 include_HEADERS = marpa.h \
@@ -39,3 +45,6 @@ include_HEADERS = marpa.h \
   marpa_obs.h marpa_codes.h
 TEXI2PDF = texi2pdf --pdf --batch --quiet
 
+dist-hook:
+	chmod u+w $(distdir)/GIT_LOG.txt
+	git log -n 5 >> $(distdir)/GIT_LOG.txt

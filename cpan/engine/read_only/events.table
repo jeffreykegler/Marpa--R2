@@ -1,0 +1,45 @@
+# Copyright 2018 Jeffrey Kegler
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+# ============ DO NOT EDIT DIRECTLY =============
+# This file is written by the Libmarpa build process.
+# It is NOT INTENDED TO BE MODIFIED DIRECTLY.
+# Any changes will overwritten by the next full
+# build of Libmarpa.
+# ================================================
+
+# Format is: number mnemonic message
+# That is each newline-terminated line contains, in order:
+#    number, which must be an integer; followed by
+#    a single space;  followed by
+#    a mnemonic, which is anything not containing whitespace; followed by
+#    a single space;  followed by
+#    a message, which is anything not containing a newline
+#
+
+0 MARPA_EVENT_NONE No event
+1 MARPA_EVENT_COUNTED_NULLABLE This symbol is a counted nullable
+2 MARPA_EVENT_EARLEY_ITEM_THRESHOLD Too many Earley items
+3 MARPA_EVENT_EXHAUSTED Recognizer is exhausted
+4 MARPA_EVENT_LOOP_RULES Grammar contains a infinite loop
+5 MARPA_EVENT_NULLING_TERMINAL This symbol is a nulling terminal
+6 MARPA_EVENT_SYMBOL_COMPLETED Completed symbol
+7 MARPA_EVENT_SYMBOL_EXPECTED Expecting symbol
+8 MARPA_EVENT_SYMBOL_NULLED Symbol was nulled
+9 MARPA_EVENT_SYMBOL_PREDICTED Symbol was predicted

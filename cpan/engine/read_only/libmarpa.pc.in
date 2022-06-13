@@ -1,0 +1,29 @@
+# this template is filled-in by CMake `configure_file(... @ONLY)`
+# the `@....@` are filled in by CMake configure_file(),
+# from variables set in your CMakeLists.txt or by CMake itself
+#
+# Good tutoral for understanding .pc files:
+# https://people.freedesktop.org/~dbn/pkg-config-guide.html
+#
+# The libmarpa repo is intended, and this file is set up for, use by
+# packaging developers, and therefore the ultimate installation destinations
+# are unpredictable.  In the name of caution, the prefix variable is set
+# to a relative location.  A downstream package using libmarpa is likely
+# to want to modify this file to change the prefix variable.
+#
+# It is also possible to change the prefix value on the pkg-config
+# command line using the "define-variable" option:
+#
+#   pkg-config --define-variable=prefix=/your/prefix --variable=includedir libmarpa
+
+prefix="."
+exec_prefix="${prefix}"
+libdir="${prefix}/lib"
+includedir="${prefix}/include"
+
+Name: @PROJECT_NAME@
+Description: @CMAKE_PROJECT_DESCRIPTION@
+URL: @CMAKE_PROJECT_HOMEPAGE_URL@
+Version: @PROJECT_VERSION@
+Cflags: -I"${includedir}"
+Libs: -L"${libdir}" -lmarpa

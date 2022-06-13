@@ -1,7 +1,7 @@
 ; DO NOT EDIT DIRECTLY.
 ; This file was automatically generated.
 ; This file is for the Microsoft linker.
-; Mon Nov 19 14:18:48 2018
+; Mon Jun 13 16:33:52 2022
 EXPORTS
    marpa_check_version
    marpa_version
@@ -19,8 +19,8 @@ EXPORTS
    marpa_g_symbol_is_nulling
    marpa_g_symbol_is_productive
    marpa_g_symbol_is_start
-   marpa_g_symbol_is_terminal_set
    marpa_g_symbol_is_terminal
+   marpa_g_symbol_is_terminal_set
    marpa_g_symbol_new
    marpa_g_highest_rule_id
    marpa_g_rule_is_accessible
@@ -37,22 +37,13 @@ EXPORTS
    marpa_g_sequence_new
    marpa_g_sequence_separator
    marpa_g_symbol_is_counted
-   marpa_g_rule_rank_set
    marpa_g_rule_rank
-   marpa_g_rule_null_high_set
+   marpa_g_rule_rank_set
    marpa_g_rule_null_high
-   marpa_g_completion_symbol_activate
-   marpa_g_nulled_symbol_activate
-   marpa_g_prediction_symbol_activate
-   marpa_g_symbol_is_completion_event
-   marpa_g_symbol_is_completion_event_set
-   marpa_g_symbol_is_nulled_event
-   marpa_g_symbol_is_nulled_event_set
-   marpa_g_symbol_is_prediction_event
-   marpa_g_symbol_is_prediction_event_set
-   marpa_g_precompute
-   marpa_g_is_precomputed
+   marpa_g_rule_null_high_set
    marpa_g_has_cycle
+   marpa_g_is_precomputed
+   marpa_g_precompute
    marpa_r_new
    marpa_r_ref
    marpa_r_unref
@@ -67,13 +58,9 @@ EXPORTS
    marpa_r_latest_earley_set
    marpa_r_latest_earley_set_value_set
    marpa_r_latest_earley_set_values_set
-   marpa_r_completion_symbol_activate
-   marpa_r_earley_item_warning_threshold_set
    marpa_r_earley_item_warning_threshold
-   marpa_r_expected_symbol_event_set
+   marpa_r_earley_item_warning_threshold_set
    marpa_r_is_exhausted
-   marpa_r_nulled_symbol_activate
-   marpa_r_prediction_symbol_activate
    marpa_r_terminals_expected
    marpa_r_terminal_is_expected
    marpa_r_progress_report_reset
@@ -104,6 +91,19 @@ EXPORTS
    marpa_v_step
    marpa_g_event
    marpa_g_event_count
+   marpa_g_completion_symbol_activate
+   marpa_r_completion_symbol_activate
+   marpa_g_symbol_is_completion_event
+   marpa_g_symbol_is_completion_event_set
+   marpa_g_nulled_symbol_activate
+   marpa_r_nulled_symbol_activate
+   marpa_g_symbol_is_nulled_event
+   marpa_g_symbol_is_nulled_event_set
+   marpa_g_prediction_symbol_activate
+   marpa_r_prediction_symbol_activate
+   marpa_g_symbol_is_prediction_event
+   marpa_g_symbol_is_prediction_event_set
+   marpa_r_expected_symbol_event_set
    marpa_g_error
    marpa_g_error_clear
    marpa_g_default_rank_set

@@ -27,9 +27,7 @@ dnl ***********************************
 
 m4_define(marpa_configure_in)
 
-m4_define([marpa_major_version], [8])
-m4_define([marpa_minor_version], [6])
-m4_define([marpa_micro_version], [2])
+m4_include(version.m4)
 m4_define([marpa_version],
           [marpa_major_version.marpa_minor_version.marpa_micro_version])
 
@@ -143,7 +141,7 @@ fi
 # The following were suggested by autoscan
 AC_CHECK_FUNCS([memset])
 
-AC_CONFIG_FILES( [Makefile LIB_VERSION])
+AC_CONFIG_FILES( [Makefile libmarpa.pc])
 AC_OUTPUT
 
 # vim: expandtab shiftwidth=4:

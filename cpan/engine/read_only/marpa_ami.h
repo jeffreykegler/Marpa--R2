@@ -19,7 +19,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 /*
  * DO NOT EDIT DIRECTLY
  * This file is written by the Marpa build process
@@ -60,15 +59,15 @@
 
 #if MARPA_DEBUG
 
-#define MARPA_DEBUG1(a)  (marpa__debug_level && \
+#define MARPA_DEBUG1(a)  (void)(marpa__debug_level && \
     (*marpa__debug_handler)(a)) 
-#define MARPA_DEBUG2(a,b)  (marpa__debug_level && \
+#define MARPA_DEBUG2(a,b)  (void)(marpa__debug_level && \
     (*marpa__debug_handler)((a),(b))) 
-#define MARPA_DEBUG3(a,b,c)  (marpa__debug_level && \
+#define MARPA_DEBUG3(a,b,c)  (void)(marpa__debug_level && \
     (*marpa__debug_handler)((a),(b),(c))) 
-#define MARPA_DEBUG4(a,b,c,d)  (marpa__debug_level && \
+#define MARPA_DEBUG4(a,b,c,d)  (void)(marpa__debug_level && \
     (*marpa__debug_handler)((a),(b),(c),(d))) 
-#define MARPA_DEBUG5(a,b,c,d,e)  (marpa__debug_level && \
+#define MARPA_DEBUG5(a,b,c,d,e)  (void)(marpa__debug_level && \
     (*marpa__debug_handler)((a),(b),(c),(d),(e))) 
 
 #else
