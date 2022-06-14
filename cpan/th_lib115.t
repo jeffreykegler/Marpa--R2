@@ -21,13 +21,18 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 8;
 
 use lib 'inc';
 use Marpa::R2::Test;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw( close open );
+BEGIN {
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+    eval 'use Test::Differences';
+}
 use Marpa::R2;
 
 my $bnfOfBNF = <<'END_OF_BNF_OF_BNF';
@@ -619,8 +624,6 @@ EOBNF
 my $BnfGrammar = Marpa::R2::Scanless::G->new( { source => \$bnfOfBNF } );
 my $bnfValueRef = $BnfGrammar->parse( \$bnf, 'My_Actions' );
 
-# say STDERR Data::Dumper::Dumper( \$bnfValueRef );
-
 my $input = <<'EOINPUT';
     type A {
       var a: Int
@@ -649,8 +652,6 @@ my @name = ();
    }
    for my $rule (@{$rules}) {
       my ($lhs, @rhs) = @{$rule};
-      # say STDERR "Adding $lhs ::= ", (join ' ', @rhs);
-      # say STDERR join ' ', 'Adding', $lhs, '::=', (map {$id{$_}} @rhs);
       $grammar->rule_new( $id{$lhs}, [map {$id{$_}} @rhs] );
    }
 }
@@ -721,65 +722,333 @@ my @input = (
 
 for (my $i = 1; $i < @input; $i++) {
     my ($tokenName, $value) = @{$input[$i]};
-    say STDERR "Reading $tokenName; $value";
     $recce->alternative( $id{$tokenName}, $i, 1 );
     $recce->earleme_complete();
 }
 
 my $latest_earley_set_ID = $recce->latest_earley_set();
-say STDERR "Latest earley set: $latest_earley_set_ID";
+Test::More::is($latest_earley_set_ID, 45, "Latest Earley set ID");
+
 my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
-say STDERR "Bocage ambiguity_metric: ", $bocage->ambiguity_metric();
+Test::More::ok( ($bocage->ambiguity_metric() >= 2), "Bocage ambiguity_metric >= 2");
+
 my $order         = Marpa::R2::Thin::O->new($bocage);
-say STDERR "Order is null: ", $order->is_null();
-# say STDERR "Order high rank only: ", $order->high_rank_only_set(0);
-# $order->rank();
-say STDERR "Order high rank only: ", $order->high_rank_only();
-say STDERR "Order ambiguity_metric: ", $order->ambiguity_metric();
+
+Test::More::is( $order->is_null(), 0, "Order is null");
+
+Test::More::is( $order->high_rank_only(), 1, "Order high rank only");
+
+Test::More::ok( ($order->ambiguity_metric() >= 2), "Order ambiguity_metric >= 2");
+
 my $tree          = Marpa::R2::Thin::T->new($order);
-say STDERR "Tree parse count: ", $tree->parse_count();
-my @actual_values = ();
-while ( $tree->next() ) {
-    # say STDERR "Nook or node: ", $tree->_marpa_t_nook_or_node(0);
-    say STDERR "Tree parse count: ", $tree->parse_count();
-    my $valuator = Marpa::R2::Thin::V->new($tree);
-    my @stack = ();
-    STEP: while ( 1 ) {
-        my ( $type, @step_data ) = $valuator->step();
-        last STEP if not defined $type;
-        if ( $type eq 'MARPA_STEP_TOKEN' ) {
-            my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = ${$input[$token_value_ix]}[1];
-            next STEP;
-        }
-        if ( $type eq 'MARPA_STEP_RULE' ) {
-            my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            # if ( $rule_id == $start_rule_id ) {
-                # my ( $string, $value ) = @{ $stack[$arg_n] };
-                # $stack[$arg_0] = "$string == $value";
-                # next STEP;
-            # }
-            # if ( $rule_id == $number_rule_id ) {
-                # my $number = $stack[$arg_0];
-                # $stack[$arg_0] = [ $number, $number ];
-                # next STEP;
-            # }
-            die "Unknown rule $rule_id";
-        } ## end if ( $type eq 'MARPA_STEP_RULE' )
-        die "Unexpected step type: $type";
 
-#        if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
-#            my ($symbol_id) = @step_data;
-#            $locations_report
-#                .= "Nulling symbol $symbol_id is from $start to $end\n";
-#        }
+Test::More::is( $tree->parse_count(), 0, 'Tree parse count before $tree->next');
+$tree->next();
+Test::More::is( $tree->parse_count(), 1, 'Tree parse count after $tree->next');
 
-    } ## end while ( my ( $type, @step_data ) = $valuator->step() )
-    push @actual_values, $stack[0];
-} ## end while ( $tree->next() )
+my @actual_parse = ();
+my $valuator = Marpa::R2::Thin::V->new($tree);
+STEP: while (1) {
+    my ( $type, @step_data ) = $valuator->step();
+    last STEP if not defined $type;
+    if ( $type eq 'MARPA_STEP_TOKEN' ) {
+        my ( undef, $token_value_ix, $arg_n ) = @step_data;
+        push @actual_parse, "MARPA_STEP_TOKEN $token_value_ix $arg_n";
+        next STEP;
+    }
+    if ( $type eq 'MARPA_STEP_RULE' ) {
+        my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+        push @actual_parse, "MARPA_STEP_RULE $rule_id $arg_0 $arg_n";
+        next STEP;
+    } ## end if ( $type eq 'MARPA_STEP_RULE' )
+    if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
+        my ($symbol_id) = @step_data;
+        push @actual_parse, "MARPA_STEP_NULLING_SYMBOL $symbol_id";
+    }
 
-    # say STDERR "Nook or node: ", $tree->_marpa_t_nook_or_node(0);
-    say STDERR "Tree parse count: ", $tree->parse_count();
+}
+
+my $actual_parse = join "\n", @actual_parse, q{};
+
+my $expected_parse = <<'EOS';
+MARPA_STEP_NULLING_SYMBOL 181
+MARPA_STEP_NULLING_SYMBOL 13
+MARPA_STEP_TOKEN 1 2
+MARPA_STEP_TOKEN 2 3
+MARPA_STEP_RULE 201 3 3
+MARPA_STEP_NULLING_SYMBOL 182
+MARPA_STEP_NULLING_SYMBOL 168
+MARPA_STEP_RULE 374 1 5
+MARPA_STEP_TOKEN 3 2
+MARPA_STEP_NULLING_SYMBOL 381
+MARPA_STEP_NULLING_SYMBOL 332
+MARPA_STEP_NULLING_SYMBOL 274
+MARPA_STEP_TOKEN 4 6
+MARPA_STEP_RULE 33 6 6
+MARPA_STEP_NULLING_SYMBOL 173
+MARPA_STEP_TOKEN 5 8
+MARPA_STEP_RULE 201 8 8
+MARPA_STEP_RULE 124 8 8
+MARPA_STEP_NULLING_SYMBOL 379
+MARPA_STEP_RULE 205 8 9
+MARPA_STEP_NULLING_SYMBOL 232
+MARPA_STEP_RULE 352 8 9
+MARPA_STEP_RULE 355 8 8
+MARPA_STEP_RULE 73 8 8
+MARPA_STEP_RULE 441 8 8
+MARPA_STEP_RULE 345 7 8
+MARPA_STEP_NULLING_SYMBOL 367
+MARPA_STEP_RULE 133 7 8
+MARPA_STEP_RULE 134 7 7
+MARPA_STEP_RULE 339 7 7
+MARPA_STEP_TOKEN 6 8
+MARPA_STEP_NULLING_SYMBOL 112
+MARPA_STEP_TOKEN 7 10
+MARPA_STEP_RULE 201 10 10
+MARPA_STEP_RULE 525 10 10
+MARPA_STEP_NULLING_SYMBOL 218
+MARPA_STEP_RULE 302 9 11
+MARPA_STEP_RULE 520 9 9
+MARPA_STEP_RULE 22 8 9
+MARPA_STEP_RULE 37 8 8
+MARPA_STEP_RULE 38 6 8
+MARPA_STEP_RULE 30 4 6
+MARPA_STEP_NULLING_SYMBOL 130
+MARPA_STEP_RULE 25 4 5
+MARPA_STEP_RULE 378 4 4
+MARPA_STEP_RULE 362 4 4
+MARPA_STEP_RULE 365 3 4
+MARPA_STEP_NULLING_SYMBOL 35
+MARPA_STEP_NULLING_SYMBOL 269
+MARPA_STEP_TOKEN 8 6
+MARPA_STEP_TOKEN 9 7
+MARPA_STEP_RULE 201 7 7
+MARPA_STEP_RULE 179 6 7
+MARPA_STEP_NULLING_SYMBOL 179
+MARPA_STEP_NULLING_SYMBOL 45
+MARPA_STEP_RULE 176 4 8
+MARPA_STEP_TOKEN 10 5
+MARPA_STEP_TOKEN 11 6
+MARPA_STEP_RULE 201 6 6
+MARPA_STEP_RULE 317 6 6
+MARPA_STEP_NULLING_SYMBOL 368
+MARPA_STEP_TOKEN 12 8
+MARPA_STEP_NULLING_SYMBOL 135
+MARPA_STEP_NULLING_SYMBOL 112
+MARPA_STEP_TOKEN 13 11
+MARPA_STEP_RULE 201 11 11
+MARPA_STEP_RULE 525 11 11
+MARPA_STEP_NULLING_SYMBOL 218
+MARPA_STEP_RULE 302 10 12
+MARPA_STEP_RULE 520 10 10
+MARPA_STEP_RULE 337 9 10
+MARPA_STEP_RULE 321 8 9
+MARPA_STEP_RULE 323 8 8
+MARPA_STEP_NULLING_SYMBOL 184
+MARPA_STEP_RULE 326 6 9
+MARPA_STEP_NULLING_SYMBOL 234
+MARPA_STEP_RULE 330 6 7
+MARPA_STEP_RULE 182 6 6
+MARPA_STEP_TOKEN 14 7
+MARPA_STEP_NULLING_SYMBOL 74
+MARPA_STEP_RULE 186 5 8
+MARPA_STEP_TOKEN 15 6
+MARPA_STEP_NULLING_SYMBOL 318
+MARPA_STEP_NULLING_SYMBOL 173
+MARPA_STEP_NULLING_SYMBOL 173
+MARPA_STEP_NULLING_SYMBOL 112
+MARPA_STEP_TOKEN 16 11
+MARPA_STEP_RULE 201 11 11
+MARPA_STEP_RULE 525 11 11
+MARPA_STEP_NULLING_SYMBOL 218
+MARPA_STEP_RULE 302 10 12
+MARPA_STEP_RULE 520 10 10
+MARPA_STEP_TOKEN 17 11
+MARPA_STEP_TOKEN 18 12
+MARPA_STEP_RULE 201 12 12
+MARPA_STEP_RULE 124 12 12
+MARPA_STEP_NULLING_SYMBOL 379
+MARPA_STEP_RULE 205 12 13
+MARPA_STEP_NULLING_SYMBOL 232
+MARPA_STEP_RULE 352 12 13
+MARPA_STEP_RULE 535 10 12
+MARPA_STEP_RULE 70 10 10
+MARPA_STEP_RULE 441 10 10
+MARPA_STEP_RULE 345 9 10
+MARPA_STEP_NULLING_SYMBOL 367
+MARPA_STEP_RULE 133 9 10
+MARPA_STEP_TOKEN 19 10
+MARPA_STEP_NULLING_SYMBOL 83
+MARPA_STEP_TOKEN 20 12
+MARPA_STEP_RULE 163 9 12
+MARPA_STEP_RULE 71 9 9
+MARPA_STEP_RULE 441 9 9
+MARPA_STEP_RULE 345 8 9
+MARPA_STEP_NULLING_SYMBOL 367
+MARPA_STEP_RULE 133 8 9
+MARPA_STEP_RULE 402 8 8
+MARPA_STEP_RULE 41 8 8
+MARPA_STEP_RULE 44 7 8
+MARPA_STEP_TOKEN 21 8
+MARPA_STEP_RULE 45 6 8
+MARPA_STEP_RULE 157 6 6
+MARPA_STEP_RULE 166 6 6
+MARPA_STEP_RULE 167 4 6
+MARPA_STEP_RULE 375 4 4
+MARPA_STEP_RULE 362 4 4
+MARPA_STEP_RULE 365 3 4
+MARPA_STEP_NULLING_SYMBOL 35
+MARPA_STEP_NULLING_SYMBOL 269
+MARPA_STEP_TOKEN 22 6
+MARPA_STEP_TOKEN 23 7
+MARPA_STEP_RULE 201 7 7
+MARPA_STEP_RULE 179 6 7
+MARPA_STEP_NULLING_SYMBOL 179
+MARPA_STEP_NULLING_SYMBOL 45
+MARPA_STEP_RULE 176 4 8
+MARPA_STEP_TOKEN 24 5
+MARPA_STEP_TOKEN 25 6
+MARPA_STEP_RULE 201 6 6
+MARPA_STEP_RULE 317 6 6
+MARPA_STEP_NULLING_SYMBOL 368
+MARPA_STEP_TOKEN 26 8
+MARPA_STEP_NULLING_SYMBOL 135
+MARPA_STEP_NULLING_SYMBOL 112
+MARPA_STEP_TOKEN 27 11
+MARPA_STEP_RULE 201 11 11
+MARPA_STEP_RULE 525 11 11
+MARPA_STEP_NULLING_SYMBOL 218
+MARPA_STEP_RULE 302 10 12
+MARPA_STEP_RULE 520 10 10
+MARPA_STEP_RULE 337 9 10
+MARPA_STEP_RULE 321 8 9
+MARPA_STEP_RULE 323 8 8
+MARPA_STEP_NULLING_SYMBOL 184
+MARPA_STEP_RULE 326 6 9
+MARPA_STEP_NULLING_SYMBOL 234
+MARPA_STEP_RULE 330 6 7
+MARPA_STEP_RULE 182 6 6
+MARPA_STEP_TOKEN 28 7
+MARPA_STEP_TOKEN 29 8
+MARPA_STEP_NULLING_SYMBOL 112
+MARPA_STEP_TOKEN 30 10
+MARPA_STEP_RULE 201 10 10
+MARPA_STEP_RULE 525 10 10
+MARPA_STEP_NULLING_SYMBOL 218
+MARPA_STEP_RULE 302 9 11
+MARPA_STEP_RULE 520 9 9
+MARPA_STEP_RULE 183 8 9
+MARPA_STEP_RULE 185 8 8
+MARPA_STEP_RULE 186 5 8
+MARPA_STEP_TOKEN 31 6
+MARPA_STEP_TOKEN 32 7
+MARPA_STEP_RULE 279 7 7
+MARPA_STEP_TOKEN 33 8
+MARPA_STEP_NULLING_SYMBOL 318
+MARPA_STEP_NULLING_SYMBOL 173
+MARPA_STEP_TOKEN 34 11
+MARPA_STEP_RULE 201 11 11
+MARPA_STEP_RULE 124 11 11
+MARPA_STEP_NULLING_SYMBOL 379
+MARPA_STEP_RULE 205 11 12
+MARPA_STEP_NULLING_SYMBOL 232
+MARPA_STEP_RULE 352 11 12
+MARPA_STEP_RULE 355 11 11
+MARPA_STEP_RULE 73 11 11
+MARPA_STEP_RULE 441 11 11
+MARPA_STEP_RULE 345 10 11
+MARPA_STEP_NULLING_SYMBOL 367
+MARPA_STEP_RULE 133 10 11
+MARPA_STEP_RULE 402 10 10
+MARPA_STEP_RULE 41 10 10
+MARPA_STEP_RULE 44 9 10
+MARPA_STEP_TOKEN 35 10
+MARPA_STEP_RULE 346 10 10
+MARPA_STEP_RULE 344 10 10
+MARPA_STEP_TOKEN 36 11
+MARPA_STEP_RULE 201 11 11
+MARPA_STEP_RULE 124 11 11
+MARPA_STEP_NULLING_SYMBOL 379
+MARPA_STEP_RULE 205 11 12
+MARPA_STEP_NULLING_SYMBOL 232
+MARPA_STEP_RULE 352 11 12
+MARPA_STEP_RULE 355 11 11
+MARPA_STEP_RULE 73 11 11
+MARPA_STEP_RULE 441 11 11
+MARPA_STEP_RULE 345 10 11
+MARPA_STEP_NULLING_SYMBOL 367
+MARPA_STEP_RULE 133 10 11
+MARPA_STEP_RULE 402 10 10
+MARPA_STEP_RULE 41 10 10
+MARPA_STEP_RULE 44 9 10
+MARPA_STEP_TOKEN 37 10
+MARPA_STEP_RULE 45 8 10
+MARPA_STEP_RULE 277 8 8
+MARPA_STEP_RULE 278 7 8
+MARPA_STEP_RULE 158 7 7
+MARPA_STEP_TOKEN 38 8
+MARPA_STEP_RULE 281 8 8
+MARPA_STEP_TOKEN 39 9
+MARPA_STEP_NULLING_SYMBOL 318
+MARPA_STEP_NULLING_SYMBOL 173
+MARPA_STEP_TOKEN 40 12
+MARPA_STEP_RULE 201 12 12
+MARPA_STEP_RULE 124 12 12
+MARPA_STEP_NULLING_SYMBOL 379
+MARPA_STEP_RULE 205 12 13
+MARPA_STEP_NULLING_SYMBOL 232
+MARPA_STEP_RULE 352 12 13
+MARPA_STEP_RULE 355 12 12
+MARPA_STEP_RULE 73 12 12
+MARPA_STEP_RULE 441 12 12
+MARPA_STEP_RULE 345 11 12
+MARPA_STEP_NULLING_SYMBOL 367
+MARPA_STEP_RULE 133 11 12
+MARPA_STEP_RULE 402 11 11
+MARPA_STEP_RULE 41 11 11
+MARPA_STEP_RULE 44 10 11
+MARPA_STEP_TOKEN 41 11
+MARPA_STEP_RULE 346 11 11
+MARPA_STEP_RULE 344 11 11
+MARPA_STEP_TOKEN 42 12
+MARPA_STEP_RULE 201 12 12
+MARPA_STEP_RULE 124 12 12
+MARPA_STEP_NULLING_SYMBOL 379
+MARPA_STEP_RULE 205 12 13
+MARPA_STEP_NULLING_SYMBOL 232
+MARPA_STEP_RULE 352 12 13
+MARPA_STEP_RULE 355 12 12
+MARPA_STEP_RULE 73 12 12
+MARPA_STEP_RULE 441 12 12
+MARPA_STEP_RULE 345 11 12
+MARPA_STEP_NULLING_SYMBOL 367
+MARPA_STEP_RULE 133 11 12
+MARPA_STEP_RULE 402 11 11
+MARPA_STEP_RULE 41 11 11
+MARPA_STEP_RULE 44 10 11
+MARPA_STEP_TOKEN 43 11
+MARPA_STEP_RULE 45 9 11
+MARPA_STEP_RULE 277 9 9
+MARPA_STEP_RULE 278 8 9
+MARPA_STEP_RULE 159 7 8
+MARPA_STEP_TOKEN 44 8
+MARPA_STEP_RULE 160 6 8
+MARPA_STEP_RULE 156 6 6
+MARPA_STEP_RULE 166 6 6
+MARPA_STEP_RULE 167 4 6
+MARPA_STEP_RULE 375 4 4
+MARPA_STEP_RULE 362 4 4
+MARPA_STEP_RULE 365 3 4
+MARPA_STEP_TOKEN 45 4
+MARPA_STEP_RULE 366 2 4
+MARPA_STEP_RULE 367 1 2
+MARPA_STEP_RULE 290 1 1
+MARPA_STEP_RULE 282 1 1
+MARPA_STEP_RULE 285 0 1
+MARPA_STEP_RULE 286 0 0
+EOS
+
+Marpa::R2::Test::is($actual_parse, $expected_parse, "Parse steps");
 
 # Local Variables:
 #   mode: cperl
