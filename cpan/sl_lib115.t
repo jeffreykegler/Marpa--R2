@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use Scalar::Util;
 use Data::Dumper;
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -30,8 +30,6 @@ use Marpa::R2::Test;
 ## no critic (ErrorHandling::RequireCarping);
 
 use Marpa::R2;
-
-say 'Libmarpa tag: ' . Marpa::R2::Thin::tag();
 
 my $bnfOfBNF = <<'END_OF_BNF_OF_BNF';
 :default ::= action => [values]
@@ -793,32 +791,46 @@ EOS
 
 read_input();
 
-say 'Progress@15:', "\n", $recce->show_progress(15);
-say "Ambiguity Metric: ", $recce->ambiguity_metric();
-say "Ambiguity: ", $recce->ambiguous();
+Test::More::ok( ($recce->ambiguity_metric() >= 2), "Recce ambiguity_metric >= 2");
 
-# Start a new recognizer, because we cannot call
-# $r->ambiguous() and $r->value() on the same recognizer
-$recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-read_input();
-say "Ambiguity Metric: ", $recce->ambiguity_metric();
-say $grammar->show_rules();
-say "=== ISYs ===\n", $grammar->show_isys();
-say $grammar->show_irls();
-say "=== And nodes ===\n", $recce->show_and_nodes(1);
-say "=== Or nodes ===\n", $recce->verbose_or_nodes();
-say "=== Bocage ===\n", $recce->show_bocage();
-
-Marpa::R2::Thin::debug_level_set(1);
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse was found, after reading the entire input\n";
 }
 
 my $expected_value = \[
+    [
+        [ '\'type\'', 'A' ],
+        [
+            '{',
+            [
+                [
+                    [ '\'var\'', 'a', [ ':', 'Int' ] ],
+                    [
+                        [ '\'fun\'', 'foo' ],
+                        [ '(',       [ 'a', [ ':', 'Int' ] ], ')' ],
+                        [ '{',       [ [ 'a', '.', 'copy' ], '(', ')' ], '}' ]
+                    ]
+                ],
+                [
+                    [ '\'fun\'', 'foo' ],
+                    [ '(', [ 'b', [ ':', 'Int' ] ], ')', [ '->', 'Int' ] ],
+                    [
+                        '{',
+                        [
+                            [ 'let',   [ '{', [ 'a', [ '+',  'b' ] ], '}' ] ],
+                            [ 'inout', [ '{', [ 'b', [ '+=', 'a' ] ], '}' ] ]
+                        ],
+                        '}'
+                    ]
+                ]
+            ],
+            '}'
+        ]
+    ]
 ];
 
-Test::More::is(
+Test::More::is_deeply(
     Data::Dumper::Dumper($value_ref),
     Data::Dumper::Dumper($expected_value),
     'Value of parse'
