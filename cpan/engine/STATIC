@@ -13,6 +13,10 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+IMPORTANT NOTE:  This method assumes the both the library and Marpa::R2
+were compiled with the same headers.  In particular, marpa.h, the Libmarpa
+public header must be the same.
+
 This document describes how to link an external static library with
 Marpa::R2.  This method, and this document, are intended for re-packagers
 and other very advanced users.  This method is not supported by the CPAN
