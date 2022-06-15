@@ -1,6 +1,6 @@
 This is api.info, produced by makeinfo version 6.5 from api.texi.
 
-This manual (13 June 2022) is for Libmarpa 8.6.5.
+This manual (15 June 2022) is for Libmarpa 8.6.6.
 
    Copyright (C) 2018 Jeffrey Kegler.
 
@@ -34,7 +34,7 @@ File: api.info,  Node: Top,  Next: No warranty,  Prev: (dir),  Up: (dir)
 Libmarpa: The Marpa low-level library
 *************************************
 
-This manual (13 June 2022) is for Libmarpa 8.6.5.
+This manual (15 June 2022) is for Libmarpa 8.6.6.
 
    Copyright (C) 2018 Jeffrey Kegler.
 
@@ -1391,7 +1391,7 @@ File: api.info,  Node: Static methods,  Next: Configuration methods,  Prev: Intr
      Libmarpa that they are using.
 
      If REQUIRED_MAJOR.REQUIRED_MINOR.REQUIRED_MICRO is an exact match
-     with 8.6.5, the method succeeds.  Otherwise the return status is an
+     with 8.6.6, the method succeeds.  Otherwise the return status is an
      irrecoverable hard failure.
 
      *Return value*: On success, 'MARPA_ERR_NONE'.  On hard failure, the
