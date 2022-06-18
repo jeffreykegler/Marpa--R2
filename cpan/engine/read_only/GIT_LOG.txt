@@ -2,34 +2,32 @@ This file contains the output of a `git log -n 5`, performed when the
 distribution was created.  It is for convenience in identifying the commit
 for this distribution.
 
-commit 54fc56f8badf54650572053a2b5b2353574b1a7a
+commit 126a1f82dbe8ab7cb71af2b46f88b98155ca4be1
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Wed Jun 15 12:17:08 2022 -0400
+Date:   Fri Jun 17 13:41:04 2022 -0400
 
-    Work on #115 -- broken
-    
-    Fix regresses in R2
+    Issue #102
 
-commit 05f1760d4d14f6c8b45839fcca92edce14f63bf6
+commit ec4d87dfca16c9489ee50bf821037d33035dcbb6
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Mon Jun 13 16:32:03 2022 -0400
+Date:   Fri Jun 17 13:29:27 2022 -0400
 
-    Work on #115
+    Issue #102
 
-commit ed6b08cf2a1e93168db0cf37fa846217c7786e79
+commit 8751ae49a7d08f9dca28724482b4e767154d9e2c
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Mon Jun 13 15:41:54 2022 -0400
+Date:   Fri Jun 17 13:03:58 2022 -0400
 
-    Work on #115
+    Issue #102
 
-commit 63b39783c6cea59eacb548415757ef323640b9f2
+commit 9c909936b0956b7f70115ecdb9c784db48e2cd1b
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Mon Jun 13 15:06:28 2022 -0400
+Date:   Fri Jun 17 12:55:03 2022 -0400
 
-    Work on #115
+    Issue #102
 
-commit 4a1b4aa2f917a95ce22e8cd7c74c80c65bbe8a72
+commit 232e550b6808b11ac34af1cf7bccecd62f7af06f
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Mon Jun 13 14:41:36 2022 -0400
+Date:   Fri Jun 17 12:38:11 2022 -0400
 
-    Work on #115
+    Issue #102

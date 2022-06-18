@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Jeffrey Kegler
+ * Copyright 2022 Jeffrey Kegler
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -37,7 +37,7 @@
 
 #define MARPA_MAJOR_VERSION  8
 #define MARPA_MINOR_VERSION  6
-#define MARPA_MICRO_VERSION  6
+#define MARPA_MICRO_VERSION  7
 
 #line 1 "./marpa.h-err"
 #define MARPA_ERROR_COUNT 100
