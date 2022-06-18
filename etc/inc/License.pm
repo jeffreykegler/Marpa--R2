@@ -323,25 +323,28 @@ my %files_by_type = (
     'cpan/engine/read_only/COPYING' => \&ignored, # Libmarpa's special copying file
     'cpan/engine/read_only/COPYING.LESSER' => \&ignored,
     'cpan/engine/read_only/ChangeLog' => \&trivial,
-    'cpan/engine/read_only/GIT_LOG.txt' => \&nyi,
-    'cpan/engine/read_only/INSTALL' => \&nyi,
+    'cpan/engine/read_only/GIT_LOG.txt' => \&ignored,
+    'cpan/engine/read_only/INSTALL' => \&ignored,
     'cpan/engine/read_only/LIB_VERSION' => \&trivial,
     'cpan/engine/read_only/LIB_VERSION.in' => \&trivial,
     'cpan/engine/read_only/Makefile.am' => gen_license_problems_in_c_file($mit_hash_license),
-    'cpan/engine/read_only/Makefile.win32' => \&nyi,
+    'cpan/engine/read_only/Makefile.win32' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/NEWS' => \&trivial,
     'cpan/engine/read_only/README' => \&ignored,
-    'cpan/engine/read_only/README.AIX' => \&nyi,
-    'cpan/engine/read_only/README.INSTALL' => \&nyi,
+    'cpan/engine/read_only/README.AIX' => \&ignored,
+    'cpan/engine/read_only/README.INSTALL' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/api_docs/libmarpa_api.html' => \&nyi,
-    'cpan/engine/read_only/config.h.in' => \&nyi,
+    'cpan/engine/read_only/config.h.in' => \&ignored,
     'cpan/engine/read_only/configure.ac' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/error_codes.table' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/events.table' => gen_license_problems_in_c_file($mit_hash_license),
-    'cpan/engine/read_only/install-sh' => \&nyi,
-    'cpan/engine/read_only/libmarpa.pc' => \&nyi,
-    'cpan/engine/read_only/libmarpa.pc.in' => \&nyi,
-    'cpan/engine/read_only/libmarpa_version.sh' => \&nyi,
+    'cpan/engine/read_only/install-sh' => \&ignored,
+    'cpan/engine/read_only/libmarpa.pc' => gen_license_problems_in_c_file($mit_hash_license),
+    'cpan/engine/read_only/libmarpa.pc.in' => gen_license_problems_in_c_file($mit_hash_license),
+
+    # Short and auto-generated
+    'cpan/engine/read_only/libmarpa_version.sh' => \&trivial,
+
     'cpan/engine/read_only/marpa.c' => gen_license_problems_in_c_file($c_mit_license),
     'cpan/engine/read_only/marpa.h' => gen_license_problems_in_c_file($c_mit_license),
     'cpan/engine/read_only/marpa_ami.c' => gen_license_problems_in_c_file($c_mit_license),
@@ -362,8 +365,13 @@ my %files_by_type = (
 
     'cpan/engine/read_only/steps.table' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/version.m4' => \&trivial,
-    'cpan/engine/read_only/win32/do_config_h.pl' => \&nyi,
+    'cpan/engine/read_only/win32/do_config_h.pl' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/win32/marpa.def' => \&ignored,
+
+    # The markdown update files are peripheral to the code,
+    # and it is not practical to add copyright language at this point
+    'etc/old_updates/UPDATES-4.000000.md' => \&ignored,
+    'etc/old_updates/UPDATES-6.000000.md' => \&ignored,
 
 );
 
