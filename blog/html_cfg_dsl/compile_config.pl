@@ -13,7 +13,6 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-
 # This file is a simplification of html/lib/Marpa/R2/HTML/Config/Compile.pm
 
 use 5.010;
