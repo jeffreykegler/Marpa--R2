@@ -281,7 +281,12 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
-    'cpan/COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
+    'blog/error/to_html.pl' => \&trivial,
+
+    # GNU license text, leave it alone
+    'COPYING.LESSER' => \&ignored,
+    'cpan/COPYING.LESSER' => \&ignored,
+
     'cpan/LICENSE' => \&license_problems_in_license_file,
     'LICENSE' => \&license_problems_in_license_file,
     'cpan/META.json' =>
@@ -333,7 +338,11 @@ my %files_by_type = (
     'cpan/engine/read_only/README' => \&ignored,
     'cpan/engine/read_only/README.AIX' => \&ignored,
     'cpan/engine/read_only/README.INSTALL' => gen_license_problems_in_c_file($mit_hash_license),
-    'cpan/engine/read_only/api_docs/libmarpa_api.html' => \&nyi,
+
+    # I could port the check from Libmarpa, but it's a lot of code
+    # and we will just trust that the license as copied OK
+    'cpan/engine/read_only/api_docs/libmarpa_api.html' => \&ignored,
+
     'cpan/engine/read_only/config.h.in' => \&ignored,
     'cpan/engine/read_only/configure.ac' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/error_codes.table' => gen_license_problems_in_c_file($mit_hash_license),
@@ -373,6 +382,37 @@ my %files_by_type = (
     'etc/old_updates/UPDATES-4.000000.md' => \&ignored,
     'etc/old_updates/UPDATES-6.000000.md' => \&ignored,
 
+    # Input and output files for tests
+    'sandbox/old/ambiguities' => \&ignored,
+    'sandbox/old/html.counts' => \&ignored,
+    'sandbox/old/perl.counts' => \&ignored,
+    'sandbox/old2/curly.in' => \&ignored,
+    'sandbox/old2/curly.out' => \&ignored,
+
+    'cpan/html/sandbox/loose.dtd' => \&ignored, # Standard, leave as is
+
+    # Input files for tests
+    'cpan/html/sandbox/small.html' => \&ignored,
+    'cpan/html/sandbox/local.html' => \&ignored,
+
+    # Input and output files for tests
+    'blog/dyck_hollerith/post1/dh_numbers.html' => \&ignored,
+    'blog/html_cfg_dsl/plot' => \&ignored,
+    'blog/html_config/css.html' => \&ignored,
+    'blog/iterative/test.in' => \&ignored,
+    'blog/iterative/test.out' => \&ignored,
+    'blog/json/test.json' => \&ignored,
+    'blog/search/test.in' => \&ignored,
+    'blog/search/test.out' => \&ignored,
+    'blog/sl/p1000.in' => \&ignored,
+    'blog/sl/re1000.out' => \&ignored,
+    'blog/slperl/test.in' => \&ignored,
+    'blog/slperl/test.out' => \&ignored,
+    'blog/whitespace/prefix.out' => \&ignored,
+
+    # Very short files
+    'blog/op3/try.sh' => \&trivial,
+    'blog/search/test.sh' => \&trivial,
 );
 
 
