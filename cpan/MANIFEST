@@ -42,11 +42,7 @@ author.t/pod.t
 author.t/spelling_exceptions.list
 author.t/tidy.t
 author.t/tidy1
-engine/LOG_DATA
 engine/README
-engine/SHARED
-engine/STATIC
-engine/base.time-stamp
 engine/read_only/AUTHORS
 engine/read_only/COPYING
 engine/read_only/COPYING.LESSER
@@ -93,7 +89,6 @@ engine/read_only/win32/do_config_h.pl
 engine/read_only/win32/marpa.def
 etc/.gitignore
 etc/Makefile
-etc/check_license.pl
 etc/check_links.pl
 etc/compile_for_debug.sh
 etc/dovg.sh
@@ -147,7 +142,6 @@ html/tool/lib/Marpa/R2/HTML/Test/Util.pm
 inc/Marpa/R2/Build_Me.pm
 inc/Marpa/R2/Config.pm
 inc/Marpa/R2/Display.pm
-inc/Marpa/R2/License.pm
 inc/Marpa/R2/Test.pm
 inc/Marpa/R2/legal.pl
 inc/drafts/undocumented.list

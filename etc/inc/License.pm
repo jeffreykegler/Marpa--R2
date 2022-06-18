@@ -131,6 +131,7 @@ sub c_comment {
 
 my $c_license          = c_comment($marpa_r2_license);
 my $c_mit_license          = c_comment($mit_license);
+my $mit_hash_license          = hash_comment($mit_license);
 my $xs_license          = c_comment($license);
 my $r2_hash_license    = hash_comment($license);
 my $libmarpa_hash_license    = hash_comment($mit_license);
@@ -315,50 +316,54 @@ my %files_by_type = (
     'cpan/html/t/test.html'                       => \&ignored,
     'cpan/etc/my_suppressions' => \&trivial,
     'cpan/xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
+    'cpan/engine/README' => gen_license_problems_in_hash_file(),
 
     # Libmarpa has MIT licensing
-    'cpan/engine/LOG_DATA' => \&nyi,
-    'cpan/engine/README' => \&nyi,
-    'cpan/engine/base.time-stamp' => \&nyi,
-    'cpan/engine/read_only/AUTHORS' => \&nyi,
-    'cpan/engine/read_only/COPYING' => \&nyi,
-    'cpan/engine/read_only/COPYING.LESSER' => \&nyi,
-    'cpan/engine/read_only/ChangeLog' => \&nyi,
+    'cpan/engine/read_only/AUTHORS' => \&trivial,
+    'cpan/engine/read_only/COPYING' => \&ignored, # Libmarpa's special copying file
+    'cpan/engine/read_only/COPYING.LESSER' => \&ignored,
+    'cpan/engine/read_only/ChangeLog' => \&trivial,
     'cpan/engine/read_only/GIT_LOG.txt' => \&nyi,
     'cpan/engine/read_only/INSTALL' => \&nyi,
-    'cpan/engine/read_only/LIB_VERSION' => \&nyi,
-    'cpan/engine/read_only/LIB_VERSION.in' => \&nyi,
-    'cpan/engine/read_only/Makefile.am' => \&nyi,
+    'cpan/engine/read_only/LIB_VERSION' => \&trivial,
+    'cpan/engine/read_only/LIB_VERSION.in' => \&trivial,
+    'cpan/engine/read_only/Makefile.am' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/Makefile.win32' => \&nyi,
-    'cpan/engine/read_only/NEWS' => \&nyi,
-    'cpan/engine/read_only/README' => \&nyi,
+    'cpan/engine/read_only/NEWS' => \&trivial,
+    'cpan/engine/read_only/README' => \&ignored,
     'cpan/engine/read_only/README.AIX' => \&nyi,
     'cpan/engine/read_only/README.INSTALL' => \&nyi,
     'cpan/engine/read_only/api_docs/libmarpa_api.html' => \&nyi,
     'cpan/engine/read_only/config.h.in' => \&nyi,
-    'cpan/engine/read_only/configure.ac' => \&nyi,
-    'cpan/engine/read_only/error_codes.table' => \&nyi,
-    'cpan/engine/read_only/events.table' => \&nyi,
+    'cpan/engine/read_only/configure.ac' => gen_license_problems_in_c_file($mit_hash_license),
+    'cpan/engine/read_only/error_codes.table' => gen_license_problems_in_c_file($mit_hash_license),
+    'cpan/engine/read_only/events.table' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/install-sh' => \&nyi,
     'cpan/engine/read_only/libmarpa.pc' => \&nyi,
     'cpan/engine/read_only/libmarpa.pc.in' => \&nyi,
     'cpan/engine/read_only/libmarpa_version.sh' => \&nyi,
-    'cpan/engine/read_only/marpa.c' => \&nyi,
-    'cpan/engine/read_only/marpa.h' => \&nyi,
-    'cpan/engine/read_only/marpa_ami.c' => \&nyi,
-    'cpan/engine/read_only/marpa_ami.h' => \&nyi,
-    'cpan/engine/read_only/marpa_avl.c' => \&nyi,
-    'cpan/engine/read_only/marpa_avl.h' => \&nyi,
-    'cpan/engine/read_only/marpa_codes.c' => \&nyi,
-    'cpan/engine/read_only/marpa_codes.h' => \&nyi,
-    'cpan/engine/read_only/marpa_obs.c' => \&nyi,
-    'cpan/engine/read_only/marpa_obs.h' => \&nyi,
-    'cpan/engine/read_only/marpa_tavl.c' => \&nyi,
-    'cpan/engine/read_only/marpa_tavl.h' => \&nyi,
-    'cpan/engine/read_only/steps.table' => \&nyi,
-    'cpan/engine/read_only/version.m4' => \&nyi,
+    'cpan/engine/read_only/marpa.c' => gen_license_problems_in_c_file($c_mit_license),
+    'cpan/engine/read_only/marpa.h' => gen_license_problems_in_c_file($c_mit_license),
+    'cpan/engine/read_only/marpa_ami.c' => gen_license_problems_in_c_file($c_mit_license),
+    'cpan/engine/read_only/marpa_ami.h' => gen_license_problems_in_c_file($c_mit_license),
+
+    # Leave Pfaff's licensing as is
+    'cpan/engine/read_only/marpa_avl.c' => \&ignored,
+    'cpan/engine/read_only/marpa_avl.h' => \&ignored,
+    'cpan/engine/read_only/marpa_tavl.c' => \&ignored,
+    'cpan/engine/read_only/marpa_tavl.h' => \&ignored,
+
+    'cpan/engine/read_only/marpa_codes.c' => gen_license_problems_in_c_file($c_mit_license),
+    'cpan/engine/read_only/marpa_codes.h' => gen_license_problems_in_c_file($c_mit_license),
+
+    # Leave obstack licensing as is
+    'cpan/engine/read_only/marpa_obs.c' => \&ignored,
+    'cpan/engine/read_only/marpa_obs.h' => \&ignored,
+
+    'cpan/engine/read_only/steps.table' => gen_license_problems_in_c_file($mit_hash_license),
+    'cpan/engine/read_only/version.m4' => \&trivial,
     'cpan/engine/read_only/win32/do_config_h.pl' => \&nyi,
-    'cpan/engine/read_only/win32/marpa.def' => \&nyi,
+    'cpan/engine/read_only/win32/marpa.def' => \&ignored,
 
 );
 
