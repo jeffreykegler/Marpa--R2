@@ -172,7 +172,7 @@ END_OF_STRING
 my %GNU_file = (
     map {
     (
-        'engine/read_only/' . $_,   1,
+        'cpan/engine/read_only/' . $_,   1,
         )
     } qw(
         aclocal.m4
@@ -282,6 +282,7 @@ sub check_tag {
 my %files_by_type = (
     'cpan/COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
     'cpan/LICENSE' => \&license_problems_in_license_file,
+    'LICENSE' => \&license_problems_in_license_file,
     'cpan/META.json' =>
         \&ignored,    # not source, and not clear how to add license at top
     'cpan/META.yml' =>
@@ -314,6 +315,51 @@ my %files_by_type = (
     'cpan/html/t/test.html'                       => \&ignored,
     'cpan/etc/my_suppressions' => \&trivial,
     'cpan/xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
+
+    # Libmarpa has MIT licensing
+    'cpan/engine/LOG_DATA' => \&nyi,
+    'cpan/engine/README' => \&nyi,
+    'cpan/engine/base.time-stamp' => \&nyi,
+    'cpan/engine/read_only/AUTHORS' => \&nyi,
+    'cpan/engine/read_only/COPYING' => \&nyi,
+    'cpan/engine/read_only/COPYING.LESSER' => \&nyi,
+    'cpan/engine/read_only/ChangeLog' => \&nyi,
+    'cpan/engine/read_only/GIT_LOG.txt' => \&nyi,
+    'cpan/engine/read_only/INSTALL' => \&nyi,
+    'cpan/engine/read_only/LIB_VERSION' => \&nyi,
+    'cpan/engine/read_only/LIB_VERSION.in' => \&nyi,
+    'cpan/engine/read_only/Makefile.am' => \&nyi,
+    'cpan/engine/read_only/Makefile.win32' => \&nyi,
+    'cpan/engine/read_only/NEWS' => \&nyi,
+    'cpan/engine/read_only/README' => \&nyi,
+    'cpan/engine/read_only/README.AIX' => \&nyi,
+    'cpan/engine/read_only/README.INSTALL' => \&nyi,
+    'cpan/engine/read_only/api_docs/libmarpa_api.html' => \&nyi,
+    'cpan/engine/read_only/config.h.in' => \&nyi,
+    'cpan/engine/read_only/configure.ac' => \&nyi,
+    'cpan/engine/read_only/error_codes.table' => \&nyi,
+    'cpan/engine/read_only/events.table' => \&nyi,
+    'cpan/engine/read_only/install-sh' => \&nyi,
+    'cpan/engine/read_only/libmarpa.pc' => \&nyi,
+    'cpan/engine/read_only/libmarpa.pc.in' => \&nyi,
+    'cpan/engine/read_only/libmarpa_version.sh' => \&nyi,
+    'cpan/engine/read_only/marpa.c' => \&nyi,
+    'cpan/engine/read_only/marpa.h' => \&nyi,
+    'cpan/engine/read_only/marpa_ami.c' => \&nyi,
+    'cpan/engine/read_only/marpa_ami.h' => \&nyi,
+    'cpan/engine/read_only/marpa_avl.c' => \&nyi,
+    'cpan/engine/read_only/marpa_avl.h' => \&nyi,
+    'cpan/engine/read_only/marpa_codes.c' => \&nyi,
+    'cpan/engine/read_only/marpa_codes.h' => \&nyi,
+    'cpan/engine/read_only/marpa_obs.c' => \&nyi,
+    'cpan/engine/read_only/marpa_obs.h' => \&nyi,
+    'cpan/engine/read_only/marpa_tavl.c' => \&nyi,
+    'cpan/engine/read_only/marpa_tavl.h' => \&nyi,
+    'cpan/engine/read_only/steps.table' => \&nyi,
+    'cpan/engine/read_only/version.m4' => \&nyi,
+    'cpan/engine/read_only/win32/do_config_h.pl' => \&nyi,
+    'cpan/engine/read_only/win32/marpa.def' => \&nyi,
+
 );
 
 
@@ -820,8 +866,6 @@ sub gen_license_problems_in_text_file {
     }
 } ## end sub gen_license_problems_in_text_file
 
-# In "Text" files, just look for the full language.
-# No need to comment it out.
 sub license_problems_in_fdl_file {
     my ( $filename, $verbose ) = @_;
     if ($verbose) {
@@ -855,6 +899,13 @@ sub license_problems_in_fdl_file {
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
 } ## end sub license_problems_in_fdl_file
+
+sub nyi {
+    my ( $filename, $verbose ) = @_;
+    my @problems = ();
+    push @problems, "License checking not yet implemented in $filename\n";
+    return @problems;
+}
 
 1;
 
