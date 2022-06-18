@@ -21,7 +21,7 @@ use autodie;
 use English qw( -no_match_vars );
 
 use Getopt::Long;
-my $verbose = 1;
+my $verbose = 0;
 my $result = Getopt::Long::GetOptions( 'verbose=i' => \$verbose );
 die "usage $PROGRAM_NAME [--verbose=n] file ...\n" if not $result;
 
@@ -32,7 +32,7 @@ my $file_count = @ARGV;
 my @license_problems =
     map { Marpa::R2::License::file_license_problems( $_, $verbose ) } @ARGV;
 
-print join "\n", @license_problems;
+print join q{}, @license_problems;
 
 my $problem_count = scalar @license_problems;
 
