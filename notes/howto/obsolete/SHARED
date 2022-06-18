@@ -13,6 +13,9 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+THIS PROCEDURE IS OBSOLETE.  I am keeping this note in the repo, becuase
+it still has reference value.
+
 IMPORTANT NOTE:  This method assumes the both the library and Marpa::R2
 were compiled with the same headers.  In particular, marpa.h, the Libmarpa
 public header must be the same.
