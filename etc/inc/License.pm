@@ -282,6 +282,15 @@ sub check_tag {
 
 my %files_by_type = (
     'blog/error/to_html.pl' => \&trivial,
+    'CITATION.cff' => \&trivial,
+    'cpan/.inputrc' => \&trivial,
+    'cpan/TOUCH' => \&trivial,
+    'target/try.sh' => \&trivial,
+    'INSTALL_NOTES' => \&trivial,
+    'AIX.README' => \&ignored,
+
+    # Legalese, leave it alone
+    'README' => \&ignored,
 
     # GNU license text, leave it alone
     'COPYING.LESSER' => \&ignored,
