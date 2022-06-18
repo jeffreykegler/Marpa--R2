@@ -280,104 +280,40 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
-    'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
-    'LICENSE' => \&license_problems_in_license_file,
-    'META.json' =>
+    'cpan/COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
+    'cpan/LICENSE' => \&license_problems_in_license_file,
+    'cpan/META.json' =>
         \&ignored,    # not source, and not clear how to add license at top
-    'META.yml' =>
+    'cpan/META.yml' =>
         \&ignored,    # not source, and not clear how to add license at top
-    'README'                            => \&trivial,
-    'INSTALL'                           => \&trivial,
-    'TODO'                              => \&trivial,
-    'author.t/accept_tidy'              => \&trivial,
-    'author.t/critic1'                  => \&trivial,
-    'author.t/perltidyrc'               => \&trivial,
-    'author.t/spelling_exceptions.list' => \&trivial,
-    'author.t/tidy1'                    => \&trivial,
-    'etc/pod_errors.pl'                 => \&trivial,
-    'etc/pod_dump.pl'                   => \&trivial,
-    'etc/dovg.sh'                       => \&trivial,
-    'etc/compile_for_debug.sh'          => \&trivial,
-    'etc/libmarpa_test.sh'              => \&trivial,
-    'etc/reserved_check.sh'             => \&trivial,
-    'html/script/marpa_r2_html_fmt'    => gen_license_problems_in_perl_file(),
-    'html/script/marpa_r2_html_score'  => gen_license_problems_in_perl_file(),
-    'html/t/fmt_t_data/expected1.html' => \&ignored,
-    'html/t/fmt_t_data/expected2.html' => \&ignored,
-    'html/t/fmt_t_data/expected3.html' => \&ignored,
-    'html/t/fmt_t_data/input1.html'    => \&trivial,
-    'html/t/fmt_t_data/input2.html'    => \&trivial,
-    'html/t/fmt_t_data/input3.html'    => \&trivial,
-    'html/t/fmt_t_data/score_expected1.html' => \&trivial,
-    'html/t/fmt_t_data/score_expected2.html' => \&trivial,
-    'html/t/no_tang.html'                    => \&ignored,
-    'html/t/test.html'                       => \&ignored,
-    'engine/LOG_DATA'                 => \&ignored,    # not worth the trouble
-    'engine/cf/LIBMARPA_MODE'         => \&trivial,
-    'engine/read_only/LIB_VERSION'    => \&trivial,
-    'engine/read_only/LIB_VERSION.in' => \&trivial,
-    'engine/base.time-stamp' => \&trivial,
-    'engine/read_only/Makefile.am' =>
-        gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'engine/read_only/configure.ac' =>
-        gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'engine/read_only/notes/shared_test.txt' =>
-        gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'engine/read_only/Makefile.win32' =>
-        gen_license_problems_in_hash_file($libmarpa_hash_license),
-    'engine/read_only/win32/do_config_h.pl' =>
-        gen_license_problems_in_perl_file($libmarpa_hash_license),
-    'etc/my_suppressions' => \&trivial,
-    'xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
-    'engine/read_only/README' =>
-        gen_license_problems_in_text_file($mit_license),
-    'engine/read_only/README.INSTALL' =>
-        gen_license_problems_in_text_file($libmarpa_hash_license),
-    'engine/read_only/AUTHORS' => \&trivial,
-    'engine/read_only/NEWS' => \&trivial,
-    'engine/read_only/ChangeLog' => \&trivial,
-
-    ## GNU license text, leave it alone
-    'engine/read_only/COPYING.LESSER' => \&ignored,
-
-    ## GNU standard -- has their license language
-    'engine/read_only/INSTALL' => \&ignored,
-
-    'engine/read_only/COPYING' => gen_license_problems_in_text_file( $mit_license_body ),
-    'engine/read_only/README' => gen_license_problems_in_text_file( $mit_license ),
-    'engine/read_only/stamp-h1' => \&trivial,
-    'engine/read_only/stamp-1' => \&trivial,
-    'engine/read_only/stamp-vti' => \&trivial,
-    'engine/read_only/install-sh' => \&check_X_copyright,
-    'engine/read_only/config.h.in' =>
-        check_tag( 'Generated from configure.ac by autoheader', 250 ),
-
-    # Leave GNU obstack licensing as is
-    'engine/read_only/marpa_obs.c' => \&ignored,
-    'engine/read_only/marpa_obs.h' => \&ignored,
-
-    # Leave Pfaff's licensing as is
-    'engine/read_only/marpa_avl.c'  => \&ignored,
-    'engine/read_only/marpa_avl.h'  => \&ignored,
-    'engine/read_only/marpa_tavl.c' => \&ignored,
-    'engine/read_only/marpa_tavl.h' => \&ignored,
-
-    # Libmarpa licensing
-    'engine/read_only/marpa_ami.h' =>
-        &gen_license_problems_in_c_file($c_mit_license),
-    'engine/read_only/marpa.h' =>
-        &gen_license_problems_in_c_file($c_mit_license),
-    'engine/read_only/marpa_codes.c' =>
-        &gen_license_problems_in_c_file($c_mit_license),
-    'engine/read_only/marpa.c' =>
-        &gen_license_problems_in_c_file($c_mit_license),
-    'engine/read_only/marpa_codes.h' =>
-        &gen_license_problems_in_c_file($c_mit_license),
-    'engine/read_only/marpa_ami.c' =>
-        &gen_license_problems_in_c_file($c_mit_license),
-
-    # MS .def file -- contents trivial
-    'engine/read_only/win32/marpa.def' => \&ignored,
+    'cpan/README'                            => \&trivial,
+    'cpan/INSTALL'                           => \&trivial,
+    'cpan/TODO'                              => \&trivial,
+    'cpan/author.t/accept_tidy'              => \&trivial,
+    'cpan/author.t/critic1'                  => \&trivial,
+    'cpan/author.t/perltidyrc'               => \&trivial,
+    'cpan/author.t/spelling_exceptions.list' => \&trivial,
+    'cpan/author.t/tidy1'                    => \&trivial,
+    'cpan/etc/pod_errors.pl'                 => \&trivial,
+    'cpan/etc/pod_dump.pl'                   => \&trivial,
+    'cpan/etc/dovg.sh'                       => \&trivial,
+    'cpan/etc/compile_for_debug.sh'          => \&trivial,
+    'cpan/etc/libmarpa_test.sh'              => \&trivial,
+    'cpan/etc/reserved_check.sh'             => \&trivial,
+    'cpan/html/script/marpa_r2_html_fmt'    => gen_license_problems_in_perl_file(),
+    'cpan/html/script/marpa_r2_html_score'  => gen_license_problems_in_perl_file(),
+    'cpan/html/t/fmt_t_data/expected1.html' => \&ignored,
+    'cpan/html/t/fmt_t_data/expected2.html' => \&ignored,
+    'cpan/html/t/fmt_t_data/expected3.html' => \&ignored,
+    'cpan/html/t/fmt_t_data/input1.html'    => \&trivial,
+    'cpan/html/t/fmt_t_data/input2.html'    => \&trivial,
+    'cpan/html/t/fmt_t_data/input3.html'    => \&trivial,
+    'cpan/html/t/fmt_t_data/score_expected1.html' => \&trivial,
+    'cpan/html/t/fmt_t_data/score_expected2.html' => \&trivial,
+    'cpan/html/t/no_tang.html'                    => \&ignored,
+    'cpan/html/t/test.html'                       => \&ignored,
+    'cpan/etc/my_suppressions' => \&trivial,
+    'cpan/xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
 );
 
 
@@ -387,11 +323,11 @@ sub file_type {
     return $closure if defined $closure;
     my ( $volume, $dirpart, $filepart ) = File::Spec->splitpath($filename);
     my @dirs = grep {length} File::Spec->splitdir($dirpart);
-    return gen_license_problems_in_perl_file()
-        if scalar @dirs > 1
-            and $dirs[0] eq 'pperl'
-            and $filepart =~ /[.]pm\z/xms;
+
     return \&ignored if $filepart =~ /[.]tar\z/xms;
+
+    # PDF files are generated -- licensing is in source
+    return \&ignored if $filepart =~ /[.] (pdf) \z /xms;
 
     # info files are generated -- licensing is in source
     return \&ignored if $filepart =~ /[.]info\z/xms;

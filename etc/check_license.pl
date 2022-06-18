@@ -25,8 +25,8 @@ my $verbose = 0;
 my $result = Getopt::Long::GetOptions( 'verbose=i' => \$verbose );
 die "usage $PROGRAM_NAME [--verbose=n] file ...\n" if not $result;
 
-use lib 'inc';
-use Marpa::R2::License;
+use lib 'etc';
+use inc::License;
 
 my $file_count = @ARGV;
 my @license_problems =
