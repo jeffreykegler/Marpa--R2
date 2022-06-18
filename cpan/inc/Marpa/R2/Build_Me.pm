@@ -427,7 +427,9 @@ sub do_libmarpa {
 
     # If build directory exists and contains a stamp file more recent than the
     # tar file, we are done.
-    return if  $self->up_to_date( [$dist_stamp_file], [$build_stamp_file, $build_makefile] ) ;
+    if (-e $dist_stamp_file && -e $build_stamp_file) {
+        return if $self->up_to_date( [$dist_stamp_file], [$build_stamp_file, $build_makefile] ) ;
+    }
 
     # Otherwise, rebuild from scratch
     File::Path::rmtree($build_dir);
