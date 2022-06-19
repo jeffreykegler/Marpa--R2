@@ -83,6 +83,9 @@ my $license_in_tex =
     "$copyright_line_in_tex\n" . "\\bigskip\\noindent\n" . "$license_body";
 $license_in_tex =~ s/^$/\\smallskip\\noindent/gxms;
 
+my $license_in_md = join "\n", q{<!--}, $copyright_line, $license_body;
+$license_in_md .= q{-->} . "\n";
+
 my $license_file = $license . <<'END_OF_STRING';
 
 In the Marpa::R2 distribution, the GNU Lesser General Public License
@@ -386,11 +389,6 @@ my %files_by_type = (
     'cpan/engine/read_only/win32/do_config_h.pl' => gen_license_problems_in_c_file($mit_hash_license),
     'cpan/engine/read_only/win32/marpa.def' => \&ignored,
 
-    # The markdown update files are peripheral to the code,
-    # and it is not practical to add copyright language at this point
-    'etc/old_updates/UPDATES-4.000000.md' => \&ignored,
-    'etc/old_updates/UPDATES-6.000000.md' => \&ignored,
-
     # Input and output files for tests
     'sandbox/old/ambiguities' => \&ignored,
     'sandbox/old/html.counts' => \&ignored,
@@ -453,6 +451,8 @@ sub file_type {
     return \&license_problems_in_fdl_file
         if $filepart eq 'api.texi';
     return \&license_problems_in_pod_file if $filepart =~ /[.]pod \z/xms;
+    return gen_license_problems_at_top($license_in_md)
+        if $filepart =~ /[.] (md) \z /xms;
     return gen_license_problems_in_c_file($xs_license)
         if $filepart =~ /[.] (xs) \z /xms;
     return gen_license_problems_in_c_file()
@@ -866,10 +866,11 @@ sub license_problems_in_pod_file {
 
 sub gen_license_problems_at_top {
     my ($license, $maxPrefix) = @_;
+    $maxPrefix //= length $license;
     return sub {
         my ( $filename, $verbose ) = @_;
         my @problems = ();
-        my $text     = slurp_top($filename, $maxPrefix);
+        my $text     = slurp_top($filename, (length $license) + $maxPrefix);
         if ( ( index ${$text}, $license ) < 0 ) {
             my $problem = "Full language missing in file $filename\n";
             if ($verbose) {
