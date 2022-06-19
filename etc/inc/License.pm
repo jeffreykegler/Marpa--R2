@@ -472,21 +472,14 @@ sub file_type {
 sub Marpa::R2::License::file_license_problems {
     my ( $filename, $verbose ) = @_;
     $verbose //= 0;
-    if ($verbose) {
-        say {*STDERR} "Checking license of $filename" or die "say failed: $ERRNO";
-    }
     my @problems = ();
-    return @problems if @problems;
     my $closure = file_type($filename);
-    if ( defined $closure ) {
-        push @problems, $closure->( $filename, $verbose );
-        return @problems;
+    if ( not defined $closure ) {
+       return nyi($filename, $verbose);
     }
-
-    # type eq "text"
-    my $problems_closure = gen_license_problems_in_text_file();
-    push @problems, $problems_closure->( $filename, $verbose );
+    push @problems, $closure->( $filename, $verbose );
     return @problems;
+
 } ## end sub Marpa::R2::License::file_license_problems
 
 sub Marpa::R2::License::license_problems {
@@ -552,35 +545,9 @@ sub license_problems_in_license_file {
 } ## end sub license_problems_in_license_file
 
 sub gen_license_problems_in_hash_file {
-    my ($license) = @_;
+    my ($license, $maxPrefix) = @_;
     $license //= $r2_hash_license;
-    return sub {
-        my ( $filename, $verbose ) = @_;
-        if ($verbose) {
-            say {*STDERR} "Checking $filename as hash style file"
-                or die "say failed: $ERRNO";
-        }
-        my @problems = ();
-        my $text = slurp_top( $filename, length $license );
-        if ( $license ne ${$text} ) {
-            my $problem = "No license language in $filename (hash style)\n";
-            if ($verbose) {
-                $problem
-                    .= "=== Differences ===\n"
-                    . Text::Diff::diff( $text, \$license )
-                    . ( q{=} x 30 );
-            } ## end if ($verbose)
-            push @problems, $problem;
-        } ## end if ( $license ne ${$text} )
-        if ( scalar @problems and $verbose >= 2 ) {
-            my $problem =
-                  "=== license for $filename should be as follows:\n"
-                . $license
-                . ( q{=} x 30 );
-            push @problems, $problem;
-        } ## end if ( scalar @problems and $verbose >= 2 )
-        return @problems;
-    };
+    return gen_license_problems_at_top($license, $maxPrefix);
 } ## end sub gen_license_problems_in_hash_file
 
 sub license_problems_in_xsh_file {
@@ -897,20 +864,14 @@ sub license_problems_in_pod_file {
     return @problems;
 } ## end sub license_problems_in_pod_file
 
-# In "Text" files, just look for the full language.
-# No need to comment it out.
-sub gen_license_problems_in_text_file {
-    my ($license) = @_;
+sub gen_license_problems_at_top {
+    my ($license, $maxPrefix) = @_;
     return sub {
         my ( $filename, $verbose ) = @_;
-        if ($verbose) {
-            say {*STDERR} "Checking $filename as text file"
-                or die "say failed: $ERRNO";
-        }
         my @problems = ();
-        my $text     = slurp_top($filename, (length $license)*2);
+        my $text     = slurp_top($filename, $maxPrefix);
         if ( ( index ${$text}, $license ) < 0 ) {
-            my $problem = "Full language missing in text file $filename\n";
+            my $problem = "Full language missing in file $filename\n";
             if ($verbose) {
                 $problem .= "\nMissing license language:\n"
                     . Text::Diff::diff( $text, \$license );
@@ -926,7 +887,7 @@ sub gen_license_problems_in_text_file {
         } ## end if ( scalar @problems and $verbose >= 2 )
         return @problems;
     }
-} ## end sub gen_license_problems_in_text_file
+}
 
 sub license_problems_in_fdl_file {
     my ( $filename, $verbose ) = @_;
