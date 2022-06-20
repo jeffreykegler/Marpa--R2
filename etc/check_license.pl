@@ -380,61 +380,64 @@ my @files_by_type = (
     'blog/search/test.sh' => \&trivial,
 );
 
+for my $libmarpaDist (
+    "$dist/engine/read_only") {
 push @files_by_type, (
     # Libmarpa has MIT licensing
-    "$dist/engine/read_only/AUTHORS" => \&trivial,
-    "$dist/engine/read_only/COPYING" => \&ignored, # Libmarpa's special copying file
-    "$dist/engine/read_only/COPYING.LESSER" => \&ignored,
-    "$dist/engine/read_only/ChangeLog" => \&trivial,
-    "$dist/engine/read_only/GIT_LOG.txt" => \&ignored,
-    "$dist/engine/read_only/INSTALL" => \&ignored,
-    "$dist/engine/read_only/LIB_VERSION" => \&trivial,
-    "$dist/engine/read_only/LIB_VERSION.in" => \&trivial,
-    "$dist/engine/read_only/Makefile.am" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/Makefile.win32" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/NEWS" => \&trivial,
-    "$dist/engine/read_only/README" => \&ignored,
-    "$dist/engine/read_only/README.AIX" => \&ignored,
-    "$dist/engine/read_only/README.INSTALL" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/AUTHORS" => \&trivial,
+    "$libmarpaDist/COPYING" => \&ignored, # Libmarpa's special copying file
+    "$libmarpaDist/COPYING.LESSER" => \&ignored,
+    "$libmarpaDist/ChangeLog" => \&trivial,
+    "$libmarpaDist/GIT_LOG.txt" => \&ignored,
+    "$libmarpaDist/INSTALL" => \&ignored,
+    "$libmarpaDist/LIB_VERSION" => \&trivial,
+    "$libmarpaDist/LIB_VERSION.in" => \&trivial,
+    "$libmarpaDist/Makefile.am" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/Makefile.win32" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/NEWS" => \&trivial,
+    "$libmarpaDist/README" => \&ignored,
+    "$libmarpaDist/README.AIX" => \&ignored,
+    "$libmarpaDist/README.INSTALL" => gen_license_problems_in_c_file($mit_hash_license),
 
     # I could port the check from Libmarpa, but it's a lot of code
     # and we will just trust that the license as copied OK
-    "$dist/engine/read_only/api_docs/libmarpa_api.html" => \&ignored,
+    "$libmarpaDist/api_docs/libmarpa_api.html" => \&ignored,
 
-    "$dist/engine/read_only/config.h.in" => \&ignored,
-    "$dist/engine/read_only/configure.ac" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/error_codes.table" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/events.table" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/install-sh" => \&ignored,
-    "$dist/engine/read_only/libmarpa.pc" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/libmarpa.pc.in" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/config.h.in" => \&ignored,
+    "$libmarpaDist/configure.ac" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/error_codes.table" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/events.table" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/install-sh" => \&ignored,
+    "$libmarpaDist/libmarpa.pc" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/libmarpa.pc.in" => gen_license_problems_in_c_file($mit_hash_license),
 
     # Short and auto-generated
-    "$dist/engine/read_only/libmarpa_version.sh" => \&trivial,
+    "$libmarpaDist/libmarpa_version.sh" => \&trivial,
 
-    "$dist/engine/read_only/marpa.c" => gen_license_problems_in_c_file($c_mit_license),
-    "$dist/engine/read_only/marpa.h" => gen_license_problems_in_c_file($c_mit_license),
-    "$dist/engine/read_only/marpa_ami.c" => gen_license_problems_in_c_file($c_mit_license),
-    "$dist/engine/read_only/marpa_ami.h" => gen_license_problems_in_c_file($c_mit_license),
+    "$libmarpaDist/marpa.c" => gen_license_problems_in_c_file($c_mit_license),
+    "$libmarpaDist/marpa.h" => gen_license_problems_in_c_file($c_mit_license),
+    "$libmarpaDist/marpa_ami.c" => gen_license_problems_in_c_file($c_mit_license),
+    "$libmarpaDist/marpa_ami.h" => gen_license_problems_in_c_file($c_mit_license),
 
     # Leave Pfaff's licensing as is
-    "$dist/engine/read_only/marpa_avl.c" => \&ignored,
-    "$dist/engine/read_only/marpa_avl.h" => \&ignored,
-    "$dist/engine/read_only/marpa_tavl.c" => \&ignored,
-    "$dist/engine/read_only/marpa_tavl.h" => \&ignored,
+    "$libmarpaDist/marpa_avl.c" => \&ignored,
+    "$libmarpaDist/marpa_avl.h" => \&ignored,
+    "$libmarpaDist/marpa_tavl.c" => \&ignored,
+    "$libmarpaDist/marpa_tavl.h" => \&ignored,
 
-    "$dist/engine/read_only/marpa_codes.c" => gen_license_problems_in_c_file($c_mit_license),
-    "$dist/engine/read_only/marpa_codes.h" => gen_license_problems_in_c_file($c_mit_license),
+    "$libmarpaDist/marpa_codes.c" => gen_license_problems_in_c_file($c_mit_license),
+    "$libmarpaDist/marpa_codes.h" => gen_license_problems_in_c_file($c_mit_license),
 
     # Leave obstack licensing as is
-    "$dist/engine/read_only/marpa_obs.c" => \&ignored,
-    "$dist/engine/read_only/marpa_obs.h" => \&ignored,
+    "$libmarpaDist/marpa_obs.c" => \&ignored,
+    "$libmarpaDist/marpa_obs.h" => \&ignored,
 
-    "$dist/engine/read_only/steps.table" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/version.m4" => \&trivial,
-    "$dist/engine/read_only/win32/do_config_h.pl" => gen_license_problems_in_c_file($mit_hash_license),
-    "$dist/engine/read_only/win32/marpa.def" => \&ignored,
+    "$libmarpaDist/steps.table" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/version.m4" => \&trivial,
+    "$libmarpaDist/win32/do_config_h.pl" => gen_license_problems_in_c_file($mit_hash_license),
+    "$libmarpaDist/win32/marpa.def" => \&ignored,
 );
+};
 
 my %files_by_type = @files_by_type;
 
