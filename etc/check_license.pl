@@ -184,31 +184,33 @@ END_OF_STRING
 
 =cut
 
-my %GNU_file = (
-    map {
-    (
-        "$dist/libmarpa_build/" . $_, 1,
-        "$dist/engine/read_only/" . $_,   1,
-        )
-    } qw(
-        aclocal.m4
-        config.guess
-        config.sub
-        configure
-        depcomp
-        mdate-sh
-        texinfo.tex
-        ltmain.sh
-        m4/libtool.m4
-        m4/ltoptions.m4
-        m4/ltsugar.m4
-        m4/ltversion.m4
-        m4/lt~obsolete.m4
-        missing
-        compile
-        Makefile.in
-    )
-);
+my @GNUdist = ("$dist/engine/read_only/");
+push @GNUdist, "$dist/libmarpa_build/"
+  if $isDist;
+my @GNU_file = ();
+
+for my $GNUdist (@GNUdist) {
+    push @GNU_file, map { ( $GNUdist . $_, 1 ) } qw(
+      aclocal.m4
+      config.guess
+      config.sub
+      configure
+      depcomp
+      mdate-sh
+      texinfo.tex
+      ltmain.sh
+      m4/libtool.m4
+      m4/ltoptions.m4
+      m4/ltsugar.m4
+      m4/ltversion.m4
+      m4/lt~obsolete.m4
+      missing
+      compile
+      Makefile.in
+    );
+}
+
+my %GNU_file = @GNU_file;
 
 sub ignored {
     my ( $filename, $verbose ) = @_;
