@@ -23,7 +23,6 @@ B<Delete all tables>:
 
 =for Marpa::R2::Display
 name: 'HTML Synopsis: Delete Tables'
-perltidy: '-dcsc -sil=0'
 
     use Marpa::R2::HTML qw(html);
 
@@ -64,7 +63,6 @@ B<Delete all comments>:
 
 =for Marpa::R2::Display
 name: 'HTML Synopsis: Delete Comments'
-perltidy: '-dcsc -sil=0'
 
     my $with_comment = 'Text <!-- I am a comment --> I am not a comment';
     my $no_comment   = html( \$with_comment,
@@ -94,7 +92,7 @@ of "C<delete_me>">:
 
 =for Marpa::R2::Display
 name: 'HTML Synopsis: Delete by Class'
-perltidy: '-dcsc -sil=0'
+normalize-whitespace: 1
 
     my $stuff_to_be_edited = '<p>A<p class="delete_me">B<p>C';
     my $edited_stuff       = html( \$stuff_to_be_edited,
