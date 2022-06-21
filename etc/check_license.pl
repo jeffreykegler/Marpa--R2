@@ -65,7 +65,8 @@ END_OF_STRING
 
 my $license = "$copyright_line\n$license_body";
 my $marpa_r2_license = $license;
-$marpa_r2_license =~ s/Marpa::R2/Libmarpa/gxms;
+my $libmarpa_license = $license;
+$libmarpa_license  =~ s/Marpa::R2/Libmarpa/gxms;
 
 my $mit_license_body = <<'END_OF_STRING';
 Permission is hereby granted, free of charge, to any person obtaining a
@@ -143,7 +144,9 @@ sub c_comment {
     return qq{/*\n$text */\n};
 } ## end sub c_comment
 
-my $c_license          = c_comment($marpa_r2_license);
+# Libmarpa license is more common for C files
+my $c_license          = c_comment($libmarpa_license);
+
 my $c_mit_license          = c_comment($mit_license);
 my $mit_hash_license          = hash_comment($mit_license);
 my $xs_license          = c_comment($license);
