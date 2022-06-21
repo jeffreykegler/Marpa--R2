@@ -328,32 +328,10 @@ if ( not $isDist ) {
       "$dist/README"                            => \&trivial,
       "$dist/INSTALL"                           => \&trivial,
       "$dist/TODO"                              => \&trivial,
-      "$dist/author.t/accept_tidy"              => \&trivial,
-      "$dist/author.t/critic1"                  => \&trivial,
-      "$dist/author.t/perltidyrc"               => \&trivial,
-      "$dist/author.t/spelling_exceptions.list" => \&trivial,
-      "$dist/author.t/tidy1"                    => \&trivial,
-      "$dist/etc/pod_errors.pl"                 => \&trivial,
-      "$dist/etc/pod_dump.pl"                   => \&trivial,
-      "$dist/etc/dovg.sh"                       => \&trivial,
-      "$dist/etc/compile_for_debug.sh"          => \&trivial,
-      "$dist/etc/libmarpa_test.sh"              => \&trivial,
-      "$dist/etc/reserved_check.sh"             => \&trivial,
       "$dist/html/script/marpa_r2_html_fmt"     =>
       gen_license_problems_in_perl_file(),
       "$dist/html/script/marpa_r2_html_score" =>
       gen_license_problems_in_perl_file(),
-      "$dist/html/t/fmt_t_data/expected1.html"       => \&ignored,
-      "$dist/html/t/fmt_t_data/expected2.html"       => \&ignored,
-      "$dist/html/t/fmt_t_data/expected3.html"       => \&ignored,
-      "$dist/html/t/fmt_t_data/input1.html"          => \&trivial,
-      "$dist/html/t/fmt_t_data/input2.html"          => \&trivial,
-      "$dist/html/t/fmt_t_data/input3.html"          => \&trivial,
-      "$dist/html/t/fmt_t_data/score_expected1.html" => \&trivial,
-      "$dist/html/t/fmt_t_data/score_expected2.html" => \&trivial,
-      "$dist/html/t/no_tang.html"                    => \&ignored,
-      "$dist/html/t/test.html"                       => \&ignored,
-      "$dist/etc/my_suppressions"                    => \&trivial,
       "$dist/xs/ppport.h" => \&ignored,  # copied from CPAN, just leave it alone
       "$dist/engine/README" => gen_license_problems_in_hash_file(),
 
@@ -466,6 +444,31 @@ for my $libmarpaDist ( @libmarpaDist ) {
         "$libmarpaDist/win32/do_config_h.pl" =>
           gen_license_problems_in_c_file($mit_hash_license),
         "$libmarpaDist/win32/marpa.def" => \&ignored,
+
+      "$dist/html/t/fmt_t_data/expected1.html"       => \&ignored,
+      "$dist/html/t/fmt_t_data/expected2.html"       => \&ignored,
+      "$dist/html/t/fmt_t_data/expected3.html"       => \&ignored,
+      "$dist/html/t/fmt_t_data/input1.html"          => \&trivial,
+      "$dist/html/t/fmt_t_data/input2.html"          => \&trivial,
+      "$dist/html/t/fmt_t_data/input3.html"          => \&trivial,
+      "$dist/html/t/fmt_t_data/score_expected1.html" => \&trivial,
+      "$dist/html/t/fmt_t_data/score_expected2.html" => \&trivial,
+      "$dist/html/t/no_tang.html"                    => \&ignored,
+      "$dist/html/t/test.html"                       => \&ignored,
+
+      "$dist/author.t/accept_tidy"              => \&trivial,
+      "$dist/author.t/critic1"                  => \&trivial,
+      "$dist/author.t/perltidyrc"               => \&trivial,
+      "$dist/author.t/spelling_exceptions.list" => \&trivial,
+      "$dist/author.t/tidy1"                    => \&trivial,
+
+      "$dist/etc/my_suppressions"                    => \&trivial,
+      "$dist/etc/pod_errors.pl"                 => \&trivial,
+      "$dist/etc/pod_dump.pl"                   => \&trivial,
+      "$dist/etc/dovg.sh"                       => \&trivial,
+      "$dist/etc/compile_for_debug.sh"          => \&trivial,
+      "$dist/etc/libmarpa_test.sh"              => \&trivial,
+      "$dist/etc/reserved_check.sh"             => \&trivial,
     );
 }
 
