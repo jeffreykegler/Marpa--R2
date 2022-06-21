@@ -300,94 +300,101 @@ sub check_tag {
     }
 } ## end sub check_tag
 
-my @files_by_type = (
-    'blog/error/to_html.pl' => \&trivial,
-    'CITATION.cff'          => \&trivial,
-    "$dist/.inputrc"        => \&trivial,
-    "$dist/TOUCH"           => \&trivial,
-    'target/try.sh'         => \&trivial,
-    'INSTALL_NOTES'         => \&trivial,
-    'AIX.README'            => \&ignored,
+my @files_by_type = ();
 
-    # Legalese, leave it alone
-    'README' => \&ignored,
+if ( not $isDist ) {
+    push @files_by_type,
+      'blog/error/to_html.pl' => \&trivial,
+      'CITATION.cff'          => \&trivial,
+      "$dist/.inputrc"        => \&trivial,
+      "$dist/TOUCH"           => \&trivial,
+      'target/try.sh'         => \&trivial,
+      'INSTALL_NOTES'         => \&trivial,
+      'AIX.README'            => \&ignored,
 
-    # GNU license text, leave it alone
-    'COPYING.LESSER'       => \&ignored,
-    "$dist/COPYING.LESSER" => \&ignored,
+      # Legalese, leave it alone
+      'README' => \&ignored,
 
-    "$dist/LICENSE"   => \&license_problems_in_license_file,
-    'LICENSE'         => \&license_problems_in_license_file,
-    "$dist/META.json" =>
+      # GNU license text, leave it alone
+      'COPYING.LESSER'       => \&ignored,
+      "$dist/COPYING.LESSER" => \&ignored,
+
+      "$dist/LICENSE"   => \&license_problems_in_license_file,
+      'LICENSE'         => \&license_problems_in_license_file,
+      "$dist/META.json" =>
       \&ignored,    # not source, and not clear how to add license at top
-    "$dist/META.yml" =>
+      "$dist/META.yml" =>
       \&ignored,    # not source, and not clear how to add license at top
-    "$dist/README"                            => \&trivial,
-    "$dist/INSTALL"                           => \&trivial,
-    "$dist/TODO"                              => \&trivial,
-    "$dist/author.t/accept_tidy"              => \&trivial,
-    "$dist/author.t/critic1"                  => \&trivial,
-    "$dist/author.t/perltidyrc"               => \&trivial,
-    "$dist/author.t/spelling_exceptions.list" => \&trivial,
-    "$dist/author.t/tidy1"                    => \&trivial,
-    "$dist/etc/pod_errors.pl"                 => \&trivial,
-    "$dist/etc/pod_dump.pl"                   => \&trivial,
-    "$dist/etc/dovg.sh"                       => \&trivial,
-    "$dist/etc/compile_for_debug.sh"          => \&trivial,
-    "$dist/etc/libmarpa_test.sh"              => \&trivial,
-    "$dist/etc/reserved_check.sh"             => \&trivial,
-    "$dist/html/script/marpa_r2_html_fmt"     =>
+      "$dist/README"                            => \&trivial,
+      "$dist/INSTALL"                           => \&trivial,
+      "$dist/TODO"                              => \&trivial,
+      "$dist/author.t/accept_tidy"              => \&trivial,
+      "$dist/author.t/critic1"                  => \&trivial,
+      "$dist/author.t/perltidyrc"               => \&trivial,
+      "$dist/author.t/spelling_exceptions.list" => \&trivial,
+      "$dist/author.t/tidy1"                    => \&trivial,
+      "$dist/etc/pod_errors.pl"                 => \&trivial,
+      "$dist/etc/pod_dump.pl"                   => \&trivial,
+      "$dist/etc/dovg.sh"                       => \&trivial,
+      "$dist/etc/compile_for_debug.sh"          => \&trivial,
+      "$dist/etc/libmarpa_test.sh"              => \&trivial,
+      "$dist/etc/reserved_check.sh"             => \&trivial,
+      "$dist/html/script/marpa_r2_html_fmt"     =>
       gen_license_problems_in_perl_file(),
-    "$dist/html/script/marpa_r2_html_score" =>
+      "$dist/html/script/marpa_r2_html_score" =>
       gen_license_problems_in_perl_file(),
-    "$dist/html/t/fmt_t_data/expected1.html"       => \&ignored,
-    "$dist/html/t/fmt_t_data/expected2.html"       => \&ignored,
-    "$dist/html/t/fmt_t_data/expected3.html"       => \&ignored,
-    "$dist/html/t/fmt_t_data/input1.html"          => \&trivial,
-    "$dist/html/t/fmt_t_data/input2.html"          => \&trivial,
-    "$dist/html/t/fmt_t_data/input3.html"          => \&trivial,
-    "$dist/html/t/fmt_t_data/score_expected1.html" => \&trivial,
-    "$dist/html/t/fmt_t_data/score_expected2.html" => \&trivial,
-    "$dist/html/t/no_tang.html"                    => \&ignored,
-    "$dist/html/t/test.html"                       => \&ignored,
-    "$dist/etc/my_suppressions"                    => \&trivial,
-    "$dist/xs/ppport.h"   => \&ignored,  # copied from CPAN, just leave it alone
-    "$dist/engine/README" => gen_license_problems_in_hash_file(),
+      "$dist/html/t/fmt_t_data/expected1.html"       => \&ignored,
+      "$dist/html/t/fmt_t_data/expected2.html"       => \&ignored,
+      "$dist/html/t/fmt_t_data/expected3.html"       => \&ignored,
+      "$dist/html/t/fmt_t_data/input1.html"          => \&trivial,
+      "$dist/html/t/fmt_t_data/input2.html"          => \&trivial,
+      "$dist/html/t/fmt_t_data/input3.html"          => \&trivial,
+      "$dist/html/t/fmt_t_data/score_expected1.html" => \&trivial,
+      "$dist/html/t/fmt_t_data/score_expected2.html" => \&trivial,
+      "$dist/html/t/no_tang.html"                    => \&ignored,
+      "$dist/html/t/test.html"                       => \&ignored,
+      "$dist/etc/my_suppressions"                    => \&trivial,
+      "$dist/xs/ppport.h" => \&ignored,  # copied from CPAN, just leave it alone
+      "$dist/engine/README" => gen_license_problems_in_hash_file(),
 
-    # Input and output files for tests
-    'sandbox/old/ambiguities' => \&ignored,
-    'sandbox/old/html.counts' => \&ignored,
-    'sandbox/old/perl.counts' => \&ignored,
-    'sandbox/old2/curly.in'   => \&ignored,
-    'sandbox/old2/curly.out'  => \&ignored,
+      # Input and output files for tests
+      'sandbox/old/ambiguities' => \&ignored,
+      'sandbox/old/html.counts' => \&ignored,
+      'sandbox/old/perl.counts' => \&ignored,
+      'sandbox/old2/curly.in'   => \&ignored,
+      'sandbox/old2/curly.out'  => \&ignored,
 
-    "$dist/html/sandbox/loose.dtd" => \&ignored,    # Standard, leave as is
+      "$dist/html/sandbox/loose.dtd" => \&ignored,    # Standard, leave as is
 
-    # Input files for tests
-    "$dist/html/sandbox/small.html" => \&ignored,
-    "$dist/html/sandbox/local.html" => \&ignored,
+      # Input files for tests
+      "$dist/html/sandbox/small.html" => \&ignored,
+      "$dist/html/sandbox/local.html" => \&ignored,
 
-    # Input and output files for tests
-    'blog/dyck_hollerith/post1/dh_numbers.html' => \&ignored,
-    'blog/html_cfg_dsl/plot'                    => \&ignored,
-    'blog/html_config/css.html'                 => \&ignored,
-    'blog/iterative/test.in'                    => \&ignored,
-    'blog/iterative/test.out'                   => \&ignored,
-    'blog/json/test.json'                       => \&ignored,
-    'blog/search/test.in'                       => \&ignored,
-    'blog/search/test.out'                      => \&ignored,
-    'blog/sl/p1000.in'                          => \&ignored,
-    'blog/sl/re1000.out'                        => \&ignored,
-    'blog/slperl/test.in'                       => \&ignored,
-    'blog/slperl/test.out'                      => \&ignored,
-    'blog/whitespace/prefix.out'                => \&ignored,
+      # Input and output files for tests
+      'blog/dyck_hollerith/post1/dh_numbers.html' => \&ignored,
+      'blog/html_cfg_dsl/plot'                    => \&ignored,
+      'blog/html_config/css.html'                 => \&ignored,
+      'blog/iterative/test.in'                    => \&ignored,
+      'blog/iterative/test.out'                   => \&ignored,
+      'blog/json/test.json'                       => \&ignored,
+      'blog/search/test.in'                       => \&ignored,
+      'blog/search/test.out'                      => \&ignored,
+      'blog/sl/p1000.in'                          => \&ignored,
+      'blog/sl/re1000.out'                        => \&ignored,
+      'blog/slperl/test.in'                       => \&ignored,
+      'blog/slperl/test.out'                      => \&ignored,
+      'blog/whitespace/prefix.out'                => \&ignored,
 
-    # Very short files
-    'blog/op3/try.sh'     => \&trivial,
-    'blog/search/test.sh' => \&trivial,
-);
+      # Very short files
+      'blog/op3/try.sh'     => \&trivial,
+      'blog/search/test.sh' => \&trivial,
+      ;
+}
 
-for my $libmarpaDist ( "$dist/engine/read_only", "$dist/libmarpa_build", ) {
+my @libmarpaDist = ("$dist/engine/read_only");
+push @libmarpaDist, "$dist/libmarpa_build" if $isDist;
+
+for my $libmarpaDist ( @libmarpaDist ) {
     push @files_by_type, (
 
         # Libmarpa has MIT licensing
@@ -484,7 +491,13 @@ sub file_type {
     # Ignore autogenerated troff of POD files
     return \&ignored
       if $isDist
-      and $filename =~ m/$dist[\/]blib[\/]libdoc[\/]Marpa::R2::.*[.]3$/;
+      and $filename =~ m/$dist[\/]blib[\/]libdoc[\/]Marpa::R2[^\/]*[.]3$/;
+
+    # Ignore autogenerated Module::Build files
+    return \&ignored
+      if $isDist
+      and $filename =~ m/$dist[\/]_build[\/][^\/]*$/;
+
     return \&ignored if $filepart =~ /[.]tar\z/xms;
 
     # PDF files are generated -- licensing is in source
