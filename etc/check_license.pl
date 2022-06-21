@@ -146,6 +146,7 @@ sub c_comment {
 
 # Libmarpa license is more common for C files
 my $c_license          = c_comment($libmarpa_license);
+my $r2_c_license          = c_comment($marpa_r2_license);
 
 my $c_mit_license          = c_comment($mit_license);
 my $mit_hash_license          = hash_comment($mit_license);
@@ -372,16 +373,20 @@ if ( not $isDist ) {
       ;
 }
 
-if ( $isDist ) {
+if ($isDist) {
     push @files_by_type,
-    'cpan/Marpa-R2-8.000000/pperl/Marpa/R2/Perl/Version.pm' => \&trivial,
-    'cpan/Marpa-R2-8.000000/pperl/Marpa/R2/Perl/Installed.pm' => \&trivial,
-    'cpan/Marpa-R2-8.000000/blib/arch/auto/Marpa/R2/R2.bs' => \&ignored,
-    'cpan/Marpa-R2-8.000000/blib/arch/auto/Marpa/R2/R2.so' => \&ignored,
-    'cpan/Marpa-R2-8.000000/blib/lib/Marpa/R2/Version.pm' => \&trivial,
-    'cpan/Marpa-R2-8.000000/blib/lib/Marpa/R2/Installed.pm' => \&trivial,
-    'cpan/Marpa-R2-8.000000/lib/Marpa/R2/Version.pm' => \&trivial,
-    'cpan/Marpa-R2-8.000000/lib/Marpa/R2/Installed.pm' => \&trivial;
+      'cpan/Marpa-R2-8.000000/pperl/Marpa/R2/Perl/Version.pm'   => \&trivial,
+      'cpan/Marpa-R2-8.000000/pperl/Marpa/R2/Perl/Installed.pm' => \&trivial,
+      'cpan/Marpa-R2-8.000000/blib/arch/auto/Marpa/R2/R2.bs'    => \&ignored,
+      'cpan/Marpa-R2-8.000000/blib/arch/auto/Marpa/R2/R2.so'    => \&ignored,
+      'cpan/Marpa-R2-8.000000/blib/lib/Marpa/R2/Version.pm'     => \&trivial,
+      'cpan/Marpa-R2-8.000000/blib/lib/Marpa/R2/Installed.pm'   => \&trivial,
+      'cpan/Marpa-R2-8.000000/lib/Marpa/R2/Version.pm'          => \&trivial,
+      'cpan/Marpa-R2-8.000000/lib/Marpa/R2/Installed.pm'        => \&trivial,
+      'cpan/Marpa-R2-8.000000/lib/Marpa/R2.c'                   =>
+      gen_license_problems_at_top($r2_c_license),
+      'cpan/Marpa-R2-8.000000/xs/marpa_slifop.h' =>
+      gen_license_problems_at_top($r2_c_license);
 }
 
 my @libmarpaDist = ("$dist/engine/read_only");
