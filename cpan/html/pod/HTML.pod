@@ -23,11 +23,13 @@ B<Delete all tables>:
 
 =for Marpa::R2::Display
 name: 'HTML Synopsis: Delete Tables'
+normalize-whitespace: 1
 
     use Marpa::R2::HTML qw(html);
 
     my $with_table = 'Text<table><tr><td>I am a cell</table> More Text';
-    my $no_table   = html( \$with_table, { table => sub { return q{} } });
+    my $no_table   = html( \$with_table,
+        { table => sub { return q{} } });
 
 =for Marpa::R2::Display::End
 
@@ -63,10 +65,12 @@ B<Delete all comments>:
 
 =for Marpa::R2::Display
 name: 'HTML Synopsis: Delete Comments'
+normalize-whitespace: 1
 
     my $with_comment = 'Text <!-- I am a comment --> I am not a comment';
     my $no_comment   = html( \$with_comment,
-        { ':COMMENT' => sub { return q{} } });
+        { ':COMMENT' => sub { return q{} } }
+    );
 
 =for Marpa::R2::Display::End
 
