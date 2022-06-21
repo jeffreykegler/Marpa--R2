@@ -462,6 +462,16 @@ for my $libmarpaDist ( "$dist/engine/read_only", "$dist/libmarpa_build", ) {
     );
 }
 
+{ my $libmarpaDist = "$dist/libmarpa_build";
+   push @files_by_type,
+    'cpan/Marpa-R2-8.000000/libmarpa_build/.libs/libmarpa.lai' => \&ignored,
+    'cpan/Marpa-R2-8.000000/libmarpa_build/libtool' => \&ignored,
+    'cpan/Marpa-R2-8.000000/libmarpa_build/config.status' => \&ignored,
+    'cpan/Marpa-R2-8.000000/libmarpa_build/Makefile' => \&ignored,
+    'cpan/Marpa-R2-8.000000/libmarpa_build/stamp-h1' => \&ignored,
+    'cpan/Marpa-R2-8.000000/libmarpa_build/config.log' => \&ignored,
+}
+
 my %files_by_type = @files_by_type;
 
 sub file_type {
