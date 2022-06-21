@@ -25,14 +25,15 @@ use English qw( -no_match_vars );
 
 use Getopt::Long;
 my $verbose = 0;
-my $distArg;
+my $dist;
 my $result = Getopt::Long::GetOptions(
     'verbose=i' => \$verbose,
     # check distribution in named directory
-    'dist=s'    => \$distArg
+    'dist=s'    => \$dist
 );
 die "usage $PROGRAM_NAME [--verbose=n] file ...\n" if not $result;
-my $dist = $distArg // 'cpan';
+my $isDist = defined $dist;
+$dist //= 'cpan';
 
 my $copyright_line = q{Copyright 2022 Jeffrey Kegler};
 ( my $copyright_line_in_tex = $copyright_line )
