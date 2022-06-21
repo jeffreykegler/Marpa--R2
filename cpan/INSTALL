@@ -17,9 +17,3 @@ the "./" notation, you can do this:
  
 The important thing is that the "Build" script gets executed and that
 you pass it the "test", "install", etc. arguments.
- 
-ADVANCED INSTALLATION
-
-Most users will want to stick to the basic installation method of this
-document.  Re-packagers, and other adventurers, will find alternative
-methods discussed in the core/ALTERNATIVES document.
