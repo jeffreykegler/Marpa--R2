@@ -300,7 +300,9 @@ sub check_tag {
     }
 } ## end sub check_tag
 
-my @files_by_type = ();
+my @files_by_type = (
+      'COPYING.LESSER'       => \&ignored,
+);
 
 if ( not $isDist ) {
     push @files_by_type,
@@ -316,7 +318,6 @@ if ( not $isDist ) {
       'README' => \&ignored,
 
       # GNU license text, leave it alone
-      'COPYING.LESSER'       => \&ignored,
       "$dist/COPYING.LESSER" => \&ignored,
 
       "$dist/LICENSE"   => \&license_problems_in_license_file,
@@ -332,7 +333,6 @@ if ( not $isDist ) {
       gen_license_problems_in_perl_file(),
       "$dist/html/script/marpa_r2_html_score" =>
       gen_license_problems_in_perl_file(),
-      "$dist/xs/ppport.h" => \&ignored,  # copied from CPAN, just leave it alone
       "$dist/engine/README" => gen_license_problems_in_hash_file(),
 
       # Input and output files for tests
@@ -481,17 +481,20 @@ for my $libmarpaDist ( @libmarpaDist ) {
       "$dist/etc/compile_for_debug.sh"          => \&trivial,
       "$dist/etc/libmarpa_test.sh"              => \&trivial,
       "$dist/etc/reserved_check.sh"             => \&trivial,
+
+      "$dist/xs/ppport.h" => \&ignored,  # copied from CPAN, just leave it alone
     );
 }
 
-{ my $libmarpaDist = "$dist/libmarpa_build";
+if ($isDist) {
+ my $libmarpaDist = "$dist/libmarpa_build";
    push @files_by_type,
-    'cpan/Marpa-R2-8.000000/libmarpa_build/.libs/libmarpa.lai' => \&ignored,
-    'cpan/Marpa-R2-8.000000/libmarpa_build/libtool' => \&ignored,
-    'cpan/Marpa-R2-8.000000/libmarpa_build/config.status' => \&ignored,
-    'cpan/Marpa-R2-8.000000/libmarpa_build/Makefile' => \&ignored,
-    'cpan/Marpa-R2-8.000000/libmarpa_build/stamp-h1' => \&ignored,
-    'cpan/Marpa-R2-8.000000/libmarpa_build/config.log' => \&ignored,
+    "$libmarpaDist/.libs/libmarpa.lai" => \&ignored,
+    "$libmarpaDist/libtool" => \&ignored,
+    "$libmarpaDist/config.status" => \&ignored,
+    "$libmarpaDist/Makefile" => \&ignored,
+    "$libmarpaDist/stamp-h1" => \&ignored,
+    "$libmarpaDist/config.log" => \&ignored,
 }
 
 my %files_by_type = @files_by_type;
