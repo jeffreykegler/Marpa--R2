@@ -369,6 +369,18 @@ if ( not $isDist ) {
       ;
 }
 
+if ( $isDist ) {
+    push @files_by_type,
+    'cpan/Marpa-R2-8.000000/pperl/Marpa/R2/Perl/Version.pm' => \&trivial,
+    'cpan/Marpa-R2-8.000000/pperl/Marpa/R2/Perl/Installed.pm' => \&trivial,
+    'cpan/Marpa-R2-8.000000/blib/arch/auto/Marpa/R2/R2.bs' => \&ignored,
+    'cpan/Marpa-R2-8.000000/blib/arch/auto/Marpa/R2/R2.so' => \&ignored,
+    'cpan/Marpa-R2-8.000000/blib/lib/Marpa/R2/Version.pm' => \&trivial,
+    'cpan/Marpa-R2-8.000000/blib/lib/Marpa/R2/Installed.pm' => \&trivial,
+    'cpan/Marpa-R2-8.000000/lib/Marpa/R2/Version.pm' => \&trivial,
+    'cpan/Marpa-R2-8.000000/lib/Marpa/R2/Installed.pm' => \&trivial;
+}
+
 my @libmarpaDist = ("$dist/engine/read_only");
 push @libmarpaDist, "$dist/libmarpa_build" if $isDist;
 
