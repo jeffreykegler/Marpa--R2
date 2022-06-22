@@ -14,6 +14,17 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+# This utility has two checking "modes": Perl distribution and repo.
+#
+# For checking a Perl distribution, use the "--dist" option, which takes
+# a directory name as an argument.  This directory should be the top-level
+# directory of the distribution.  The list
+# of files to be checked should be all the files in the distribution.
+#
+# For check the repo, omit the "--dist" option.  The list of files should
+# be those files tracked by git.  The "ls-files" subcommand of "git"
+# produces such a list.
+
 use 5.010001;
 use strict;
 use warnings;
