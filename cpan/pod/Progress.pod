@@ -32,7 +32,7 @@ and how far into the rule parsing has progressed.
 Progress reports are extremely useful in
 debugging grammars and
 the detailed example in
-this document is a debugging situation.
+this document is a debugging instance.
 Readers specifically interested in debugging
 a grammar
 should read L<the document
@@ -82,7 +82,7 @@ a pair, a rule and a dot location are called a B<dotted rule>.
 
 Here's our rule with a dot location indicated:
 
-S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> E<middot> term ASSIGNOP term>>
+S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> . term ASSIGNOP term>>
 
 The dot location in this dotted rule is at the beginning.
 A dot location at the beginning of a dotted rule means
@@ -93,7 +93,7 @@ or a B<predicted rule>.
 
 Here's another dotted rule:
 
-S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term E<middot> ASSIGNOP term>>
+S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term . ASSIGNOP term>>
 
 In this dotted rule,
 we are saying we have seen a C<term>, but have not yet recognized
@@ -104,7 +104,7 @@ A B<completion> (also called a B<completed rule>)
 is a dotted rule with the dot after all of the symbols.
 Here is the completion for the rule that we have been using as an example:
 
-S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term ASSIGNOP term E<middot>>>
+S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term ASSIGNOP term .>>
 
 A completion indicates that a rule has been fully recognized.
 
@@ -143,7 +143,7 @@ then origin and current location will always be the same.
 Second,
 the input stream location where a rule ends is not tracked unless the
 dotted rule is a completion.
-In other cases,
+If its dotted rule is not a completion,
 an Earley item does not tell us
 if a rule will
 ever be completed,
@@ -298,30 +298,30 @@ name: SLIF debug example dump of value
 partial: 1
 normalize-whitespace: 1
 
-\bless(
-    [
-        bless(
-            [
-                bless(
-                    [
-                        'a', '=',
-                        bless(
-                            [
-                                bless( ['8675309'], 'My_Nodes::expression' ),
-                                '+',
-                                bless( ['42'], 'My_Nodes::expression' )
-                            ],
-                            'My_Nodes::expression'
-                        )
-                    ],
-                    'My_Nodes::numeric_assignment'
-                )
-            ],
-            'My_Nodes::statement'
-        )
-    ],
-    'My_Nodes::statements'
-);
+    \bless(
+        [
+            bless(
+                [
+                    bless(
+                        [
+                            'a', '=',
+                            bless(
+                                [
+                                    bless( ['8675309'], 'My_Nodes::expression' ),
+                                    '+',
+                                    bless( ['42'], 'My_Nodes::expression' )
+                                ],
+                                'My_Nodes::expression'
+                            )
+                        ],
+                        'My_Nodes::numeric_assignment'
+                    )
+                ],
+                'My_Nodes::statement'
+            )
+        ],
+        'My_Nodes::statements'
+    );
 
 =for Marpa::R2::Display::End
 
@@ -554,15 +554,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-It's rule 18 in subgrammar G1, and for convenience we will call it R18.
+It's rule 17 in subgrammar G1, and for convenience we will call it R17.
 The next step is to look at the Earley items for this rule.
 But there is a problem.
 We don't find any.
 
-Next, we ask ourselves, what is the earliest place R18
+Next, we ask ourselves, what is the earliest place R17
 should be appearing?
 The answer is that
-there should be a prediction of R18 at location 0.
+there should be a prediction of R17 at location 0.
 So we look at the predictions at location 0.
 
 =for Marpa::R2::Display
@@ -579,12 +579,12 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-No R18 predicted at G1 location 0.
+No R17 predicted at G1 location 0.
 Next we look through the the entire progress report, at all G1 locations,
-to see if R18 is predicted anywhere.
-No R18.  Not anywhere.
+to see if R17 is predicted anywhere.
+No R17.  Not anywhere.
 
-The LHS of R18 is C<E<lt>numeric expressionE<gt>>.
+The LHS of R17 is C<E<lt>numeric expressionE<gt>>.
 We look in the progress report for dotted rules where
 C<E<lt>numeric expressionE<gt>> is expected -- that is,
 dotted rules where C<E<lt>numeric expressionE<gt>> is the post-dot symbol.
@@ -684,7 +684,7 @@ and which might be unexpected.
 When a symbol is nulled in your parse,
 L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress()">
 show only the nulled symbol.
-It does not show the symbols expansion into rules,
+It does not show the symbol's expansion into rules,
 or any of its nulled child symbols.
 This reduces clutter,
 and usually one does not notice the missing nulled rules and symbols.
@@ -802,8 +802,8 @@ to G1 location 38.
 The last field in
 "C<F7 x12 @0...38-41 L1c1-L2c40>" is an input string range.
 "C<L1c1-L2c40>" says that
-input string positions visited by the
-the 12 instances start at line 1, column 1,
+input string positions visited
+by the 12 instances start at line 1, column 1,
 and end at line 2, column 40.
 The reported input string range will be the shortest range that includes
 all of the input string positions visited by any of the dotted rule instances.
@@ -934,7 +934,7 @@ chain of completions.
 Note that the efficiency consideration just mentioned
 for following right recursions
 is never an issue for left recursions.
-Left recursions only produce at most two report
+Left recursions produce at most two report
 items per G1 location
 and are extremely fast to process.
 It is also not an issue for
