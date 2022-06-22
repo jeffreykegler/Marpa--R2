@@ -121,23 +121,30 @@ END_OF_TEXT
 # name: SLIF debug example dump of value
 
 my $value_ref = $recce->value();
-my $expected_output = \bless( [
-                 bless( [
-                          bless( [
-                                   'a',
-                                   '=',
-                                   bless( [
-                                            bless( [
-                                                     '8675309'
-                                                   ], 'My_Nodes::expression' ),
-                                            '+',
-                                            bless( [
-                                                     '42'
-                                                   ], 'My_Nodes::expression' )
-                                          ], 'My_Nodes::expression' )
-                                 ], 'My_Nodes::numeric_assignment' )
-                        ], 'My_Nodes::statement' )
-               ], 'My_Nodes::statements' );
+my $expected_output = \bless(
+    [
+        bless(
+            [
+                bless(
+                    [
+                        'a', '=',
+                        bless(
+                            [
+                                bless( ['8675309'], 'My_Nodes::expression' ),
+                                '+',
+                                bless( ['42'], 'My_Nodes::expression' )
+                            ],
+                            'My_Nodes::expression'
+                        )
+                    ],
+                    'My_Nodes::numeric_assignment'
+                )
+            ],
+            'My_Nodes::statement'
+        )
+    ],
+    'My_Nodes::statements'
+);
 
 # Marpa::R2::Display::End
 
@@ -344,26 +351,31 @@ $recce = Marpa::R2::Scanless::R->new(
 die if not defined $recce->read( \$test_input );
 $value_ref = $recce->value();
 my $expected_value_after_fix = \bless(
-    [   bless(
-            [   bless(
-                    [   'a', '=',
+    [
+        bless(
+            [
+                bless(
+                    [
+                        'a', '=',
                         bless(
-                            [   bless(
-                                    [   bless(
-                                            ['8675309'],
-                                            'My_Nodes::numeric_expression'
-                                        ),
-                                        '+',
+                            [
+                                bless(
+                                    ['8675309'], 'My_Nodes::numeric_expression'
+                                ),
+                                '+',
+                                bless(
+                                    [
                                         bless(
                                             ['42'],
+                                            'My_Nodes::numeric_expression'
+                                        ),
+                                        '*',
+                                        bless(
+                                            ['711'],
                                             'My_Nodes::numeric_expression'
                                         )
                                     ],
                                     'My_Nodes::numeric_expression'
-                                ),
-                                '*',
-                                bless(
-                                    ['711'], 'My_Nodes::numeric_expression'
                                 )
                             ],
                             'My_Nodes::numeric_expression'
@@ -377,7 +389,8 @@ my $expected_value_after_fix = \bless(
     ],
     'My_Nodes::statements'
 );
-Test::More::is_deeply($value_ref, $expected_value_after_fix, 'Value after fix');
+Test::More::is_deeply( $value_ref, $expected_value_after_fix,
+    'Value after fix' );
 
 my $show_rules_output;
 $show_rules_output .= "G1 Rules:\n";
