@@ -424,7 +424,6 @@ for my $libmarpaDist ( @libmarpaDist ) {
         "$libmarpaDist/GIT_LOG.txt"    => \&ignored,
         "$libmarpaDist/INSTALL"        => \&ignored,
         "$libmarpaDist/LIB_VERSION"    => \&trivial,
-        "$libmarpaDist/LIB_VERSION.in" => \&trivial,
         "$libmarpaDist/Makefile.am"    =>
           gen_license_problems_in_c_file($mit_hash_license),
         "$libmarpaDist/Makefile.win32" =>

@@ -70,7 +70,6 @@ engine/read_only/libmarpa.pc
 engine/read_only/libmarpa.pc.in
 engine/read_only/libmarpa_version.sh
 engine/read_only/LIB_VERSION
-engine/read_only/LIB_VERSION.in
 engine/read_only/ltmain.sh
 engine/read_only/m4/libtool.m4
 engine/read_only/m4/lt~obsolete.m4
