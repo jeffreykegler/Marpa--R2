@@ -2,32 +2,32 @@ This file contains the output of a `git log -n 5`, performed when the
 distribution was created.  It is for convenience in identifying the commit
 for this distribution.
 
-commit 126a1f82dbe8ab7cb71af2b46f88b98155ca4be1
+commit cfe31afc9290a68a5567c7705ff00367271d2638
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Fri Jun 17 13:41:04 2022 -0400
+Date:   Thu Jun 23 13:12:56 2022 -0400
 
-    Issue #102
+    Bump version to 9.0.2
 
-commit ec4d87dfca16c9489ee50bf821037d33035dcbb6
+commit 23697d4bfeb4a546e2c3aabd755ad7defebe863f
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Fri Jun 17 13:29:27 2022 -0400
+Date:   Thu Jun 23 12:34:27 2022 -0400
 
-    Issue #102
+    Remove Github CI
 
-commit 8751ae49a7d08f9dca28724482b4e767154d9e2c
+commit 6d50d7d6dc71b060dcadc813b54cacd01ea91d8a
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Fri Jun 17 13:03:58 2022 -0400
+Date:   Thu Jun 23 12:32:32 2022 -0400
 
-    Issue #102
+    Remove Github CI
 
-commit 9c909936b0956b7f70115ecdb9c784db48e2cd1b
+commit 9c9945d2ad1852b3f269b7a50b8665ea02d842ab
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Fri Jun 17 12:55:03 2022 -0400
+Date:   Wed Jun 22 20:17:36 2022 -0400
 
-    Issue #102
+    Bump version to 9.0.1
 
-commit 232e550b6808b11ac34af1cf7bccecd62f7af06f
+commit b2526260dfcd5ad8ef81eb378532ffe37086ad1e
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Fri Jun 17 12:38:11 2022 -0400
+Date:   Wed Jun 22 19:40:10 2022 -0400
 
-    Issue #102
+    Add Github CI

@@ -35,9 +35,9 @@
 #include "string.h"
 #include "limits.h"
 
-#define MARPA_MAJOR_VERSION  8
-#define MARPA_MINOR_VERSION  6
-#define MARPA_MICRO_VERSION  7
+#define MARPA_MAJOR_VERSION  9
+#define MARPA_MINOR_VERSION  0
+#define MARPA_MICRO_VERSION  2
 
 #line 1 "./marpa.h-err"
 #define MARPA_ERROR_COUNT 100
