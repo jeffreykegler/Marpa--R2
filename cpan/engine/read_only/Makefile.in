@@ -393,7 +393,7 @@ EXTRA_DIST = README.INSTALL README.AIX libmarpa.pc GIT_LOG.txt \
   api_docs/libmarpa_api.pdf api_docs/libmarpa_api.html api_docs/api_html.tar \
   api_docs/libmarpa_api.info \
   error_codes.table events.table steps.table \
-  version.m4 libmarpa_version.sh
+  version.m4 libmarpa_version.sh LIB_VERSION
 
 libmarpa_la_LIBADD = $(LIBOBJS)
 libmarpa_la_LDFLAGS = -release $(RELEASE)
