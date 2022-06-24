@@ -40,8 +40,7 @@ bug is discovered.
 
 ## Bugs
 
-### Some nullable-refixed middle recursions cause parses to
-be ignored
+### Some parses with nullable-prefixed middle recursions are ignored
 
 A recursion is a rule with a symbol, call it the ``recursion symbol",
 that non-trivially
