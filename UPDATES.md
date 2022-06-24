@@ -42,10 +42,10 @@ bug is discovered.
 
 ### Some parses with nullable-prefixed middle recursions are ignored
 
-A recursion is a rule with a symbol, call it the ``recursion symbol",
+A recursion is a rule with a symbol, call it the "recursion symbol",
 that non-trivially
 produces the string consisting only of that symbol.
-"Non--trivially" means in more than one step -- every
+"Non-trivially" means in more than one step -- every
 rule with one or more symbols on the RHS is trivially
 recursive.
 
@@ -55,7 +55,7 @@ The RHS symbols to the left of the recursion symbol are the prefix
 of the middle recursion.
 The RHS symbols to the right of the recursion symbol are the suffix
 of the middle recursion.
-By definition, every middle recursion as a non-empty prefix and
+By definition, every middle recursion has a non-empty prefix and
 a non-empty suffix.
 
 The bug occurs in parses with a middle recursion whose prefix is
@@ -79,14 +79,12 @@ The most powerful grammars in widespread use are LALR(1),
 the grammar class parsed by yacc and bison.
 LALR(1) is weaker than LR(1).
 The above grammar is not parseable by an LR(`k`) grammar,
-for any `k`, so it is very far beyond the kind of grammars
-that had been in practical use.
+for any `k`, so it is very far beyond power of the parsers
+that have seen widespread practical use.
 
 Nonetheless, Marpa exists to extend parsing to grammars.
 which are well beyond the capabilities of traditional parsers.
-So Marpa should be able to handle this grammar.
-
-These is a fix to this problem, which has been tested.
+There is a fix to this problem, which has been tested.
 This fix will be in a release which is expected to come out shortly.
 
 ## Notices
