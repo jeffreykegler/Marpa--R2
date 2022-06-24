@@ -14,16 +14,9 @@
 # http://www.gnu.org/licenses/.
 
 # Temporary
-^ada[.]before$
-^sl_ada[.]t$
+^sl_lib116[.]t$
 ^meta_to_asf[.]pl$
-^marpa-problem[.]pl$
-^code[.]errs$
-^dist[.]errs$
-^modulo_AHFA[.]out$
-^bracket.t$
-^discard.t$
-^sl_evsyn2.t$
+^again.t$
 
 # Permanent
 

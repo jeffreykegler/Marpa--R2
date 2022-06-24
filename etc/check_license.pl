@@ -1057,4 +1057,6 @@ $problem_count and say +( q{=} x 50 );
 say
 "Found $problem_count license language problems after examining $file_count files";
 
+exit $problem_count;
+
 # vim: expandtab shiftwidth=4:

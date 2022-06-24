@@ -699,21 +699,6 @@ sub make_writeable {
     chmod $current_mode | (oct 200), $file;
 }
 
-sub ACTION_licensecheck {
-    my $self = shift;
-
-    require inc::Marpa::R2::License;
-
-    my $manifest = [keys %{ExtUtils::Manifest::maniread()}];
-    my @license_problems =
-        Marpa::R2::License::license_problems( $manifest, $self->verbose() );
-    if (@license_problems) {
-        print {*STDERR} join q{}, @license_problems
-            or die "Cannot print: $ERRNO";
-        die 'Fatal error due to license language issues';
-    }
-} ## end sub ACTION_licensecheck
-
 sub ACTION_metacheck {
     my $self = shift;
 
@@ -747,7 +732,6 @@ sub ACTION_metacheck {
 
 sub ACTION_distcheck {
     my $self = shift;
-    $self->ACTION_licensecheck();
     $self->ACTION_metacheck();
     return $self->SUPER::ACTION_distcheck;
 } ## end sub ACTION_distcheck
