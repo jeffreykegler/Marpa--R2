@@ -40,10 +40,55 @@ bug is discovered.
 
 ## Bugs
 
-### No known bugs
+### Some nullable-refixed middle recursions cause parses to
+be ignored
 
-As of this writing, there are no known bugs
-in Marpa::R2, version 8.000000.
+A recursion is a rule with a symbol, call it the ``recursion symbol",
+that non-trivially
+produces the string consisting only of that symbol.
+"Non--trivially" means in more than one step -- every
+rule with one or more symbols on the RHS is trivially
+recursive.
+
+A recursion is a middle recursion if its recursion symbol is not
+the first symbol on the RHS, and not the last symbol on the RHS.
+The RHS symbols to the left of the recursion symbol are the prefix
+of the middle recursion.
+The RHS symbols to the right of the recursion symbol are the suffix
+of the middle recursion.
+By definition, every middle recursion as a non-empty prefix and
+a non-empty suffix.
+
+The bug occurs in parses with a middle recursion whose prefix is
+nullable, and whose suffix is non-nullable.
+It seems safe to assume the reader would like an example.
+The following grammar exhibits this bug:
+
+```
+  prefixExpr ::= null prefixExpr Arg2
+  prefixExpr ::= Arg1
+  null ::= 
+```
+
+In this grammar, `<Arg1>` and `<Arg2>` are non-nullable
+terminals.
+
+This bug, which was discovered by Dave Abrahams, went unnoticed
+for ten years, because middle recursions are rare, and middle
+recursions with a non-nullable prefix more so.
+The most powerful grammars in widespread use are LALR(1),
+the grammar class parsed by yacc and bison.
+LALR(1) is weaker than LR(1).
+The above grammar is not parseable by an LR(`k`) grammar,
+for any `k`, so it is very far beyond the kind of grammars
+that had been in practical use.
+
+Nonetheless, Marpa exists to extend parsing to grammars.
+which are well beyond the capabilities of traditional parsers.
+So Marpa should be able to handle this grammar.
+
+These is a fix to this problem, which has been tested.
+This fix will be in a release which is expected to come out shortly.
 
 ## Notices
 
