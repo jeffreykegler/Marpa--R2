@@ -683,7 +683,7 @@ and which might be unexpected.
 
 When a symbol is nulled in your parse,
 L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress()">
-show only the nulled symbol.
+shows only the nulled symbol.
 It does not show the symbol's expansion into rules,
 or any of its nulled child symbols.
 This reduces clutter,
