@@ -15,10 +15,14 @@
 
 Revision history for Marpa::R2
 
-9.001_000 (libmarpa 9.0.3) Thu 23 Jun 2022 07:06:55 PM EDT
+10.000000 (libmarpa 9.0.3) Wed 29 Jun 2022 10:56:08 AM EDT
 
    * Fix bug which causes some parses for some middle recursions
      to be missed.
+
+9.001_000 (libmarpa 9.0.3) Thu 23 Jun 2022 07:06:55 PM EDT
+
+   * Developer's version
 
 8.000000 (libmarpa 8.6.2) Sun Dec 16 16:02:45 EST 2018
 
