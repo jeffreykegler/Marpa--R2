@@ -167,16 +167,16 @@ boolean ~ [01]
 <bracketed name string> ~ [\s\w]+
 
 <array descriptor> ~ <array descriptor left bracket> <result item descriptor list> <array descriptor right bracket>
-<array descriptor left bracket> ~ '[' 
+<array descriptor left bracket> ~ '['
 <array descriptor left bracket> ~ '[' whitespace
-<array descriptor right bracket> ~ ']' 
-<array descriptor right bracket> ~ whitespace ']' 
+<array descriptor right bracket> ~ ']'
+<array descriptor right bracket> ~ whitespace ']'
 <result item descriptor list> ~ <result item descriptor>* separator => <result item descriptor separator>
 <result item descriptor separator> ~ [,]
 <result item descriptor separator> ~ [,] whitespace
 <result item descriptor> ~ 'start' | 'length'
   | 'g1start' | 'g1length'
-  | 'name' | 'lhs' | 'symbol' | 'rule' 
+  | 'name' | 'lhs' | 'symbol' | 'rule'
   | 'value' | 'values'
 
 # In single quoted strings and character classes
