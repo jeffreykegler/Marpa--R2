@@ -82,10 +82,7 @@ The above grammar is not parseable by an LR(`k`) grammar,
 for any `k`, so it is very far beyond power of the parsers
 that have seen widespread practical use.
 
-Nonetheless, Marpa exists to extend parsing to grammars.
-which are well beyond the capabilities of traditional parsers.
-There is a fix to this problem, which has been tested.
-This fix will be in a release which is expected to come out shortly.
+This bug is fixed in Marpa::R2 10.000000.
 
 ## Notices
 
