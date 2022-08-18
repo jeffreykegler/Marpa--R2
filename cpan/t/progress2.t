@@ -24,7 +24,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 16;
 use POSIX qw(setlocale LC_ALL);
 
 POSIX::setlocale(LC_ALL, "C");
@@ -104,6 +104,25 @@ Marpa::R2::Test::is( $grammar->show_irls,
 EOS
 
 }
+
+Marpa::R2::Test::is( $grammar->show_isys,
+    <<'EOS', 'Aycock/Horspool ISYs' );
+0: [:start]
+1: [:start][], nulling
+2: [Lex-0]
+3: S
+4: S[], nulling
+5: SS
+6: SS[], nulling
+7: A
+8: A[], nulling
+9: SS[R1:1]
+10: SS[R1:2]
+11: SS[R1:3]
+12: SS[R1:4]
+13: SS[R1:5]
+14: [:start][']
+EOS
 
 my ($SS_sym) = grep { $grammar->symbol_name($_) eq 'SS' } $grammar->symbol_ids();
 my ($target_rule) = grep { ($grammar->rule_expand($_))[0] eq $SS_sym } $grammar->rule_ids();
