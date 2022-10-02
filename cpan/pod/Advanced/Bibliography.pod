@@ -183,12 +183,12 @@ This is L<Grune and Jacobs 1990> updated.
 The bibliography for this book is available in enlarged form
 on the web: L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>.
 
-=head2 Kegler 2013
+=head2 Kegler 2022
 
 My writeup of the theory behind Marpa,
 with proofs of correctness and of my complexity claims
-is available online:
-L<https://docs.google.com/file/d/0B9_mR_M2zOc4Ni1zSW5IYzk3TGc/edit?usp=sharing>.
+is on C<arxiv.org> (L<https://arxiv.org/abs/1910.08129>).
+First made public in 2013, it was updated in 2022.
 
 =head2 Leo 1991
 
