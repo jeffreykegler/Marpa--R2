@@ -34,11 +34,12 @@ my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 $grammar->force_valued();
 my $symbol_S = $grammar->symbol_new();
 $grammar->start_symbol_set($symbol_S);
-my $symbol_seq = $grammar->symbol_new();
-my $symbol_element     = $grammar->symbol_new();
-my $start_rule_id = $grammar->rule_new( $symbol_S, [$symbol_seq] );
-my $seq_rule_id = $grammar->sequence_new( $symbol_seq, $symbol_element, { min => 0});
-$grammar->symbol_is_terminal_set($symbol_seq, 1);
+my $symbol_seq     = $grammar->symbol_new();
+my $symbol_element = $grammar->symbol_new();
+my $start_rule_id  = $grammar->rule_new( $symbol_S, [$symbol_seq] );
+my $seq_rule_id =
+  $grammar->sequence_new( $symbol_seq, $symbol_element, { min => 0 } );
+$grammar->symbol_is_terminal_set( $symbol_seq, 1 );
 
 $grammar->precompute();
 
@@ -49,65 +50,22 @@ $recce->start_input();
 # that is, they index their own token value.
 # Important: zero cannot be itself!
 
-my @token_values         = ( 0 .. 3 );
-my $x_token_value                 = -1 + push @token_values, "x";
+my @token_values  = ( 0 .. 3 );
+my $x_token_value = -1 + push @token_values, "x";
+my $y_token_value = -1 + push @token_values, "y";
 
 $recce->alternative( $symbol_element, $x_token_value, 1 );
 $recce->earleme_complete();
 $recce->alternative( $symbol_element, $x_token_value, 1 );
 $recce->earleme_complete();
 
-sub evalIt {
-    my ($recce) = @_;
-my $latest_earley_set_ID = $recce->latest_earley_set();
-my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
-my $order         = Marpa::R2::Thin::O->new($bocage);
-my $tree          = Marpa::R2::Thin::T->new($order);
-my @actual_values = ();
-while ( $tree->next() ) {
-    my $valuator = Marpa::R2::Thin::V->new($tree);
-    my @stack    = ();
-    STEP: while (1) {
-        my ( $type, @step_data ) = $valuator->step();
-        last STEP if not defined $type;
-        if ( $type eq 'MARPA_STEP_TOKEN' ) {
-            # say STDERR "TOKEN: ", join " ", @step_data;
-            my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = [ "TOKEN:", $token_values[$token_value_ix] ];
-            next STEP;
-        }
-        if ( $type eq 'MARPA_STEP_RULE' ) {
-            # say STDERR "RULE: ", join " ", @step_data;
-            my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            if ( $rule_id == $start_rule_id ) {
-                # just leave value at stack 0 where it is
-                next STEP;
-            }
-            if ( $rule_id == $seq_rule_id ) {
-                my $elements = ["SEQ:"];
-                for my $i ($arg_0 ... $arg_n) {
-                    push @$elements, $stack[$i];
-                }
-                $stack[$arg_0] = $elements;
-                next STEP;
-            }
-            die "Unknown rule $rule_id";
-        } ## end if ( $type eq 'MARPA_STEP_RULE' )
-        die "Unexpected step type: $type";
-    } ## end STEP: while (1)
-    push @actual_values, $stack[0];
-} ## end while ( $tree->next() )
-return \@actual_values;
-}
-
-my %expected_value = (
- q{\['SEQ:',['TOKEN:','x'],['TOKEN:','x']]} => 1,
-);
+my %expected_value = ( q{\['SEQ:',['TOKEN:','x'],['TOKEN:','x']]} => 1, );
 
 my $actual_values = evalIt($recce);
-my $i = 0;
+my $i             = 0;
 for my $actual_value (@$actual_values) {
-    my $dumped_value = Data::Dumper->new( [ \$actual_value ] )->Indent(0)->Terse(1)->Dump;
+    my $dumped_value =
+      Data::Dumper->new( [ \$actual_value ] )->Indent(0)->Terse(1)->Dump;
     if ( defined $expected_value{$dumped_value} ) {
         delete $expected_value{$dumped_value};
         Test::More::pass("Expected Value $i: $dumped_value");
@@ -116,6 +74,76 @@ for my $actual_value (@$actual_values) {
         Test::More::fail("Unexpected Value $i: $dumped_value");
     }
     $i++;
+}
+
+# Start a new recce
+$recce = Marpa::R2::Thin::R->new($grammar);
+$recce->start_input();
+
+$recce->alternative( $symbol_element, $y_token_value, 1 );
+$recce->earleme_complete();
+
+%expected_value = ( q{\['SEQ:',['TOKEN:','y']]} => 1, );
+
+$actual_values = evalIt($recce);
+$i             = 0;
+for my $actual_value (@$actual_values) {
+    my $dumped_value =
+      Data::Dumper->new( [ \$actual_value ] )->Indent(0)->Terse(1)->Dump;
+    if ( defined $expected_value{$dumped_value} ) {
+        delete $expected_value{$dumped_value};
+        Test::More::pass("Expected Value $i: $dumped_value");
+    }
+    else {
+        Test::More::fail("Unexpected Value $i: $dumped_value");
+    }
+    $i++;
+}
+
+sub evalIt {
+    my ($recce)              = @_;
+    my $latest_earley_set_ID = $recce->latest_earley_set();
+    my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+    my $order  = Marpa::R2::Thin::O->new($bocage);
+    my $tree   = Marpa::R2::Thin::T->new($order);
+    my @actual_values = ();
+    while ( $tree->next() ) {
+        my $valuator = Marpa::R2::Thin::V->new($tree);
+        my @stack    = ();
+      STEP: while (1) {
+            my ( $type, @step_data ) = $valuator->step();
+            last STEP if not defined $type;
+            if ( $type eq 'MARPA_STEP_TOKEN' ) {
+
+                # say STDERR "TOKEN: ", join " ", @step_data;
+                my ( undef, $token_value_ix, $arg_n ) = @step_data;
+                $stack[$arg_n] = [ "TOKEN:", $token_values[$token_value_ix] ];
+                next STEP;
+            }
+            if ( $type eq 'MARPA_STEP_RULE' ) {
+
+                # say STDERR "RULE: ", join " ", @step_data;
+                my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+                if ( $rule_id == $start_rule_id ) {
+
+                    # just leave value at stack 0 where it is
+                    next STEP;
+                }
+                if ( $rule_id == $seq_rule_id ) {
+                    my $elements = ["SEQ:"];
+                    for my $i ( $arg_0 ... $arg_n ) {
+                        push @$elements, $stack[$i];
+                    }
+                    $stack[$arg_0] = $elements;
+                    next STEP;
+                }
+                die "Unknown rule $rule_id";
+            } ## end if ( $type eq 'MARPA_STEP_RULE' )
+            die "Unexpected step type: $type";
+        } ## end STEP: while (1)
+        push @actual_values, $stack[0];
+    } ## end while ( $tree->next() )
+    return \@actual_values;
 }
 
 # vim: expandtab shiftwidth=4:
