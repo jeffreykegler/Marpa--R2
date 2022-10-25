@@ -57,6 +57,8 @@ $recce->earleme_complete();
 $recce->alternative( $symbol_element, $x_token_value, 1 );
 $recce->earleme_complete();
 
+sub evalIt {
+    my ($recce) = @_;
 my $latest_earley_set_ID = $recce->latest_earley_set();
 my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
 my $order         = Marpa::R2::Thin::O->new($bocage);
@@ -95,13 +97,16 @@ while ( $tree->next() ) {
     } ## end STEP: while (1)
     push @actual_values, $stack[0];
 } ## end while ( $tree->next() )
+return \@actual_values;
+}
 
 my %expected_value = (
  q{\['SEQ:',['TOKEN:','x'],['TOKEN:','x']]} => 1,
 );
 
+my $actual_values = evalIt($recce);
 my $i = 0;
-for my $actual_value (@actual_values) {
+for my $actual_value (@$actual_values) {
     my $dumped_value = Data::Dumper->new( [ \$actual_value ] )->Indent(0)->Terse(1)->Dump;
     if ( defined $expected_value{$dumped_value} ) {
         delete $expected_value{$dumped_value};
