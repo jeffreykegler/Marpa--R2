@@ -14,14 +14,16 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Testing using deprecated methods of
-# the thin interface
+# This test uses the thin interface It tests the LHS terminals feature
+# with a sequence rule LHS being used as a terminal.  This is very much
+# a corner case -- LHS terminals are deprecated in libmarpa.  This makes
+# it all the more important to watch for breakage in this "feature".
 
 use 5.010001;
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use lib 'inc';
 use Marpa::R2::Test;
