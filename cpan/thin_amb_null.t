@@ -32,13 +32,13 @@ use Data::Dumper;
 use Marpa::R2;
 
 sub myDump {
-      my $v = shift;
-      return Data::Dumper->new( [ $v] )->Indent(0)->Terse(1)->Dump;
+    my $v = shift;
+    return Data::Dumper->new( [$v] )->Indent(0)->Terse(1)->Dump;
 }
 
 my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 $grammar->force_valued();
-my @symbol = ();
+my @symbol   = ();
 my $symbol_S = $grammar->symbol_new();
 $symbol[$symbol_S] = "S";
 $grammar->start_symbol_set($symbol_S);
@@ -54,11 +54,12 @@ my $symbol_y = $grammar->symbol_new();
 $symbol[$symbol_y] = "Y";
 
 my @rule = ();
-my $start_rule_id  = $grammar->rule_new( $symbol_S, [$symbol_x, $symbol_amb, $symbol_y] );
+my $start_rule_id =
+  $grammar->rule_new( $symbol_S, [ $symbol_x, $symbol_amb, $symbol_y ] );
 $rule[$start_rule_id] = 'start';
-my $amb1_rule_id = $grammar->rule_new( $symbol_amb, [$symbol_a, $symbol_b] );
+my $amb1_rule_id = $grammar->rule_new( $symbol_amb, [ $symbol_a, $symbol_b ] );
 $rule[$amb1_rule_id] = 'amb1';
-my $amb2_rule_id = $grammar->rule_new( $symbol_amb, [$symbol_b, $symbol_a] );
+my $amb2_rule_id = $grammar->rule_new( $symbol_amb, [ $symbol_b, $symbol_a ] );
 $rule[$amb2_rule_id] = 'amb2';
 my $a_rule_id = $grammar->rule_new( $symbol_a, [] );
 $rule[$a_rule_id] = 'a';
@@ -98,22 +99,23 @@ for my $actual_value (@$actual_values) {
     }
     $i++;
 }
-my @not_found = keys %expected_value;
+my @not_found       = keys %expected_value;
 my $not_found_count = scalar @not_found;
 if ($not_found_count) {
-        Test::More::fail("$not_found_count expected value(s) not found");
-        for my $value (@not_found) {
-            Test::More::diag("$value");
-        }
-} else {
-        Test::More::ok("All expected values found");
+    Test::More::fail("$not_found_count expected value(s) not found");
+    for my $value (@not_found) {
+        Test::More::diag("$value");
+    }
+}
+else {
+    Test::More::ok("All expected values found");
 }
 
 my @rule_data = (
-  [ 'AMB1', $amb1_rule_id ],
-  [ 'AMB2', $amb2_rule_id ],
-  [ 'A', $a_rule_id ],
-  [ 'B', $b_rule_id ],
+    [ 'AMB1', $amb1_rule_id ],
+    [ 'AMB2', $amb2_rule_id ],
+    [ 'A',    $a_rule_id ],
+    [ 'B',    $b_rule_id ],
 );
 
 sub evalIt {
@@ -121,10 +123,11 @@ sub evalIt {
     my $latest_earley_set_ID = $recce->latest_earley_set();
     my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
     my $metric = $bocage->ambiguity_metric();
-    Test::More::is($metric, 1, "Ambiguity metric");
-    my $order  = Marpa::R2::Thin::O->new($bocage);
-    my $tree   = Marpa::R2::Thin::T->new($order);
+    Test::More::is( $metric, 1, "Ambiguity metric" );
+    my $order         = Marpa::R2::Thin::O->new($bocage);
+    my $tree          = Marpa::R2::Thin::T->new($order);
     my @actual_values = ();
+
     while ( $tree->next() ) {
         my $valuator = Marpa::R2::Thin::V->new($tree);
         my @stack    = ();
@@ -132,10 +135,12 @@ sub evalIt {
             my ( $type, @step_data ) = $valuator->step();
             last STEP if not defined $type;
             if ( $type eq 'MARPA_STEP_TOKEN' ) {
+
                 # say STDERR "TOKEN: ", join " ", @step_data;
                 my ( $sym_id, $token_value_ix, $arg_n ) = @step_data;
                 my $tag = $symbol[$sym_id] . ':';
                 $stack[$arg_n] = [ $tag, $token_values[$token_value_ix] ];
+
                 # say STDERR "Stack: ", join " ", myDump( \@stack );
                 next STEP;
             }
@@ -144,6 +149,7 @@ sub evalIt {
                 # say STDERR "NULLING: ", join " ", @step_data;
                 my ( $sym_id, $arg_n ) = @step_data;
                 $stack[$arg_n] = [ $symbol[$sym_id] . ':' ];
+
                 # say STDERR "Stack: ", join " ", myDump( \@stack );
                 next STEP;
             }
@@ -153,13 +159,14 @@ sub evalIt {
                 my ( $rule_id, $arg_0, $arg_n ) = @step_data;
                 my $rule_name = $rule[$rule_id];
                 die "Unknown rule $rule_id" unless defined $rule_name;
-                    my $elements = [$rule_name . ':'];
-                    for my $i ( $arg_0 ... $arg_n ) {
-                        push @$elements, $stack[$i];
-                    }
-                    $stack[$arg_0] = $elements;
+                my $elements = [ $rule_name . ':' ];
+                for my $i ( $arg_0 ... $arg_n ) {
+                    push @$elements, $stack[$i];
+                }
+                $stack[$arg_0] = $elements;
+
                 # say STDERR "Stack: ", join " ", myDump( \@stack );
-                    next STEP;
+                next STEP;
             } ## end if ( $type eq 'MARPA_STEP_RULE' )
             die "Unexpected step type: $type";
         } ## end STEP: while (1)
