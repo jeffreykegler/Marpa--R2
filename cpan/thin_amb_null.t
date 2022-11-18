@@ -33,18 +33,32 @@ use Marpa::R2;
 
 my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 $grammar->force_valued();
+my @symbol = ();
 my $symbol_S = $grammar->symbol_new();
+$symbol[$symbol_S] = "S";
 $grammar->start_symbol_set($symbol_S);
 my $symbol_amb = $grammar->symbol_new();
+$symbol[$symbol_amb] = "AMB";
 my $symbol_a = $grammar->symbol_new();
+$symbol[$symbol_a] = "A";
 my $symbol_b = $grammar->symbol_new();
+$symbol[$symbol_b] = "B";
 my $symbol_x = $grammar->symbol_new();
+$symbol[$symbol_x] = "X";
 my $symbol_y = $grammar->symbol_new();
+$symbol[$symbol_y] = "Y";
+
+my @rule = ();
 my $start_rule_id  = $grammar->rule_new( $symbol_S, [$symbol_x, $symbol_amb, $symbol_y] );
+$rule[$start_rule_id] = 'start';
 my $amb1_rule_id = $grammar->rule_new( $symbol_amb, [$symbol_a, $symbol_b] );
+$rule[$amb1_rule_id] = 'amb1';
 my $amb2_rule_id = $grammar->rule_new( $symbol_amb, [$symbol_b, $symbol_a] );
+$rule[$amb2_rule_id] = 'amb1';
 my $a_rule_id = $grammar->rule_new( $symbol_a, [] );
+$rule[$a_rule_id] = 'a';
 my $b_rule_id = $grammar->rule_new( $symbol_b, [] );
+$rule[$b_rule_id] = 'b';
 
 $grammar->precompute();
 
@@ -80,6 +94,16 @@ for my $actual_value (@$actual_values) {
     }
     $i++;
 }
+my @not_found = keys %expected_value;
+my $not_found_count = scalar @not_found;
+if ($not_found_count) {
+        Test::More::fail("$not_found_count expected value(s) not found");
+        for my $value (@not_found) {
+            Test::More::diag("$value");
+        }
+} else {
+        Test::More::ok("All expected values found");
+}
 
 my @rule_data = (
   [ 'AMB1', $amb1_rule_id ],
@@ -92,6 +116,8 @@ sub evalIt {
     my ($recce)              = @_;
     my $latest_earley_set_ID = $recce->latest_earley_set();
     my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+    my $metric = $bocage->ambiguity_metric();
+    Test::More::is($metric, 1, "Ambiguity metric");
     my $order  = Marpa::R2::Thin::O->new($bocage);
     my $tree   = Marpa::R2::Thin::T->new($order);
     my @actual_values = ();
@@ -102,39 +128,34 @@ sub evalIt {
             my ( $type, @step_data ) = $valuator->step();
             last STEP if not defined $type;
             if ( $type eq 'MARPA_STEP_TOKEN' ) {
-
-                # say STDERR "TOKEN: ", join " ", @step_data;
-                my ( undef, $token_value_ix, $arg_n ) = @step_data;
-                $stack[$arg_n] = [ "TOKEN:", $token_values[$token_value_ix] ];
+                say STDERR "TOKEN: ", join " ", @step_data;
+                my ( $sym_id, $token_value_ix, $arg_n ) = @step_data;
+                my $tag = $symbol[$sym_id] . ':';
+                $stack[$arg_n] = [ $tag, $token_values[$token_value_ix] ];
                 next STEP;
             }
             if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
 
-                # say STDERR "NULLING: ", join " ", @step_data;
-                my ( undef, $arg_n ) = @step_data;
-                $stack[$arg_n] = [ "NULLING:" ];
+                say STDERR "NULLING: ", join " ", @step_data;
+                my ( $sym_id, $arg_n ) = @step_data;
+                $stack[$arg_n] = [ $symbol[$sym_id] . ':' ];
                 next STEP;
             }
             if ( $type eq 'MARPA_STEP_RULE' ) {
 
-                # say STDERR "RULE: ", join " ", @step_data;
+                say STDERR "RULE: ", join " ", @step_data;
                 my ( $rule_id, $arg_0, $arg_n ) = @step_data;
                 if ( $rule_id == $start_rule_id ) {
 
                     # just leave value at stack 0 where it is
                     next STEP;
                 }
-                for my $rule_data (@rule_data) {
-                    my ($tag, $id) = @$rule_data;
-                if ( $rule_id == $id ) {
-                    my $elements = ["$tag:"];
+                    my $elements = [$rule[$rule_id] . ':'];
                     for my $i ( $arg_0 ... $arg_n ) {
                         push @$elements, $stack[$i];
                     }
                     $stack[$arg_0] = $elements;
                     next STEP;
-                }
-                }
                 die "Unknown rule $rule_id";
             } ## end if ( $type eq 'MARPA_STEP_RULE' )
             die "Unexpected step type: $type";
