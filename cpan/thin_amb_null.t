@@ -22,7 +22,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -30,6 +30,11 @@ use English qw( -no_match_vars );
 use Fatal qw( close open );
 use Data::Dumper;
 use Marpa::R2;
+
+sub myDump {
+      my $v = shift;
+      return Data::Dumper->new( [ $v] )->Indent(0)->Terse(1)->Dump;
+}
 
 my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 $grammar->force_valued();
@@ -54,7 +59,7 @@ $rule[$start_rule_id] = 'start';
 my $amb1_rule_id = $grammar->rule_new( $symbol_amb, [$symbol_a, $symbol_b] );
 $rule[$amb1_rule_id] = 'amb1';
 my $amb2_rule_id = $grammar->rule_new( $symbol_amb, [$symbol_b, $symbol_a] );
-$rule[$amb2_rule_id] = 'amb1';
+$rule[$amb2_rule_id] = 'amb2';
 my $a_rule_id = $grammar->rule_new( $symbol_a, [] );
 $rule[$a_rule_id] = 'a';
 my $b_rule_id = $grammar->rule_new( $symbol_b, [] );
@@ -78,13 +83,12 @@ $recce->earleme_complete();
 $recce->alternative( $symbol_y, $x_token_value, 1 );
 $recce->earleme_complete();
 
-my %expected_value = ( q{\['X:', 'AMB:', 'Y:']} => 1, );
+my %expected_value = ( q{\['start:',['X:','x'],['AMB:'],['Y:','x']]} => 1, );
 
 my $actual_values = evalIt($recce);
 my $i             = 0;
 for my $actual_value (@$actual_values) {
-    my $dumped_value =
-      Data::Dumper->new( [ \$actual_value ] )->Indent(0)->Terse(1)->Dump;
+    my $dumped_value = myDump( \$actual_value );
     if ( defined $expected_value{$dumped_value} ) {
         delete $expected_value{$dumped_value};
         Test::More::pass("Expected Value $i: $dumped_value");
@@ -128,35 +132,34 @@ sub evalIt {
             my ( $type, @step_data ) = $valuator->step();
             last STEP if not defined $type;
             if ( $type eq 'MARPA_STEP_TOKEN' ) {
-                say STDERR "TOKEN: ", join " ", @step_data;
+                # say STDERR "TOKEN: ", join " ", @step_data;
                 my ( $sym_id, $token_value_ix, $arg_n ) = @step_data;
                 my $tag = $symbol[$sym_id] . ':';
                 $stack[$arg_n] = [ $tag, $token_values[$token_value_ix] ];
+                # say STDERR "Stack: ", join " ", myDump( \@stack );
                 next STEP;
             }
             if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
 
-                say STDERR "NULLING: ", join " ", @step_data;
+                # say STDERR "NULLING: ", join " ", @step_data;
                 my ( $sym_id, $arg_n ) = @step_data;
                 $stack[$arg_n] = [ $symbol[$sym_id] . ':' ];
+                # say STDERR "Stack: ", join " ", myDump( \@stack );
                 next STEP;
             }
             if ( $type eq 'MARPA_STEP_RULE' ) {
 
-                say STDERR "RULE: ", join " ", @step_data;
+                # say STDERR "RULE: ", join " ", @step_data;
                 my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-                if ( $rule_id == $start_rule_id ) {
-
-                    # just leave value at stack 0 where it is
-                    next STEP;
-                }
-                    my $elements = [$rule[$rule_id] . ':'];
+                my $rule_name = $rule[$rule_id];
+                die "Unknown rule $rule_id" unless defined $rule_name;
+                    my $elements = [$rule_name . ':'];
                     for my $i ( $arg_0 ... $arg_n ) {
                         push @$elements, $stack[$i];
                     }
                     $stack[$arg_0] = $elements;
+                # say STDERR "Stack: ", join " ", myDump( \@stack );
                     next STEP;
-                die "Unknown rule $rule_id";
             } ## end if ( $type eq 'MARPA_STEP_RULE' )
             die "Unexpected step type: $type";
         } ## end STEP: while (1)
