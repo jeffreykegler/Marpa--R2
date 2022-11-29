@@ -49,7 +49,7 @@ to be due to a bug in configure on MacOS.  The problem
 does not occur in Linux, but may occur on targets other
 than MacOs.
 
-When this problem occurs, the log will contain this message.
+When this problem occurs, the log will contain this message:
 ```
 config.status: error: Something went wrong bootstrapping makefile fragments
     for automatic dependency tracking.  Try re-running configure with the
