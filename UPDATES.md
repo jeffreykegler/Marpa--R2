@@ -42,7 +42,31 @@ bug is discovered.
 
 ### No known bugs
 
-As of this writing, there are no known bugs in Marpa::R2 10.000000.
+### During installation, configure fails on MacOs
+
+On MacOs, GNU's configure tool often fails.  The appears
+to be due to a bug in configure on MacOS.  The problem
+does not occur in Linux, but may occur on targets other
+than MacOs.
+
+When this problem occurs, the log will contain this message.
+```
+config.status: error: Something went wrong bootstrapping makefile fragments
+    for automatic dependency tracking.  Try re-running configure with the
+    '--disable-dependency-tracking' option to at least be able to build
+    the package (albeit without support for automatic dependency tracking).
+```
+
+The workaround is to set the following environment variable:
+```
+    MARPA_USE_PERL_AUTOCONF=1
+```
+This environment setting will cause the installation to use
+Perl's Config::Autoconf
+instead of the GNU autoconf.
+The problem seems to be a bug in the GNU autoconf on certain
+platforms, a bug that
+Config::Autoconf does not share.
 
 ## Notices
 
