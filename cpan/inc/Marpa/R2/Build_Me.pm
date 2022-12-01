@@ -506,9 +506,22 @@ sub do_libmarpa {
     local $ENV{CFLAGS};
     $ENV{CFLAGS} = $original_cflags if defined $original_cflags;
 
-    # We need PIC, but do not want the overhead of building the shared library
     my @configure_command_args = ();
+    # We need PIC, but do not want the overhead of building the shared library
     push @configure_command_args, qw(--with-pic --disable-shared --disable-maintainer-mode);
+
+    # Dependency tracking is buggy on many platforms, causing installations to
+    # fail.  We turn it off here.  As a side effect, this makes the build
+    # faster.  It has no effect on builds from scratch -- builds where there
+    # are no pre-existing object files.
+    #
+    # The downside is that, if a user uses the Perl distribution for development
+    # (which to our knowledge has never happened).  Their dependencies may get
+    # out of sync, causing objects that should be re-built not to be re-built.
+    # A developer who really wants to use the Perl distribution for development,
+    # instead of the git repo, can either avoid changing the dependencies,
+    # or remove the all the object files every time they build.
+    push @configure_command_args, qw(--disable-dependency-tracking);
 
     my @debug_flags = ();
     if ( defined $self->args('Marpa-debug') ) {
