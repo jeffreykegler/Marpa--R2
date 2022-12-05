@@ -1945,6 +1945,14 @@ sub Marpa::R2::Scanless::R::show_bocage {
     return $thick_g1_recce->show_bocage($verbose);
 }
 
+sub Marpa::R2::Scanless::R::show_earley_sets {
+    my ( $slr, $verbose ) = @_;
+    $verbose //= 0;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    return $thick_g1_recce->show_earley_sets($verbose);
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:
