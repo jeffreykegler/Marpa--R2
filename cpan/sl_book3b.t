@@ -15,7 +15,7 @@
 # http://www.gnu.org/licenses/.
 
 # Dave Abrahams marpabook repo issue 3
-# Dave's original grammar
+# Extended grammar
 
 use 5.010001;
 use strict;
@@ -39,6 +39,7 @@ lexeme default = latm => 1
 A ::= 'w' 'x' B | 'w'
 B ::= C
 C ::= 'y' 'z' A
+C ::= 'y' 'z' 'w' 'x' 'y' 'z' 'w'
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -81,7 +82,8 @@ say $grammar->show_rules();
 say "=== Earley sets ===\n", $recce->show_earley_sets();
 my $latest_earley_set = $recce->latest_earley_set();
 for (my $i = 0; $i <= $latest_earley_set; $i++) {
-    print "=== Progress @$i ===\n", $recce->show_progress($i);
+    printf "=== Progress @%d ===\n", $i;
+    print $recce->show_progress($i);
 }
 
 Marpa::R2::Thin::debug_level_set(1);

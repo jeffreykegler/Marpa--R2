@@ -856,7 +856,7 @@ sub ahm_describe {
     return 'R' . $irl_id . q{:} . $dot_position;
 }
 
-sub Marpa::R2::show_leo_item {
+sub Marpa::R2::show_lim {
     my ($recce)        = @_;
     my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -880,6 +880,29 @@ sub Marpa::R2::show_leo_item {
     push @link_texts, sprintf 'S%d@%d-%d', $leo_base_state,
         $base_origin_earleme,
         $trace_earleme;
+    $text .= ' [' . ( join '; ', @link_texts ) . ']';
+    return $text;
+} ## end sub Marpa::R2::show_lim
+
+sub Marpa::R2::show_leo_item {
+    my ($recce)        = @_;
+    my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $leo_base_state = $recce_c->_marpa_r_leo_base_state();
+    return if not defined $leo_base_state;
+    my $trace_earley_set      = $recce_c->_marpa_r_trace_earley_set();
+    my $trace_earleme         = $recce_c->earleme($trace_earley_set);
+    my $postdot_symbol_id     = $recce_c->_marpa_r_postdot_item_symbol();
+    my $postdot_symbol_name   = $tracer->isy_name($postdot_symbol_id);
+    # my $predecessor_symbol_id = $recce_c->_marpa_r_leo_predecessor_symbol();
+    my $base_origin_set_id    = $recce_c->_marpa_r_leo_base_origin();
+    my $base_origin_earleme   = $recce_c->earleme($base_origin_set_id);
+
+    my $text = sprintf 'L@%d', $trace_earleme;
+    my @link_texts = ('-');
+    push @link_texts, qq{"$postdot_symbol_name"};
+    push @link_texts, qq{"$base_origin_earleme"};
     $text .= ' [' . ( join '; ', @link_texts ) . ']';
     return $text;
 } ## end sub Marpa::R2::show_leo_item
@@ -1090,7 +1113,7 @@ sub Marpa::R2::show_earley_set {
 
         # If there is no base Earley item,
         # then this is not a Leo item, so we skip it
-        my $leo_item_desc = Marpa::R2::show_leo_item($recce);
+        my $leo_item_desc = Marpa::R2::show_lim($recce);
         next POSTDOT_ITEM if not defined $leo_item_desc;
         push @sort_data, [ $postdot_symbol_id, $leo_item_desc ];
     } ## end POSTDOT_ITEM: for ( my $postdot_symbol_id = $recce_c...)
