@@ -615,6 +615,50 @@ sub Marpa::R2::Recognizer::show_progress {
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_progress
 
+sub Marpa::R2::Recognizer::show_parse_items {
+    my ( $recce, $start_ordinal, $end_ordinal ) = @_;
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+
+    my $last_ordinal = $recce->latest_earley_set();
+
+    if ( not defined $start_ordinal ) {
+        $start_ordinal = $last_ordinal;
+    }
+    if ( $start_ordinal < 0 ) {
+        $start_ordinal += $last_ordinal + 1;
+    }
+    else {
+        if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
+            return
+                "Marpa::PP::Recognizer::show_parse_items start index is $start_ordinal, "
+                . "must be in range 0-$last_ordinal";
+        }
+    } ## end else [ if ( $start_ordinal < 0 ) ]
+
+    if ( not defined $end_ordinal ) {
+        $end_ordinal = $start_ordinal;
+    }
+    else {
+        my $end_ordinal_argument = $end_ordinal;
+        if ( $end_ordinal < 0 ) {
+            $end_ordinal += $last_ordinal + 1;
+        }
+        if ( $end_ordinal < 0 ) {
+            return
+                "Marpa::PP::Recognizer::show_parse_items end index is $end_ordinal_argument, "
+                . sprintf ' must be in range %d-%d', -( $last_ordinal + 1 ),
+                $last_ordinal;
+        } ## end if ( $end_ordinal < 0 )
+    } ## end else [ if ( not defined $end_ordinal ) ]
+
+    my $text = q{};
+    for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
+        print $recce->show_progress();
+    } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
+    return $text;
+} ## end sub Marpa::R2::Recognizer::show_parse_items
+
 sub Marpa::R2::Recognizer::read {
     my $arg_count = scalar @_;
     my ( $recce, $symbol_name, $value ) = @_;

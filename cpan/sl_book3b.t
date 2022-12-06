@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use Scalar::Util;
 use Data::Dumper;
-use Test::More tests => 1;
+use Test::More tests => 3;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -56,10 +56,7 @@ my $grammar = Marpa::R2::Scanless::G->new(
     }
 );
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar,
-   # trace_earley_sets => 1,
-   trace_terminals => 1
-   } );
+my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, } );
 
 my $string = 'w x y z w x y z w';
 
@@ -72,33 +69,46 @@ say "Ambiguity: ", $recce->ambiguous();
 # $r->ambiguous() and $r->value() on the same recognizer
 $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 read_input();
-say "Ambiguity Metric: ", $recce->ambiguity_metric();
+
+my $metric = $recce->ambiguity_metric();
+Test::More::is($metric, 2, "Ambiguity Metric");
+
 say $grammar->show_rules();
-# say "=== ISYs ===\n", $grammar->show_isys();
-# say $grammar->show_irls();
-# say "=== And nodes ===\n", $recce->show_and_nodes(1);
-# say "=== Or nodes ===\n", $recce->verbose_or_nodes();
-# say "=== Bocage ===\n", $recce->show_bocage();
-say "=== Earley sets ===\n", $recce->show_earley_sets();
 my $latest_earley_set = $recce->latest_earley_set();
 for (my $i = 0; $i <= $latest_earley_set; $i++) {
     printf "=== Progress @%d ===\n", $i;
     print $recce->show_progress($i);
 }
 
-Marpa::R2::Thin::debug_level_set(1);
-my $value_ref = $recce->value();
-if ( not defined $value_ref ) {
-    die "No parse was found, after reading the entire input\n";
+my %expected_value = (
+    q{\['w','x',[['y','z','w','x','y','z','w']]]} => 1,
+    q{[2]} => 1
+);
+
+my $i             = 0;
+for my $actual_value ($recce->value()) {
+    my $dumped_value = myDump( $actual_value );
+    if ( defined $expected_value{$dumped_value} ) {
+        delete $expected_value{$dumped_value};
+        Test::More::pass("Expected Value $i: $dumped_value");
+    }
+    else {
+        Test::More::fail("Unexpected Value $i: $dumped_value");
+    }
+    $i++;
+}
+my @not_found       = keys %expected_value;
+my $not_found_count = scalar @not_found;
+if ($not_found_count) {
+    Test::More::fail("$not_found_count expected value(s) not found");
+    for my $value (@not_found) {
+        Test::More::diag("$value");
+    }
+}
+else {
+    Test::More::ok("All expected values found");
 }
 
-my $expected_value = \[ ];
-
-Test::More::is(
-    Data::Dumper::Dumper($value_ref),
-    Data::Dumper::Dumper($expected_value),
-    'Value of parse'
-);
 
 sub read_input {
     $recce->read( \$string );
@@ -123,6 +133,11 @@ sub main::dwim {
         push @result, $v;
     }
     return [@result];
+}
+
+sub myDump {
+    my $v = shift;
+    return Data::Dumper->new( [$v] )->Indent(0)->Terse(1)->Dump;
 }
 
 # vim: expandtab shiftwidth=4:
