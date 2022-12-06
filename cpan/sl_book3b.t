@@ -77,7 +77,7 @@ say $grammar->show_rules();
 my $latest_earley_set = $recce->latest_earley_set();
 for (my $i = 0; $i <= $latest_earley_set; $i++) {
     printf "=== Progress @%d ===\n", $i;
-    print $recce->show_progress($i);
+    print $recce->show_parse_items($i);
 }
 
 my %expected_value = (

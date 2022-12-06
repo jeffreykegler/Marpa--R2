@@ -1959,6 +1959,15 @@ sub Marpa::R2::Scanless::R::show_earley_sets {
     return $thick_g1_recce->show_earley_sets($verbose);
 }
 
+sub Marpa::R2::Scanless::R::show_parse_items {
+    my ( $slr, $ordinal ) = @_;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    my $text = $slr->show_progress($ordinal);
+    $text .= $thick_g1_recce->show_leo_items($ordinal);
+    return $text;
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:

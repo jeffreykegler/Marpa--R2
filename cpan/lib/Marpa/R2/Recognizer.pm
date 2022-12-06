@@ -619,16 +619,32 @@ sub Marpa::R2::Recognizer::show_leo_items {
     my ( $recce, $ordinal ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $text = '';
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
 
     my $last_ordinal = $recce->latest_earley_set();
-        if ( $ordinal < 0 or $ordinal > $last_ordinal ) {
-            return
-                "Marpa::PP::Recognizer::show_leo_items start index is $ordinal, "
-                . "must be in range 0-$last_ordinal";
-        }
+    if ( $ordinal < 0 or $ordinal > $last_ordinal ) {
+        return
+            "Marpa::PP::Recognizer::show_leo_items start index is $ordinal, "
+          . "must be in range 0-$last_ordinal";
+    }
+    die if not defined $recce_c->_marpa_r_earley_set_trace($ordinal);
+    my @lines = ();
+    POSTDOT_ITEM:
+    for (
+        my $postdot_symbol_id = $recce_c->_marpa_r_first_postdot_item_trace();
+        defined $postdot_symbol_id;
+        $postdot_symbol_id = $recce_c->_marpa_r_next_postdot_item_trace()
+        )
+    {
 
-    return $text;
+        # If there is no base Earley item,
+        # then this is not a Leo item, so we skip it
+        my $leo_item_desc = Marpa::R2::show_leo_item($recce);
+        next POSTDOT_ITEM if not defined $leo_item_desc;
+        push @lines, $leo_item_desc;
+    } ## end POSTDOT_ITEM: for ( my $postdot_symbol_id = $recce_c...)
+
+    return join "\n", @lines, '';
 } ## end sub Marpa::R2::Recognizer::show_leo_items
 
 sub Marpa::R2::Recognizer::show_parse_items {
@@ -670,7 +686,8 @@ sub Marpa::R2::Recognizer::show_parse_items {
 
     my $text = q{};
     for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
-        print $recce->show_progress();
+        print $recce->show_progress($current_ordinal);
+        print $recce->show_leo_items($current_ordinal);
     } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_parse_items
@@ -962,7 +979,7 @@ sub Marpa::R2::show_leo_item {
     my $text = sprintf 'L@%d', $trace_earleme;
     my @link_texts = ('-');
     push @link_texts, qq{"$postdot_symbol_name"};
-    push @link_texts, qq{"$base_origin_earleme"};
+    push @link_texts, "$base_origin_earleme";
     $text .= ' [' . ( join '; ', @link_texts ) . ']';
     return $text;
 } ## end sub Marpa::R2::show_leo_item
