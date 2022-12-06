@@ -615,6 +615,22 @@ sub Marpa::R2::Recognizer::show_progress {
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_progress
 
+sub Marpa::R2::Recognizer::show_leo_items {
+    my ( $recce, $ordinal ) = @_;
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $text = '';
+
+    my $last_ordinal = $recce->latest_earley_set();
+        if ( $ordinal < 0 or $ordinal > $last_ordinal ) {
+            return
+                "Marpa::PP::Recognizer::show_leo_items start index is $ordinal, "
+                . "must be in range 0-$last_ordinal";
+        }
+
+    return $text;
+} ## end sub Marpa::R2::Recognizer::show_leo_items
+
 sub Marpa::R2::Recognizer::show_parse_items {
     my ( $recce, $start_ordinal, $end_ordinal ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
