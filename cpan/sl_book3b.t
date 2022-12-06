@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use Scalar::Util;
 use Data::Dumper;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -56,24 +56,15 @@ my $grammar = Marpa::R2::Scanless::G->new(
     }
 );
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, } );
-
 my $string = 'w x y z w x y z w';
 
-read_input();
-
-say "Ambiguity Metric: ", $recce->ambiguity_metric();
-say "Ambiguity: ", $recce->ambiguous();
-
-# Start a new recognizer, because we cannot call
-# $r->ambiguous() and $r->value() on the same recognizer
-$recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-read_input();
+my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+$recce->read( \$string );
 
 my $metric = $recce->ambiguity_metric();
 Test::More::is($metric, 2, "Ambiguity Metric");
 
-say $grammar->show_rules();
+# say $grammar->show_rules();
 my $latest_earley_set = $recce->latest_earley_set();
 for (my $i = 0; $i <= $latest_earley_set; $i++) {
     printf "=== Progress @%d ===\n", $i;
@@ -82,12 +73,15 @@ for (my $i = 0; $i <= $latest_earley_set; $i++) {
 
 my %expected_value = (
     q{\['w','x',[['y','z','w','x','y','z','w']]]} => 1,
-    q{[2]} => 1
+    q{\['w','x',[['y','z',['w','x',[['y','z',['w']]]]]]]} => 1,
 );
 
 my $i             = 0;
-for my $actual_value ($recce->value()) {
-    my $dumped_value = myDump( $actual_value );
+VALUE: while (1) {
+    my $value_ref = $recce->value();
+    last VALUE if not defined $value_ref;
+    my $dumped_value = myDump( $value_ref );
+    # say STDERR "Got: $dumped_value";
     if ( defined $expected_value{$dumped_value} ) {
         delete $expected_value{$dumped_value};
         Test::More::pass("Expected Value $i: $dumped_value");
@@ -106,12 +100,7 @@ if ($not_found_count) {
     }
 }
 else {
-    Test::More::ok("All expected values found");
-}
-
-
-sub read_input {
-    $recce->read( \$string );
+    Test::More::pass("All expected values found");
 }
 
 sub main::dwim {
