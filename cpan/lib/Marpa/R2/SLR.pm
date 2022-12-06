@@ -1613,8 +1613,8 @@ sub input_range_describe {
 
 sub Marpa::R2::Scanless::R::show_progress {
     my ( $slr, $start_ordinal, $end_ordinal ) = @_;
-    my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
-    my $recce = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    my $slg       = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
 
@@ -1629,8 +1629,8 @@ sub Marpa::R2::Scanless::R::show_progress {
     else {
         if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
             return
-                "Marpa::PP::Recognizer::show_progress start index is $start_ordinal, "
-                . "must be in range 0-$last_ordinal";
+"Marpa::PP::Recognizer::show_progress start index is $start_ordinal, "
+              . "must be in range 0-$last_ordinal";
         }
     } ## end else [ if ( $start_ordinal < 0 ) ]
 
@@ -1644,9 +1644,9 @@ sub Marpa::R2::Scanless::R::show_progress {
         }
         if ( $end_ordinal < 0 ) {
             return
-                "Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
-                . sprintf ' must be in range %d-%d', -( $last_ordinal + 1 ),
-                $last_ordinal;
+"Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
+              . sprintf ' must be in range %d-%d', -( $last_ordinal + 1 ),
+              $last_ordinal;
         } ## end if ( $end_ordinal < 0 )
     } ## end else [ if ( not defined $end_ordinal ) ]
 
@@ -1699,12 +1699,12 @@ sub Marpa::R2::Scanless::R::show_progress {
                         )
                     );
                     push @item_text, $input_range;
-                }  else {
+                }
+                else {
                     push @item_text, 'L0c0';
                 }
 
-                push @item_text,
-                    $slg->show_dotted_rule( $rule_id, $position );
+                push @item_text, $slg->show_dotted_rule( $rule_id, $position );
                 $text .= ( join q{ }, @item_text ) . "\n";
             } ## end for my $position ( sort { $a <=> $b } keys %{...})
         } ## end for my $rule_id ( sort { $a <=> $b } keys ...)

@@ -132,6 +132,7 @@ sub earley_set_display {
     my @data = ();
     for my $target_item (@target_items) {
         my ( $rule_id, $dot, $origin ) = @{$target_item};
+        # rule length is constant in this example
         my $cooked_dot = $dot < 0 ? $target_rule_length : $dot;
         my $desc .=
             "S:$dot " . '@'

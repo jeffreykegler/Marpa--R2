@@ -1022,6 +1022,7 @@ sub Marpa::R2::Scanless::G::show_dotted_rule {
     if (defined $minimum) {
         @quantifier = ($minimum <= 0 ? q{*} : q{+} );
     }
+    $dot_position += ($rhs_length + 1) if $dot_position < 0;
     $dot_position = 0 if $dot_position < 0;
     if ($dot_position < $rhs_length) {
         splice @rhs, $dot_position, 0, q{.};
