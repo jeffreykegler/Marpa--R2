@@ -1959,12 +1959,46 @@ sub Marpa::R2::Scanless::R::show_earley_sets {
     return $thick_g1_recce->show_earley_sets($verbose);
 }
 
+sub Marpa::R2::Scanless::R::show_leo_items {
+    my ( $slr, $ordinal ) = @_;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $recce_c = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::C];
+
+    my $last_ordinal = $thick_g1_recce->latest_earley_set();
+    if ( $ordinal < 0 or $ordinal > $last_ordinal ) {
+        return
+            "Marpa::PP::Recognizer::show_leo_items start index is $ordinal, "
+          . "must be in range 0-$last_ordinal";
+    }
+    die if not defined $recce_c->_marpa_r_earley_set_trace($ordinal);
+    my @lines = ();
+    POSTDOT_ITEM:
+    for (
+        my $postdot_symbol_id = $recce_c->_marpa_r_first_postdot_item_trace();
+        defined $postdot_symbol_id;
+        $postdot_symbol_id = $recce_c->_marpa_r_next_postdot_item_trace()
+        )
+    {
+
+        # If there is no base Earley item,
+        # then this is not a Leo item, so we skip it
+        my $leo_item_desc = Marpa::R2::show_leo_item($thick_g1_recce);
+        next POSTDOT_ITEM if not defined $leo_item_desc;
+        push @lines, $leo_item_desc;
+    } ## end POSTDOT_ITEM: for ( my $postdot_symbol_id = $recce_c...)
+
+    return join "\n", @lines, '';
+} ## end sub Marpa::R2::Recognizer::show_leo_items
+
 sub Marpa::R2::Scanless::R::show_parse_items {
     my ( $slr, $ordinal ) = @_;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $text = $slr->show_progress($ordinal);
-    $text .= $thick_g1_recce->show_leo_items($ordinal);
+    $text .= $slr->show_leo_items($ordinal);
     return $text;
 }
 
