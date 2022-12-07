@@ -1985,7 +1985,7 @@ sub Marpa::R2::Scanless::R::show_leo_items {
 
         # If there is no base Earley item,
         # then this is not a Leo item, so we skip it
-        my $leo_item_desc = $slr->show_leo_item($thick_g1_recce);
+        my $leo_item_desc = $slr->show_leo_item();
         next POSTDOT_ITEM if not defined $leo_item_desc;
         push @lines, $leo_item_desc;
     } ## end POSTDOT_ITEM: for ( my $postdot_symbol_id = $recce_c...)
