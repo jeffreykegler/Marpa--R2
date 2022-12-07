@@ -35,7 +35,7 @@
 #define MALLOC_OVERHEAD 32
 #define DEFAULT_CHUNK_SIZE (4096 - MALLOC_OVERHEAD)
 
-struct marpa_obstack *
+MARPA_OBS_LINKAGE struct marpa_obstack *
 marpa__obs_begin (size_t size)
 {
   struct marpa_obstack_chunk *chunk;	/* points to new chunk */
@@ -79,7 +79,7 @@ marpa__obs_begin (size_t size)
    We start the new object, and return its base addess.
    */
 
-void*
+MARPA_OBS_LINKAGE void*
 marpa__obs_newchunk (struct marpa_obstack *h, size_t length, size_t alignment)
 {
   struct marpa_obstack_chunk *old_chunk = h->chunk;
@@ -108,7 +108,7 @@ marpa__obs_newchunk (struct marpa_obstack *h, size_t length, size_t alignment)
 }
 
 /* Free everything in H.  */
-void
+MARPA_OBS_LINKAGE void
 marpa__obs_free (struct marpa_obstack *h)
 {
   struct marpa_obstack_chunk *lp;       /* below addr of any objects in this chunk */

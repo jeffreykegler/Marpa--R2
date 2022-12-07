@@ -32,6 +32,20 @@
 
 #include <stddef.h>
 
+/* The linkage macros (MARPA_.*LINKAGE) are useful for specifying
+   alternative linkage, usually 'static'.  The intended use case is
+   including the Marpa source in a single file, and redefining
+   the linkage macros on the command line:
+
+-DMARPA_LINKAGE=static -DMARPA_AVL_LINKAGE=static -DMARPA_TAVL_LINKAGE=static -DMARPA_OBS_LINKAGE=static
+
+   However, it is important to note that any redefinition of the linkaage
+   macros is currently experimental, and therefore unsupported.
+*/
+#ifndef MARPA_TAVL_LINKAGE
+#  define MARPA_TAVL_LINKAGE /* Default linkage */
+#endif
+
 /* Function types. */
 typedef int tavl_comparison_func (const void *tavl_a, const void *tavl_b,
                                  void *tavl_param);
@@ -88,16 +102,16 @@ struct tavl_traverser
   };
 
 /* Table functions. */
-struct tavl_table *marpa__tavl_create (tavl_comparison_func *, void *);
-struct tavl_table *marpa__tavl_copy (const struct tavl_table *, tavl_copy_func *,
+MARPA_TAVL_LINKAGE struct tavl_table *marpa__tavl_create (tavl_comparison_func *, void *);
+MARPA_TAVL_LINKAGE struct tavl_table *marpa__tavl_copy (const struct tavl_table *, tavl_copy_func *,
                             tavl_item_func *);
-void marpa__tavl_destroy (struct tavl_table *, tavl_item_func *);
-void **marpa__tavl_probe (struct tavl_table *, void *);
+MARPA_TAVL_LINKAGE void marpa__tavl_destroy (struct tavl_table *, tavl_item_func *);
+MARPA_TAVL_LINKAGE void **marpa__tavl_probe (struct tavl_table *, void *);
 
-void *marpa__tavl_delete (struct tavl_table *, const void *);
-void *marpa__tavl_find (const struct tavl_table *, const void *);
-void marpa__tavl_assert_insert (struct tavl_table *, void *);
-void *marpa__tavl_assert_delete (struct tavl_table *, void *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_delete (struct tavl_table *, const void *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_find (const struct tavl_table *, const void *);
+MARPA_TAVL_LINKAGE void marpa__tavl_assert_insert (struct tavl_table *, void *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_assert_delete (struct tavl_table *, void *);
 
 #ifdef TESTING_TAVL
 
@@ -152,16 +166,16 @@ marpa__tavl_replace (struct tavl_table *table, void *item)
 #define tavl_count(table) ((size_t) (table)->tavl_count)
 
 /* Table traverser functions. */
-void marpa__tavl_t_init (struct tavl_traverser *, struct tavl_table *);
-void *marpa__tavl_t_first (struct tavl_traverser *, struct tavl_table *);
-void *marpa__tavl_t_last (struct tavl_traverser *, struct tavl_table *);
-void *marpa__tavl_t_find (struct tavl_traverser *, struct tavl_table *, void *);
-void *marpa__tavl_t_insert (struct tavl_traverser *, struct tavl_table *, void *);
-void *marpa__tavl_t_copy (struct tavl_traverser *, const struct tavl_traverser *);
-void *marpa__tavl_t_next (struct tavl_traverser *);
-void *marpa__tavl_t_prev (struct tavl_traverser *);
-void *marpa__tavl_t_cur (struct tavl_traverser *);
-void *marpa__tavl_t_replace (struct tavl_traverser *, void *);
+MARPA_TAVL_LINKAGE void marpa__tavl_t_init (struct tavl_traverser *, struct tavl_table *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_first (struct tavl_traverser *, struct tavl_table *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_last (struct tavl_traverser *, struct tavl_table *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_find (struct tavl_traverser *, struct tavl_table *, void *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_insert (struct tavl_traverser *, struct tavl_table *, void *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_copy (struct tavl_traverser *, const struct tavl_traverser *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_next (struct tavl_traverser *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_prev (struct tavl_traverser *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_cur (struct tavl_traverser *);
+MARPA_TAVL_LINKAGE void *marpa__tavl_t_replace (struct tavl_traverser *, void *);
 
 /* For testing, we don't include the Marpa utility macros, so make
  * sure we have this one

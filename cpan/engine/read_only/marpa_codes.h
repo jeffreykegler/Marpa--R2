@@ -19,6 +19,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef _MARPA_CODES_H__
+#define _MARPA_CODES_H__ 1
+
 struct marpa_error_description_s
 {
   int error_code;
@@ -38,5 +41,7 @@ struct marpa_step_type_description_s
   Marpa_Step_Type step_type;
   const char *name;
 };
+
+#endif /* _MARPA_CODES_H__ */
 
 /* vim: set expandtab shiftwidth=4: */

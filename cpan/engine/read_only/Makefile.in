@@ -34,6 +34,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -108,6 +109,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+check_PROGRAMS = tests/runtests$(EXEEXT) tests/simple/rule1$(EXEEXT) \
+	tests/simple/trivial$(EXEEXT) tests/simple/trivial1$(EXEEXT) \
+	tests/simple/depr_unvalued$(EXEEXT) tests/simple/nits$(EXEEXT) \
+	tests/simple/issue92a$(EXEEXT) tests/simple/issue92b$(EXEEXT) \
+	tests/simple/issue92c$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -124,6 +130,7 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES = libmarpa.pc
 CONFIG_CLEAN_VPATH_FILES =
+LIBRARIES = $(noinst_LIBRARIES)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -153,6 +160,24 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
+ARFLAGS = cru
+AM_V_AR = $(am__v_AR_@AM_V@)
+am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
+am__v_AR_0 = @echo "  AR      " $@;
+am__v_AR_1 = 
+libmarpa_a_AR = $(AR) $(ARFLAGS)
+libmarpa_a_LIBADD =
+am_libmarpa_a_OBJECTS = libmarpa_a-marpa.$(OBJEXT) \
+	libmarpa_a-marpa_obs.$(OBJEXT) libmarpa_a-marpa_avl.$(OBJEXT) \
+	libmarpa_a-marpa_tavl.$(OBJEXT) libmarpa_a-marpa_ami.$(OBJEXT) \
+	libmarpa_a-marpa_codes.$(OBJEXT)
+libmarpa_a_OBJECTS = $(am_libmarpa_a_OBJECTS)
+tests_tap_libtap_a_AR = $(AR) $(ARFLAGS)
+tests_tap_libtap_a_LIBADD =
+am__dirstamp = $(am__leading_dot)dirstamp
+am_tests_tap_libtap_a_OBJECTS = tests/tap/libtap_a-basic.$(OBJEXT) \
+	tests/tap/libtap_a-float.$(OBJEXT)
+tests_tap_libtap_a_OBJECTS = $(am_tests_tap_libtap_a_OBJECTS)
 libmarpa_la_DEPENDENCIES = $(LIBOBJS)
 am_libmarpa_la_OBJECTS = marpa.lo marpa_obs.lo marpa_avl.lo \
 	marpa_tavl.lo marpa_ami.lo marpa_codes.lo
@@ -164,6 +189,51 @@ am__v_lt_1 =
 libmarpa_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libmarpa_la_LDFLAGS) $(LDFLAGS) -o $@
+tests_runtests_SOURCES = tests/runtests.c
+tests_runtests_OBJECTS = tests/runtests-runtests.$(OBJEXT)
+tests_runtests_LDADD = $(LDADD)
+tests_runtests_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(tests_runtests_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
+	$@
+am_tests_simple_depr_unvalued_OBJECTS =  \
+	tests/simple/depr_unvalued-depr_unvalued.$(OBJEXT) \
+	tests/simple/depr_unvalued-marpa_m_test.$(OBJEXT)
+tests_simple_depr_unvalued_OBJECTS =  \
+	$(am_tests_simple_depr_unvalued_OBJECTS)
+tests_simple_depr_unvalued_DEPENDENCIES = tests/tap/libtap.a \
+	libmarpa.a
+am_tests_simple_issue92a_OBJECTS =  \
+	tests/simple/issue92a-issue92a.$(OBJEXT) \
+	tests/simple/issue92a-marpa_m_test.$(OBJEXT)
+tests_simple_issue92a_OBJECTS = $(am_tests_simple_issue92a_OBJECTS)
+tests_simple_issue92a_DEPENDENCIES = tests/tap/libtap.a libmarpa.a
+am_tests_simple_issue92b_OBJECTS =  \
+	tests/simple/issue92b-issue92b.$(OBJEXT) \
+	tests/simple/issue92b-marpa_m_test.$(OBJEXT)
+tests_simple_issue92b_OBJECTS = $(am_tests_simple_issue92b_OBJECTS)
+tests_simple_issue92b_DEPENDENCIES = tests/tap/libtap.a libmarpa.a
+am_tests_simple_issue92c_OBJECTS =  \
+	tests/simple/issue92c-issue92c.$(OBJEXT) \
+	tests/simple/issue92c-marpa_m_test.$(OBJEXT)
+tests_simple_issue92c_OBJECTS = $(am_tests_simple_issue92c_OBJECTS)
+tests_simple_issue92c_DEPENDENCIES = tests/tap/libtap.a libmarpa.a
+am_tests_simple_nits_OBJECTS = tests/simple/nits-nits.$(OBJEXT) \
+	tests/simple/nits-marpa_m_test.$(OBJEXT)
+tests_simple_nits_OBJECTS = $(am_tests_simple_nits_OBJECTS)
+tests_simple_nits_DEPENDENCIES = tests/tap/libtap.a libmarpa.a
+am_tests_simple_rule1_OBJECTS = tests/simple/rule1-rule1.$(OBJEXT)
+tests_simple_rule1_OBJECTS = $(am_tests_simple_rule1_OBJECTS)
+tests_simple_rule1_DEPENDENCIES = tests/tap/libtap.a libmarpa.a
+am_tests_simple_trivial_OBJECTS =  \
+	tests/simple/trivial-trivial.$(OBJEXT)
+tests_simple_trivial_OBJECTS = $(am_tests_simple_trivial_OBJECTS)
+tests_simple_trivial_DEPENDENCIES = tests/tap/libtap.a libmarpa.a
+am_tests_simple_trivial1_OBJECTS =  \
+	tests/simple/trivial1-trivial1.$(OBJEXT) \
+	tests/simple/trivial1-marpa_m_test.$(OBJEXT)
+tests_simple_trivial1_OBJECTS = $(am_tests_simple_trivial1_OBJECTS)
+tests_simple_trivial1_DEPENDENCIES = tests/tap/libtap.a libmarpa.a
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -179,9 +249,32 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/marpa.Plo ./$(DEPDIR)/marpa_ami.Plo \
-	./$(DEPDIR)/marpa_avl.Plo ./$(DEPDIR)/marpa_codes.Plo \
-	./$(DEPDIR)/marpa_obs.Plo ./$(DEPDIR)/marpa_tavl.Plo
+am__depfiles_remade = ./$(DEPDIR)/libmarpa_a-marpa.Po \
+	./$(DEPDIR)/libmarpa_a-marpa_ami.Po \
+	./$(DEPDIR)/libmarpa_a-marpa_avl.Po \
+	./$(DEPDIR)/libmarpa_a-marpa_codes.Po \
+	./$(DEPDIR)/libmarpa_a-marpa_obs.Po \
+	./$(DEPDIR)/libmarpa_a-marpa_tavl.Po ./$(DEPDIR)/marpa.Plo \
+	./$(DEPDIR)/marpa_ami.Plo ./$(DEPDIR)/marpa_avl.Plo \
+	./$(DEPDIR)/marpa_codes.Plo ./$(DEPDIR)/marpa_obs.Plo \
+	./$(DEPDIR)/marpa_tavl.Plo \
+	tests/$(DEPDIR)/runtests-runtests.Po \
+	tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Po \
+	tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Po \
+	tests/simple/$(DEPDIR)/issue92a-issue92a.Po \
+	tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Po \
+	tests/simple/$(DEPDIR)/issue92b-issue92b.Po \
+	tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Po \
+	tests/simple/$(DEPDIR)/issue92c-issue92c.Po \
+	tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Po \
+	tests/simple/$(DEPDIR)/nits-marpa_m_test.Po \
+	tests/simple/$(DEPDIR)/nits-nits.Po \
+	tests/simple/$(DEPDIR)/rule1-rule1.Po \
+	tests/simple/$(DEPDIR)/trivial-trivial.Po \
+	tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Po \
+	tests/simple/$(DEPDIR)/trivial1-trivial1.Po \
+	tests/tap/$(DEPDIR)/libtap_a-basic.Po \
+	tests/tap/$(DEPDIR)/libtap_a-float.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -201,8 +294,22 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libmarpa_la_SOURCES)
-DIST_SOURCES = $(libmarpa_la_SOURCES)
+SOURCES = $(libmarpa_a_SOURCES) $(tests_tap_libtap_a_SOURCES) \
+	$(libmarpa_la_SOURCES) tests/runtests.c \
+	$(tests_simple_depr_unvalued_SOURCES) \
+	$(tests_simple_issue92a_SOURCES) \
+	$(tests_simple_issue92b_SOURCES) \
+	$(tests_simple_issue92c_SOURCES) $(tests_simple_nits_SOURCES) \
+	$(tests_simple_rule1_SOURCES) $(tests_simple_trivial_SOURCES) \
+	$(tests_simple_trivial1_SOURCES)
+DIST_SOURCES = $(libmarpa_a_SOURCES) $(tests_tap_libtap_a_SOURCES) \
+	$(libmarpa_la_SOURCES) tests/runtests.c \
+	$(tests_simple_depr_unvalued_SOURCES) \
+	$(tests_simple_issue92a_SOURCES) \
+	$(tests_simple_issue92b_SOURCES) \
+	$(tests_simple_issue92c_SOURCES) $(tests_simple_nits_SOURCES) \
+	$(tests_simple_rule1_SOURCES) $(tests_simple_trivial_SOURCES) \
+	$(tests_simple_trivial1_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -375,6 +482,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+AUTOMAKE_OPTIONS = subdir-objects
 AM_CFLAGS = $(WARNING_CFLAGS) $(MARPA_DEBUG_FLAG)
 AM_CPPFLAGS = $(WARNING_CPPFLAGS)
 RELEASE = $(MARPA_LIB_MAJOR_VERSION).$(MARPA_LIB_MINOR_VERSION).$(MARPA_LIB_MICRO_VERSION)
@@ -387,13 +495,73 @@ libmarpa_la_SOURCES = marpa.c marpa.h \
     marpa_ami.c marpa_ami.h \
     marpa_codes.c
 
+noinst_LIBRARIES = libmarpa.a
+# This CFLAGS setting is a no-op, except that it allows
+# these file to be build both with libtools and without
+libmarpa_a_CFLAGS = $(AM_CFLAGS)
+libmarpa_a_SOURCES = marpa.c marpa.h \
+    marpa_obs.c marpa_obs.h \
+    marpa_avl.c marpa_avl.h \
+    marpa_tavl.c marpa_tavl.h \
+    marpa_ami.c marpa_ami.h \
+    marpa_codes.c
+
+tests_runtests_CPPFLAGS = \
+    -DC_TAP_SOURCE='"$(abs_top_srcdir)/tests"' \
+    -DC_TAP_BUILD='"$(abs_top_builddir)/tests"'
+
+check_LIBRARIES = tests/tap/libtap.a
+tests_tap_libtap_a_CPPFLAGS = -I$(abs_top_srcdir)/tests
+tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h \
+	tests/tap/float.c tests/tap/float.h tests/tap/macros.h
+
+
+# Must turn off one of the warnings for Russ's runtests
+tests_runtests_CFLAGS = $(AM_CFLAGS) -Wno-sign-conversion
+tests_simple_rule1_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_trivial_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_trivial1_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_depr_unvalued_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_nits_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_issue92a_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_issue92b_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_issue92c_LDADD = tests/tap/libtap.a libmarpa.a
+tests_simple_rule1_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_trivial_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_trivial1_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_depr_unvalued_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_nits_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_issue92a_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_issue92b_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_issue92c_CPPFLAGS = -I$(abs_top_srcdir)/tests/simple -I$(abs_top_srcdir)/tests
+tests_simple_rule1_SOURCES = tests/simple/rule1.c
+tests_simple_trivial_SOURCES = tests/simple/trivial.c
+tests_simple_trivial1_SOURCES = tests/simple/trivial1.c \
+  tests/simple/marpa_m_test.c tests/simple/marpa_m_test.h
+
+tests_simple_depr_unvalued_SOURCES = tests/simple/depr_unvalued.c \
+  tests/simple/marpa_m_test.c tests/simple/marpa_m_test.h
+
+tests_simple_nits_SOURCES = tests/simple/nits.c \
+  tests/simple/marpa_m_test.c tests/simple/marpa_m_test.h
+
+tests_simple_issue92a_SOURCES = tests/simple/issue92a.c \
+  tests/simple/marpa_m_test.c tests/simple/marpa_m_test.h
+
+tests_simple_issue92b_SOURCES = tests/simple/issue92b.c \
+  tests/simple/marpa_m_test.c tests/simple/marpa_m_test.h
+
+tests_simple_issue92c_SOURCES = tests/simple/issue92c.c \
+  tests/simple/marpa_m_test.c tests/simple/marpa_m_test.h
+
 EXTRA_DIST = README.INSTALL README.AIX libmarpa.pc GIT_LOG.txt \
   win32/marpa.def Makefile.win32 win32/do_config_h.pl \
   internals/libmarpa_ami.pdf internals/libmarpa_core.pdf \
   api_docs/libmarpa_api.pdf api_docs/libmarpa_api.html api_docs/api_html.tar \
   api_docs/libmarpa_api.info \
   error_codes.table events.table steps.table \
-  version.m4 libmarpa_version.sh LIB_VERSION
+  version.m4 libmarpa_version.sh LIB_VERSION \
+  tests/libtap.sh tests/TESTS
 
 libmarpa_la_LIBADD = $(LIBOBJS)
 libmarpa_la_LDFLAGS = -release $(RELEASE)
@@ -458,6 +626,21 @@ distclean-hdr:
 libmarpa.pc: $(top_builddir)/config.status $(srcdir)/libmarpa.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
+clean-checkPROGRAMS:
+	@list='$(check_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+
+clean-checkLIBRARIES:
+	-test -z "$(check_LIBRARIES)" || rm -f $(check_LIBRARIES)
+
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
@@ -493,21 +676,156 @@ clean-libLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
+libmarpa.a: $(libmarpa_a_OBJECTS) $(libmarpa_a_DEPENDENCIES) $(EXTRA_libmarpa_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libmarpa.a
+	$(AM_V_AR)$(libmarpa_a_AR) libmarpa.a $(libmarpa_a_OBJECTS) $(libmarpa_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libmarpa.a
+tests/tap/$(am__dirstamp):
+	@$(MKDIR_P) tests/tap
+	@: > tests/tap/$(am__dirstamp)
+tests/tap/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) tests/tap/$(DEPDIR)
+	@: > tests/tap/$(DEPDIR)/$(am__dirstamp)
+tests/tap/libtap_a-basic.$(OBJEXT): tests/tap/$(am__dirstamp) \
+	tests/tap/$(DEPDIR)/$(am__dirstamp)
+tests/tap/libtap_a-float.$(OBJEXT): tests/tap/$(am__dirstamp) \
+	tests/tap/$(DEPDIR)/$(am__dirstamp)
+
+tests/tap/libtap.a: $(tests_tap_libtap_a_OBJECTS) $(tests_tap_libtap_a_DEPENDENCIES) $(EXTRA_tests_tap_libtap_a_DEPENDENCIES) tests/tap/$(am__dirstamp)
+	$(AM_V_at)-rm -f tests/tap/libtap.a
+	$(AM_V_AR)$(tests_tap_libtap_a_AR) tests/tap/libtap.a $(tests_tap_libtap_a_OBJECTS) $(tests_tap_libtap_a_LIBADD)
+	$(AM_V_at)$(RANLIB) tests/tap/libtap.a
+
 libmarpa.la: $(libmarpa_la_OBJECTS) $(libmarpa_la_DEPENDENCIES) $(EXTRA_libmarpa_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libmarpa_la_LINK) -rpath $(libdir) $(libmarpa_la_OBJECTS) $(libmarpa_la_LIBADD) $(LIBS)
+tests/$(am__dirstamp):
+	@$(MKDIR_P) tests
+	@: > tests/$(am__dirstamp)
+tests/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) tests/$(DEPDIR)
+	@: > tests/$(DEPDIR)/$(am__dirstamp)
+tests/runtests-runtests.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+
+tests/runtests$(EXEEXT): $(tests_runtests_OBJECTS) $(tests_runtests_DEPENDENCIES) $(EXTRA_tests_runtests_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/runtests$(EXEEXT)
+	$(AM_V_CCLD)$(tests_runtests_LINK) $(tests_runtests_OBJECTS) $(tests_runtests_LDADD) $(LIBS)
+tests/simple/$(am__dirstamp):
+	@$(MKDIR_P) tests/simple
+	@: > tests/simple/$(am__dirstamp)
+tests/simple/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) tests/simple/$(DEPDIR)
+	@: > tests/simple/$(DEPDIR)/$(am__dirstamp)
+tests/simple/depr_unvalued-depr_unvalued.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+tests/simple/depr_unvalued-marpa_m_test.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/depr_unvalued$(EXEEXT): $(tests_simple_depr_unvalued_OBJECTS) $(tests_simple_depr_unvalued_DEPENDENCIES) $(EXTRA_tests_simple_depr_unvalued_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/depr_unvalued$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_depr_unvalued_OBJECTS) $(tests_simple_depr_unvalued_LDADD) $(LIBS)
+tests/simple/issue92a-issue92a.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+tests/simple/issue92a-marpa_m_test.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/issue92a$(EXEEXT): $(tests_simple_issue92a_OBJECTS) $(tests_simple_issue92a_DEPENDENCIES) $(EXTRA_tests_simple_issue92a_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/issue92a$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_issue92a_OBJECTS) $(tests_simple_issue92a_LDADD) $(LIBS)
+tests/simple/issue92b-issue92b.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+tests/simple/issue92b-marpa_m_test.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/issue92b$(EXEEXT): $(tests_simple_issue92b_OBJECTS) $(tests_simple_issue92b_DEPENDENCIES) $(EXTRA_tests_simple_issue92b_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/issue92b$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_issue92b_OBJECTS) $(tests_simple_issue92b_LDADD) $(LIBS)
+tests/simple/issue92c-issue92c.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+tests/simple/issue92c-marpa_m_test.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/issue92c$(EXEEXT): $(tests_simple_issue92c_OBJECTS) $(tests_simple_issue92c_DEPENDENCIES) $(EXTRA_tests_simple_issue92c_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/issue92c$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_issue92c_OBJECTS) $(tests_simple_issue92c_LDADD) $(LIBS)
+tests/simple/nits-nits.$(OBJEXT): tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+tests/simple/nits-marpa_m_test.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/nits$(EXEEXT): $(tests_simple_nits_OBJECTS) $(tests_simple_nits_DEPENDENCIES) $(EXTRA_tests_simple_nits_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/nits$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_nits_OBJECTS) $(tests_simple_nits_LDADD) $(LIBS)
+tests/simple/rule1-rule1.$(OBJEXT): tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/rule1$(EXEEXT): $(tests_simple_rule1_OBJECTS) $(tests_simple_rule1_DEPENDENCIES) $(EXTRA_tests_simple_rule1_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/rule1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_rule1_OBJECTS) $(tests_simple_rule1_LDADD) $(LIBS)
+tests/simple/trivial-trivial.$(OBJEXT): tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/trivial$(EXEEXT): $(tests_simple_trivial_OBJECTS) $(tests_simple_trivial_DEPENDENCIES) $(EXTRA_tests_simple_trivial_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/trivial$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_trivial_OBJECTS) $(tests_simple_trivial_LDADD) $(LIBS)
+tests/simple/trivial1-trivial1.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+tests/simple/trivial1-marpa_m_test.$(OBJEXT):  \
+	tests/simple/$(am__dirstamp) \
+	tests/simple/$(DEPDIR)/$(am__dirstamp)
+
+tests/simple/trivial1$(EXEEXT): $(tests_simple_trivial1_OBJECTS) $(tests_simple_trivial1_DEPENDENCIES) $(EXTRA_tests_simple_trivial1_DEPENDENCIES) tests/simple/$(am__dirstamp)
+	@rm -f tests/simple/trivial1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_simple_trivial1_OBJECTS) $(tests_simple_trivial1_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f tests/*.$(OBJEXT)
+	-rm -f tests/simple/*.$(OBJEXT)
+	-rm -f tests/tap/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmarpa_a-marpa.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmarpa_a-marpa_ami.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmarpa_a-marpa_avl.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmarpa_a-marpa_codes.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmarpa_a-marpa_obs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libmarpa_a-marpa_tavl.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_ami.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_avl.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_codes.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_obs.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marpa_tavl.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/runtests-runtests.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/issue92a-issue92a.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/issue92b-issue92b.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/issue92c-issue92c.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/nits-marpa_m_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/nits-nits.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/rule1-rule1.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/trivial-trivial.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/simple/$(DEPDIR)/trivial1-trivial1.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/libtap_a-basic.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/tap/$(DEPDIR)/libtap_a-float.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -516,31 +834,358 @@ $(am__depfiles_remade):
 am--depfiles: $(am__depfiles_remade)
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libmarpa_a-marpa.o: marpa.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa.o -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa.Tpo -c -o libmarpa_a-marpa.o `test -f 'marpa.c' || echo '$(srcdir)/'`marpa.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa.Tpo $(DEPDIR)/libmarpa_a-marpa.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa.c' object='libmarpa_a-marpa.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa.o `test -f 'marpa.c' || echo '$(srcdir)/'`marpa.c
+
+libmarpa_a-marpa.obj: marpa.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa.obj -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa.Tpo -c -o libmarpa_a-marpa.obj `if test -f 'marpa.c'; then $(CYGPATH_W) 'marpa.c'; else $(CYGPATH_W) '$(srcdir)/marpa.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa.Tpo $(DEPDIR)/libmarpa_a-marpa.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa.c' object='libmarpa_a-marpa.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa.obj `if test -f 'marpa.c'; then $(CYGPATH_W) 'marpa.c'; else $(CYGPATH_W) '$(srcdir)/marpa.c'; fi`
+
+libmarpa_a-marpa_obs.o: marpa_obs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_obs.o -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_obs.Tpo -c -o libmarpa_a-marpa_obs.o `test -f 'marpa_obs.c' || echo '$(srcdir)/'`marpa_obs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_obs.Tpo $(DEPDIR)/libmarpa_a-marpa_obs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_obs.c' object='libmarpa_a-marpa_obs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_obs.o `test -f 'marpa_obs.c' || echo '$(srcdir)/'`marpa_obs.c
+
+libmarpa_a-marpa_obs.obj: marpa_obs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_obs.obj -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_obs.Tpo -c -o libmarpa_a-marpa_obs.obj `if test -f 'marpa_obs.c'; then $(CYGPATH_W) 'marpa_obs.c'; else $(CYGPATH_W) '$(srcdir)/marpa_obs.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_obs.Tpo $(DEPDIR)/libmarpa_a-marpa_obs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_obs.c' object='libmarpa_a-marpa_obs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_obs.obj `if test -f 'marpa_obs.c'; then $(CYGPATH_W) 'marpa_obs.c'; else $(CYGPATH_W) '$(srcdir)/marpa_obs.c'; fi`
+
+libmarpa_a-marpa_avl.o: marpa_avl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_avl.o -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_avl.Tpo -c -o libmarpa_a-marpa_avl.o `test -f 'marpa_avl.c' || echo '$(srcdir)/'`marpa_avl.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_avl.Tpo $(DEPDIR)/libmarpa_a-marpa_avl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_avl.c' object='libmarpa_a-marpa_avl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_avl.o `test -f 'marpa_avl.c' || echo '$(srcdir)/'`marpa_avl.c
+
+libmarpa_a-marpa_avl.obj: marpa_avl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_avl.obj -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_avl.Tpo -c -o libmarpa_a-marpa_avl.obj `if test -f 'marpa_avl.c'; then $(CYGPATH_W) 'marpa_avl.c'; else $(CYGPATH_W) '$(srcdir)/marpa_avl.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_avl.Tpo $(DEPDIR)/libmarpa_a-marpa_avl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_avl.c' object='libmarpa_a-marpa_avl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_avl.obj `if test -f 'marpa_avl.c'; then $(CYGPATH_W) 'marpa_avl.c'; else $(CYGPATH_W) '$(srcdir)/marpa_avl.c'; fi`
+
+libmarpa_a-marpa_tavl.o: marpa_tavl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_tavl.o -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_tavl.Tpo -c -o libmarpa_a-marpa_tavl.o `test -f 'marpa_tavl.c' || echo '$(srcdir)/'`marpa_tavl.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_tavl.Tpo $(DEPDIR)/libmarpa_a-marpa_tavl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_tavl.c' object='libmarpa_a-marpa_tavl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_tavl.o `test -f 'marpa_tavl.c' || echo '$(srcdir)/'`marpa_tavl.c
+
+libmarpa_a-marpa_tavl.obj: marpa_tavl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_tavl.obj -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_tavl.Tpo -c -o libmarpa_a-marpa_tavl.obj `if test -f 'marpa_tavl.c'; then $(CYGPATH_W) 'marpa_tavl.c'; else $(CYGPATH_W) '$(srcdir)/marpa_tavl.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_tavl.Tpo $(DEPDIR)/libmarpa_a-marpa_tavl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_tavl.c' object='libmarpa_a-marpa_tavl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_tavl.obj `if test -f 'marpa_tavl.c'; then $(CYGPATH_W) 'marpa_tavl.c'; else $(CYGPATH_W) '$(srcdir)/marpa_tavl.c'; fi`
+
+libmarpa_a-marpa_ami.o: marpa_ami.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_ami.o -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_ami.Tpo -c -o libmarpa_a-marpa_ami.o `test -f 'marpa_ami.c' || echo '$(srcdir)/'`marpa_ami.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_ami.Tpo $(DEPDIR)/libmarpa_a-marpa_ami.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_ami.c' object='libmarpa_a-marpa_ami.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_ami.o `test -f 'marpa_ami.c' || echo '$(srcdir)/'`marpa_ami.c
+
+libmarpa_a-marpa_ami.obj: marpa_ami.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_ami.obj -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_ami.Tpo -c -o libmarpa_a-marpa_ami.obj `if test -f 'marpa_ami.c'; then $(CYGPATH_W) 'marpa_ami.c'; else $(CYGPATH_W) '$(srcdir)/marpa_ami.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_ami.Tpo $(DEPDIR)/libmarpa_a-marpa_ami.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_ami.c' object='libmarpa_a-marpa_ami.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_ami.obj `if test -f 'marpa_ami.c'; then $(CYGPATH_W) 'marpa_ami.c'; else $(CYGPATH_W) '$(srcdir)/marpa_ami.c'; fi`
+
+libmarpa_a-marpa_codes.o: marpa_codes.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_codes.o -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_codes.Tpo -c -o libmarpa_a-marpa_codes.o `test -f 'marpa_codes.c' || echo '$(srcdir)/'`marpa_codes.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_codes.Tpo $(DEPDIR)/libmarpa_a-marpa_codes.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_codes.c' object='libmarpa_a-marpa_codes.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_codes.o `test -f 'marpa_codes.c' || echo '$(srcdir)/'`marpa_codes.c
+
+libmarpa_a-marpa_codes.obj: marpa_codes.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -MT libmarpa_a-marpa_codes.obj -MD -MP -MF $(DEPDIR)/libmarpa_a-marpa_codes.Tpo -c -o libmarpa_a-marpa_codes.obj `if test -f 'marpa_codes.c'; then $(CYGPATH_W) 'marpa_codes.c'; else $(CYGPATH_W) '$(srcdir)/marpa_codes.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libmarpa_a-marpa_codes.Tpo $(DEPDIR)/libmarpa_a-marpa_codes.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='marpa_codes.c' object='libmarpa_a-marpa_codes.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmarpa_a_CFLAGS) $(CFLAGS) -c -o libmarpa_a-marpa_codes.obj `if test -f 'marpa_codes.c'; then $(CYGPATH_W) 'marpa_codes.c'; else $(CYGPATH_W) '$(srcdir)/marpa_codes.c'; fi`
+
+tests/tap/libtap_a-basic.o: tests/tap/basic.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/tap/libtap_a-basic.o -MD -MP -MF tests/tap/$(DEPDIR)/libtap_a-basic.Tpo -c -o tests/tap/libtap_a-basic.o `test -f 'tests/tap/basic.c' || echo '$(srcdir)/'`tests/tap/basic.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/tap/$(DEPDIR)/libtap_a-basic.Tpo tests/tap/$(DEPDIR)/libtap_a-basic.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/tap/basic.c' object='tests/tap/libtap_a-basic.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tap/libtap_a-basic.o `test -f 'tests/tap/basic.c' || echo '$(srcdir)/'`tests/tap/basic.c
+
+tests/tap/libtap_a-basic.obj: tests/tap/basic.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/tap/libtap_a-basic.obj -MD -MP -MF tests/tap/$(DEPDIR)/libtap_a-basic.Tpo -c -o tests/tap/libtap_a-basic.obj `if test -f 'tests/tap/basic.c'; then $(CYGPATH_W) 'tests/tap/basic.c'; else $(CYGPATH_W) '$(srcdir)/tests/tap/basic.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/tap/$(DEPDIR)/libtap_a-basic.Tpo tests/tap/$(DEPDIR)/libtap_a-basic.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/tap/basic.c' object='tests/tap/libtap_a-basic.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tap/libtap_a-basic.obj `if test -f 'tests/tap/basic.c'; then $(CYGPATH_W) 'tests/tap/basic.c'; else $(CYGPATH_W) '$(srcdir)/tests/tap/basic.c'; fi`
+
+tests/tap/libtap_a-float.o: tests/tap/float.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/tap/libtap_a-float.o -MD -MP -MF tests/tap/$(DEPDIR)/libtap_a-float.Tpo -c -o tests/tap/libtap_a-float.o `test -f 'tests/tap/float.c' || echo '$(srcdir)/'`tests/tap/float.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/tap/$(DEPDIR)/libtap_a-float.Tpo tests/tap/$(DEPDIR)/libtap_a-float.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/tap/float.c' object='tests/tap/libtap_a-float.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tap/libtap_a-float.o `test -f 'tests/tap/float.c' || echo '$(srcdir)/'`tests/tap/float.c
+
+tests/tap/libtap_a-float.obj: tests/tap/float.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/tap/libtap_a-float.obj -MD -MP -MF tests/tap/$(DEPDIR)/libtap_a-float.Tpo -c -o tests/tap/libtap_a-float.obj `if test -f 'tests/tap/float.c'; then $(CYGPATH_W) 'tests/tap/float.c'; else $(CYGPATH_W) '$(srcdir)/tests/tap/float.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/tap/$(DEPDIR)/libtap_a-float.Tpo tests/tap/$(DEPDIR)/libtap_a-float.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/tap/float.c' object='tests/tap/libtap_a-float.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_tap_libtap_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/tap/libtap_a-float.obj `if test -f 'tests/tap/float.c'; then $(CYGPATH_W) 'tests/tap/float.c'; else $(CYGPATH_W) '$(srcdir)/tests/tap/float.c'; fi`
+
+tests/runtests-runtests.o: tests/runtests.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_runtests_CPPFLAGS) $(CPPFLAGS) $(tests_runtests_CFLAGS) $(CFLAGS) -MT tests/runtests-runtests.o -MD -MP -MF tests/$(DEPDIR)/runtests-runtests.Tpo -c -o tests/runtests-runtests.o `test -f 'tests/runtests.c' || echo '$(srcdir)/'`tests/runtests.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/runtests-runtests.Tpo tests/$(DEPDIR)/runtests-runtests.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/runtests.c' object='tests/runtests-runtests.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_runtests_CPPFLAGS) $(CPPFLAGS) $(tests_runtests_CFLAGS) $(CFLAGS) -c -o tests/runtests-runtests.o `test -f 'tests/runtests.c' || echo '$(srcdir)/'`tests/runtests.c
+
+tests/runtests-runtests.obj: tests/runtests.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_runtests_CPPFLAGS) $(CPPFLAGS) $(tests_runtests_CFLAGS) $(CFLAGS) -MT tests/runtests-runtests.obj -MD -MP -MF tests/$(DEPDIR)/runtests-runtests.Tpo -c -o tests/runtests-runtests.obj `if test -f 'tests/runtests.c'; then $(CYGPATH_W) 'tests/runtests.c'; else $(CYGPATH_W) '$(srcdir)/tests/runtests.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/$(DEPDIR)/runtests-runtests.Tpo tests/$(DEPDIR)/runtests-runtests.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/runtests.c' object='tests/runtests-runtests.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_runtests_CPPFLAGS) $(CPPFLAGS) $(tests_runtests_CFLAGS) $(CFLAGS) -c -o tests/runtests-runtests.obj `if test -f 'tests/runtests.c'; then $(CYGPATH_W) 'tests/runtests.c'; else $(CYGPATH_W) '$(srcdir)/tests/runtests.c'; fi`
+
+tests/simple/depr_unvalued-depr_unvalued.o: tests/simple/depr_unvalued.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/depr_unvalued-depr_unvalued.o -MD -MP -MF tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Tpo -c -o tests/simple/depr_unvalued-depr_unvalued.o `test -f 'tests/simple/depr_unvalued.c' || echo '$(srcdir)/'`tests/simple/depr_unvalued.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Tpo tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/depr_unvalued.c' object='tests/simple/depr_unvalued-depr_unvalued.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/depr_unvalued-depr_unvalued.o `test -f 'tests/simple/depr_unvalued.c' || echo '$(srcdir)/'`tests/simple/depr_unvalued.c
+
+tests/simple/depr_unvalued-depr_unvalued.obj: tests/simple/depr_unvalued.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/depr_unvalued-depr_unvalued.obj -MD -MP -MF tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Tpo -c -o tests/simple/depr_unvalued-depr_unvalued.obj `if test -f 'tests/simple/depr_unvalued.c'; then $(CYGPATH_W) 'tests/simple/depr_unvalued.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/depr_unvalued.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Tpo tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/depr_unvalued.c' object='tests/simple/depr_unvalued-depr_unvalued.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/depr_unvalued-depr_unvalued.obj `if test -f 'tests/simple/depr_unvalued.c'; then $(CYGPATH_W) 'tests/simple/depr_unvalued.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/depr_unvalued.c'; fi`
+
+tests/simple/depr_unvalued-marpa_m_test.o: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/depr_unvalued-marpa_m_test.o -MD -MP -MF tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Tpo -c -o tests/simple/depr_unvalued-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Tpo tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/depr_unvalued-marpa_m_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/depr_unvalued-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+
+tests/simple/depr_unvalued-marpa_m_test.obj: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/depr_unvalued-marpa_m_test.obj -MD -MP -MF tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Tpo -c -o tests/simple/depr_unvalued-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Tpo tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/depr_unvalued-marpa_m_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_depr_unvalued_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/depr_unvalued-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+
+tests/simple/issue92a-issue92a.o: tests/simple/issue92a.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92a-issue92a.o -MD -MP -MF tests/simple/$(DEPDIR)/issue92a-issue92a.Tpo -c -o tests/simple/issue92a-issue92a.o `test -f 'tests/simple/issue92a.c' || echo '$(srcdir)/'`tests/simple/issue92a.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92a-issue92a.Tpo tests/simple/$(DEPDIR)/issue92a-issue92a.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/issue92a.c' object='tests/simple/issue92a-issue92a.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92a-issue92a.o `test -f 'tests/simple/issue92a.c' || echo '$(srcdir)/'`tests/simple/issue92a.c
+
+tests/simple/issue92a-issue92a.obj: tests/simple/issue92a.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92a-issue92a.obj -MD -MP -MF tests/simple/$(DEPDIR)/issue92a-issue92a.Tpo -c -o tests/simple/issue92a-issue92a.obj `if test -f 'tests/simple/issue92a.c'; then $(CYGPATH_W) 'tests/simple/issue92a.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/issue92a.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92a-issue92a.Tpo tests/simple/$(DEPDIR)/issue92a-issue92a.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/issue92a.c' object='tests/simple/issue92a-issue92a.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92a-issue92a.obj `if test -f 'tests/simple/issue92a.c'; then $(CYGPATH_W) 'tests/simple/issue92a.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/issue92a.c'; fi`
+
+tests/simple/issue92a-marpa_m_test.o: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92a-marpa_m_test.o -MD -MP -MF tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Tpo -c -o tests/simple/issue92a-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Tpo tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/issue92a-marpa_m_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92a-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+
+tests/simple/issue92a-marpa_m_test.obj: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92a-marpa_m_test.obj -MD -MP -MF tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Tpo -c -o tests/simple/issue92a-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Tpo tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/issue92a-marpa_m_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92a-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+
+tests/simple/issue92b-issue92b.o: tests/simple/issue92b.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92b-issue92b.o -MD -MP -MF tests/simple/$(DEPDIR)/issue92b-issue92b.Tpo -c -o tests/simple/issue92b-issue92b.o `test -f 'tests/simple/issue92b.c' || echo '$(srcdir)/'`tests/simple/issue92b.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92b-issue92b.Tpo tests/simple/$(DEPDIR)/issue92b-issue92b.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/issue92b.c' object='tests/simple/issue92b-issue92b.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92b-issue92b.o `test -f 'tests/simple/issue92b.c' || echo '$(srcdir)/'`tests/simple/issue92b.c
+
+tests/simple/issue92b-issue92b.obj: tests/simple/issue92b.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92b-issue92b.obj -MD -MP -MF tests/simple/$(DEPDIR)/issue92b-issue92b.Tpo -c -o tests/simple/issue92b-issue92b.obj `if test -f 'tests/simple/issue92b.c'; then $(CYGPATH_W) 'tests/simple/issue92b.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/issue92b.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92b-issue92b.Tpo tests/simple/$(DEPDIR)/issue92b-issue92b.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/issue92b.c' object='tests/simple/issue92b-issue92b.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92b-issue92b.obj `if test -f 'tests/simple/issue92b.c'; then $(CYGPATH_W) 'tests/simple/issue92b.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/issue92b.c'; fi`
+
+tests/simple/issue92b-marpa_m_test.o: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92b-marpa_m_test.o -MD -MP -MF tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Tpo -c -o tests/simple/issue92b-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Tpo tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/issue92b-marpa_m_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92b-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+
+tests/simple/issue92b-marpa_m_test.obj: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92b-marpa_m_test.obj -MD -MP -MF tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Tpo -c -o tests/simple/issue92b-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Tpo tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/issue92b-marpa_m_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92b_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92b-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+
+tests/simple/issue92c-issue92c.o: tests/simple/issue92c.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92c-issue92c.o -MD -MP -MF tests/simple/$(DEPDIR)/issue92c-issue92c.Tpo -c -o tests/simple/issue92c-issue92c.o `test -f 'tests/simple/issue92c.c' || echo '$(srcdir)/'`tests/simple/issue92c.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92c-issue92c.Tpo tests/simple/$(DEPDIR)/issue92c-issue92c.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/issue92c.c' object='tests/simple/issue92c-issue92c.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92c-issue92c.o `test -f 'tests/simple/issue92c.c' || echo '$(srcdir)/'`tests/simple/issue92c.c
+
+tests/simple/issue92c-issue92c.obj: tests/simple/issue92c.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92c-issue92c.obj -MD -MP -MF tests/simple/$(DEPDIR)/issue92c-issue92c.Tpo -c -o tests/simple/issue92c-issue92c.obj `if test -f 'tests/simple/issue92c.c'; then $(CYGPATH_W) 'tests/simple/issue92c.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/issue92c.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92c-issue92c.Tpo tests/simple/$(DEPDIR)/issue92c-issue92c.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/issue92c.c' object='tests/simple/issue92c-issue92c.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92c-issue92c.obj `if test -f 'tests/simple/issue92c.c'; then $(CYGPATH_W) 'tests/simple/issue92c.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/issue92c.c'; fi`
+
+tests/simple/issue92c-marpa_m_test.o: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92c-marpa_m_test.o -MD -MP -MF tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Tpo -c -o tests/simple/issue92c-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Tpo tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/issue92c-marpa_m_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92c-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+
+tests/simple/issue92c-marpa_m_test.obj: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/issue92c-marpa_m_test.obj -MD -MP -MF tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Tpo -c -o tests/simple/issue92c-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Tpo tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/issue92c-marpa_m_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_issue92c_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/issue92c-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+
+tests/simple/nits-nits.o: tests/simple/nits.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/nits-nits.o -MD -MP -MF tests/simple/$(DEPDIR)/nits-nits.Tpo -c -o tests/simple/nits-nits.o `test -f 'tests/simple/nits.c' || echo '$(srcdir)/'`tests/simple/nits.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/nits-nits.Tpo tests/simple/$(DEPDIR)/nits-nits.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/nits.c' object='tests/simple/nits-nits.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/nits-nits.o `test -f 'tests/simple/nits.c' || echo '$(srcdir)/'`tests/simple/nits.c
+
+tests/simple/nits-nits.obj: tests/simple/nits.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/nits-nits.obj -MD -MP -MF tests/simple/$(DEPDIR)/nits-nits.Tpo -c -o tests/simple/nits-nits.obj `if test -f 'tests/simple/nits.c'; then $(CYGPATH_W) 'tests/simple/nits.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/nits.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/nits-nits.Tpo tests/simple/$(DEPDIR)/nits-nits.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/nits.c' object='tests/simple/nits-nits.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/nits-nits.obj `if test -f 'tests/simple/nits.c'; then $(CYGPATH_W) 'tests/simple/nits.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/nits.c'; fi`
+
+tests/simple/nits-marpa_m_test.o: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/nits-marpa_m_test.o -MD -MP -MF tests/simple/$(DEPDIR)/nits-marpa_m_test.Tpo -c -o tests/simple/nits-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/nits-marpa_m_test.Tpo tests/simple/$(DEPDIR)/nits-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/nits-marpa_m_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/nits-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+
+tests/simple/nits-marpa_m_test.obj: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/nits-marpa_m_test.obj -MD -MP -MF tests/simple/$(DEPDIR)/nits-marpa_m_test.Tpo -c -o tests/simple/nits-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/nits-marpa_m_test.Tpo tests/simple/$(DEPDIR)/nits-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/nits-marpa_m_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_nits_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/nits-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+
+tests/simple/rule1-rule1.o: tests/simple/rule1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_rule1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/rule1-rule1.o -MD -MP -MF tests/simple/$(DEPDIR)/rule1-rule1.Tpo -c -o tests/simple/rule1-rule1.o `test -f 'tests/simple/rule1.c' || echo '$(srcdir)/'`tests/simple/rule1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/rule1-rule1.Tpo tests/simple/$(DEPDIR)/rule1-rule1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/rule1.c' object='tests/simple/rule1-rule1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_rule1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/rule1-rule1.o `test -f 'tests/simple/rule1.c' || echo '$(srcdir)/'`tests/simple/rule1.c
+
+tests/simple/rule1-rule1.obj: tests/simple/rule1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_rule1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/rule1-rule1.obj -MD -MP -MF tests/simple/$(DEPDIR)/rule1-rule1.Tpo -c -o tests/simple/rule1-rule1.obj `if test -f 'tests/simple/rule1.c'; then $(CYGPATH_W) 'tests/simple/rule1.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/rule1.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/rule1-rule1.Tpo tests/simple/$(DEPDIR)/rule1-rule1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/rule1.c' object='tests/simple/rule1-rule1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_rule1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/rule1-rule1.obj `if test -f 'tests/simple/rule1.c'; then $(CYGPATH_W) 'tests/simple/rule1.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/rule1.c'; fi`
+
+tests/simple/trivial-trivial.o: tests/simple/trivial.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/trivial-trivial.o -MD -MP -MF tests/simple/$(DEPDIR)/trivial-trivial.Tpo -c -o tests/simple/trivial-trivial.o `test -f 'tests/simple/trivial.c' || echo '$(srcdir)/'`tests/simple/trivial.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/trivial-trivial.Tpo tests/simple/$(DEPDIR)/trivial-trivial.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/trivial.c' object='tests/simple/trivial-trivial.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/trivial-trivial.o `test -f 'tests/simple/trivial.c' || echo '$(srcdir)/'`tests/simple/trivial.c
+
+tests/simple/trivial-trivial.obj: tests/simple/trivial.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/trivial-trivial.obj -MD -MP -MF tests/simple/$(DEPDIR)/trivial-trivial.Tpo -c -o tests/simple/trivial-trivial.obj `if test -f 'tests/simple/trivial.c'; then $(CYGPATH_W) 'tests/simple/trivial.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/trivial.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/trivial-trivial.Tpo tests/simple/$(DEPDIR)/trivial-trivial.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/trivial.c' object='tests/simple/trivial-trivial.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/trivial-trivial.obj `if test -f 'tests/simple/trivial.c'; then $(CYGPATH_W) 'tests/simple/trivial.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/trivial.c'; fi`
+
+tests/simple/trivial1-trivial1.o: tests/simple/trivial1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/trivial1-trivial1.o -MD -MP -MF tests/simple/$(DEPDIR)/trivial1-trivial1.Tpo -c -o tests/simple/trivial1-trivial1.o `test -f 'tests/simple/trivial1.c' || echo '$(srcdir)/'`tests/simple/trivial1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/trivial1-trivial1.Tpo tests/simple/$(DEPDIR)/trivial1-trivial1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/trivial1.c' object='tests/simple/trivial1-trivial1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/trivial1-trivial1.o `test -f 'tests/simple/trivial1.c' || echo '$(srcdir)/'`tests/simple/trivial1.c
+
+tests/simple/trivial1-trivial1.obj: tests/simple/trivial1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/trivial1-trivial1.obj -MD -MP -MF tests/simple/$(DEPDIR)/trivial1-trivial1.Tpo -c -o tests/simple/trivial1-trivial1.obj `if test -f 'tests/simple/trivial1.c'; then $(CYGPATH_W) 'tests/simple/trivial1.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/trivial1.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/trivial1-trivial1.Tpo tests/simple/$(DEPDIR)/trivial1-trivial1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/trivial1.c' object='tests/simple/trivial1-trivial1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/trivial1-trivial1.obj `if test -f 'tests/simple/trivial1.c'; then $(CYGPATH_W) 'tests/simple/trivial1.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/trivial1.c'; fi`
+
+tests/simple/trivial1-marpa_m_test.o: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/trivial1-marpa_m_test.o -MD -MP -MF tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Tpo -c -o tests/simple/trivial1-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Tpo tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/trivial1-marpa_m_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/trivial1-marpa_m_test.o `test -f 'tests/simple/marpa_m_test.c' || echo '$(srcdir)/'`tests/simple/marpa_m_test.c
+
+tests/simple/trivial1-marpa_m_test.obj: tests/simple/marpa_m_test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tests/simple/trivial1-marpa_m_test.obj -MD -MP -MF tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Tpo -c -o tests/simple/trivial1-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Tpo tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tests/simple/marpa_m_test.c' object='tests/simple/trivial1-marpa_m_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_simple_trivial1_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tests/simple/trivial1-marpa_m_test.obj `if test -f 'tests/simple/marpa_m_test.c'; then $(CYGPATH_W) 'tests/simple/marpa_m_test.c'; else $(CYGPATH_W) '$(srcdir)/tests/simple/marpa_m_test.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
+	-rm -rf tests/.libs tests/_libs
+	-rm -rf tests/simple/.libs tests/simple/_libs
 
 distclean-libtool:
 	-rm -f libtool config.lt
@@ -795,8 +1440,10 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS) $(check_LIBRARIES)
+	$(MAKE) $(AM_MAKEFLAGS) check-local
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(HEADERS) config.h
+all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(HEADERS) config.h
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -827,23 +1474,53 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f tests/$(DEPDIR)/$(am__dirstamp)
+	-rm -f tests/$(am__dirstamp)
+	-rm -f tests/simple/$(DEPDIR)/$(am__dirstamp)
+	-rm -f tests/simple/$(am__dirstamp)
+	-rm -f tests/tap/$(DEPDIR)/$(am__dirstamp)
+	-rm -f tests/tap/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+clean-am: clean-checkLIBRARIES clean-checkPROGRAMS clean-generic \
+	clean-libLTLIBRARIES clean-libtool clean-noinstLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-		-rm -f ./$(DEPDIR)/marpa.Plo
+		-rm -f ./$(DEPDIR)/libmarpa_a-marpa.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_ami.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_avl.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_codes.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_obs.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_tavl.Po
+	-rm -f ./$(DEPDIR)/marpa.Plo
 	-rm -f ./$(DEPDIR)/marpa_ami.Plo
 	-rm -f ./$(DEPDIR)/marpa_avl.Plo
 	-rm -f ./$(DEPDIR)/marpa_codes.Plo
 	-rm -f ./$(DEPDIR)/marpa_obs.Plo
 	-rm -f ./$(DEPDIR)/marpa_tavl.Plo
+	-rm -f tests/$(DEPDIR)/runtests-runtests.Po
+	-rm -f tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Po
+	-rm -f tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92a-issue92a.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92b-issue92b.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92c-issue92c.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/nits-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/nits-nits.Po
+	-rm -f tests/simple/$(DEPDIR)/rule1-rule1.Po
+	-rm -f tests/simple/$(DEPDIR)/trivial-trivial.Po
+	-rm -f tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/trivial1-trivial1.Po
+	-rm -f tests/tap/$(DEPDIR)/libtap_a-basic.Po
+	-rm -f tests/tap/$(DEPDIR)/libtap_a-float.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -891,12 +1568,35 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-		-rm -f ./$(DEPDIR)/marpa.Plo
+		-rm -f ./$(DEPDIR)/libmarpa_a-marpa.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_ami.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_avl.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_codes.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_obs.Po
+	-rm -f ./$(DEPDIR)/libmarpa_a-marpa_tavl.Po
+	-rm -f ./$(DEPDIR)/marpa.Plo
 	-rm -f ./$(DEPDIR)/marpa_ami.Plo
 	-rm -f ./$(DEPDIR)/marpa_avl.Plo
 	-rm -f ./$(DEPDIR)/marpa_codes.Plo
 	-rm -f ./$(DEPDIR)/marpa_obs.Plo
 	-rm -f ./$(DEPDIR)/marpa_tavl.Plo
+	-rm -f tests/$(DEPDIR)/runtests-runtests.Po
+	-rm -f tests/simple/$(DEPDIR)/depr_unvalued-depr_unvalued.Po
+	-rm -f tests/simple/$(DEPDIR)/depr_unvalued-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92a-issue92a.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92a-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92b-issue92b.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92b-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92c-issue92c.Po
+	-rm -f tests/simple/$(DEPDIR)/issue92c-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/nits-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/nits-nits.Po
+	-rm -f tests/simple/$(DEPDIR)/rule1-rule1.Po
+	-rm -f tests/simple/$(DEPDIR)/trivial-trivial.Po
+	-rm -f tests/simple/$(DEPDIR)/trivial1-marpa_m_test.Po
+	-rm -f tests/simple/$(DEPDIR)/trivial1-trivial1.Po
+	-rm -f tests/tap/$(DEPDIR)/libtap_a-basic.Po
+	-rm -f tests/tap/$(DEPDIR)/libtap_a-float.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -915,22 +1615,24 @@ ps-am:
 
 uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
-.MAKE: all install-am install-strip
+.MAKE: all check-am install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles am--refresh check \
-	check-am clean clean-cscope clean-generic clean-libLTLIBRARIES \
-	clean-libtool cscope cscopelist-am ctags ctags-am dist \
-	dist-all dist-bzip2 dist-gzip dist-hook dist-lzip dist-shar \
-	dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-compile distclean-generic distclean-hdr \
-	distclean-libtool distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-includeHEADERS install-info \
-	install-info-am install-libLTLIBRARIES install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	check-am check-local clean clean-checkLIBRARIES \
+	clean-checkPROGRAMS clean-cscope clean-generic \
+	clean-libLTLIBRARIES clean-libtool clean-noinstLIBRARIES \
+	cscope cscopelist-am ctags ctags-am dist dist-all dist-bzip2 \
+	dist-gzip dist-hook dist-lzip dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-compile \
+	distclean-generic distclean-hdr distclean-libtool \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-includeHEADERS install-info install-info-am \
+	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-includeHEADERS \
@@ -938,6 +1640,9 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 .PRECIOUS: Makefile
 
+
+check-local: $(check_PROGRAMS)
+	cd tests && ./runtests -l $(abs_top_srcdir)/tests/TESTS
 
 dist-hook:
 	chmod u+w $(distdir)/GIT_LOG.txt

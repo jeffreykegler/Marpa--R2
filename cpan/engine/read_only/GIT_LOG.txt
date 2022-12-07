@@ -2,32 +2,32 @@ This file contains the output of a `git log -n 5`, performed when the
 distribution was created.  It is for convenience in identifying the commit
 for this distribution.
 
-commit 98328761eb1c2de0182c20c30a5c8a296c569329
+commit 817b2176caad05e00cafa52afe8b317c3f96a135
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Thu Jun 23 15:19:11 2022 -0400
+Date:   Wed Dec 7 16:02:14 2022 -0500
 
-    Bump version to 9.0.3
+    Issue jeffreykegler/Marpa--R2#288
 
-commit fbc2aa819b7209c3e659910cf306d2c7a717ce7e
+commit 8191039e85b0849c2b3aeb29e81aec59f0ce5174
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Thu Jun 23 15:09:27 2022 -0400
+Date:   Wed Dec 7 13:23:28 2022 -0500
 
-    Add LIB_VERSION back to distributions
+    Update licensing checks
 
-commit cfe31afc9290a68a5567c7705ff00367271d2638
+commit b65b011983c30eb7a97d175eb59f85f737156a9e
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Thu Jun 23 13:12:56 2022 -0400
+Date:   Wed Dec 7 12:35:50 2022 -0500
 
-    Bump version to 9.0.2
+    Update licensing checks
 
-commit 23697d4bfeb4a546e2c3aabd755ad7defebe863f
+commit 31b36be19d9ddb06531796008a99980d8a190409
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Thu Jun 23 12:34:27 2022 -0400
+Date:   Wed Dec 7 11:22:35 2022 -0500
 
-    Remove Github CI
+    Issue #123
 
-commit 6d50d7d6dc71b060dcadc813b54cacd01ea91d8a
+commit 1ae6fb6bc13aee6061d27f78b1a38b56e656e30c
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Thu Jun 23 12:32:32 2022 -0400
+Date:   Sat Dec 3 16:11:22 2022 -0500
 
-    Remove Github CI
+    Issue #123

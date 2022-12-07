@@ -25,8 +25,8 @@
  * It is not intended to be modified directly
  */
 
-/*27:*/
-#line 494 "./marpa_ami.w"
+/*33:*/
+#line 519 "./marpa_ami.w"
 
 
 #ifndef _MARPA_AMI_H__
@@ -40,8 +40,8 @@
 #define _MARPA_UNLIKELY(expr) (expr)
 #endif
 
-/*19:*/
-#line 356 "./marpa_ami.w"
+/*20:*/
+#line 364 "./marpa_ami.w"
 
 #define MARPA_OFF_DEBUG1(a)
 #define MARPA_OFF_DEBUG2(a, b)
@@ -49,8 +49,8 @@
 #define MARPA_OFF_DEBUG4(a, b, c, d)
 #define MARPA_OFF_DEBUG5(a, b, c, d, e)
 #define MARPA_OFF_ASSERT(expr)
-/*:19*//*21:*/
-#line 377 "./marpa_ami.w"
+/*:20*//*22:*/
+#line 385 "./marpa_ami.w"
 
 
 #ifndef MARPA_DEBUG
@@ -97,69 +97,11 @@
 #define MARPA_ASSERT(exp) 
 #endif
 
-/*:21*/
-#line 507 "./marpa_ami.w"
-
-/*22:*/
-#line 424 "./marpa_ami.w"
-
-
-#if     __GNUC__ >  2 || (__GNUC__ == 2 && __GNUC_MINOR__ >  4)
-#define UNUSED __attribute__((__unused__))
-#else
-#define UNUSED
-#endif
-
-#if defined (__GNUC__) && defined (__STRICT_ANSI__)
-#  undef inline
-#  define inline __inline__
-#endif
-
-#undef Dim
-#define Dim(x) (sizeof(x)/sizeof(*x))
-
-#undef      MAX
-#define MAX(a, b)  (((a) >  (b)) ? (a) : (b))
-
-#undef      CLAMP
-#define CLAMP(x, low, high)  (((x) >  (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
-
-#undef STRINGIFY_ARG
-#define STRINGIFY_ARG(contents)       #contents
-#undef STRINGIFY
-#define STRINGIFY(macro_or_string)        STRINGIFY_ARG (macro_or_string)
-
-
-#if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
-#  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
-#else
-#  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__)
-#endif
-
-
-#if defined (__GNUC__)
-#  define STRFUNC     ((const char*) (__PRETTY_FUNCTION__))
-#elif defined (__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
-#  define STRFUNC     ((const char*) (__func__))
-#else
-#  define STRFUNC     ((const char*) ("???"))
-#endif
-
-#if defined __GNUC__
-# define alignof(type) (__alignof__(type))
-#else
-# define alignof(type) (offsetof (struct { char __slot1; type __slot2; }, __slot2))
-#endif
-
 /*:22*/
-#line 508 "./marpa_ami.w"
+#line 532 "./marpa_ami.w"
 
 /*23:*/
-#line 474 "./marpa_ami.w"
-
-typedef unsigned int BITFIELD;
-/*22:*/
-#line 424 "./marpa_ami.w"
+#line 432 "./marpa_ami.w"
 
 
 #if     __GNUC__ >  2 || (__GNUC__ == 2 && __GNUC_MINOR__ >  4)
@@ -171,22 +113,26 @@ typedef unsigned int BITFIELD;
 #if defined (__GNUC__) && defined (__STRICT_ANSI__)
 #  undef inline
 #  define inline __inline__
-#endif
-
+#endif 
 #undef Dim
-#define Dim(x) (sizeof(x)/sizeof(*x))
+#define Dim(x) (sizeof(x)/sizeof(*x)) 
 
 #undef      MAX
-#define MAX(a, b)  (((a) >  (b)) ? (a) : (b))
+#define MAX(a, b)  (((a) >  (b)) ? (a) : (b)) 
 
 #undef      CLAMP
-#define CLAMP(x, low, high)  (((x) >  (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+#define CLAMP(x, low, high)  (((x) >  (high)) ? (high) : (((x) < (low)) ? (low) : (x))) 
+
+/*:23*//*24:*/
+#line 455 "./marpa_ami.w"
 
 #undef STRINGIFY_ARG
 #define STRINGIFY_ARG(contents)       #contents
 #undef STRINGIFY
 #define STRINGIFY(macro_or_string)        STRINGIFY_ARG (macro_or_string)
 
+/*:24*//*25:*/
+#line 462 "./marpa_ami.w"
 
 #if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
 #  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
@@ -194,6 +140,8 @@ typedef unsigned int BITFIELD;
 #  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__)
 #endif
 
+/*:25*//*26:*/
+#line 471 "./marpa_ami.w"
 
 #if defined (__GNUC__)
 #  define STRFUNC     ((const char*) (__PRETTY_FUNCTION__))
@@ -201,7 +149,10 @@ typedef unsigned int BITFIELD;
 #  define STRFUNC     ((const char*) (__func__))
 #else
 #  define STRFUNC     ((const char*) ("???"))
-#endif
+#endif 
+
+/*:26*//*27:*/
+#line 480 "./marpa_ami.w"
 
 #if defined __GNUC__
 # define alignof(type) (__alignof__(type))
@@ -209,13 +160,98 @@ typedef unsigned int BITFIELD;
 # define alignof(type) (offsetof (struct { char __slot1; type __slot2; }, __slot2))
 #endif
 
-/*:22*/
-#line 476 "./marpa_ami.w"
+/*:27*//*28:*/
+#line 491 "./marpa_ami.w"
+
+#if defined(__GNUC__) && __GNUC__ >= 7
+#  define FALL_THROUGH __attribute__ ((fallthrough))
+#else
+#  define FALL_THROUGH ((void)0)
+#endif
+
+/*:28*/
+#line 533 "./marpa_ami.w"
+
+/*29:*/
+#line 499 "./marpa_ami.w"
+
+typedef unsigned int BITFIELD;
+/*23:*/
+#line 432 "./marpa_ami.w"
+
+
+#if     __GNUC__ >  2 || (__GNUC__ == 2 && __GNUC_MINOR__ >  4)
+#define UNUSED __attribute__((__unused__))
+#else
+#define UNUSED
+#endif
+
+#if defined (__GNUC__) && defined (__STRICT_ANSI__)
+#  undef inline
+#  define inline __inline__
+#endif 
+#undef Dim
+#define Dim(x) (sizeof(x)/sizeof(*x)) 
+
+#undef      MAX
+#define MAX(a, b)  (((a) >  (b)) ? (a) : (b)) 
+
+#undef      CLAMP
+#define CLAMP(x, low, high)  (((x) >  (high)) ? (high) : (((x) < (low)) ? (low) : (x))) 
+
+/*:23*//*24:*/
+#line 455 "./marpa_ami.w"
+
+#undef STRINGIFY_ARG
+#define STRINGIFY_ARG(contents)       #contents
+#undef STRINGIFY
+#define STRINGIFY(macro_or_string)        STRINGIFY_ARG (macro_or_string)
+
+/*:24*//*25:*/
+#line 462 "./marpa_ami.w"
+
+#if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
+#  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
+#else
+#  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__)
+#endif
+
+/*:25*//*26:*/
+#line 471 "./marpa_ami.w"
+
+#if defined (__GNUC__)
+#  define STRFUNC     ((const char*) (__PRETTY_FUNCTION__))
+#elif defined (__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
+#  define STRFUNC     ((const char*) (__func__))
+#else
+#  define STRFUNC     ((const char*) ("???"))
+#endif 
+
+/*:26*//*27:*/
+#line 480 "./marpa_ami.w"
+
+#if defined __GNUC__
+# define alignof(type) (__alignof__(type))
+#else
+# define alignof(type) (offsetof (struct { char __slot1; type __slot2; }, __slot2))
+#endif
+
+/*:27*//*28:*/
+#line 491 "./marpa_ami.w"
+
+#if defined(__GNUC__) && __GNUC__ >= 7
+#  define FALL_THROUGH __attribute__ ((fallthrough))
+#else
+#  define FALL_THROUGH ((void)0)
+#endif
+
+/*:28*/
+#line 501 "./marpa_ami.w"
 
 #define Boolean(value) ((value) ? 1 : 0)
 
-/*:23*/
-#line 509 "./marpa_ami.w"
+/*:29*/
+#line 534 "./marpa_ami.w"
 
 
 #define marpa_new(type,count) ((type*) my_malloc((sizeof(type) *((size_t) (count) ) ) ) ) 
@@ -259,7 +295,7 @@ MARPA_DSTACK_INIT((this) ,type,MAX(4,1024/sizeof(this) ) )  \
 #define MARPA_DSTACK_RESIZE(this,type,new_size)  \
 (marpa_dstack_resize((this) ,sizeof(type) ,(new_size) ) ) 
 
-#line 511 "./marpa_ami.w"
+#line 536 "./marpa_ami.w"
 
 /*14:*/
 #line 320 "./marpa_ami.w"
@@ -267,14 +303,14 @@ MARPA_DSTACK_INIT((this) ,type,MAX(4,1024/sizeof(this) ) )  \
 struct marpa_dstack_s;
 typedef struct marpa_dstack_s*MARPA_DSTACK;
 /*:14*/
-#line 512 "./marpa_ami.w"
+#line 537 "./marpa_ami.w"
 
 
-/*:27*/
+/*:33*/
 static inline void * marpa_dstack_resize2( struct marpa_dstack_s* this, int type_bytes);
 static inline void * marpa_dstack_resize ( struct marpa_dstack_s *this, int type_bytes, int new_size);
-/*28:*/
-#line 515 "./marpa_ami.w"
+/*34:*/
+#line 540 "./marpa_ami.w"
 
 
 /*15:*/
@@ -282,7 +318,7 @@ static inline void * marpa_dstack_resize ( struct marpa_dstack_s *this, int type
 
 struct marpa_dstack_s{int t_count;int t_capacity;void*t_base;};
 /*:15*/
-#line 517 "./marpa_ami.w"
+#line 542 "./marpa_ami.w"
 
 /*7:*/
 #line 200 "./marpa_ami.w"
@@ -351,9 +387,9 @@ return this->t_base;
 }
 
 /*:18*/
-#line 518 "./marpa_ami.w"
+#line 543 "./marpa_ami.w"
 
 
 #endif 
 
-/*:28*/
+/*:34*/

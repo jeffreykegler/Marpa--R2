@@ -1,7 +1,7 @@
 ; DO NOT EDIT DIRECTLY.
 ; This file was automatically generated.
 ; This file is for the Microsoft linker.
-; Thu Jun 23 18:44:36 2022
+; Wed Dec  7 16:35:04 2022
 EXPORTS
    marpa_check_version
    marpa_version
@@ -20,7 +20,6 @@ EXPORTS
    marpa_g_symbol_is_productive
    marpa_g_symbol_is_start
    marpa_g_symbol_is_terminal
-   marpa_g_symbol_is_terminal_set
    marpa_g_symbol_new
    marpa_g_highest_rule_id
    marpa_g_rule_is_accessible
@@ -37,6 +36,10 @@ EXPORTS
    marpa_g_sequence_new
    marpa_g_sequence_separator
    marpa_g_symbol_is_counted
+   marpa_g_default_rank
+   marpa_g_default_rank_set
+   marpa_g_symbol_rank
+   marpa_g_symbol_rank_set
    marpa_g_rule_rank
    marpa_g_rule_rank_set
    marpa_g_rule_null_high
@@ -77,8 +80,8 @@ EXPORTS
    marpa_o_unref
    marpa_o_ambiguity_metric
    marpa_o_is_null
-   marpa_o_high_rank_only_set
    marpa_o_high_rank_only
+   marpa_o_high_rank_only_set
    marpa_o_rank
    marpa_t_new
    marpa_t_ref
@@ -106,16 +109,13 @@ EXPORTS
    marpa_r_expected_symbol_event_set
    marpa_g_error
    marpa_g_error_clear
-   marpa_g_default_rank_set
-   marpa_g_default_rank
-   marpa_g_symbol_rank_set
-   marpa_g_symbol_rank
    marpa_g_zwa_new
    marpa_g_zwa_place
    marpa_r_zwa_default
    marpa_r_zwa_default_set
    marpa_g_highest_zwa_id
    marpa_r_clean
+   marpa_g_symbol_is_terminal_set
    marpa_g_symbol_is_valued_set
    marpa_g_symbol_is_valued
    marpa_v_symbol_is_valued_set
@@ -162,6 +162,7 @@ EXPORTS
    _marpa_r_leo_predecessor_symbol
    _marpa_r_leo_base_origin
    _marpa_r_leo_base_state
+   _marpa_r_leo_top_ahm
    _marpa_r_postdot_symbol_trace
    _marpa_r_first_postdot_item_trace
    _marpa_r_next_postdot_item_trace
