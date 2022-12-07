@@ -1995,13 +1995,15 @@ sub Marpa::R2::Scanless::R::show_leo_items {
 
 sub Marpa::R2::Scanless::R::show_leo_item {
     my ($slr)        = @_;
+    my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
     my $thick_g1_recce =
       $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $recce_c        = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar        = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
-    my $leo_base_state = $recce_c->_marpa_r_leo_base_state();
-    return if not defined $leo_base_state;
+    my $base_ahm_id = $recce_c->_marpa_r_leo_base_state();
+    return if not defined $base_ahm_id;
     my $trace_earley_set      = $recce_c->_marpa_r_trace_earley_set();
     my $trace_earleme         = $recce_c->earleme($trace_earley_set);
     my $postdot_symbol_id     = $recce_c->_marpa_r_postdot_item_symbol();
@@ -2010,10 +2012,17 @@ sub Marpa::R2::Scanless::R::show_leo_item {
     my $base_origin_set_id    = $recce_c->_marpa_r_leo_base_origin();
     my $base_origin_earleme   = $recce_c->earleme($base_origin_set_id);
 
-    my $text = sprintf 'L@%d', $trace_earleme;
-    my @link_texts = ('-');
-    push @link_texts, qq{"$postdot_symbol_name"};
-    push @link_texts, "$base_origin_earleme";
+    my $base_irl_id = $grammar_c->_marpa_g_ahm_irl($base_ahm_id);
+    my $base_rule_id = $grammar_c->_marpa_g_source_xrl($base_irl_id);
+    my $base_desc;
+    if (defined $base_rule_id) {
+        $base_desc = '[' . $slg->show_dotted_rule($base_rule_id, -2) . ']';
+    } else {
+        $base_desc = 'IRL#' . $base_irl_id;
+    }
+
+    my $text = sprintf 'L%d', $trace_earleme;
+    my @link_texts = ($base_desc, qq{"$postdot_symbol_name"}, "$base_origin_earleme");
     $text .= ' [' . ( join '; ', @link_texts ) . ']';
     return $text;
 }
