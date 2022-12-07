@@ -2002,7 +2002,7 @@ sub Marpa::R2::Scanless::R::show_leo_item {
     my $grammar        = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
-    my $base_ahm_id = $recce_c->_marpa_r_leo_base_state();
+    my $base_ahm_id = $recce_c->_marpa_r_leo_top_ahm();
     return if not defined $base_ahm_id;
     my $trace_earley_set      = $recce_c->_marpa_r_trace_earley_set();
     my $trace_earleme         = $recce_c->earleme($trace_earley_set);

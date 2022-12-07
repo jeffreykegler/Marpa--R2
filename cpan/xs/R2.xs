@@ -4828,6 +4828,20 @@ PPCODE:
     }
 
 void
+_marpa_r_leo_top_ahm( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    {
+      struct marpa_r *r = r_wrapper->r;
+      int leo_top_ahm = _marpa_r_leo_top_ahm (r);
+      if (leo_top_ahm == -1) { XSRETURN_UNDEF; }
+      if (leo_top_ahm < 0) {
+          croak ("Problem in r->leo_top_ahm(): %s", xs_g_error(r_wrapper->base));
+        }
+      XPUSHs (sv_2mortal (newSViv (leo_top_ahm)));
+    }
+
+void
 _marpa_r_leo_base_origin( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
