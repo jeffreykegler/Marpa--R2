@@ -559,7 +559,7 @@ The value of the
 C<source> named argument is a reference to string
 that contains a description of the grammar in BNF format.
 The format of this string is described in
-L<the document on the BNF format|Marpa::R2::BNF>.
+L<the document on the BNF format|Marpa::R2::Deprecated::BNF>.
 The C<source> named argument may only be specified once,
 and it cannot be used together with the C<rules>
 named argument.

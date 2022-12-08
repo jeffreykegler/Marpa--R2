@@ -15,7 +15,13 @@
 
 =head1 Name
 
-Marpa::R2::BNF - BNF Interface (obsoleted)
+Marpa::R2::Deprecated::Stuifzand - Stuifzand Interface (DEPRECATED)
+
+=head1 THE STUIFZAND INTERFACE IS DEPRECATED
+
+The Stuifzand interface (also sometimes called the "BNF interface")
+is deprecated.
+PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
 
 =head1 Synopsis
 
@@ -49,9 +55,9 @@ normalize-whitespace: 1
 
 =head1 Overview
 
-This page is the reference for the Marpa's "BNF interface",
-also called its "Stuifzand interface".
-Use of the Stuifzand interface is now discouraged,
+This page is the reference for the Marpa's "Stuifzand interface",
+also called its "BNF interface".
+Use of the Stuifzand interface is now deprecated,
 in favor of L<the SLIF
 interface|Marpa::R2::Scanless>.
 Almost all of the functionality of
