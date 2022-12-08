@@ -15,6 +15,12 @@
 
 Revision history for Marpa::R2
 
+11.002_000 (libmarpa 11.0.1) Thu 08 Dec 2022 06:07:51 PM EST
+
+   * Developer's version
+
+   * Emphasize deprecation of Stuifzand, NAIF.
+
 11.001_000 (libmarpa 9.0.3) Thu 01 Dec 2022 10:55:17 AM EST
 
    * Developer's version
