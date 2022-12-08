@@ -49,7 +49,7 @@ and Earley set ordinal
 will always be exactly the same.
 
 This document introduces methods which make it
-possible (and in fact likely) that earleme and 
+possible (and in fact likely) that earleme and
 Earley set ordinal will differ.
 From here on,
 the reader will need to pay careful attention
@@ -71,13 +71,16 @@ and an alternative input model is any input model which
 =back
 
 To do either of these things,
-a user must use L<the recognizer' external scanning
-methods|Marpa::R2::Scanless::R/"External scanning">.
+a user must use
+L<external scanning|Marpa::R2::Scanless::R/"External scanning">
+and
+L<the recognizer'x external scanning
+methods|Marpa::R2::Scanless::R/"Mutators for external scanning">.
 In particular,
 if an application is not directly
 using the recognizer's
 C<lexeme_read> or
-C<alternative> method calls,
+C<lexeme_alternative> method calls,
 that application is not using an alternative input method.
 
 Many concepts, such as parsing location,
@@ -161,7 +164,9 @@ the furthest earleme and the current earleme may be far apart.
 This becomes an issue when
 parsing is finished.
 Alternative input models use
-the recognizer's L<C<end_input>|/"end_input()"> method to ensure
+one or more calls to the recognizer's
+L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexe_complete()">
+method to ensure
 that processing of input catches up to the furthest earleme.
 
 =head1 The latest Earley set and latest earleme
