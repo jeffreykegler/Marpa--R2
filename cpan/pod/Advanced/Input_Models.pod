@@ -71,11 +71,13 @@ and an alternative input model is any input model which
 =back
 
 To do either of these things,
-a user must use the recognizer's L<C<alternative>|/"alternative()">
-method.
-In other words,
+a user must use L<the recognizer' external scanning
+methods|Marpa::R2::Scanless::R/"External scanning">.
+In particular,
 if an application is not directly
-using the recognizer's C<alternative> method call,
+using the recognizer's
+C<lexeme_read> or
+C<alternative> method calls,
 that application is not using an alternative input method.
 
 Many concepts, such as parsing location,
