@@ -360,6 +360,14 @@ we can read it externally,
 using a method call similar to
 C<< $recce->lexeme_read($symbol_name, -7, -1, $value) >>.
 
+The above approach allows the application, essentially,
+to ignore the natural input.
+External
+scanning also allows a wide variety of alternative input models.
+Alternative input models are an advanced topic and are
+discussed in L<a separate
+document|Marpa::R2::Advanced::Input_Models>.
+
 =head1 G1 locations
 
 In addition to input stream location,
