@@ -165,7 +165,7 @@ This becomes an issue when
 parsing is finished.
 Alternative input models use
 one or more calls to the recognizer's
-L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexe_complete()">
+L<C<lexeme_complete()>|Marpa::R2::Scanless::R/"lexeme_complete()">
 method to ensure
 that processing of input catches up to the furthest earleme.
 
