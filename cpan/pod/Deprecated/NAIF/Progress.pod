@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::NAIF::Progress - Progress reports for the NAIF
+Marpa::R2::Deprecated::NAIF::Progress - Progress reports for the NAIF
 
 =head1 About this document
 
@@ -57,13 +57,13 @@ Readers specifically interested in debugging
 a grammar
 should read L<the document
 on tracing
-problems|Marpa::R2::NAIF::Tracing> before
+problems|Marpa::R2::Deprecated::NAIF::Tracing> before
 reading this document.
 
 =head1 Introduction to Earley parsing
 
 To read the
-L<C<show_progress>|Marpa::R2::NAIF::Recognizer/"show_progress()">
+L<C<show_progress>|Marpa::R2::Deprecated::NAIF::Recognizer/"show_progress()">
 output, it is important to have a
 basic idea of what
 Earley items are,
@@ -230,7 +230,7 @@ and that we miss the significance of these warning messages.
 Before looking at Marpa's progress reports,
 it is usually best to orient yourself by looking
 at the output from
-L<C<trace_terminals>|Marpa::R2::NAIF::Recognizer/trace_terminals>.
+L<C<trace_terminals>|Marpa::R2::Deprecated::NAIF::Recognizer/trace_terminals>.
 Typically, you will be interested in the last tokens
 to be accepted, and perhaps also
 in the tokens the recognizer was
@@ -239,7 +239,7 @@ Sometimes that information alone is enough to make it clear
 where the problem is.
 
 The full
-L<C<trace_terminals>|Marpa::R2::NAIF::Recognizer/trace_terminals>
+L<C<trace_terminals>|Marpa::R2::Deprecated::NAIF::Recognizer/trace_terminals>
 output for this example is in the Appendix.
 We see that the recognizer seems to accept "C<42*1>" but it fails
 when it confronts the plus sign ("C<+>").
@@ -291,7 +291,7 @@ that you were working on when the error occurred.
 This is called the B<current location>.
 In our example the current location is location 3.
 By default,
-L<C<show_progress>|Marpa::R2::NAIF::Recognizer/"show_progress()">
+L<C<show_progress>|Marpa::R2::Deprecated::NAIF::Recognizer/"show_progress()">
 prints out only the progress reports for the current location.
 
 Here are the progress reports for the current location,
@@ -571,7 +571,7 @@ Change that and the problem is fixed.
 =head1 Empty rules
 
 When a symbol is nulled in your parse,
-L<C<show_progress>|Marpa::R2::NAIF::Recognizer/"show_progress()">
+L<C<show_progress>|Marpa::R2::Deprecated::NAIF::Recognizer/"show_progress()">
 does not show its expansion into rules.
 This reduces clutter,
 and seems to be the intuitive way to treat nulled rules.
@@ -630,7 +630,7 @@ to identify rules
 in tracing and debugging output.
 Given a rule ID, an application can find
 its LHS and RHS symbols using
-L<the grammar's C<rule()> method|Marpa::R2::NAIF::Grammar/"rule()">.
+L<the grammar's C<rule()> method|Marpa::R2::Deprecated::NAIF::Grammar/"rule()">.
 
 Dot position is -1 for completions,
 and 0 for predictions.

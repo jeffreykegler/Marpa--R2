@@ -59,7 +59,7 @@ level,
 and other circumstances settable by the user.
 For more detail,
 see L<the documentation of recognizer's
-C<read> method|Marpa::R2::NAIF::Recognizer/"read()">.
+C<read> method|Marpa::R2::Deprecated::NAIF::Recognizer/"read()">.
 
 =head2 Rule LHS's are no longer a source of action names
 
@@ -123,7 +123,7 @@ of the nulled rules.
 This requires rule evaluation closures to be aware
 they might be called for nulled rules.
 But it greatly simplifies the semantics conceptually.
-For more detail, see L<Marpa::R2::NAIF::Semantics::Null>.
+For more detail, see L<Marpa::R2::Deprecated::NAIF::Semantics::Null>.
 
 =head2 Actions can now be constants
 
@@ -166,7 +166,7 @@ token value is given explicitly, then that explicit value will be
 the value of the token.  In particular, an explicit C<undef> token
 value argument will behave differently from an omitted token value
 argument.  For details, see L<the documentation of recognizer's
-C<read> method|Marpa::R2::NAIF::Recognizer/"read()">.
+C<read> method|Marpa::R2::Deprecated::NAIF::Recognizer/"read()">.
 
 =head2 The token value argument of C<alternative()> has changed
 
@@ -226,7 +226,7 @@ of a rule,
 but this is now an option,
 and never the default.
 For more, see
-L<Marpa::R2::NAIF::Grammar/"Terminal symbols">.
+L<Marpa::R2::Deprecated::NAIF::Grammar/"Terminal symbols">.
 
 =head2 The lhs_terminals grammar named argument has been eliminated
 
@@ -267,7 +267,7 @@ is not as severe a restriction as it might sound --
 while sequences cannot share the same LHS with other
 rules directly, they can do so indirectly.
 For details, see
-L<Marpa::R2::NAIF::Grammar/"Duplicate rules">.
+L<Marpa::R2::Deprecated::NAIF::Grammar/"Duplicate rules">.
 
 In Marpa::XS, the definition of when a sequence
 was a duplicate was more liberal,
@@ -297,7 +297,7 @@ For those considering programming with them,
 and evaluating parses from grammars with cycles,
 the semantics of cycles is now more closely specified.
 For details of the new semantics,
-see L<Marpa::R2::NAIF::Semantics::Infinite>.
+see L<Marpa::R2::Deprecated::NAIF::Semantics::Infinite>.
 
 =head2 The range of values allowed for ranks has been clarified
 

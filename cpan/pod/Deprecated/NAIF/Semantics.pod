@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::NAIF::Semantics - How the NAIF evaluates parses
+Marpa::R2::Deprecated::NAIF::Semantics - How the NAIF evaluates parses
 
 =head1 Synopsis
 
@@ -144,7 +144,7 @@ Rule nodes are always
 associated with a rule.
 It a rule's action is a rule evaluation closure,
 it is called at
-L<Node Evaluation Time|Marpa::R2::NAIF::Semantics::Phases/"Tree Traversal Phase">.
+L<Node Evaluation Time|Marpa::R2::Deprecated::NAIF::Semantics::Phases/"Tree Traversal Phase">.
 
 The rule evaluation closures's
 arguments will be a
@@ -163,7 +163,7 @@ the value of the rule node is a Perl C<undef>.
 
 =head2 Sequence rule nodes
 
-Some rules are L<sequence rules|Marpa::R2::NAIF::Grammar/"Sequence rules">.
+Some rules are L<sequence rules|Marpa::R2::Deprecated::NAIF::Grammar/"Sequence rules">.
 Sequence rule nodes are also rule nodes.
 Everything said above about rule nodes
 applies to sequence rule nodes.
@@ -198,7 +198,7 @@ By default, if a sequence rule has separators,
 the separators are thrown away before
 the value action is called.
 (Separators are described in
-L<the section introducing sequence rules|Marpa::R2::NAIF::Grammar/"Sequence rules">.)
+L<the section introducing sequence rules|Marpa::R2::Deprecated::NAIF::Grammar/"Sequence rules">.)
 This means that separators do not appear in the C<@_> array
 of the rule evaluation closure which is the value action.
 If the value of the C<keep> rule property
@@ -235,7 +235,7 @@ To fix the issue,
 the user can add an empty rule.
 For more details,
 see L<the document on
-null semantics|Marpa::R2::NAIF::Semantics::Null>.
+null semantics|Marpa::R2::Deprecated::NAIF::Semantics::Null>.
 
 =head1 Action context
 
@@ -272,7 +272,7 @@ the grammar being parsed.
 current rule.
 Given the rule ID, an application can find
 its LHS and RHS symbols using
-L<the grammar's C<rule()> method|Marpa::R2::NAIF::Grammar/"rule()">.
+L<the grammar's C<rule()> method|Marpa::R2::Deprecated::NAIF::Grammar/"rule()">.
 
 =item * C<Marpa::R2::Context::location()> returns the start
 and end locations of the current rule.
@@ -321,19 +321,19 @@ a series of zero or more parse trees,
 each with its own parse result.
 The first call to the
 L<the recognizer's C<value>
-method|Marpa::R2::NAIF::Recognizer/"value()">
+method|Marpa::R2::Deprecated::NAIF::Recognizer/"value()">
 after the recognizer is created is the
 start of the first parse series.
 The first parse series continues until there is
 a call to the
 L<the C<reset_evaluation>
-method|Marpa::R2::NAIF::Recognizer/"reset_evaluation()">
+method|Marpa::R2::Deprecated::NAIF::Recognizer/"reset_evaluation()">
 or until the recognizer is destroyed.
 Usually, an application is only interested in a single
 parse series.
 
 When the
-L<C<reset_evaluation>|Marpa::R2::NAIF::Recognizer/"reset_evaluation()">
+L<C<reset_evaluation>|Marpa::R2::Deprecated::NAIF::Recognizer/"reset_evaluation()">
 method
 is called
 for a recognizer, it begins a new parse series.
@@ -341,13 +341,13 @@ The new parse series continues until
 there is another
 call to the
 L<the C<reset_evaluation>
-method|Marpa::R2::NAIF::Recognizer/"reset_evaluation()">,
+method|Marpa::R2::Deprecated::NAIF::Recognizer/"reset_evaluation()">,
 or until the recognizer is destroyed.
 
 Most applications will find that the order in which
 Marpa executes its semantics "just works".
 L<A separate
-document|Marpa::R2::NAIF::Semantics::Phases>
+document|Marpa::R2::Deprecated::NAIF::Semantics::Phases>
 describes that order
 in detail.
 The details can matter in some applications,
@@ -613,7 +613,7 @@ B<resolved>.
 The action names are usually B<specified> with the grammar,
 but action B<resolution> takes place
 in the recognizer's
-L<C<value>|Marpa::R2::NAIF::Recognizer/"value()"> method.
+L<C<value>|Marpa::R2::Deprecated::NAIF::Recognizer/"value()"> method.
 This can sometimes be a source of confusion.
 For example, if a Perl closure is visible when the
 action is specified,
@@ -696,7 +696,7 @@ with no duplication.
 By default, the order is arbitrary, but
 it is also possible to control the order.
 Details are in L<the document
-on parse order|Marpa::R2::NAIF::Semantics::Order>.
+on parse order|Marpa::R2::Deprecated::NAIF::Semantics::Order>.
 
 =head1 Infinite loops
 
@@ -716,7 +716,7 @@ the values from the grammar's
 cycle-free parses.
 For those who want to know more,
 the details are in a L<separate
-document|Marpa::R2::NAIF::Semantics::Infinite>.
+document|Marpa::R2::Deprecated::NAIF::Semantics::Infinite>.
 
 =head1 Copyright and License
 

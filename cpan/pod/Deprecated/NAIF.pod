@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::NAIF - Marpa named argument interface (NAIF)
+Marpa::R2::Deprecated::NAIF - Marpa named argument interface (NAIF)
 
 =head1 Synopsis
 
@@ -117,10 +117,10 @@ according to a semantics.
 In Marpa these three tasks
 are, for the most part, distinct phases.
 Grammars are
-L<C<Marpa::R2::Grammar>|Marpa::R2::NAIF::Grammar> objects.
+L<C<Marpa::R2::Grammar>|Marpa::R2::Deprecated::NAIF::Grammar> objects.
 The reading of input and the evaluation of the parse
 according to the semantics is performed by
-L<C<Marpa::R2::Recognizer>|Marpa::R2::NAIF::Recognizer> objects.
+L<C<Marpa::R2::Recognizer>|Marpa::R2::Deprecated::NAIF::Recognizer> objects.
 
 =head1 Example 1: a simple calculator
 
@@ -156,13 +156,13 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Marpa grammars are
-L<C<Marpa::R2::Grammar>|Marpa::R2::NAIF::Grammar> objects.
+L<C<Marpa::R2::Grammar>|Marpa::R2::Deprecated::NAIF::Grammar> objects.
 They are created
 with the
-L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"Constructor">
+L<Marpa::R2::Grammar::new|Marpa::R2::Deprecated::NAIF::Grammar/"Constructor">
 constructor.
 The arguments to
-L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"Constructor">
+L<Marpa::R2::Grammar::new|Marpa::R2::Deprecated::NAIF::Grammar/"Constructor">
 are references to
 hashes of named arguments.
 In the key/value pairs of these hashes,
@@ -304,7 +304,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-C<Marpa::R2::NAIF::Recognizer::new> creates a new recognizer.
+C<Marpa::R2::Deprecated::NAIF::Recognizer::new> creates a new recognizer.
 Its arguments are references to hashes of named arguments.
 In this example the only named argument is
 the required argument: "C<grammar>".
@@ -328,7 +328,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<Marpa::R2::NAIF::Recognizer::read> method takes two arguments,
+The C<Marpa::R2::Deprecated::NAIF::Recognizer::read> method takes two arguments,
 a B<token name> and a B<token value>.
 The token name must be the name
 of a valid terminal symbol in the grammar.
@@ -359,17 +359,17 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<Marpa::R2::NAIF::Recognizer::value> method returns
+The C<Marpa::R2::Deprecated::NAIF::Recognizer::value> method returns
 a reference to the parse result's value,
 if there was a parse result.
 If there was no parse result,
-C<Marpa::R2::NAIF::Recognizer::value>
+C<Marpa::R2::Deprecated::NAIF::Recognizer::value>
 returns
 C<undef>.
 
 =head2 Resolving the semantics
 
-The first thing C<Marpa::R2::NAIF::Recognizer::value> needs to do is
+The first thing C<Marpa::R2::Deprecated::NAIF::Recognizer::value> needs to do is
 to resolve the semantics.
 B<Resolving the semantics> means
 mapping the action names into actions.
@@ -601,14 +601,14 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 When called more than once,
-the C<Marpa::R2::NAIF::Recognizer::value> method iterates through the parse results.
+the C<Marpa::R2::Deprecated::NAIF::Recognizer::value> method iterates through the parse results.
 For each call,
 it returns a reference to the parse result.
 At the end of the iteration, after
 all parse results have been returned,
-C<Marpa::R2::NAIF::Recognizer::value> returns C<undef>.
+C<Marpa::R2::Deprecated::NAIF::Recognizer::value> returns C<undef>.
 If there were no parse results,
-C<Marpa::R2::NAIF::Recognizer::value> returns C<undef> the first
+C<Marpa::R2::Deprecated::NAIF::Recognizer::value> returns C<undef> the first
 time that it is called.
 
 =head1 Errors and exceptions
@@ -643,21 +643,21 @@ DBI, LWP and Moose.
 This document gives a semi-tutorial overview of the entire Marpa NAIF API.
 For full details on Marpa's grammar objects and their methods,
 see the
-L<Marpa::R2::NAIF::Grammar> document.
+L<Marpa::R2::Deprecated::NAIF::Grammar> document.
 For full details on Marpa's recognizer objects and their methods,
 see the
-L<Marpa::R2::NAIF::Recognizer> document.
+L<Marpa::R2::Deprecated::NAIF::Recognizer> document.
 
 L<Marpa::R2::Vocabulary> is intended as a quick refresher in
 parsing terminology,
 emphasizing how the standard terms are used
 in the Marpa context.
 the NAIF's standard semantics are fully described in the
-L<Marpa::R2::NAIF::Semantics> document.
+L<Marpa::R2::Deprecated::NAIF::Semantics> document.
 Techniques for tracing and for debugging your Marpa grammars
 are described in the
-L<Marpa::R2::NAIF::Tracing> document and the
-L<Marpa::R2::NAIF::Progress> document.
+L<Marpa::R2::Deprecated::NAIF::Tracing> document and the
+L<Marpa::R2::Deprecated::NAIF::Progress> document.
 For those with a theoretical bent,
 my sources, and other useful references, are described in
 L<Marpa::R2::Advanced::Bibliography>.

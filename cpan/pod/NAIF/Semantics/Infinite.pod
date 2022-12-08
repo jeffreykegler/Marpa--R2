@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::NAIF::Semantics::Infinite - How the NAIF deals with infinite ambiguity
+Marpa::R2::Deprecated::NAIF::Semantics::Infinite - How the NAIF deals with infinite ambiguity
 
 =head1 Infinitely ambiguous grammars
 
@@ -71,7 +71,7 @@ This is the behavior most users will want.
 To produce parse results from an infinitely ambiguous grammar,
 the user must set
 the grammar's
-L<C<infinite_action>|Marpa::R2::NAIF::Grammar/"infinite_action">
+L<C<infinite_action>|Marpa::R2::Deprecated::NAIF::Grammar/"infinite_action">
 named argument
 to a value other than "C<fatal>".
 The other choices are "C<warn>"

@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::NAIF::Recognizer - NAIF recognizers
+Marpa::R2::Deprecated::NAIF::Recognizer - NAIF recognizers
 
 =head1 Synopsis
 
@@ -177,7 +177,7 @@ Given the location (Earley set ID) as its argument,
 returns an array that describes the parse progress
 at that location.
 Details on progress reports can be found in
-L<their own document|Marpa::R2::NAIF::Progress>.
+L<their own document|Marpa::R2::Deprecated::NAIF::Progress>.
 
 =head2 terminals_expected()
 
@@ -251,7 +251,7 @@ It must be the name of a valid terminal symbol.
 The token value is optional.
 It defaults to a Perl C<undef>.
 For details about terminal symbols,
-see L<Marpa::R2::NAIF::Grammar/"Terminal symbols">.
+see L<Marpa::R2::Deprecated::NAIF::Grammar/"Terminal symbols">.
 
 The parser may accept or reject the token.
 If the parser accepted the token,
@@ -414,7 +414,7 @@ A much fuller description,
 with an example,
 is in
 L<the document on debugging Marpa
-grammars|Marpa::R2::NAIF::Progress>.
+grammars|Marpa::R2::Deprecated::NAIF::Progress>.
 
 =head1 Named arguments
 
@@ -444,7 +444,7 @@ the C<closures> named argument is to
 allow anonymous
 subroutines to be semantic actions.
 For more details, see L<the document on
-semantics|Marpa::R2::NAIF::Semantics>.
+semantics|Marpa::R2::Deprecated::NAIF::Semantics>.
 
 =head2 end
 
@@ -520,7 +520,7 @@ in which parse results are returned by
 the C<value> method,
 and to exclude some parse results from the parse series.
 For details, see L<the document
-on parse order|Marpa::R2::NAIF::Semantics::Order>.
+on parse order|Marpa::R2::Deprecated::NAIF::Semantics::Order>.
 
 =head2 too_many_earley_items
 

@@ -692,7 +692,7 @@ Marpa parse engine,
 but it requires the application to do a lot of the work itself.
 
 Now discouraged,
-the L<named argument inteface (NAIF)|Marpa::R2::NAIF>
+the L<named argument inteface (NAIF)|Marpa::R2::Deprecated::NAIF>
 was Marpa::R2's first interface.
 It is a more traditional,
 middle level interface which uses Perl calls

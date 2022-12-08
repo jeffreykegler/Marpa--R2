@@ -75,12 +75,12 @@ itself|Marpa::R2::Scanless>.
 =head1 The source string
 
 Stuifzand interface  source strings are specified using the 
-L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::NAIF::Grammar/"source">.
+L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::Deprecated::NAIF::Grammar/"source">.
 BNF source strings perform the functions of
 the
-L<C<rules>|Marpa::R2::NAIF::Grammar/"rules">
+L<C<rules>|Marpa::R2::Deprecated::NAIF::Grammar/"rules">
 and the
-L<C<start>|Marpa::R2::NAIF::Grammar/"start">
+L<C<start>|Marpa::R2::Deprecated::NAIF::Grammar/"start">
 named arguments of Marpa grammars.
 When
 the C<source> named argument is used to specify a grammar,
