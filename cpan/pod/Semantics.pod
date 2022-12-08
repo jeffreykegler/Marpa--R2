@@ -1011,11 +1011,8 @@ on parse order|Marpa::R2::Semantics::Order>.
 Grammars with infinite loops (cycles)
 are generally regarded as useless in practical applications.
 Due to lack of interest,
-the SLIF does not currently support them,
-although Libmarpa itself, Marpa's thin interface and the NAIF all do.
-Those interested in knowing more can look at L<the
-document on the NAIF's support of infinitely ambiguous
-grammars|Marpa::R2::Deprecated::NAIF::Semantics::Infinite>.
+the SLIF does not support them,
+although Libmarpa itself and Marpa's thin interface do.
 
 =head1 Copyright and License
 

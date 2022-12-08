@@ -1562,7 +1562,7 @@ and their presence in a grammar is usually
 unintentional.
 Note that, in the event an application
 does find a use for a grammar with unit rules,
-the NAIF and the Thin interface
+Libmarpa itself and the Thin interface
 can parse it.
 
 =head1 Copyright and License

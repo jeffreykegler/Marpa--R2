@@ -113,13 +113,15 @@ and C<action_object> arguments together.
 
 =head3 default_action
 
-Use of this argument is discouraged in favor of using the
+Use of this argument is deprecated in favor of using the
 L<C<action> adverb|Marpa::R2::Scanless::DSL/"action">
 in a
 L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rule">.
 Specifies the C<default_action> named argument that
 will be used for the G1 grammar.
-For details, see L<Marpa::R2::Deprecated::NAIF::Grammar/"default_action">.
+For details of on possible default action values and how
+they are used, see
+L<C<action> adverb|Marpa::R2::Scanless::DSL/"action">.
 
 =head1 Mutators
 

@@ -680,7 +680,7 @@ L<its grammar methods|Marpa::R2::Scanless::G>,
 and
 L<its recognizer methods|Marpa::R2::Scanless::R>.
 
-Marpa has two other interfaces.
+Marpa has another interface.
 L<The thin
 interface|Marpa::R2::Advanced::Thin>
 provides direct access to the underlying
@@ -690,13 +690,6 @@ the thin interface is the most low-level.
 The thin interface offers efficient access to the full power of the
 Marpa parse engine,
 but it requires the application to do a lot of the work itself.
-
-Now discouraged,
-the L<named argument inteface (NAIF)|Marpa::R2::Deprecated::NAIF>
-was Marpa::R2's first interface.
-It is a more traditional,
-middle level interface which uses Perl calls
-instead of a DSL.
 
 L<Marpa::R2::Vocabulary> is intended as a quick refresher in
 parsing terminology,
