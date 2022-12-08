@@ -28,6 +28,15 @@ it is still safe to ignore this document,
 but you might find the possibilities it discusses
 interesting.
 
+This document describes the input models at a conceptual,
+rather than an implementation level.
+The reader should be familiar with
+L<the recognizer's external scanning
+capability|Marpa::R2::Scanless::R/"External scanning">.
+A reader interested in implementation is assumed to
+be familiar with the methods described in
+L<Marpa::R2::Scanless::R/"Mutators for external scanning">,
+
 =head1 Marpa has two different ideas of location
 
 In the other Marpa documentation,
