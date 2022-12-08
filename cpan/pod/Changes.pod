@@ -180,7 +180,8 @@ then the value of the token will be a Perl C<undef>.
 If alternative's
 token value argument is reference to C<undef>, then the value
 of the token is a Perl C<undef>.  For details, see L<the documentation
-of the C<alternative> method|Marpa::R2::Advanced::Models/"alternative()">.
+of the
+C<alternative> method|Marpa::R2::Deprecated::NAIF::Input_Models/"alternative()">.
 
 =head2 Marpa::R2::Recognizer::value() does not accept named arguments
 

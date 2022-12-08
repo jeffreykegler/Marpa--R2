@@ -65,7 +65,7 @@ This document will describe only the token-stream model of input.
 Marpa allows other models of the input, but their use
 requires special method calls,
 which are described in L<the
-document on alternative input models|Marpa::R2::Advanced::Models>.
+document on alternative input models|Marpa::R2::Deprecated::NAIF::Input_Models>.
 
 =head1 Constructor
 

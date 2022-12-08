@@ -15,19 +15,13 @@
 
 =head1 NAME
 
-Marpa::R2::Deprecated::NAIF::Input_Models - Other NAIF input models
-
-=head1 THE NAIF INTERFACE IS DEPRECATED
-
-This document describes the NAIF interface,
-which is deprecated.
-PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
+Marpa::R2::Advanced::Input_Models - Alternative input models
 
 =head1 About this document
 
 The alternative input models described in this document are an
 advanced technique.
-If you are starting out with Marpa, you
+While you are starting out with Marpa, you
 probably want to ignore this document.
 If you are an experienced Marpa user,
 it is still safe to ignore this document,
@@ -90,7 +84,7 @@ and the end of parsing,
 are somewhat more complicated when alternative
 input models are involved.
 These concepts were explained in L<the main document for
-the recognizer|Marpa::R2::Deprecated::NAIF::Recognizer> on the assumption
+the recognizer|Marpa::R2::Scanless:R> on the assumption
 that the default input model was in use.
 This document revises those explanations as necessary
 to take into
@@ -180,187 +174,6 @@ there may not be an Earley set at a given earleme location.
 When that is the case for the current earleme,
 then the latest Earley set is not at the current earleme,
 and the latest earleme and current earlemes are different.
-
-=head1 Methods
-
-=head2 alternative()
-
-=for Marpa::R2::Display
-name: Recognizer alternative Synopsis
-normalize-whitespace: 1
-
-    $recce->alternative( 'a', \42, 1 ) or return 'First alternative failed';
-
-=for Marpa::R2::Display::End
-
-The C<alternative> method is the most general method for reading
-input, and is used in alternative input models.
-It takes three arguments, only the first of which is required.
-
-The first two arguments are 
-the token type and a reference to the token value.
-If the reference to the token value is omitted,
-or is C<undef>,
-the value of the token will be a Perl C<undef>.
-
-The third argument to the C<alternative> method is a token
-length.
-If omitted, token length defaults to 1,
-which is the correct value for the token stream model.
-Its value can be any integer B<greater> than zero.
-Marpa does not allow zero length tokens in any input model.
-
-Unlike the C<read> method, the C<alternative> method does
-B<not> advance the current location
-(current earleme) on each call.
-This allows the application to read several tokens
-at the same earleme.
-This is how ambiguous input is created.
-To advance the current earleme when
-input is read using the C<alternative> method,
-the C<complete_earleme> method must be called.
-
-On success, C<alternative> returns a Perl true value.
-If the token is rejected, C<alternative> returns a Perl false.
-On other failures, C<alternative> throws an exception.
-
-=head2 current_earleme()
-
-=for Marpa::R2::Display
-name: current_earleme Example
-normalize-whitespace: 1
-
-    $current_earleme = $recce->current_earleme();
-
-=for Marpa::R2::Display::End
-
-Returns the current parse location,
-also known as the current earleme.
-Not often needed.
-
-=head2 earleme()
-
-=for Marpa::R2::Display
-name: earleme() Synopsis
-normalize-whitespace: 1
-
-      my $origin_earleme = $recce->earleme($origin_earley_set_id);
-
-=for Marpa::R2::Display::End
-
-Given an Earley set ID as its argument,
-the C<earleme()> recognizer method
-returns the corresponding earleme.
-Every integer in the range from 0
-to the ID of the latest Earley
-is a valid Earley set ID,
-and every valid Earley set ID corresponds to an
-earleme.
-If the argument of C<earleme()> is
-greater than the latest Earley set ID,
-C<earleme()> returns Perl C<undef>.
-
-There is currently no method that translates from
-earleme to Earley set.
-Earley set to earleme translation is a well-behaved
-one-to-one function
-in all input models -- for every Earley set there is
-a earleme,
-and every earleme is mapped to by at most one Earley set.
-Earleme to Earley set translation is far less well-behaved.
-In many input models, it is a partial function -- there
-are some earlemes that are
-in the valid range of earlemes
-but do not map to any Earley set.
-
-Earleme to Earley set translation is often not needed.
-When it is, it can be implemented at the application
-level, with the application taking advantage of what
-it knows about its choice of input model.
-
-=head2 earleme_complete()
-
-=for Marpa::R2::Display
-name: Recognizer earleme_complete Synopsis
-normalize-whitespace: 1
-
-    $recce->earleme_complete();
-
-=for Marpa::R2::Display::End
-
-Processes all tokens at the current earleme and advances the current
-earleme by 1.
-If the earleme cannot be completed,
-an exception is thrown.
-Otherwise, an "event" count is returned.
-If zero is returned, the earleme was completed without event.
-In this context,
-an "event" is one of a list of occurrences of special interest during
-the successful completion of an earleme,
-as described for
-the L<recognizer's C<read> method|Marpa::R2::Deprecated::NAIF::Recognizer/"read()">.
-
-All tokens read using the C<alternative> method start at one
-location -- the current earleme.
-When reading input using the C<alternative> method,
-C<earleme_complete> is used to complete processing
-at the current earleme and move
-forward in
-the input stream.
-
-C<earleme_complete> may be called even if the C<alternative>
-method has been not called since the last
-call to C<earleme_complete>.
-This will create an earleme with no tokens.
-In certain input models,
-such as the character-per-earleme model,
-this can be useful.
-
-=head2 end_input()
-
-=for Marpa::R2::Display
-name: Recognizer end_input Synopsis
-normalize-whitespace: 1
-
-    $recce->end_input();
-
-=for Marpa::R2::Display::End
-
-Indicates that input is finished.
-Calling C<end_input> is not necessary
-or useful
-in the default input model,
-because in the default input model no token
-has a length greater than 1.
-
-The C<end_input> method takes no arguments.
-The C<end_input> method returns a Perl true value on success.
-On failure, it throws an exception.
-
-In alternative input models, calling the C<earleme_complete> method
-once input is finished does not
-ensure that all input has been processed.
-The C<earleme_complete> method completes the current earleme,
-but in alternative models, tokens may extend well past the current earleme.
-The C<end_input> method ensures that all input is processed.
-
-Calling C<end_input> multiple times on the same recognizer object
-is harmless,
-but useless.
-The second and subsequent calls will
-return a Perl true,
-but will have no effect.
-
-=head1 Alternative models and C<read()>
-
-A recognizer can mix
-calls to
-its L<C<read>|Marpa::R2::Deprecated::NAIF::Recognizer/"read()">
-method with calls to its L<C<alternative>|/"alternative()">
-method.
-The C<read> method has the same effect as a single call
-to the C<alternative> method, followed immediately
-by a call of the C<earleme_complete> method.
 
 =head1 Ambiguous lexing
 
