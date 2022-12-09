@@ -64,7 +64,6 @@ $recce->read( \$string );
 my $metric = $recce->ambiguity_metric();
 Test::More::is($metric, 2, "Ambiguity Metric");
 
-# say $grammar->show_rules();
 my $latest_earley_set = $recce->latest_earley_set();
 for (my $i = 0; $i <= $latest_earley_set; $i++) {
     printf "=== Progress @%d ===\n", $i;

@@ -17,6 +17,12 @@
 
 Marpa::R2::Deprecated::NAIF::Semantics - How the NAIF evaluates parses
 
+=head1 THE NAIF INTERFACE IS DEPRECATED
+
+This document describes the NAIF interface,
+which is deprecated.
+PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
+
 =head1 Synopsis
 
 =for Marpa::R2::Display

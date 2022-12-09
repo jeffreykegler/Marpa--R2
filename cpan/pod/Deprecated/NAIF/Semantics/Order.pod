@@ -17,6 +17,12 @@
 
 Marpa::R2::Deprecated::NAIF::Semantics::Order - How the NAIF ranks ambiguous parses
 
+=head1 THE NAIF INTERFACE IS DEPRECATED
+
+This document describes the NAIF interface,
+which is deprecated.
+PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
+
 =head1 Description
 
 This document deals with Marpa's low-level NAIF interface.

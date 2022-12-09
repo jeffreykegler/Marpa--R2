@@ -17,6 +17,12 @@
 
 Marpa::R2::Deprecated::NAIF::Semantics::Infinite - How the NAIF deals with infinite ambiguity
 
+=head1 THE NAIF INTERFACE IS DEPRECATED
+
+This document describes the NAIF interface,
+which is deprecated.
+PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
+
 =head1 Infinitely ambiguous grammars
 
 This document deals with Marpa's low-level NAIF interface.

@@ -17,6 +17,12 @@
 
 Marpa::R2::Deprecated::NAIF::Semantics::Phases - Details of NAIF parse evaluation
 
+=head1 THE NAIF INTERFACE IS DEPRECATED
+
+This document describes the NAIF interface,
+which is deprecated.
+PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
+
 =head1 Overview of the semantic phases
 
 This document deals with Marpa's low-level NAIF interface.

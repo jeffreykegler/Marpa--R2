@@ -17,6 +17,12 @@
 
 Marpa::R2::Deprecated::NAIF - Marpa named argument interface (NAIF)
 
+=head1 THE NAIF INTERFACE IS DEPRECATED
+
+This document describes the NAIF interface,
+which is deprecated.
+PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
+
 =head1 Synopsis
 
 =for Marpa::R2::Display
