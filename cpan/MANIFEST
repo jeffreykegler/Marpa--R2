@@ -309,6 +309,7 @@ t/sl_json_ast.t
 t/sl_latk.t
 t/sl_lc.t
 t/sl_leo.t
+t/sl_leo_diag.t
 t/sl_leo2.t
 t/sl_lexevent.t
 t/sl_lib115.t
