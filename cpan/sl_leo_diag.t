@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use Scalar::Util;
 use Data::Dumper;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -64,11 +64,78 @@ $recce->read( \$string );
 my $metric = $recce->ambiguity_metric();
 Test::More::is($metric, 2, "Ambiguity Metric");
 
+my $expected_items = <<'END_OF_ITEMS';
+=== Progress @0 ===
+P0 @0-0 L0c0 A -> . 'w' 'x' B
+P1 @0-0 L0c0 A -> . 'w'
+P5 @0-0 L0c0 :start -> . A
+=== Progress @1 ===
+R0:1 @0-1 L1c1 A -> 'w' . 'x' B
+F1 @0-1 L1c1 A -> 'w' .
+F5 @0-1 L1c1 :start -> A .
+=== Progress @2 ===
+R0:2 @0-2 L1c1-3 A -> 'w' 'x' . B
+P2 @2-2 L1c3 B -> . C
+P3 @2-2 L1c3 C -> . 'y' 'z' A
+P4 @2-2 L1c3 C -> . 'y' 'z' 'w' 'x' 'y' 'z' 'w'
+L2 [[A -> 'w' 'x' . B]; "B"; 0]
+L2 [[A -> 'w' 'x' . B]; "C"; 2]
+=== Progress @3 ===
+R3:1 @2-3 L1c3-5 C -> 'y' . 'z' A
+R4:1 @2-3 L1c3-5 C -> 'y' . 'z' 'w' 'x' 'y' 'z' 'w'
+=== Progress @4 ===
+P0 @4-4 L1c7 A -> . 'w' 'x' B
+P1 @4-4 L1c7 A -> . 'w'
+R3:2 @2-4 L1c3-7 C -> 'y' 'z' . A
+R4:2 @2-4 L1c3-7 C -> 'y' 'z' . 'w' 'x' 'y' 'z' 'w'
+L4 [[A -> 'w' 'x' . B]; "A"; 2]
+=== Progress @5 ===
+R0:1 @4-5 L1c7-9 A -> 'w' . 'x' B
+F0 @0-5 L1c1-9 A -> 'w' 'x' B .
+F1 @4-5 L1c7-9 A -> 'w' .
+F2 @2-5 L1c3-9 B -> C .
+F3 @2-5 L1c3-9 C -> 'y' 'z' A .
+R4:3 @2-5 L1c3-9 C -> 'y' 'z' 'w' . 'x' 'y' 'z' 'w'
+F5 @0-5 L1c1-9 :start -> A .
+=== Progress @6 ===
+R0:2 @4-6 L1c7-11 A -> 'w' 'x' . B
+P2 @6-6 L1c11 B -> . C
+P3 @6-6 L1c11 C -> . 'y' 'z' A
+P4 @6-6 L1c11 C -> . 'y' 'z' 'w' 'x' 'y' 'z' 'w'
+R4:4 @2-6 L1c3-11 C -> 'y' 'z' 'w' 'x' . 'y' 'z' 'w'
+L6 [[A -> 'w' 'x' . B]; "B"; 4]
+L6 [[A -> 'w' 'x' . B]; "C"; 6]
+=== Progress @7 ===
+R3:1 @6-7 L1c11-13 C -> 'y' . 'z' A
+R4:1 @6-7 L1c11-13 C -> 'y' . 'z' 'w' 'x' 'y' 'z' 'w'
+R4:5 @2-7 L1c3-13 C -> 'y' 'z' 'w' 'x' 'y' . 'z' 'w'
+=== Progress @8 ===
+P0 @8-8 L1c15 A -> . 'w' 'x' B
+P1 @8-8 L1c15 A -> . 'w'
+R3:2 @6-8 L1c11-15 C -> 'y' 'z' . A
+R4:2 @6-8 L1c11-15 C -> 'y' 'z' . 'w' 'x' 'y' 'z' 'w'
+R4:6 @2-8 L1c3-15 C -> 'y' 'z' 'w' 'x' 'y' 'z' . 'w'
+L8 [[A -> 'w' 'x' . B]; "A"; 6]
+=== Progress @9 ===
+R0:1 @8-9 L1c15-17 A -> 'w' . 'x' B
+F0 x2 @0,4-9 L1c1-17 A -> 'w' 'x' B .
+F1 @8-9 L1c15-17 A -> 'w' .
+F2 x2 @2,6-9 L1c3-17 B -> C .
+F3 x2 @2,6-9 L1c3-17 C -> 'y' 'z' A .
+R4:3 @6-9 L1c11-17 C -> 'y' 'z' 'w' . 'x' 'y' 'z' 'w'
+F4 @2-9 L1c3-17 C -> 'y' 'z' 'w' 'x' 'y' 'z' 'w' .
+F5 @0-9 L1c1-17 :start -> A .
+END_OF_ITEMS
+
+my @actual_items = ();
 my $latest_earley_set = $recce->latest_earley_set();
 for (my $i = 0; $i <= $latest_earley_set; $i++) {
-    printf "=== Progress @%d ===\n", $i;
-    print $recce->show_parse_items($i);
+    push @actual_items, (sprintf "=== Progress @%d ===\n", $i);
+    push @actual_items, $recce->show_parse_items($i);
 }
+my $actual_items = join '', @actual_items;
+
+Test::More::is($actual_items, $expected_items, "Parse items");
 
 my %expected_value = (
     q{\['w','x',[['y','z','w','x','y','z','w']]]} => 1,
