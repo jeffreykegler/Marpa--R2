@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use Scalar::Util;
 use Data::Dumper;
-use Test::More tests => 5;
+use Test::More tests => 11;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -56,11 +56,13 @@ my $string = '(beginning) (middle) (end)';
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 $recce->read( \$string );
 
+my $value_ref1;
 my %parses = (
 q{\['top',0,3,4,['beginning',0,1,2,'(beginning)'],['middle',1,1,2,'(middle)'],['end',2,1,2,'(end)']]}
       => '' );
 PARSE: while (1) {
     my $value_ref = $recce->value();
+    $value_ref1 = $value_ref if not defined $value_ref1;
     last PARSE if not defined $value_ref;
     my $dumped_value = myDump( $value_ref );
     $parses{$dumped_value} = '';
@@ -70,18 +72,28 @@ q{\['top',0,3,4,['beginning',0,1,2,'(beginning)'],['middle',1,1,2,'(middle)'],['
       => q{} );
 cmpHash(\%parses, \%expected_parses, 'Parses');
 
-# showNode($recce, $$value_ref);
+my %expected_substrings = (
+    q{<top> using g1len}          => '(beginning) (middle) (end)',
+    q{<top> using g1length}       => '(beginning) (middle) (end)',
+    q{<beginning> using g1len}    => '(beginning)',
+    q{<beginning> using g1length} => '(beginning)',
+    q{<middle> using g1len}       => '(middle)',
+    q{<middle> using g1length}    => '(middle)',
+    q{<end> using g1len}          => '(end)',
+    q{<end> using g1length}       => '(end)',
+);
+my %substrings = ();
+showNode($recce, \%substrings, $$value_ref1);
+cmpHash(\%substrings, \%expected_substrings, "Substrings");
 
 sub showNode {
-    my ( $recce, $node ) = @_;
+    my ( $recce, $substrings, $node ) = @_;
     return if ref $node ne 'ARRAY';
     my ( $name, $g1start, $g1len, $g1length, @values ) = @$node;
-    say "<$name> with g1len: ", join '', q{"},
-      $recce->substring( $g1start, $g1len ), q{"};
-    say "<$name> with g1length: ", join '', q{"},
-      $recce->substring( $g1start, $g1length - 1 ), q{"};
+    $substrings->{ "<$name> using g1len"} = $recce->substring( $g1start, $g1len );
+    $substrings->{ "<$name> using g1length"} = $recce->substring( $g1start, $g1length-1 );
     for my $childNode (@values) {
-        showNode( $recce, $childNode );
+        showNode( $recce, $substrings, $childNode );
     }
 }
 
