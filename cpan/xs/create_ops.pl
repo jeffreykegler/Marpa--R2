@@ -37,6 +37,7 @@ my @ops = sort { $a->[0] cmp $b->[0] }
     [ "invalid_char",            "MARPA_OP_INVALID_CHAR" ],
     [ "noop",                    "MARPA_OP_NOOP" ],
     [ "pause",                   "MARPA_OP_PAUSE" ],
+    [ "push_g1_len",             "MARPA_OP_PUSH_G1_LEN" ],
     [ "push_g1_length",          "MARPA_OP_PUSH_G1_LENGTH" ],
     [ "push_g1_start",           "MARPA_OP_PUSH_G1_START" ],
     [ "push_length",             "MARPA_OP_PUSH_LENGTH" ],
