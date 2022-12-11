@@ -56,12 +56,21 @@ my $string = '(beginning) (middle) (end)';
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 $recce->read( \$string );
 
+my %parses = (
+q{\['top',0,3,4,['beginning',0,1,2,'(beginning)'],['middle',1,1,2,'(middle)'],['end',2,1,2,'(end)']]}
+      => '' );
+PARSE: while (1) {
     my $value_ref = $recce->value();
-    die if not defined $value_ref;
+    last PARSE if not defined $value_ref;
     my $dumped_value = myDump( $value_ref );
-    say $dumped_value;
+    $parses{$dumped_value} = '';
+}
+my %expected_parses = (
+q{\['top',0,3,4,['beginning',0,1,2,'(beginning)'],['middle',1,1,2,'(middle)'],['end',2,1,2,'(end)']]}
+      => q{} );
+cmpHash(\%parses, \%expected_parses, 'Parses');
 
-    showNode($recce, $$value_ref);
+# showNode($recce, $$value_ref);
 
 sub showNode {
     my ( $recce, $node ) = @_;
@@ -79,6 +88,39 @@ sub showNode {
 sub myDump {
     my $v = shift;
     return Data::Dumper->new( [$v] )->Indent(0)->Terse(1)->Dump;
+}
+
+sub cmpHash {
+    my ( $got, $wanted, $tag ) = @_;
+    my $i = 0;
+  GOT: for my $key ( keys %$got ) {
+        my $v        = $got->{$key};
+        my $wanted_v = $wanted->{$key};
+          if ( defined $wanted_v ) {
+            delete $wanted->{$key};
+            if ( $wanted_v eq $v ) {
+                Test::More::pass("Value of $key in $tag matches: $v");
+                next GOT;
+            }
+            Test::More::fail("Mismatch for $key in $tag: $wanted_v vs. $v");
+        }
+        else {
+            Test::More::fail("Unexpected item in $tag: $key");
+            Test::More::diag("Value of unexpected item in $tag was $v");
+        }
+        $i++;
+    }
+    my @not_found       = keys %$wanted;
+    my $not_found_count = scalar @not_found;
+    if ($not_found_count) {
+        Test::More::fail("$not_found_count expected item(s) not found in $tag");
+        for my $value (@not_found) {
+            Test::More::diag("$value");
+        }
+    }
+    else {
+        Test::More::pass("All expected items found in $tag");
+    }
 }
 
 # vim: expandtab shiftwidth=4:
