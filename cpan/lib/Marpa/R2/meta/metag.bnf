@@ -175,7 +175,7 @@ boolean ~ [01]
 <result item descriptor separator> ~ [,]
 <result item descriptor separator> ~ [,] whitespace
 <result item descriptor> ~ 'start' | 'length'
-  | 'g1start' | 'g1length'
+  | 'g1start' | 'g1length' | 'g1len'
   | 'name' | 'lhs' | 'symbol' | 'rule'
   | 'value' | 'values'
 
