@@ -38,9 +38,37 @@ of the current functionality in a major way.
 New versions usually occur only when a serious
 bug is discovered.
 
-## Bugs
+## Support
 
-### No known bugs
+Marpa::R2 is free software.
+There is no warranty.
+
+Available resources include the following:
+
+* Bugs should be filed as issues in this repo.
+
+* The IRC channel is where most discussion takes place.
+It is `#marpa` at
+`irc.libera.chat`.
+The channel
+[is logged](http://colabti.org/irclogger/irclogger_log/marpa).
+
+* In addition, there is
+[a Google Groups mailing list dedicated to
+Marpa](https://groups.google.com/forum/?fromgroups#!forum/marpa-parser).
+
+* Ron Savage maintains
+[Marpa's official starting
+page](http://savage.net.au/Marpa.html).
+
+* The author also maintains [a less extensive Marpa web
+site](https://jeffreykegler.github.io/Marpa-web-site/).
+
+* After `Marpa::R2` is installed,
+You can read its documentation for this module with the perldoc command:
+`perldoc Marpa::R2`.
+
+## Known bugs
 
 ### During installation, configure fails on MacOs
 
@@ -67,6 +95,9 @@ instead of the GNU autoconf.
 The problem seems to be a bug in the GNU autoconf on certain
 platforms, a bug that
 Config::Autoconf does not share.
+
+A fix has has been implemented as of the developer's release
+11.001_000 and is expected to be part of next stable release.
 
 ## Notices
 
