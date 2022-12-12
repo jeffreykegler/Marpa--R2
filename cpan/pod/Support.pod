@@ -36,7 +36,7 @@ Resources available as of this writing include the following:
 It is C<#marpa> at
 C<irc.libera.chat>.
 It is logged at
-C<http://colabti.org/irclogger/irclogger_log/marpa>.
+L<http://colabti.org/irclogger/irclogger_log/marpa>.
 
 * In addition, there is a Google Groups mailing list dedicated to Marpa
 It is at L<https://groups.google.com/forum/?fromgroups#!forum/marpa-parser>.
