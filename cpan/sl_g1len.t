@@ -65,11 +65,11 @@ PARSE: while (1) {
     $value_ref1 = $value_ref if not defined $value_ref1;
     last PARSE if not defined $value_ref;
     my $dumped_value = myDump( $value_ref );
-    $parses{$dumped_value} = '';
+    $parses{$dumped_value} = 'found';
 }
 my %expected_parses = (
 q{\['top',0,3,4,['beginning',0,1,2,'(beginning)'],['middle',1,1,2,'(middle)'],['end',2,1,2,'(end)']]}
-      => q{} );
+      => 'found' );
 cmpHash(\%parses, \%expected_parses, 'Parses');
 
 my %expected_substrings = (
@@ -105,7 +105,7 @@ sub myDump {
 sub cmpHash {
     my ( $got, $wanted, $tag ) = @_;
     my $i = 0;
-  GOT: for my $key ( keys %$got ) {
+  GOT: for my $key ( sort keys %$got ) {
         my $v        = $got->{$key};
         my $wanted_v = $wanted->{$key};
           if ( defined $wanted_v ) {
@@ -122,7 +122,7 @@ sub cmpHash {
         }
         $i++;
     }
-    my @not_found       = keys %$wanted;
+    my @not_found       = sort keys %$wanted;
     my $not_found_count = scalar @not_found;
     if ($not_found_count) {
         Test::More::fail("$not_found_count expected item(s) not found in $tag");
