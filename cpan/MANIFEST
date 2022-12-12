@@ -314,6 +314,7 @@ t/sl_evsyn2.t
 t/sl_exhaust.t
 t/sl_external1.t
 t/sl_fullsyn.t
+t/sl_g1len.t
 t/sl_gabend.t
 t/sl_gia.t
 t/sl_gia_err.t
