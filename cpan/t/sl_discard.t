@@ -36,12 +36,12 @@ use Marpa::R2;
 my $grammar = Marpa::R2::Scanless::G->new(
     {
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => [g1start, g1length, values]
+:default ::= action => [g1start, g1len, values]
 lexeme default = latm => 1
 
 Script ::= Expression+ separator => comma action => do_expression
 comma ~ [,]
-Expression ::= Subexpression action => [g1start,g1length,value]
+Expression ::= Subexpression action => [g1start,g1len,value]
 Subexpression ::=
     Number action => do_number
     | ('(') Subexpression (')') assoc => group action => do_paren
@@ -113,9 +113,9 @@ my $output_re =
     my $event_ix = 0;
     my $result = '';
     for my $expression (@{${$value_ref}}) {
-        my ($g1start, $g1length, $value) = @{$expression};
-        my $g1end = $g1start+$g1length-1;
-        $result .= qq{expression: "} . $recce->substring( $g1start, $g1length-1 ) .
+        my ($g1start, $g1len, $value) = @{$expression};
+        my $g1end = $g1start+$g1len;
+        $result .= qq{expression: "} . $recce->substring( $g1start, $g1len ) .
             qq{" = } . round_value($value);
         $result .= "\n";
         EVENT: while ($event_ix <= $#events) {

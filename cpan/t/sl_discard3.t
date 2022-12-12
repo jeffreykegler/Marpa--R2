@@ -34,9 +34,9 @@ my @settings = ( '=on', '=off', q{} );
 for my $grammar_setting (@settings) {
 
     my $null_dsl = <<'END_OF_SOURCE';
-:default ::= action => [g1start,g1length,name,values]
+:default ::= action => [g1start,g1len,name,values]
 discard default = event => :symbol=off
-lexeme default = action => [ g1start, g1length, start, length, value ]
+lexeme default = action => [ g1start, g1len, start, length, value ]
     latm => 1
 
 Script ::=
@@ -93,17 +93,14 @@ END_OF_SOURCE
             my $value_ref = $recce->value();
             die "No parse was found\n" if not defined $value_ref;
 
-            my $result = ${$value_ref};
-
-            # say Data::Dumper::Dumper($result);
         } ## end for my $input ( q{}, ' ', '  ' )
 
 # Discards with a non-trivial grammar
 
         my $non_trivial_dsl = <<'END_OF_SOURCE';
-:default ::= action => [g1start,g1length,name,values]
+:default ::= action => [g1start,g1len,name,values]
 discard default = event => :symbol=off
-lexeme default = action => [ g1start, g1length, start, length, value ]
+lexeme default = action => [ g1start, g1len, start, length, value ]
     latm => 1
 
 text ::= a b
@@ -162,7 +159,6 @@ END_OF_SOURCE
             my $value_ref = $recce->value();
             die "No parse was found\n" if not defined $value_ref;
 
-            my $result = ${$value_ref};
         } ## end for my $pattern ( 0 .. 7 )
     } ## end for my $recce_setting ( '=on', '=off', q{} )
 } ## end for my $grammar_setting ( '=on', '=off', q{} )
@@ -173,9 +169,9 @@ for my $ws_g_setting (@settings) {
     for my $bracketed_g_setting (@settings) {
 
         my $dsl2 = <<'END_OF_SOURCE';
-:default ::= action => [g1start,g1length,name,values]
+:default ::= action => [g1start,g1len,name,values]
 discard default = event => :symbol=off
-lexeme default = action => [ g1start, g1length, start, length, value ]
+lexeme default = action => [ g1start, g1len, start, length, value ]
     latm => 1
 
 Script ::=
@@ -272,7 +268,6 @@ END_OF_SOURCE
                     my $value_ref = $recce->value();
                     die "No parse was found\n" if not defined $value_ref;
 
-                    my $result = ${$value_ref};
                 } ## end for my $input ( q{ (x) }, q{(x) }, q{ (x)} )
             } ## end for my $bracketed_r_setting (@settings)
         } ## end for my $ws_r_setting (@settings)

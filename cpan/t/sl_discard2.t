@@ -33,9 +33,9 @@ use Marpa::R2;
 my $null_grammar = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => [g1start,g1length,name,values]
+:default ::= action => [g1start,g1len,name,values]
 discard default = event => :symbol=off
-lexeme default = action => [ g1start, g1length, start, length, value ]
+lexeme default = action => [ g1start, g1len, start, length, value ]
     latm => 1
 
 Script ::=
@@ -62,17 +62,15 @@ for my $input ( q{}, ' ', '  ', '   ' ) {
     my $value_ref = $recce->value();
     die "No parse was found\n" if not defined $value_ref;
 
-    my $result = ${$value_ref};
-    # say Data::Dumper::Dumper($result);
 } ## end for my $input ( q{}, ' ', '  ', '   ' )
 
 # Test of 2 types of events
 my $grammar2 = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => [g1start,g1length,name,values]
+:default ::= action => [g1start,g1len,name,values]
 discard default = event => :symbol=off
-lexeme default = action => [ g1start, g1length, start, length, value ]
+lexeme default = action => [ g1start, g1len, start, length, value ]
     latm => 1
 
 Script ::=
@@ -105,7 +103,6 @@ for my $input ( q{ (x) }, q{(x) }, q{ (x)})
     my $value_ref = $recce->value();
     die "No parse was found\n" if not defined $value_ref;
 
-    my $result = ${$value_ref};
 }
 
 # Discards with a non-trivial grammar
@@ -113,9 +110,9 @@ for my $input ( q{ (x) }, q{(x) }, q{ (x)})
 my $non_trivial_grammar = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => [g1start,g1length,name,values]
+:default ::= action => [g1start,g1len,name,values]
 discard default = event => :symbol=off
-lexeme default = action => [ g1start, g1length, start, length, value ]
+lexeme default = action => [ g1start, g1len, start, length, value ]
     latm => 1
 
 text ::= a b c
@@ -163,7 +160,6 @@ for my $pattern (0 .. 15)
     my $value_ref = $recce->value();
     die "No parse was found\n" if not defined $value_ref;
 
-    my $result = ${$value_ref};
 }
 
 sub gather_events {
