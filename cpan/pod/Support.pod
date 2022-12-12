@@ -22,22 +22,40 @@ Marpa::R2::Support - Support, and how to report bugs
 Marpa::R2 is free software.
 There is no warranty.
 
-=head1 Mailing list
+This page is only updated when there is a new release.
+For the lastest information on getting support,
+and filing bugs, please consult
+the "updates" page, C<UPDATES.md>,
+in the current repo.
+At this point, the link for the updates page is
+L<https://github.com/jeffreykegler/Marpa--R2/blob/master/UPDATES.md>.
 
-There is a Google Groups mailing list dedicated to Marpa at
-L<https://groups.google.com/forum/?fromgroups#!forum/marpa-parser>.
+Resources available as of this writing include the following:
 
-=head1 Bugs
+* The IRC channel is where most discussion takes place.
+It is C<#marpa> at
+C<irc.libera.chat>.
+It is logged at
+C<http://colabti.org/irclogger/irclogger_log/marpa>.
 
-Please report any bugs or feature requests to
-C<bug-marpa-xs at rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa::R2>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
+* In addition, there is a Google Groups mailing list dedicated to Marpa
+It is at L<https://groups.google.com/forum/?fromgroups#!forum/marpa-parser>.
 
-=head1 Other resources
+* Bugs should be filed as issues in this repo.
+Note that C<Marpa::R2>
+is now "stable", and new features are not added to it.
+New versions are released only when they benefit users
+of the current functionality in a major way.
+New versions usually occur only when a serious
+bug is discovered.
 
-You can find documentation for this module with the perldoc command.
+* Ron Savage maintains a L<Marpa's official starting
+page|http://savage.net.au/Marpa.html>.
+
+* The author also maintains a less extensive L<Marpa web
+site|https://jeffreykegler.github.io/Marpa-web-site/>.
+
+* You can find documentation for this module with the perldoc command.
 
 =for Marpa::R2::Display
 ignore: 1
@@ -45,20 +63,6 @@ ignore: 1
     perldoc Marpa::R2
 
 =for Marpa::R2::Display::End
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa-R2>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Marpa-R2>
-
-=back
 
 =head1 Copyright and License
 
