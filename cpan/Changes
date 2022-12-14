@@ -15,9 +15,11 @@
 
 Revision history for Marpa::R2
 
-11.003_000 (libmarpa 11.0.1) Sat 10 Dec 2022 12:06:11 PM EST
+11.003_000 (libmarpa 11.0.2) Sat 10 Dec 2022 12:06:11 PM EST
 
    * Developer's version
+
+   * Add latest libmarpa
 
    * Work on documentation, Leo diagnostics
 
