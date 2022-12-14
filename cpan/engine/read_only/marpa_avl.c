@@ -40,7 +40,7 @@ typedef struct marpa_avl_node* NODE;
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|.
    */
-MARPA_AVL_LINKAGE MARPA_AVL_TREE 
+MARPA_AVL_TREE 
 _marpa_avl_create (marpa_avl_comparison_func *compare, void *param)
 {
   MARPA_AVL_TREE tree;
@@ -61,7 +61,7 @@ _marpa_avl_create (marpa_avl_comparison_func *compare, void *param)
 
 /* Search |tree| for an item matching |item|, and return it if found.
    Otherwise return |NULL|. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_find (const MARPA_AVL_TREE tree, const void *item)
 {
   NODE p;
@@ -84,7 +84,7 @@ _marpa_avl_find (const MARPA_AVL_TREE tree, const void *item)
 
 /* Search |tree| for an item matching or after |item|, and return it if found.
    Otherwise return |NULL|. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_at_or_after (const MARPA_AVL_TREE tree, const void *item)
 {
   NODE p;
@@ -115,7 +115,7 @@ _marpa_avl_at_or_after (const MARPA_AVL_TREE tree, const void *item)
    If a duplicate item is found in the tree,
    returns a pointer to the duplicate without inserting |item|.
    */
-MARPA_AVL_LINKAGE void **
+void **
 _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
 {
   NODE y, z; /* Top node to update balance factor, and parent */
@@ -224,7 +224,7 @@ _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
 /* Inserts |item| into |table|.
    Returns |NULL| if |item| was successfully inserted.
    Otherwise, returns the duplicate item. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_insert (MARPA_AVL_TREE table, void *item)
 {
   void **p = _marpa_avl_probe (table, item);
@@ -234,7 +234,7 @@ _marpa_avl_insert (MARPA_AVL_TREE table, void *item)
 /* Inserts |item| into |table|, replacing any duplicate item.
    Returns |NULL| if |item| was inserted without replacing a duplicate.
    Otherwise, returns the item that was replaced. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_replace (MARPA_AVL_TREE table, void *item)
 {
   void **p = _marpa_avl_probe (table, item);
@@ -288,7 +288,7 @@ static inline void trav_reset(MARPA_AVL_TRAV trav)
 
 /* Initializes |trav| for use with |tree|
    and selects the null node. */
-MARPA_AVL_LINKAGE MARPA_AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE tree)
+MARPA_AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE tree)
 {
   const MARPA_AVL_TRAV trav
     = marpa_obs_new (MARPA_AVL_OBSTACK (tree), struct marpa_avl_traverser, 1);
@@ -330,7 +330,7 @@ _marpa_avl_t_first (MARPA_AVL_TRAV trav)
 
 /* Selects and returns a pointer to the greatest-valued item.
    Returns |NULL| if |tree| contains no nodes. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_last (MARPA_AVL_TRAV trav)
 {
   NODE x;
@@ -356,7 +356,7 @@ _marpa_avl_t_last (MARPA_AVL_TRAV trav)
    as well.
    If there is no matching item, initializes |trav| to the null item
    and returns |NULL|. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_find (MARPA_AVL_TRAV trav, void *item)
 {
   NODE p, q;
@@ -400,7 +400,7 @@ _marpa_avl_t_find (MARPA_AVL_TRAV trav, void *item)
    inescapable.
    A custom routine would be faster, but not by much.
    */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_at_or_after (MARPA_AVL_TRAV trav, void* sought_item)
 {
   const MARPA_AVL_TREE tree = MARPA_TREE_OF_AVL_TRAV(trav);
@@ -415,7 +415,7 @@ _marpa_avl_t_at_or_after (MARPA_AVL_TRAV trav, void* sought_item)
    If a duplicate is found, it is returned and |trav| is initialized to
    its location.  No replacement of the item occurs.
    */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_insert ( MARPA_AVL_TRAV trav, void *item)
 {
   void **p;
@@ -441,7 +441,7 @@ _marpa_avl_t_insert ( MARPA_AVL_TRAV trav, void *item)
 }
 
 /* Initializes |trav| to have the same current node as |src|. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_copy (struct marpa_avl_traverser *trav, const struct marpa_avl_traverser *src)
 {
   assert (trav != NULL && src != NULL);
@@ -465,7 +465,7 @@ _marpa_avl_t_copy (struct marpa_avl_traverser *trav, const struct marpa_avl_trav
 /* Returns the next data item in inorder
    within the tree being traversed with |trav|,
    or if there are no more data items returns |NULL|. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_next (MARPA_AVL_TRAV trav)
 {
   NODE x;
@@ -518,7 +518,7 @@ _marpa_avl_t_next (MARPA_AVL_TRAV trav)
 /* Returns the previous data item in inorder
    within the tree being traversed with |trav|,
    or if there are no more data items returns |NULL|. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_prev (MARPA_AVL_TRAV trav)
 {
   NODE x;
@@ -569,7 +569,7 @@ _marpa_avl_t_prev (MARPA_AVL_TRAV trav)
 }
 
 /* Returns |trav|'s current item. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_cur (MARPA_AVL_TRAV trav)
 {
   assert (trav != NULL);
@@ -580,7 +580,7 @@ _marpa_avl_t_cur (MARPA_AVL_TRAV trav)
 /* Replaces the current item in |trav| by |new| and returns the item replaced.
    |trav| must not have the null item selected.
    The new item must not upset the ordering of the tree. */
-MARPA_AVL_LINKAGE void *
+void *
 _marpa_avl_t_replace (struct marpa_avl_traverser *trav, void *new)
 {
   void *old;
@@ -594,7 +594,7 @@ _marpa_avl_t_replace (struct marpa_avl_traverser *trav, void *new)
 /* Frees storage allocated for |tree|.
   Everything is on the obstack.
 */
-MARPA_AVL_LINKAGE void
+void
 _marpa_avl_destroy (MARPA_AVL_TREE tree)
 {
   if (tree == NULL)

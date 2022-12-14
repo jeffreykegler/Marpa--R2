@@ -2,32 +2,32 @@ This file contains the output of a `git log -n 5`, performed when the
 distribution was created.  It is for convenience in identifying the commit
 for this distribution.
 
-commit 817b2176caad05e00cafa52afe8b317c3f96a135
+commit 4d4bf0959cfb542b726cb8b3990f9d046e92393f
 Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Wed Dec 7 16:02:14 2022 -0500
+Date:   Tue Dec 13 19:03:49 2022 -0500
+
+    Back out MARPA_LINKAGE
+
+commit d02ef9090be85fe7668c72e70a24b739fa3940b7
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Tue Dec 13 18:56:20 2022 -0500
+
+    Back out MARPA_LINKAGE
+
+commit 2ee0c21999714901a0d852943110baad65512454
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Tue Dec 13 18:50:58 2022 -0500
+
+    Back out MARPA_LINKAGE
+
+commit 7acc1c72c63f361f2a5e74ca7455d7a122db51f3
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Sat Dec 10 16:24:50 2022 -0500
+
+    Bump version to 11.0.2
+
+commit bc848e46255384e08548ed3fa3ace46920a5bf87
+Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
+Date:   Wed Dec 7 16:39:48 2022 -0500
 
     Issue jeffreykegler/Marpa--R2#288
-
-commit 8191039e85b0849c2b3aeb29e81aec59f0ce5174
-Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Wed Dec 7 13:23:28 2022 -0500
-
-    Update licensing checks
-
-commit b65b011983c30eb7a97d175eb59f85f737156a9e
-Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Wed Dec 7 12:35:50 2022 -0500
-
-    Update licensing checks
-
-commit 31b36be19d9ddb06531796008a99980d8a190409
-Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Wed Dec 7 11:22:35 2022 -0500
-
-    Issue #123
-
-commit 1ae6fb6bc13aee6061d27f78b1a38b56e656e30c
-Author: Jeffrey Kegler <jeffreykegler@protonmail.com>
-Date:   Sat Dec 3 16:11:22 2022 -0500
-
-    Issue #123

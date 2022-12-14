@@ -68,7 +68,7 @@
    with comparison function |compare| using parameter |param|
    and memory allocator |allocator|.
    Returns |NULL| if memory allocation failed. */
-MARPA_TAVL_LINKAGE struct tavl_table *
+struct tavl_table *
 marpa__tavl_create (tavl_comparison_func *compare, void *param)
 {
   struct tavl_table *tree;
@@ -87,7 +87,7 @@ marpa__tavl_create (tavl_comparison_func *compare, void *param)
 
 /* Search |tree| for an item matching |item|, and return it if found.
    Otherwise return |NULL|. */
-MARPA_TAVL_LINKAGE void *
+void *
 marpa__tavl_find (const struct tavl_table *tree, const void *item)
 {
   const struct tavl_node *p;
@@ -118,7 +118,7 @@ marpa__tavl_find (const struct tavl_table *tree, const void *item)
    If a duplicate item is found in the tree,
    returns a pointer to the duplicate without inserting |item|.
    Returns |NULL| in case of memory allocation failure. */
-MARPA_TAVL_LINKAGE void **
+void **
 marpa__tavl_probe (struct tavl_table *tree, void *item)
 {
   struct tavl_node *y, *z; /* Top node to update balance factor, and parent. */
@@ -322,7 +322,7 @@ find_parent (struct tavl_table *tree, struct tavl_node *node)
 
 /* Deletes from |tree| and returns an item matching |item|.
    Returns a null pointer if no matching item found. */
-MARPA_TAVL_LINKAGE void *
+void *
 marpa__tavl_delete (struct tavl_table *tree, const void *item)
 {
   struct tavl_node *p; /* Traverses tree to find node to delete. */
@@ -700,7 +700,7 @@ marpa__tavl_t_insert (struct tavl_traverser *trav,
 }
 
 /* Initializes |trav| to have the same current node as |src|. */
-MARPA_TAVL_LINKAGE void *
+void *
 marpa__tavl_t_copy (struct tavl_traverser *trav, const struct tavl_traverser *src)
 {
   assert (trav != NULL && src != NULL);
@@ -912,7 +912,7 @@ marpa__tavl_copy (const struct tavl_table *org, tavl_copy_func *copy,
 
 /* Frees storage allocated for |tree|.
    If |destroy != NULL|, applies it to each data item in inorder. */
-MARPA_TAVL_LINKAGE void
+void
 marpa__tavl_destroy (struct tavl_table *tree, tavl_item_func *destroy)
 {
   struct tavl_node *p; /* Current node. */
@@ -973,7 +973,7 @@ struct libavl_allocator *marpa__tavl_allocator_default = &default_allocator;
 #include <assert.h>
 
 /* Asserts that |tavl_insert()| succeeds at inserting |item| into |table|. */
-MARPA_TAVL_LINKAGE void
+void
 (marpa__tavl_assert_insert) (struct tavl_table *table, void *item)
 {
   void **p = marpa__tavl_probe (table, item);
@@ -982,7 +982,7 @@ MARPA_TAVL_LINKAGE void
 
 /* Asserts that |tavl_delete()| really removes |item| from |table|,
    and returns the removed item. */
-MARPA_TAVL_LINKAGE void *
+void *
 (marpa__tavl_assert_delete) (struct tavl_table *table, void *item)
 {
   void *p = marpa__tavl_delete (table, item);

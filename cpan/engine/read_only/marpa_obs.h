@@ -26,20 +26,6 @@
 #ifndef _MARPA_OBS_H__
 #define _MARPA_OBS_H__ 1
 
-/* The linkage macros (MARPA_.*LINKAGE) are useful for specifying
-   alternative linkage, usually 'static'.  The intended use case is
-   including the Marpa source in a single file, and redefining
-   the linkage macros on the command line:
-
--DMARPA_LINKAGE=static -DMARPA_AVL_LINKAGE=static -DMARPA_TAVL_LINKAGE=static -DMARPA_OBS_LINKAGE=static
-
-   However, it is important to note that any redefinition of the linkaage
-   macros is currently experimental, and therefore unsupported.
-*/
-#ifndef MARPA_OBS_LINKAGE
-#  define MARPA_OBS_LINKAGE /* Default linkage */
-#endif
-
 /* Suppress 'unnamed type definition in parentheses' warning
    in #define ALIGNOF(type) below 
    under MS C compiler older than .NET 2003 */
@@ -99,11 +85,11 @@ struct marpa_obstack_chunk
   char contents[4];
 };
 
-MARPA_OBS_LINKAGE void* marpa__obs_newchunk (struct marpa_obstack *, size_t, size_t);
+extern void* marpa__obs_newchunk (struct marpa_obstack *, size_t, size_t);
 
-MARPA_OBS_LINKAGE struct marpa_obstack* marpa__obs_begin (size_t);
+extern struct marpa_obstack* marpa__obs_begin (size_t);
 
-MARPA_OBS_LINKAGE void marpa__obs_free (struct marpa_obstack *__obstack);
+void marpa__obs_free (struct marpa_obstack *__obstack);
 
 /* Pointer to beginning of object being allocated or to be allocated next.
    Note that this might not be the final address of the object
