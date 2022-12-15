@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '42 5 * * *'
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        perl: [ '5.36' ]
+
+    runs-on: ubuntu-latest
+    name: OS Perl ${{matrix.perl}}
+    container: perl:${{matrix.perl}}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Show Perl Version
+      run: |
+        perl -v
+
+    - name: Install Modules
+      run: |
+        cpanm Config::AutoConf # optional dependency
+        cd cpan
+        cpanm --installdeps --quiet --notest .
+
+    - name: Show Errors on Ubuntu
+      if:  ${{ failure() && startsWith( matrix.runner, 'ubuntu-')}}
+      run: |
+         cat /home/runner/.cpanm/work/*/build.log
+
+    - name: build Marpa and execute tests
+      env:
+        AUTHOR_TESTING: 1
+        RELEASE_TESTING: 1
+      run: |
+        set -x
+        (cd cpan/xs/ && make)  # generate necessary files
+
+        cd cpan/
+        perl Build.PL
+        ./Build
+        ./Build test
+        ./Build distmeta
+        ./Build disttest
+        MARPA_USE_PERL_AUTOCONF=1 ./Build disttest
+        ./Build dist
