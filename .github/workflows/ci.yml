@@ -12,7 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        perl: [ '5.36' ]
+        perl: [ '5.10', '5.20', '5.30', '5.36', '5.36-threaded' ]
+        # See options here: https://hub.docker.com/_/perl/
 
     runs-on: ubuntu-latest
     name: OS Perl ${{matrix.perl}}
