@@ -1,0 +1,88 @@
+name: Platforms
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+#  schedule:
+#    - cron: '42 5 * * *'
+
+jobs:
+  platform-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, macos-latest, windows-latest]
+        perl: [ '5.30' ]
+        exclude:
+          - runner: windows-latest
+            perl: '5.36'
+
+    runs-on: ${{matrix.runner}}
+    name: OS ${{matrix.runner}} Perl ${{matrix.perl}}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up perl
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+          perl-version: ${{ matrix.perl }}
+          distribution: ${{ ( matrix.runner == 'windows-latest' && 'strawberry' ) || 'default' }}
+
+    - name: Show Perl Version
+      run: |
+        perl -v
+
+    - name: Install Modules
+      run: |
+        cpanm Config::AutoConf # optional dependency
+        cd cpan
+        cpanm --installdeps --quiet --notest .
+
+    - name: Show Errors on Windows
+      if:  ${{ failure() && matrix.runner == 'windows-latest' }}
+      run: |
+         ls -l C:/Users/
+         ls -l C:/Users/RUNNER~1/
+         cat C:/Users/runneradmin/.cpanm/work/*/build.log
+
+    - name: Show Errors on Ubuntu
+      if:  ${{ failure() && matrix.runner == 'ubuntu-latest' }}
+      run: |
+         cat /home/runner/.cpanm/work/*/build.log
+
+    - name: Show Errors on OSX
+      if:  ${{ failure() && matrix.runner == 'macos-latest' }}
+      run: |
+         cat  /Users/runner/.cpanm/work/*/build.log
+
+    - name: Make - generate necessary files
+      run: |
+        cd cpan
+        cd xs
+        make
+
+    - name: Run tests
+      env:
+        AUTHOR_TESTING: 1
+        RELEASE_TESTING: 1
+      run: |
+        cd cpan
+        perl Build.PL
+        perl Build
+        perl Build test
+        perl Build distmeta
+        perl Build disttest
+
+    - name: Run tests with autoconf
+      env:
+        MARPA_USE_PERL_AUTOCONF: 1
+      run: |
+        cd cpan
+        perl Build disttest
+
+    #- name: Build dist
+    #  env:
+    #    perl Build dist
+
