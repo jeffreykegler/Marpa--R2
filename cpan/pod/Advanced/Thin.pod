@@ -41,9 +41,11 @@ and is willing to go to some extra effort.
 =head1 How this document is written
 
 This document assumes that the reader is familiar with
-the other Marpa::R2 documentation,
-as well as with the Libmarpa API document.
-This means its reader will have to know some C language --
+the other Marpa::R2 documentation.
+and very familiar wth the Libmarpa API document.
+Must of the terminology in this document is adopted
+from the Libmarpa API document.
+The reader will also have to know some C language --
 at least enough to understand a discussion
 written in terms of C functions,
 their parameters and return values,
@@ -557,6 +559,75 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+=head1 Error recovery
+
+Error recovery is as in the Libmarpa API,
+with changes appropriate to adopt it to a Perl module.
+Application behaviors are those that normal applications may
+expect, as specified in this and the Libmarpa API document.
+Diagnostics behaviors are a subset of the application behaviors,
+and are those that diagnostic or testing code may reasonably
+attempt after an irrecoverable error.
+Informally, application behaviors are promised,
+while diagnostic behaviors are hoped for.
+A longer discussion of application and diagnostic behaviors
+is in the Libmarpa API document.
+
+Analogously to the Libmarpa API,
+we call the object which caused a failure,
+the failure object.
+If the failure object is a time object,
+its base grammar object is the grammar object it was
+created from, whether directly, indirectly
+or trivially.
+A grammar object is considered to be created trivially from
+itself.
+If the failure object is a time object,
+the failure grammar is the base grammar object of
+the failure object.
+
+=head2 Library-recoverable failure
+
+When the thin method corresponding to a Libmarpa method
+has a library-recoverable failure the following application behaviors are no longer
+available:
+
+=over 4
+
+=item *
+
+Thin interface mutator and constructor method calls
+on objects
+whose the base grammar is the failure
+grammar.
+
+=back
+
+The following application behaviors remain available:
+
+=over 4
+
+=item *
+
+All behaviors not in the thin interface,
+including the Perl environment itself,
+and all packages other than the thin interface.
+
+=item *
+
+All thin interface static method calls.
+
+=item *
+
+All thin interface accessor method calls.
+
+=item *
+
+All thin interface constructor and mutator method calls
+for objects whose base grammar is not the failure grammar.
+
+=back
+
 =head1 Error methods
 
 The thin interface to Libmarpa provides
@@ -564,6 +635,7 @@ error methods
 more appropriate to the Perl
 environment
 than Libmarpa's own.
+Calls to these methods are diagnostics behaviors.
 
 =head2 C<< $g->error() >>
 
