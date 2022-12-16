@@ -58,10 +58,6 @@ engine/read_only/README
 engine/read_only/README.AIX
 engine/read_only/README.INSTALL
 engine/read_only/aclocal.m4
-engine/read_only/api_docs/api_html.tar
-engine/read_only/api_docs/libmarpa_api.html
-engine/read_only/api_docs/libmarpa_api.info
-engine/read_only/api_docs/libmarpa_api.pdf
 engine/read_only/compile
 engine/read_only/config.guess
 engine/read_only/config.h.in
@@ -72,8 +68,6 @@ engine/read_only/depcomp
 engine/read_only/error_codes.table
 engine/read_only/events.table
 engine/read_only/install-sh
-engine/read_only/internals/libmarpa_ami.pdf
-engine/read_only/internals/libmarpa_core.pdf
 engine/read_only/libmarpa.pc
 engine/read_only/libmarpa.pc.in
 engine/read_only/libmarpa_version.sh
