@@ -16,7 +16,7 @@
 # Temporary
 ^sl_lib116[.]t$
 ^meta_to_asf[.]pl$
-^again.t$
+^thin_try[.]t$
 
 # Permanent
 
@@ -100,3 +100,6 @@ etc/libmarpa_timestamp[.]pl$
 ^pod2htmi.tmp
 ^pperl/Marpa/R2/Perl/Installed[.]pm$
 ^pperl/Marpa/R2/Perl/Version[.]pm$
+^engine/read_only/api_docs/api_html[.]tar
+^engine/read_only/api_docs/libmarpa_api[.]html
+^engine/read_only/api_docs/libmarpa_api[.]info
