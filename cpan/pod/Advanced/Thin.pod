@@ -835,6 +835,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The C<force_valued()> follows the general pattern.
 Most applications should call the
 C<force_valued()> method immediately after the
 grammar's C<new()> constructor.
