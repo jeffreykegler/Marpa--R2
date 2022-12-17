@@ -793,6 +793,13 @@ the return value is a thin interface grammar object.
 C<new()> does not obey the throw setting --
 errors are always thrown.
 
+Most applications should call the
+C<force_valued()> method immediately after the call
+of the C<new()> constructor.
+Not doing so enables unvalued terminals,
+which is a deprecated feature both in the thin
+interface and the Libmarpa API.
+
 At present the only named argument allowed is C<if>,
 the interface number.
 This argument is required and currently is required
@@ -816,6 +823,23 @@ of the newly created grammar object
 is unspecified.
 (In fact, the interface 0 throw setting depends on an
 undocumented and deprecated global variable.)
+
+=head2 C<< $g->force_valued() >>
+
+=for Marpa::R2::Display
+name: Thin force_value() example
+normalize-whitespace: 1
+
+    $grammar->force_valued();
+
+=for Marpa::R2::Display::End
+
+Most applications should call the
+C<force_valued()> method immediately after the
+grammar's C<new()> constructor.
+Not doing so enables unvalued terminals,
+which is a deprecated feature both in the thin
+interface and the Libmarpa API.
 
 =head2 C<< $g->event() >>
 
