@@ -827,7 +827,8 @@ undocumented and deprecated global variable.)
 =head2 C<< $g->force_valued() >>
 
 =for Marpa::R2::Display
-name: Thin force_value() example
+name: Thin example
+partial: 1
 normalize-whitespace: 1
 
     $grammar->force_valued();
