@@ -563,15 +563,18 @@ partial: 1
 
 Error recovery is as in the Libmarpa API,
 with changes appropriate to adopt it to a Perl module.
+We recall the concepts of application behavior and diagnostic
+behavior from the Libmarpa API:
 Application behaviors are those that normal applications may
 expect, as specified in this and the Libmarpa API document.
-Diagnostics behaviors are a subset of the application behaviors,
-and are those that diagnostic or testing code may reasonably
+Diagnostic behaviors are a subset of the application behaviors.
+Diagnostic behaviors are those
+that diagnostic or testing code may reasonably
 attempt after an irrecoverable error.
 Informally, application behaviors are promised,
 while diagnostic behaviors are hoped for.
-A longer discussion of application and diagnostic behaviors
-is in the Libmarpa API document.
+For a full discussion of application and diagnostic behaviors,
+refer back to the Libmarpa API document.
 
 Analogously to the Libmarpa API,
 we call the object which caused a failure,
@@ -586,9 +589,21 @@ If the failure object is a time object,
 the failure grammar is the base grammar object of
 the failure object.
 
+In the following sections,
+we adopted the definitions of library-recoverable,
+ancestry-recoverable and fully recoverable failure
+to make them
+analogous to the
+Libmarpa API's definitions of these terms.
+
 =head2 Library-recoverable failure
 
-When the thin method corresponding to a Libmarpa method
+In the thin interface, "library-recoverable failure" might be more properly be called
+"module-recoverable failure".
+We retain the term "library-recoverable failure"
+for convenience in referring back to the Libmarpa API document.
+
+When a thin wrapper corresponding to a Libmarpa method
 has a library-recoverable failure the following application behaviors are no longer
 available:
 
@@ -597,9 +612,57 @@ available:
 =item *
 
 Thin interface mutator and constructor method calls
-on objects
-whose the base grammar is the failure
-grammar.
+on objects whose base grammar is the failure grammar.
+
+=back
+
+The following application behaviors remain available:
+
+=over 4
+
+=item *
+
+All behaviors not in the thin interface,
+including the Perl environment itself,
+and all modules other than the thin interface.
+
+=item *
+
+All thin interface static method calls.
+
+=item *
+
+All thin interface accessor method calls,
+and thin interface object destruction.
+
+=item *
+
+All thin interface constructor and mutator method calls
+for objects whose base grammar is not the failure grammar.
+
+=back
+
+For more details on library-recoverability, refer to
+the Libmarpa API document.
+
+=head2 Ancestry-recoverable failure
+
+The definition of ancestry-recoverable failure
+to make it analogous to the
+Libmarpa API's "ancestry-recoverable failure".
+
+When a thin wrapper corresponding to a Libmarpa method
+has a ancestry-recoverable failure the following application behaviors are no longer
+available:
+
+=over 4
+
+=item *
+
+Thin interface mutator and constructor method calls
+on on the failure object,
+or on one of the descendants
+of the failure object.
 
 =back
 
@@ -619,14 +682,26 @@ All thin interface static method calls.
 
 =item *
 
-All thin interface accessor method calls.
+All thin interface accessor method calls,
+and thin interface object destruction.
 
 =item *
 
 All thin interface constructor and mutator method calls
-for objects whose base grammar is not the failure grammar.
+for objects that are not the failure object,
+or one of its descendants.
 
 =back
+
+For more details on ancestry-recoverability, refer to
+the Libmarpa API document.
+
+=head2 Fully recoverable failure
+
+After a fully recoverable failure,
+all application behaviors remain available.
+For more details on fully recoverable failure, refer to
+the Libmarpa API document.
 
 =head1 Error methods
 
