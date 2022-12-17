@@ -41,7 +41,13 @@ my $symbol_element = $grammar->symbol_new();
 my $start_rule_id  = $grammar->rule_new( $symbol_S, [$symbol_seq] );
 my $seq_rule_id =
   $grammar->sequence_new( $symbol_seq, $symbol_element, { min => 0 } );
+
+# Marpa::R2::Display
+# name: Thin symbol_is_terminal_set() example
+
 $grammar->symbol_is_terminal_set( $symbol_seq, 1 );
+
+# Marpa::R2::Display::End
 
 $grammar->precompute();
 

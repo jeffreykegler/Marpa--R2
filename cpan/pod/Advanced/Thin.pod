@@ -1065,6 +1065,21 @@ method|C<< $g->error() >> >>.
 Applications may find it more convenient to have
 C<rule_rank_set()> always throw its errors.
 
+=head2 C<< $g->symbol_is_terminal_set() >>
+
+=for Marpa::R2::Display
+name: Thin symbol_is_terminal_set() example
+normalize-whitespace: 1
+
+    $grammar->symbol_is_terminal_set( $symbol_seq, 1 );
+
+=for Marpa::R2::Display::End
+
+The C<symbol_is_terminal_set()> method is deprecated.
+It enables the LHS terminals feature, which is deprecated
+in both the thin interface and the Libmarpa API.
+The C<symbol_is_terminal_set()> method follows the general pattern.
+
 =head2 Omitted grammar methods
 
 The C<marpa_g_ref()>
