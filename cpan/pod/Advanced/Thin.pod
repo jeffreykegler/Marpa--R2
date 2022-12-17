@@ -647,10 +647,6 @@ the Libmarpa API document.
 
 =head2 Ancestry-recoverable failure
 
-The definition of ancestry-recoverable failure
-to make it analogous to the
-Libmarpa API's "ancestry-recoverable failure".
-
 When a thin wrapper corresponding to a Libmarpa method
 has a ancestry-recoverable failure the following application behaviors are no longer
 available:
