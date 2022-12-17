@@ -706,7 +706,7 @@ error methods
 more appropriate to the Perl
 environment
 than Libmarpa's own.
-Calls to these methods are diagnostics behaviors.
+Calls to these methods are diagnostic behaviors.
 
 =head2 C<< $g->error() >>
 
@@ -980,6 +980,14 @@ In addition to errors,
 C<precompute()> also reports events.
 Events are queried using the grammar's
 C<event()> method.
+
+As in the Libmarpa API, parsing with cycles
+is deprecated.
+This mean that treating C<MARPA_ERR_GRAMMAR_HAS_CYCLE> as a
+fully recoverable failure is deprecated.
+Instead,
+C<MARPA_ERR_GRAMMAR_HAS_CYCLE> should be treated as
+as a library-recoverable failure.
 
 On success, C<precompute()> returns an event count.
 But, even when there is an error,
