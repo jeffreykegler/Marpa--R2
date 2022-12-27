@@ -20,7 +20,7 @@ http://www.gnu.org/licenses/.
 ## About this page
 
 This is the updates page as of Marpa::R2,
-version 10.000000.
+version 12.000000.
 (For the updates pages for previous versions, see below.)
 It may contain descriptions of bugs for which a fix
 is in preparation.
@@ -68,36 +68,25 @@ site](https://jeffreykegler.github.io/Marpa-web-site/).
 You can read its documentation for this module with the perldoc command:
 `perldoc Marpa::R2`.
 
-## Known bugs
+## Installation note
 
-### During installation, configure fails on MacOs
+On installation, users sometimes run have problems with
+GNU's configure, apparently due to broken setups for bugs
+in GNU's autotools.  The proper fix, of course, is to repair
+the setup or GNU configure, but this may be impossible or
+inconvenient.
 
-On MacOs, GNU's configure tool often fails.  The appears
-to be due to a bug in configure on MacOS.  The problem
-does not occur in Linux, but may occur on targets other
-than MacOs.
-
-When this problem occurs, the log will contain this message:
-```
-config.status: error: Something went wrong bootstrapping makefile fragments
-    for automatic dependency tracking.  Try re-running configure with the
-    '--disable-dependency-tracking' option to at least be able to build
-    the package (albeit without support for automatic dependency tracking).
-```
-
-The workaround is to set the following environment variable:
+A workaround is to set the following environment variable:
 ```
     MARPA_USE_PERL_AUTOCONF=1
 ```
 This environment setting will cause the installation to use
-Perl's Config::Autoconf
-instead of the GNU autoconf.
-The problem seems to be a bug in the GNU autoconf on certain
-platforms, a bug that
-Config::Autoconf does not share.
+Perl's Config::Autoconf,
+bypassing any problems with the GNU autoconf.
 
-A fix has has been implemented as of the developer's release
-11.001_000 and is expected to be part of next stable release.
+## Known bugs
+
+No known bugs.
 
 ## Notices
 
@@ -118,6 +107,8 @@ A bug with a Perl variant will be rejected
 if the bug cannot be duplicated in standard Perl.
 
 ## Updates pages for previous versions
+
+[Updates page for version 10.000000](https://github.com/jeffreykegler/Marpa--R2/blob/master/etc/old_updates/UPDATES-10.000000.md).
 
 [Updates page for version 8.000000](https://github.com/jeffreykegler/Marpa--R2/blob/master/etc/old_updates/UPDATES-8.000000.md).
 
