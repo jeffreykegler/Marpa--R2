@@ -71,7 +71,7 @@ You can read its documentation for this module with the perldoc command:
 ## Installation note
 
 On installation, users sometimes run have problems with
-GNU's configure, apparently due to broken setups for bugs
+GNU's configure, apparently due to broken setups or bugs
 in GNU's autotools.  The proper fix, of course, is to repair
 the setup or GNU configure, but this may be impossible or
 inconvenient.
