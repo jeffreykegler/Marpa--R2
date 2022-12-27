@@ -15,6 +15,15 @@
 
 Revision history for Marpa::R2
 
+12.000000 (libmarpa 11.0.2) Sun 25 Dec 2022 09:31:30 AM EST
+
+   * Work on documentation, Leo diagnostics
+
+   * Emphasize deprecation of Stuifzand, NAIF.
+
+   * Work around installation problems due to
+     broken dependency checking in GNU automake.
+
 11.004_000 (libmarpa 11.0.2) Wed 14 Dec 2022 05:40:27 PM EST
 
    * Developer's version
@@ -23,22 +32,13 @@ Revision history for Marpa::R2
 
    * Developer's version
 
-   * Add latest libmarpa
-
-   * Work on documentation, Leo diagnostics
-
 11.002_000 (libmarpa 11.0.1) Thu 08 Dec 2022 06:07:51 PM EST
 
    * Developer's version
 
-   * Emphasize deprecation of Stuifzand, NAIF.
-
 11.001_000 (libmarpa 9.0.3) Thu 01 Dec 2022 10:55:17 AM EST
 
    * Developer's version
-
-   * Work around problem with broken dependency checking
-     in GNU automake.
 
 10.000000 (libmarpa 9.0.3) Wed 29 Jun 2022 10:56:08 AM EDT
 
