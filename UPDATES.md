@@ -86,7 +86,21 @@ bypassing any problems with the GNU autoconf.
 
 ## Known bugs
 
-No known bugs.
+### Documentation error in Marpa::R2::Event pod page
+
+In the ["Nulling events" section of
+Marpa::R2::Event](https://metacpan.org/dist/Marpa-R2/view/pod/Event.pod#Nulling-events),
+the sentence
+
+> When a completion event triggers,
+> its trigger location and its event location are set to the current location,
+> which will be the location where the triggering instance both begins and ends.
+
+is incorrect.  It should read as follows:
+
+> When a **nulling** event triggers,
+> its trigger location and its event location are set to the current location,
+> which will be the location where the triggering instance both begins and ends.
 
 ## Notices
 
