@@ -387,7 +387,7 @@ normalize-whitespace: 1
 
 A nulling SLIF parse event occurs whenever a nulled instance
 of its symbol is recognized at the current location.
-When a completion event triggers,
+When a nulled event triggers,
 its trigger location and its event location
 are set to the current location,
 which will be
