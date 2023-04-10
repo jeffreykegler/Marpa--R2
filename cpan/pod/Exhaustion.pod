@@ -168,7 +168,7 @@ The return value of
 a reading method
 does not indicate whether exhaustion occurred or not.
 In most cases, you will either know
-from the the context whether the parse is exhausted,
+from the context whether the parse is exhausted,
 or you will not care.
 But what if you do not know and do care?
 
