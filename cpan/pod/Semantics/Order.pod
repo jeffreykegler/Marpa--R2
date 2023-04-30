@@ -261,19 +261,6 @@ unless otherwise stated,
 it means that the two
 are semantic equivalents.
 
-Formally,
-B<semantic equivalence> is defined as follows:
-Call the set of parse trees, C<T>.
-B<Semantic equivalence> is an equivalence relation
-on C<T>.
-Call this relation C<~>.
-Call C<E>, the quotient set of C<T> by C<~>.
-In this document, the term
-B<arbitrary parse order>
-is used to mean an
-arbitrary choice among the relations
-which are strict total orders of C<E>.
-
 =head1 Copyright and License
 
 =for Marpa::R2::Display
