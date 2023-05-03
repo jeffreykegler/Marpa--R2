@@ -321,110 +321,110 @@ Every rule choicepoint,
 and therefore every non-trivial choicepoint,
 has a set of parse choices associated with it.
 For a rule choicepoint,
-each parse choice is a duple: C<(predecessor, cause)>,
+each parse choice is a duple: C<(mainstem, tributary)>,
 where
-C<cause> and C<predecesor> are also choicepoints.
-The first element of the duple is the B<predecessor choicepoint>,
-or B<predecessor>,
+C<tributary> and C<mainstem> are also choicepoints.
+The first element of the duple is the B<mainstem choicepoint>,
+or B<mainstem>,
 of the parse choice.
-The second element of the duple is the B<cause choicepoint>,
-or B<cause>
+The second element of the duple is the B<tributary choicepoint>,
+or B<tributary>
 of the parse choice.
 
-Let C<res> be a rule choicepoint
-and let C<(pred, cuz)> be one of the
-parse choices of C<res>.
-Then we say that C<res> is the B<result>
-of C<cuz> and C<pred>;
-and we say that C<cuz> is one of the B<causes>
-of C<res>.
+Let C<confl> be a rule choicepoint
+and let C<(stem, trib)> be one of the
+parse choices of C<confl>.
+Then we say that C<confl> is the B<confluence>
+of C<trib> and C<stem>;
+and we say that C<trib> is one of the B<tributaries>
+of C<confl>.
 
-The predecessor of a parse choice
+The mainstem of a parse choice
 represents a portion
-of the parse that "leads up to" the cause.
-The predecessor
+of the parse that "leads up to" the tributary.
+The mainstem
 of a parse choice plays no role in ranking
 decisions,
-and this document will mostly ignore predecessors.
+and this document will mostly ignore mainstems.
 
-=head1 Causes
+=head1 Tributaries
 
-Since it is a choicepoint, a cause choicepoint
+Since it is a choicepoint, a tributary choicepoint
 must also be a triple.
-Let the result of C<cuz> be
-C<res>.
-Let the triple for for C<cuz> be C<(cuz-dp, cuz-origin, cuz-current)>.
+Let the confluence of C<trib> be
+C<confl>.
+Let the triple for for C<trib> be C<(trib-dp, trib-origin, trib-current)>.
 Let the
-triple for for C<res> be C<(res-dp, res-origin, res-current)>.
+triple for for C<confl> be C<(confl-dp, confl-origin, confl-current)>.
 
-If C<res> is the result of C<cuz>, then
+If C<confl> is the confluence of C<trib>, then
 
 =over 4
 
 =item *
 
-C<cuz-current> is always the same as
-C<res-current>.
+C<trib-current> is always the same as
+C<confl-current>.
 In other words,
-the current location of C<cuz>
-is the same as the current location of C<res>.
+the current location of C<trib>
+is the same as the current location of C<confl>.
 
 =item *
 
-C<cuz-origin> is before C<res-current>.
+C<trib-origin> is before C<confl-current>.
 In other words,
-the origin of C<cuz>
-is before the current location of C<res>.
+the origin of C<trib>
+is before the current location of C<confl>.
 
 =item *
 
-C<cuz-origin>
-is at or after C<res-origin>.
+C<trib-origin>
+is at or after C<confl-origin>.
 In other words,
-the origin of C<cuz>
-is at or after the origin of C<res>.
+the origin of C<trib>
+is at or after the origin of C<confl>.
 While it is not always properly between
-C<res-origin> and C<res-current>,
-C<cuz-origin> is always in the range bounded
+C<confl-origin> and C<confl-current>,
+C<trib-origin> is always in the range bounded
 by
-C<res-origin> on one side,
-and by C<res-current>
+C<confl-origin> on one side,
+and by C<confl-current>
 on the other.
-C<cuz-origin>
+C<trib-origin>
 can therefore be thought of as "in the middle"
 of the parse choice.
 For this reason,
-C<cuz-origin> is often called the
+C<trib-origin> is often called the
 B<middle location> of the parse choice.
 
 =item *
 
-The dotted rule of C<cuz> will be a completion.
+The dotted rule of C<trib> will be a completion.
 
 =item *
 
-The LHS of the dotted rule of C<cuz> will be
-the predot symbol of C<res>.
+The LHS of the dotted rule of C<trib> will be
+the predot symbol of C<confl>.
 
 =back
 
 Summing up the above,
-the causes of a rule choicepoint
+the tributaries of a rule choicepoint
 vary only by
 middle position
 and rule RHS.
-The causes of a rule choicepoint
+The tributaries of a rule choicepoint
 always share the same current lexeme location
 and rule LHS,
 and their dotted rules
 are always completions.
 
-=head1 Rank is by Cause
+=head1 Rank is by tributary
 
-The rank of a parse choice is that of its cause.
-The rank of a cause is the rank of its rule.
+The rank of a parse choice is that of its tributary.
+The rank of a tributary is the rank of its rule.
 Therefore, the rank of a parse choice is the rank
-of the rule of its cause.
+of the rule of its tributary.
 That last sentence
 is the most important sentence of this document,
 so we will repeat it:
@@ -433,7 +433,7 @@ so we will repeat it:
 ignore: 1
 
     The rank of a parse choice is
-    the rank of the rule of its cause.
+    the rank of the rule of its tributary.
 
 =for Marpa::R2::Display::End
 
@@ -457,47 +457,47 @@ directly on the rank of the choicepoint's rule
 because every parse choice for that choicepoint shares
 the choicepoint's rule.
 We have not examined the internal structure of
-predecessors, but ranking is not based on them
+mainstems, but ranking is not based on them
 for the same reason:
-the rule of a predecessor is always
+the rule of a mainstem is always
 the same as the rule of its result choicepoint,
-and therefore the rule of its predecessor
+and therefore the rule of its mainstem
 is the same for every parse choice of a choicepoint.
 
 On the other hand,
-the causes of parse choices can and often do
+the tributaries of parse choices can and often do
 differ in their rules.
 Therefore ranking is based on the rules of
-the causes of a choicepoint.
+the tributaries of a choicepoint.
 
-Note that ranking is only by B<direct> causes.
+Note that ranking is only by B<direct> tributaries.
 It might reasonably be asked,
 why not, at least in the case of a tie,
-look at causes of causes.
-Or why not resolve ties by looking at causes of
-predecessors?
+look at tributaries of tributaries.
+Or why not resolve ties by looking at tributaries of
+mainstems?
 
 Marpa's built-in rule ranking
 was chosen to be the most powerful system
 that could be implemented with effectively
 zero cost.
-Ranking by direct causes uses only information
+Ranking by direct tributaries uses only information
 that is quickly and directly available,
 so that its runtime cost is probably
 not measurable.
 
 Complexity was also an issue.
-If indirect causes are taken into account,
-we would need to specify which causes,
+If indirect tributaries are taken into account,
+we would need to specify which tributaries,
 and under what circumstances they are used.
-Only causes of causes?
-Or causes of predecessors?
+Only tributaries of tributaries?
+Or tributaries of mainstems?
 Depth-first, or breadth-first?
 Only in case of ties, or using a more complex metric?
 To arbitrary depth, or using a traversal that is
 cut off at some point?
 
-Ranking by direct causes only means the answer
+Ranking by direct tributaries only means the answer
 to all of these questions is as simple as it can be.
 Once we get into analyzing the synopsis grammar in detail,
 the importance of simplicity will become clear.
@@ -581,17 +581,17 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 The above are all of the potential
-dotted rules for B<result> choicepoints.
+dotted rules for B<confluence> choicepoints.
 
-=head3 The cause choicepoints
+=head3 The tributary choicepoints
 
 In all of these dotted rules,
 the predot symbol is C<< <List> >>.
-Recall that cause choicepoints are always completions.
+Recall that tributary choicepoints are always completions.
 Since the predot symbol
 of all the non-trivial choicepoints
 is C<< <List> >>,
-the dotted rule of a cause
+the dotted rule of a tributary
 of the non-trivial choicepoints
 may be any of
 
@@ -613,7 +613,7 @@ in the sequence of items,
 and that ambiguities always
 take the form "C<(v=)(v)>" versus
 "C<(v=v)>".
-Therefore the only causes of non-trivial parse choices are
+Therefore the only tributaries of non-trivial parse choices are
 
 =for Marpa::R2::Display
 ignore: 1
@@ -630,7 +630,7 @@ ignore: 1
 Further study of the grammar shows that the first non-trivial
 choice must be between
 two parse choices with
-these cause choicepoints:
+these tributary choicepoints:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -672,7 +672,7 @@ for our example code.
 Again examining the grammar, we see that
 the second and subsequent non-trivial choices will
 all be between
-parse choices whose causes have these two dotted
+parse choices whose tributaries have these two dotted
 rules:
 
 =for Marpa::R2::Display
@@ -1495,7 +1495,7 @@ We know this from C<G> and (EARLEY).
 
 B<(22)>
 At most one dotted rule with C<Item1> as its last item
-appears in a cause at any choicepoint.
+appears in a tributary at any choicepoint.
 We know this because all choices of a choicepoint
 must be completions with the same current location,
 and from (20) and (21).
@@ -1512,7 +1512,7 @@ We know this from C<G> and (EARLEY).
 
 B<(25)>
 At most one dotted rule with C<Item3> as its last item
-appears in a cause at any choicepoint.
+appears in a tributary at any choicepoint.
 We know this because all choices of a choicepoint
 must be completions with the same current location,
 and from (23) and (24).
@@ -1544,44 +1544,44 @@ criteria.
 
 Of the choicepoints fulfilling the criteria,
 we arbitrarily pick one.
-We call this choicepoint C<result>.
+We call this choicepoint C<confl>.
 We will see as we proceed that,
 while the choicepoints may have different dotted rules,
-our choice of one of them for C<result> makes no difference in
+our choice of one of them for C<confl> makes no difference in
 the ranking logic.
-The only properties of the C<result>
+The only properties of the C<confl>
 that we will use are
 dot position,
 predot symbol,
 and current location.
 These properties are the same
 regardless of which choicepoint
-we picked for C<result>.
+we picked for C<confl>.
 
 B<(27)>:
 Recall that the "middle location" of a choice
-is always the origin of its cause.
+is always the origin of its tributary.
 From (26) we see that,
-for every possible rule in C<result>,
+for every possible rule in C<confl>,
 the predot symbol is the first symbol of the
 dotted rule.
-This means that the origin of the causes of
-C<result>
-must be the same as the origin of C<result>.
+This means that the origin of the tributaries of
+C<confl>
+must be the same as the origin of C<confl>.
 From (26) we also know that
-the origin of C<result> is always location 0.
-Therefore the origin of every one of the causes of C<result>
+the origin of C<confl> is always location 0.
+Therefore the origin of every one of the tributaries of C<confl>
 must be location 0.
-Therefore every one of the causes of C<result>
+Therefore every one of the tributaries of C<confl>
 has the same middle location.
 
 B<(28)>:
-From (26) and (27) we know that, if C<cuz> is a cause
-of C<result>,
+From (26) and (27) we know that, if C<trib> is a tributary
+of C<confl>,
 it has an origin at location 0;
 its current location is C<current>;
 and its LHS is C<List>.
-C<cuz> may be any one of
+C<trib> may be any one of
 
 =for Marpa::R2::Display
 ignore: 1
@@ -1602,7 +1602,7 @@ ending in C<Item2> are not valid choices at location C<current>.
 B<(30)>:
 From (19), (22), (28) and (EARLEY) we know
 that exactly one of the following two dotted rules
-is the cause of a parse choice for C<result>:
+is the tributary of a parse choice for C<confl>:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -1615,7 +1615,7 @@ ignore: 1
 B<(31)>:
 From (19), (25), (28) and (EARLEY) we know
 that exactly one of the following two dotted rules
-is the cause of a parse choice for C<result>:
+is the tributary of a parse choice for C<confl>:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -1627,15 +1627,15 @@ ignore: 1
 
 B<(32)>:
 From (28), (29), (30) and (31) we know that we will
-have exactly two choices for C<result>;
-that the final symbol of the cause in one will be
+have exactly two choices for C<confl>;
+that the final symbol of the tributary in one will be
 C<Item1>; and
-that the final symbol of the cause in the other will be
+that the final symbol of the tributary in the other will be
 C<Item3>.
 From the grammar in the synopsis,
-we know that the cause ending in C<Item1>
+we know that the tributary ending in C<Item1>
 will have rank 1;
-and that the cause ending in C<Item3>
+and that the tributary ending in C<Item3>
 will have rank 3.
 From this we see, since the ranking method is
 C<high_rank_only>, that the choice whose final symbol
