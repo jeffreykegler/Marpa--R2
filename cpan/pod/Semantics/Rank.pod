@@ -145,12 +145,12 @@ The above implies that
 
 =item *
 
-If there are C<N> lexeme locations,
-there are C<N+1> lexeme fenceposts.
+if there are C<N> lexeme locations,
+there are C<N+1> lexeme fenceposts; and
 
 =item *
 
-lexeme location C<I> is always between
+that lexeme location C<I> is always between
 lexeme fencepost C<I> and
 lexeme fencepost C<I+1>.
 
