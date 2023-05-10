@@ -34,6 +34,21 @@ trees of an ambiguous parse.
 It also describes ways to exclude selected parse trees
 from the parse series.
 
+There are two ways to sort parses in a non-default order.
+The
+L<first|"An efficient way to sort parses">
+is to use a
+L<C<ranking_method>|Marpa::R2::Scanless::R/"ranking_method">
+other than "C<none>".
+Use of the C<ranking_method> named argument is limited in what it can do,
+but is very fast,
+so much so that the difference into time between
+it and the default order is probably not measurable.
+The
+L<second|"A general way to sort parses">
+is to let the application take control.
+Both are described in more detail below.
+
 =head2 Default parse order
 
 By calling
@@ -61,147 +76,32 @@ For example, the order may
 change each time
 the parse series is traversed.
 
-=head2 Choicepoints
+=head2 An efficient way to sort parses
 
-When ranking, the logic traverses each node
-of the parse bocage.
-In this context, the nodes are also called "choicepoints".
-From the point of view of the individual parse trees,
-the traversal will be top-down
-and left-to-right.
+Use of the C<ranking_method> named argument is somewhat like PEG,
+in that it ranks rule alternatives at choice points.
+It has the advantage over PEG of being more powerful,
+because it can rank the parses of any grammar that C<Marpa>::R2>
+can parse.
 
-Each choicepoint has one or more "choices".
-Often a choicepoint has only a single choice,
-in which case the choicepoint is called "trivial".
-For two rule instances to be choices of the same
-choicepoint,
-they must end at the same location,
-and their rules must have the same LHS.
+It is also safer in the sense that in C<Marpa::R2>
+the BNF guides the grammar in the tradiional way.
+The PEG parse description,
+while it looks like BNF,
+is not interpreted as BNF,
+and often omits parses that 
+a BNF-driven parser like C<Marpa::R2> recognizes.
+The lack of safety comes from inability to predict
+which parses will be omitted ---
+it is very hard to determine,
+in general, what grammar a PEG parser is actually parsing.
+There is much more about the use o
+L<C<Marpa::R2>'s C<ranking_method> named
+argument|Marpa::R2::Scanless::R/"ranking_method">
+in
+L<its own document|Marpa::R2::Scanless::Semantics::Rank>.
 
-The terms "choicepoint" and "choice"
-are defined carefully
-in L<a separate
-document|Marpa::R2::Semantics::Rank>.
-That document also gives several examples
-of ranking,
-which are explained in detail.
-
-=head2 Ranking methods
-
-SLIF recognizer objects have a L<C<ranking_method> named
-argument|Marpa::R2::Scanless::R/"ranking_method">,
-whose value can be the name of a ranking method,
-or "C<none>", indicating that the default ranking method is to
-be used.
-
-=head2 The C<rule> ranking method
-
-The rule method ranks alternative parses according to their rule alternatives.
-Every rule alternative has a B<numeric rank>.
-A rule's rank can be specified using the
-the C<rank> adverb
-argument for that RHS alternative.
-Rule ranks must be integers.
-They may be negative.
-If no numeric rank is specified, the numeric rank is 0.
-
-=head2 The C<high_rule_only> ranking method
-
-The C<high_rule_only> ranking method is similar to the
-C<rule> ranking method, except that, at every choicepoint,
-it discards all of the choices which
-have a rank lower than that of the highest ranked choice.
-
-The C<high_rule_only> ranking method
-can reduce the ambiguity of a parse,
-but it does not necessarily do so.
-This is because, at each choicepoint among the parse trees,
-it is possible that several of the choices,
-or all of them, will have the same rank
-as the highest ranked choice.
-
-=head2 Rule ranking
-
-At each choicepoint,
-the choices
-are ranked as follows:
-
-=over
-
-=item * B<Different numeric ranks>:
-
-If the two parse choices have different numeric ranks,
-they must also have different rule alternatives.
-The parse choice whose rule alternative has the higher numeric rank
-will rank high.
-
-=item * B<Same rule alternative>:
-
-If the two parse choices have the same rule alternative,
-they rank as described
-under L<"Null variant ranking">.
-
-=item * B<Same numeric rank, different rule alternatives>:
-
-Two different rule alternatives can have the same numeric rank.
-If the two parse choices are for
-rule alternatives that are different,
-but that have the same numeric rank,
-the relative order of the two parse choices is
-arbitrary.
-
-=back
-
-Rule alternatives may be part of a single rule in the DSL --
-for example, a
-L<prioritized rule|Marpa::R2::Scanless::DSL/"Prioritized rule">.
-Lexical order within a DSL rule
-makes no difference when ranking rule alternatives.
-For example, it makes no difference if two rule alternatives
-come from the same prioritized rule;
-or from two different prioritized rules.
-
-=head2 Null variant ranking
-
-Some rules have a RHS which contains
-B<proper nullables>:
-symbols
-which may be nulled, but which are not nulling
-symbols.
-(Nulling symbols are symbols which are B<always> nulled.)
-
-When a rule alternative contains proper nullables,
-each instance
-of that rule creates a B<nulling variant>.
-A B<nulling variant> is
-a specific pattern of
-null and non-null symbols in a rule instance's RHS.
-In many cases, this creates an ambiguity -- different
-nulling variants can match the same substring in the input.
-In ambiguous parsings of this kind,
-some applications may want to rank nulling variants that start
-with non-null symbols higher.
-Other applications may want to do the opposite --
-to rank nulling variants that start
-with null symbols higher.
-
-The
-L<C<null-ranking> adverb
-for RHS alternatives|Marpa::R2::Scanless::DSL/"null-ranking">
-specifies which nulling variants are ranked high or low.
-If the C<null-ranking> is "C<low>",
-then the closer a nulling variant
-places its B<visible> (non-null) symbols to the start of the rule instance,
-the higher it ranks.
-A null ranking of C<low> is the default.
-If the C<null-ranking> is "C<high>",
-then the closer a nulling variant
-places its B<null> symbols to the start of the rule instance,
-the higher it ranks.
-In ranking nulling variants with more than one proper nullable,
-major-to-minor is left-to-right.
-
-=head2 A general approach to sorting parses
+=head2 An general way to sort parses
 
 The most general way to sort Marpa parses is for the application
 to take control.
