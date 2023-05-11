@@ -34,22 +34,49 @@ trees of an ambiguous parse.
 It also describes ways to exclude selected parse trees
 from the parse series.
 
-There are two ways to sort parses in a non-default order.
-The
-L<first|"An efficient way to sort parses">
-is to use a
-L<C<ranking_method>|Marpa::R2::Scanless::R/"ranking_method">
-other than "C<none>".
-Use of the C<ranking_method> named argument is limited in what it can do,
-but is very fast,
-so much so that the difference into time between
-it and the default order is probably not measurable.
-The
-L<second|"A general way to sort parses">
-is to let the application take control.
-Both are described in more detail below.
+There are three ways to sort parses.
 
-=head2 Default parse order
+=over 4
+
+=item *
+
+Accept the default parse order.
+
+=item *
+
+Use a non-default value of the
+L<the recognizer's C<ranking_method>|Marpa::R2::Scanless::R/"ranking_method">
+named argument.
+
+=item *
+
+Let the application do it.
+
+=back
+
+All these methods are described in more detail below.
+
+=head2 Semantic duplicates
+
+Regardless of the parse order chosen,
+no two parse trees in a parse series will be
+semantic duplicates.
+Two parse trees are B<semantic duplicates> if
+and only if
+a recursive, top-down evaluation of each
+applies
+the same rules
+in the same order
+at the same G1 locations.
+If the semantics are deterministic,
+parse trees that are semantic duplicates
+will always produce the same parse result.
+In other words,
+from the point of view of a deterministic semantics,
+parse trees that are semantic duplicates
+are indistinguishable.
+
+=head2 The default parse order
 
 By calling
 the recognizer's
@@ -70,18 +97,29 @@ will be always be well-behaved
 in the sense
 that no two parse trees will be semantic duplicates,
 and no unique (semantic non-duplicate)
-parse tree will be omitted in it.
+parse tree will be omitted.
 No other property of arbitrary parse order is guaranteed.
 For example, the order may
 change each time
 the parse series is traversed.
 
-=head2 An efficient way to sort parses
+=head2 Non-default values of the C<ranking_method> named argument
 
-Use of the C<ranking_method> named argument is somewhat like PEG,
+The default value of
+L<C<Marpa::R2>'s C<ranking_method> named
+argument|Marpa::R2::Scanless::R/"ranking_method">
+is "C<none>".
+As the name of the value suggests,
+if the "C<none>" value of
+C<Marpa::R2>'s C<ranking_method> named
+argument is specified,
+a default parse order is selected.
+
+Use of non-default values
+of the C<ranking_method> named argument is somewhat like PEG,
 in that it ranks rule alternatives at choice points.
 It has the advantage over PEG of being more powerful,
-because it can rank the parses of any grammar that C<Marpa>::R2>
+because it can rank the parses of any grammar that C<Marpa::R2>
 can parse.
 
 It is also safer in the sense that in C<Marpa::R2>
@@ -95,13 +133,13 @@ The lack of safety comes from inability to predict
 which parses will be omitted ---
 it is very hard to determine,
 in general, what grammar a PEG parser is actually parsing.
-There is much more about the use o
+There is much more about the use of
 L<C<Marpa::R2>'s C<ranking_method> named
 argument|Marpa::R2::Scanless::R/"ranking_method">
 in
 L<its own document|Marpa::R2::Scanless::Semantics::Rank>.
 
-=head2 An general way to sort parses
+=head2 Letting the application sort parses
 
 The most general way to sort Marpa parses is for the application
 to take control.
@@ -121,45 +159,6 @@ In theory, ambiguity can cause an exponential explosion in the number of results
 In practice, ambiguity tends to get out of hand very easily.
 Producing and sorting all the parses can take a very
 long time.
-
-=head1 Details
-
-This section contains additional explanations, not essential to understanding
-the rest of this document.
-Often they are formal or mathematical.
-While some people find these helpful, others find them distracting,
-which is why
-they are segregated here.
-
-=head2 Duplicate parses
-
-When evaluating the parse trees in a parse series,
-Marpa never evaluates the same parse tree twice.
-What this means probably matches the programmer's
-intuition of what it should mean.
-Marpa considers two parse trees to be the same if they are
-B<semantic equivalents>.
-
-Two parse trees are semantic equivalents if
-and only if
-a recursive, top-down evaluation of each
-applies
-the same rules
-in the same order
-at the same G1 locations.
-If the semantics are deterministic,
-and if two parse trees are
-semantic equivalents according to this definition,
-the two parse trees will always produce the same parse result.
-
-The two parse trees are called semantic equivalents,
-because from the point
-of view of a deterministic semantics they are indistinguishable.
-When the Marpa documentation refers to duplicate
-parses,
-unless otherwise stated,
-it means that the two
-are semantic equivalents.
 
 =head1 Copyright and License
 
