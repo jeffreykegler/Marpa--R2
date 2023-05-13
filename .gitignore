@@ -10,7 +10,9 @@ junk
 /nogit/
 nogit*
 *.exe
-cpan/pod/Event.pod~
 *.PL~
 *.pod~
 *.xs~
+junk[.]html
+pod2htmd[.]tmp
+pod2htmi[.]tmp
