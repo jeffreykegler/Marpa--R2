@@ -154,6 +154,13 @@ may note a resemblance.
 In Perl,
 duples can be implemented as references to arrays of 2 elements.)
 
+One way for an application to implement ranking
+is with Marpa's
+L<abstract syntax forests|Marpa::R2::ASF>.
+Ranking using ASF's will probably be less efficient than using the
+recognizer's ranking method,
+but allows a more general and powerful solution.
+
 The user needs to be careful.
 In theory, ambiguity can cause an exponential explosion in the number of results.
 In practice, ambiguity tends to get out of hand very easily.

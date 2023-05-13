@@ -978,13 +978,6 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head2 Abstract Syntax Forests (ASFs)
-
-Ranking can also be implemented using Marpa's
-L<abstract syntax forests|Marpa::R2::ASF>.
-ASFs are likely to be less efficient than the built in ranking,
-but they are a more general and powerful solution.
-
 =head1 Comparison with PEG
 
 For those familiar with PEG,
