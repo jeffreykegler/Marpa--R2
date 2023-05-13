@@ -160,7 +160,7 @@ Lexeme locations and fenceposts are closely related
 to G1
 L<locations|"Marpa::R2::Scanless::R/G1 locations">.
 
-=head2 Choicepoints
+=head1 Choicepoints
 
 When ranking, the logic traverses each node
 of the parse bocage.
@@ -185,7 +185,7 @@ That document also gives several examples
 of ranking,
 which are explained in detail.
 
-=head2 Ranking methods
+=head1 Ranking methods
 
 SLIF recognizer objects have a L<C<ranking_method> named
 argument|Marpa::R2::Scanless::R/"ranking_method">,
@@ -219,7 +219,7 @@ it is possible that several of the choices,
 or all of them, will have the same rank
 as the highest ranked choice.
 
-=head2 Rule ranking
+=head1 Rule ranking
 
 At each choicepoint,
 the choices
@@ -260,7 +260,7 @@ For example, it makes no difference if two rule alternatives
 come from the same prioritized rule;
 or from two different prioritized rules.
 
-=head2 Null variant ranking
+=head1 Null variant ranking
 
 Some rules have a RHS which contains
 B<proper nullables>:
