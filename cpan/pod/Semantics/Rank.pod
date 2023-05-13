@@ -1060,90 +1060,13 @@ that will usually be the best and safest choice.
 
 =head1 Details
 
-This section contains additional explanations,
-not essential to understanding
+The mathematical material in this section
+is not essential to understanding
 the rest of this document.
-Often they are formal or mathematical.
-While some people find these helpful, others find them distracting,
+While some people will find it helpful,
+but others find them distracting or annoying,
 which is why
-they are segregated here.
-
-=head2 Earley parsing
-
-In this section we
-assume that the reader is comfortable
-reading and analyzing BNF.
-We will often use the basic theorem
-of Earley parsing.
-As a reminder,
-the theorem states
-that an instance of a dotted rule is present
-in a parse,
-if and
-only if that instance is valid for the input so far.
-More formally:
-
-B<(EARLEY)>:
-Let C<G> be a grammar.
-Let C<Syms> be the set of symbols in C<G>
-and let exactly one of the symbols
-in C<Syms> be distinguished as the
-"start symbol".
-Call the "start symbol", C<< <Start> >>.
-
-Let C<Terms> be a subset of C<Syms>
-called the "terminals" of C<G>.
-Let C<W> be a string of symbols from C<Terms>.
-Let C<W[i]> be the C<i>'th terminal of C<W>,
-so that the first terminal of C<W> is
-C<W[1]>.
-
-Where C<alpha> and C<beta> are sequences
-of symbols in C<Syms>,
-let C<< alpha => beta >> mean that C<alpha>
-derives C<beta> in grammar C<G>
-in zero or more steps.
-
-In this theorem,
-let
-C<alpha>, C<beta>, C<gamma>,
-C<delta> be sequences
-of zero or more symbols in C<Syms>.
-
-Theorem:
-These two statement sets
-are equivalent:
-
-Statement set 1 is true if and only if
-we have all of the following:
-
-1a.
-C<eitem> is an instance of a dotted
-rule, which we will treat
-as a triple:
-C<dp, origin, current>.
-In the literature,
-a triple of this form is also called
-an "Earley item".
-
-1b.
-C<dp> is the dotted
-rule
-C<< <A> ::= beta . gamma> >>.
-
-Statement set 2 is true if and only if
-we have all of the following:
-
-2a. C<< alpha => W[1] ... W[origin] >>
-
-2b. C<< beta => W[origin+1] .. W[current] >>
-
-2c. C<< <Start> => alpha <A> delta >>
-
-The proof is omitted.
-It can be found in Jay Earley's thesis,
-in his original paper,
-and in Aho and Ullmann's 1972 textbook.
+it is segregated here.
 
 =head2 Proof of correctness
 
