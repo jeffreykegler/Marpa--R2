@@ -40,8 +40,6 @@ on tracing
 problems|Marpa::R2::Tracing> before
 reading this document.
 
-=head1 Introduction to Earley items
-
 To read the
 L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress()">
 output, it is important to have a
@@ -49,105 +47,9 @@ basic idea of what
 Earley items are,
 and of what the information in them means.
 Everything that the user needs to know
-is explained in this section.
-
-=head2 Dotted rules
-
-Marpa is based on Jay Earley's algorithm for parsing.
-The idea behind Earley's algorithm is that you can
-parse by building a table of rules
-and where you are in those rules.
-"Where" means two things: location in the rule relative to the rule's
-symbols,
-and location relative to the parse's input stream.
-
-Let's look at an example of a rule in a context-free grammar.
-Here's the rule for assignment from the Perl distribution's C<perly.y>
-
-S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term ASSIGNOP term>>
-
-C<ASSIGNOP> is C<perly.y>'s internal name for
-the assignment operator.
-In plain Perl terms, this is the "C<=>" character.
-
-In parsing this rule, we can be at any of four possible locations.
-One location is at the beginning, before all of the symbols.
-The other three locations are immediately after each of the rule's
-three symbols.
-
-Within a rule, position relative to the symbols of the rule
-is traditionally indicated with a dot.  In fact, the symbol-relative
-rule position is very often called the B<dot location>.  Taken as
-a pair, a rule and a dot location are called a B<dotted rule>.
-
-Here's our rule with a dot location indicated:
-
-S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> . term ASSIGNOP term>>
-
-The dot location in this dotted rule is at the beginning.
-A dot location at the beginning of a dotted rule means
-that we have not recognized any symbols in the rule yet.
-All we are doing is predicting that the rule will occur.
-A dotted rule with the dot before all of its symbols is called a B<prediction>
-or a B<predicted rule>.
-
-Here's another dotted rule:
-
-S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term . ASSIGNOP term>>
-
-In this dotted rule,
-we are saying we have seen a C<term>, but have not yet recognized
-an C<ASSIGNOP>.
-
-There's another special kind of dotted rule, a completion.
-A B<completion> (also called a B<completed rule>)
-is a dotted rule with the dot after all of the symbols.
-Here is the completion for the rule that we have been using as an example:
-
-S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term ASSIGNOP term .>>
-
-A completion indicates that a rule has been fully recognized.
-
-=head2 Earley items
-
-The dotted rules contain
-all but one piece of the information
-that Marpa
-needs to track.
-The missing piece is the second of the two "wheres": where in the input stream.
-To associate input stream location and dotted rules, Marpa uses what are now called Earley items.
-
-A convenient way to think of an B<Earley item> is as a triple, or 3-tuple,
-consisting of dotted rule, origin and current location.
-The B<origin> is the location in the input stream where the dotted rule starts.
-The B<current location> (also called the B<dot location>)
-is the location in the input stream which corresponds to the
-dot position.
-
-In Marpa terms,
-G1 location is location in terms of the G1 subgrammar's Earley sets.
-When the term "location" is used in this document, it means G1 location unless
-otherwise indicated.
-
-A user often finds it much more convenient to think in terms of line and column position in
-the input stream, instead of G1 location.
-Every G1 location corresponds to a range of positions in the input stream.
-When the term "position" is used in this document, it means input stream position,
-unless otherwise indicated.
-
-Two noteworthy consequences
-follow from the way in which origin and current G1 location are defined.
-First,
-if a dotted rule is a prediction,
-then origin and current location will always be the same.
-Second,
-the input stream location where a rule ends is not tracked unless the
-dotted rule is a completion.
-If its dotted rule is not a completion,
-an Earley item does not tell us
-if a rule will
-ever be completed,
-much less at which location.
+is explained in
+L<this
+document|Marpa::R2::Algorithm>.
 
 =head1 The problem
 
