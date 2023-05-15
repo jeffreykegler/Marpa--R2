@@ -51,6 +51,17 @@ is explained in
 L<this
 document|Marpa::R2::Algorithm>.
 
+We recall that
+G1 location is location in terms of the G1 subgrammar's Earley sets.
+When the term "location" is used in this document, it means G1 location unless
+otherwise indicated.
+
+A user often finds it much more convenient to think in terms of line and column position in
+the input stream, instead of G1 location.
+Every G1 location corresponds to a range of positions in the input stream.
+When the term "position" is used in this document, it means input stream position,
+unless otherwise indicated.
+
 =head1 The problem
 
 For this example of debugging,
