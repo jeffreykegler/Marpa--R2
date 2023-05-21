@@ -33,6 +33,11 @@ debugging|Marpa::R2::Progress.pod>
 and
 L<use of the recognizer's ranking
 methods|Marpa::R2::Rank.pod>.
+
+Resources for readers who want to know 
+the details of the Marpa algorithm that are
+beyond the scope of this document are
+given L<below|/"Resources on the Marpa algorithm">.
 A reader of this document should
 be familiar with the basic parsing terminology
 described in L<Marpa::R2::Vocabulary.pod>.
@@ -345,6 +350,29 @@ always share the same current lexeme location
 and rule LHS,
 and their dotted rules
 are always completions.
+
+=head1 Resources on the Marpa algorithm
+
+This document establishes vocabulary and
+explains some aspects of the Marpa algorithm
+which are relevant to discussions in these
+C<Marpa::R2> documents.
+It is not intended as an full explanation
+of the workings of the Marpa algorithm.
+
+Those who want to learn more about the Marpa
+algorithm,
+and who are not already familiar with Earley's
+algorithm,
+should consult an introductory presentation of
+it.
+One good start is the
+Wikipedia article
+L<https://en.wikipedia.org/wiki/Earley_parser>.
+
+For the workings of the Marpa algorithm
+there are L<two arxiv.org
+papers|Marpa::R2/"Marpa papers">.
 
 =head1 Details
 

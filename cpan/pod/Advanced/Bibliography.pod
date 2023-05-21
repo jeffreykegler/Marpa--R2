@@ -53,7 +53,7 @@ and Aycock and Horspool seem unaware of Leo.
 =item * 2010
 
 L<Marpa combines the Leo and Aycock-Horspool
-algorithms|"Kegler 2013">,
+algorithms|"Marpa papers">,
 in the process making significant
 changes to both of them.
 The result preserves the
@@ -183,13 +183,6 @@ This is L<Grune and Jacobs 1990> updated.
 The bibliography for this book is available in enlarged form
 on the web: L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>.
 
-=head2 Kegler 2022
-
-My writeup of the theory behind Marpa,
-with proofs of correctness and of my complexity claims
-is on C<arxiv.org> (L<https://arxiv.org/abs/1910.08129>).
-First made public in 2013, it was updated in 2022.
-
 =head2 Leo 1991
 
 Marpa's handling of right-recursion uses the ideas in
@@ -202,6 +195,15 @@ This is a difficult paper.
 It is available online at 
 L<http://www.sciencedirect.com/science/article/pii/030439759190180A>,
 click the PDF icon at the top left.
+
+=head2 Marpa papers
+
+My writeup of the theory behind Marpa,
+with proofs of correctness and of my complexity claims
+is on C<arxiv.org> (L<https://arxiv.org/abs/1910.08129>).
+Another C<arxiv.org> paper deals in depth with Marpa's
+handing of nullable symbols.
+(L<https://arxiv.org/abs/2303.04093>).
 
 =head2 Wikipedia
 
