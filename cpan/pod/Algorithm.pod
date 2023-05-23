@@ -125,8 +125,17 @@ ignore: 1
 In this completion example, the symbol B<C>
 is the predot symbol.
 
+In every grammar,
+a special rule is reserved as
+the start rule.
+When the rule of a dotted rule is the start rule,
+and the dot is before the first symbol of the RHS,
+the dotted rule is the B<start dotted rule>.
+The start dotted rule does not have a predot symbol.
+
 When the dot is before the first symbol of the RHS,
-the rule is called a B<predicted rule>,
+and the rule is not the start rule,
+the dotted rule is called a B<predicted rule>,
 or a B<prediction>.
 Here is the prediction of the rule we've been
 using for our examples:
@@ -173,183 +182,93 @@ if a rule will
 ever be completed,
 much less at which location.
 
-=head1 Earley item stuff, was "Choicepoints"
+=head1 Confluences
 
-Informally
-a B<choicepoint> is a place where the parser
-can decide among one or more B<parse choices>.
-A choicepoint can be thought of either a set
-of parse choices,
-or as the tuple of the properties which all
-the parse choices for the choicepoint
-must have in common.
-
-For a choicepoint to work, all the choices must
-have enough in common that each of them
-could be replaced with any other.
-Thought of as a tuple of properties,
-a choicepoint is a triple: C<(dp, start, current)>.
-In this triple,
+In every parse,
+the Marpa algorithm starts
+with
 
 =over 4
 
 =item *
 
-C<dp> is a dotted rule.
-The predot symbol of C<dp>
-is the B<predot symbol> of the choicepoint --
-if C<dp> is a prediction,
-there is no predot symbol.
-The rule of C<dp>
-is the B<rule> of the choicepoint.
-The
-dot position of C<dp>
-is the B<dot position> of the choicepoint.
+an B<Earley table>
+containing
+a B<start Earley item>, and
 
 =item *
 
-C<start> is the lexeme location where the dotted
-rule begins.
-C<start> is sometimes called the B<origin> of the
-choicepoint.
-
-=item *
-
-C<current> is the lexeme location corresponding to the dot
-in C<dp>.
-C<current> is sometimes
-called the C<current location> of the choicepoint.
+a sequence of sets of tokens.
 
 =back
 
-The choicepoint is a prediction choicepoint if
-C<dp> is a prediction.
-The choicepoint is a token choicepoint if
-it is not a prediction choicepoint and
-the predot symbol of C<dp> is a token symbol.
-The choicepoint is a rule choicepoint if
-it is not a prediction choicepoint and
-the predot symbol of C<dp> is the LHS of a rule.
-(Token symbols are never the LHS of a rule,
-and vice versa.)
+The Marpa algorithm then performs one of a set of operations until no more Earley items
+can be added to the Earley table.
+(We will not describe these operations in detail here.
+See L<below|Resources on the Marpa algorithm>.)
 
-=head1 Confluences, was "Parse choices"
+If we count addition of the start Earley item as an "operation",
+this means that every Earley item has at least one reason for
+being in the Earley table.
+(Duplicate Earley items are not added to the table,
+so that, in an ambiguous parse,
+a single Earley item may have more than one reason
+for being in the table.)
 
-As mentioned, a choicepoint can be seen as a set
-of one or more B<parse choices>.
-From the point of view of the individual parse trees,
-the traversal is top-down
-and left-to-right.
+For describing the reasons for the presence of Earley items
+in the Earley table, we use hydrological terminology.
+Intuitively, the tokens and/or Earley items are
+"upstream" from the Earley items they cause.
 
-Often, there is only one parse choice.
-When there is only one parse choice,
-the choicepoint is said to be B<trivial>.
-Prediction and token choicepoints are always trivial.
-If all of the choicepoints of a parse
-are trivial,
-the parse is unambiguous.
+Every Earley item has one or more B<confluences> which
+record the reason for 
+that Earley item's presence in the Earley table.
+Each confluence has two <inflows>,
+but both of the inflows may be B<ill-defined>.
 
-Every rule choicepoint,
-and therefore every non-trivial choicepoint,
-has a set of parse choices associated with it.
-For a rule choicepoint,
-each parse choice is a duple: C<(mainstem, tributary)>,
-where
-C<tributary> and C<mainstem> are also choicepoints.
-The first element of the duple is the B<mainstem choicepoint>,
-or B<mainstem>,
-of the parse choice.
-The second element of the duple is the B<tributary choicepoint>,
-or B<tributary>
-of the parse choice.
-
-Let C<confl> be a rule choicepoint
-and let C<(stem, trib)> be one of the
-parse choices of C<confl>.
-Then we say that C<confl> is the B<confluence>
-of C<trib> and C<stem>;
-and we say that C<trib> is one of the B<tributaries>
-of C<confl>.
-
-The mainstem of a parse choice
-represents a portion
-of the parse that "leads up to" the tributary.
-The mainstem
-of a parse choice plays no role in ranking
-decisions,
-and this document will mostly ignore mainstems.
-
-=head1 Confluences, was "Tributaries"
-
-Since it is a choicepoint, a tributary choicepoint
-must also be a triple.
-Let the confluence of C<trib> be
-C<confl>.
-Let the triple for for C<trib> be C<(trib-dp, trib-origin, trib-current)>.
-Let the
-triple for for C<confl> be C<(confl-dp, confl-origin, confl-current)>.
-
-If C<confl> is the confluence of C<trib>, then
+The first inflow is the B<mainstem>.
+When well-defined, a mainstem is always an Earley item.
+The second inflow is the B<tributary>.
+When well-defined, a tributary is an Earley item or a
+token.
 
 =over 4
 
 =item *
 
-C<trib-current> is always the same as
-C<confl-current>.
-In other words,
-the current location of C<trib>
-is the same as the current location of C<confl>.
+The start Earley item always has exactly one
+confluence.
+Both inflows of its confluence are ill-defined.
 
 =item *
 
-C<trib-origin> is before C<confl-current>.
-In other words,
-the origin of C<trib>
-is before the current location of C<confl>.
+A predicted Earley item may have many confluences.
+The mainstem of a predicted Earley item is always
+another Earley item.
+The tributary of a predicted Earley item is always
+ill-defined.
 
 =item *
 
-C<trib-origin>
-is at or after C<confl-origin>.
-In other words,
-the origin of C<trib>
-is at or after the origin of C<confl>.
-While it is not always properly between
-C<confl-origin> and C<confl-current>,
-C<trib-origin> is always in the range bounded
-by
-C<confl-origin> on one side,
-and by C<confl-current>
-on the other.
-C<trib-origin>
-can therefore be thought of as "in the middle"
-of the parse choice.
-For this reason,
-C<trib-origin> is often called the
-B<middle location> of the parse choice.
+An Earley item whose predot symbol is a terminal is
+a scanned Earley item.
+A scanned Earley item may have multiple confluences.
+The mainstem of a predicted Earley item is always
+another Earley item.
+The tributary of a predicted Earley item is always
+a token.
 
 =item *
 
-The dotted rule of C<trib> will be a completion.
-
-=item *
-
-The LHS of the dotted rule of C<trib> will be
-the predot symbol of C<confl>.
+An Earley item whose predot symbol is a non-terminal is
+a reduction.
+A reduction may have many confluences.
+The mainstem of a predicted Earley item is always
+another Earley item.
+The tributary of a predicted Earley item is always
+a completed Earley item.
 
 =back
-
-Summing up the above,
-the tributaries of a rule choicepoint
-vary only by
-middle position
-and rule RHS.
-The tributaries of a rule choicepoint
-always share the same current lexeme location
-and rule LHS,
-and their dotted rules
-are always completions.
 
 =head1 Resources on the Marpa algorithm
 
