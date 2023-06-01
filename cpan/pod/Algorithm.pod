@@ -293,91 +293,70 @@ For the workings of the Marpa algorithm
 there are L<two arxiv.org
 papers|Marpa::R2/"Marpa papers">.
 
-=head1 Details
+=head1 Earley item correctness
 
-The mathematical material in this section
-is not essential to understanding
-the rest of this document.
-While some people will find it helpful,
-but others find them distracting or annoying,
-which is why
-it is segregated here.
-
-=head2 Earley parsing
-
-In this section we
-assume that the reader is comfortable
-reading and analyzing BNF.
-We will often use the basic theorem
-of Earley parsing.
-As a reminder,
-the theorem states
-that an instance of a dotted rule is present
-in a parse,
-if and
-only if that instance is valid for the input so far.
-More formally:
-
-B<(EARLEY)>:
-Let C<G> be a grammar.
-Let C<Syms> be the set of symbols in C<G>
-and let exactly one of the symbols
-in C<Syms> be distinguished as the
-"start symbol".
-Call the "start symbol", C<< <Start> >>.
-
-Let C<Terms> be a subset of C<Syms>
-called the "terminals" of C<G>.
-Let C<W> be a string of symbols from C<Terms>.
-Let C<W[i]> be the C<i>'th terminal of C<W>,
-so that the first terminal of C<W> is
-C<W[1]>.
-
-Where C<alpha> and C<beta> are sequences
-of symbols in C<Syms>,
-let C<< alpha => beta >> mean that C<alpha>
+For the definition of Earley item correctness,
+let C<< alpha =>* beta >> mean that C<alpha>
 derives C<beta> in grammar C<G>
 in zero or more steps.
 
-In this theorem,
-let
-C<alpha>, C<beta>, C<gamma>,
-C<delta> be sequences
-of zero or more symbols in C<Syms>.
+Consider a grammar C<G> and an input C<W>.
+The input is a sequence of tokens.
+C<W[i]> is the C<i>'th terminal of C<W>,
+so that the first terminal of C<W> is
+C<W[0]>.
 
-Theorem:
-These two statement sets
-are equivalent:
+Let the grammar C<G> be such that we have the following:
 
-Statement set 1 is true if and only if
+=over 4
+
+=item *
+
+C<Syms> is the set of symbols in C<G>.
+A B<sentential form> is a sequence of zero or
+more symbols from C<Syms>.
+
+=item *
+
+Exactly one of the symbols
+in C<Syms> is distinguished as the
+"start symbol".
+Call the "start symbol", C<< <Start> >>.
+
+=item *
+
+Let C<Terms> be a subset of C<Syms>
+called the "terminals" of C<G>.
+The symbols of the tokens in the input C<W> are
+elements of C<Terms>.
+
+=item *
+
+C<G> contains the rule
+
+   C<< <A> ::= <beta> <gamma> >>.
+
+where C<beta> and C<beta> are sentential forms.
+
+=back
+
+Let C<alpha> and C<delta> be sentential forms.
+We say the Earley item
+
+  C<< [ [ <A> ::= <beta> . <gamma> ], origin, current ]  >>.
+
+is B<correct> if and only if
 we have all of the following:
 
-1a.
-C<eitem> is an instance of a dotted
-rule, which we will treat
-as a triple:
-C<dp, origin, current>.
-In the literature,
-a triple of this form is also called
-an "Earley item".
+   1. C<< <Start> => <alpha> <A> <delta> >>
 
-1b.
-C<dp> is the dotted
-rule
-C<< <A> ::= beta . gamma> >>.
+   2. C<< <alpha> => W[0,(origin-1)] >>
 
-Statement set 2 is true if and only if
-we have all of the following:
+   3. C<< <beta> => W[origin,(current-1)] >>
 
-2a. C<< alpha => W[1] ... W[origin] >>
-
-2b. C<< beta => W[origin+1] .. W[current] >>
-
-2c. C<< <Start> => alpha <A> delta >>
-
-The proof is omitted.
-It can be found in Jay Earley's thesis,
-in his original paper,
+A proof that the Earley algorithm adds all correct Earley items,
+and only correct Earley items to the Earley table.
+can be found in Jay Earley's original paper,
 and in Aho and Ullmann's 1972 textbook.
 
 =head1 Copyright and License
