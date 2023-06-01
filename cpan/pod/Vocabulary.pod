@@ -180,27 +180,34 @@ The B<length> of a derivation is its length in steps.
 =over
 
 =item *
+
 We say that
 a first symbol string B<directly
 derives> a second symbol string if and only if there is a derivation of length 1 from the first symbol
 string to the second symbol string.
 
 =item *
+
 Every symbol string is said to derive itself in a derivation
 of length 0.  A zero length derivation is a B<trivial derivation>.
 
-=item * A derivation which is not trivial
+=item *
+
+A derivation which is not trivial
 (that is,
 a derivation which has one or more steps)
 is a B<non-trivial> derivation.
 
 =item *
+
 A non-trivial derivation of a symbol string from itself
 is called a B<cycle>.
 Grammars which contain cycles are traditionally considered useless,
 but Marpa will parse with such grammars.
 
-=item * If a derivation is not trivial or direct, that is, if it has more than one step,
+=item *
+
+If a derivation is not trivial or direct, that is, if it has more than one step,
 then it is an B<indirect> derivation.
 
 =back
