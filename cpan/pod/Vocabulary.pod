@@ -45,13 +45,22 @@ L<Wikipedia|Marpa::R2::Advanced::Bibliography/"Wikipedia"> is also an excellent 
 =head2 Basic
 
 A B<grammar> is a set of rules,
-associated with a set of symbols,
-one of which is distinguished as the start symbol.
+associated with a set of symbols.
+Of the symbols of the language,
+one is distinguished as the B<start symbol>,
+and a subset are designated as B<terminal symbols>.
+
 A B<symbol string>, or simply B<string> where the meaning is clear,
-is an ordered series of symbols.
+is a sequence of the symbols of a grammar.
+A symbol string is also called a B<sentential form>.
 The B<length> of a string is the number of symbols in it.
 
-A B<language> is a set of B<symbol strings>.
+Any symbol which is allowed to occur
+in the symbol string input is called a B<terminal> symbol.
+If the symbols in a symbol string are all terminals,
+that symbol string is also called a B<sentence>.
+
+A B<language> is a set of sentences.
 A grammar defines a B<language>,
 as will be described later.
 
@@ -61,7 +70,7 @@ from what it means in ordinary use.
 The meaning of the strings is an essential part
 of the ordinary idea of what a language is.
 In ordinary use, the word "language" means
-far more than a unordered list of its sentences.
+far more than a set of sentences.
 In parsing terminology, meaning (or B<semantics> as it is
 called) is a separate issue.
 For parsing theory a
@@ -92,14 +101,15 @@ B<lexical analyzer> to convert B<raw input>,
 usually B<input text>,
 into a B<token stream>,
 which is a series of B<tokens>.
-Each token represents a B<symbol> of the grammar and has a B<value>.
+Each token represents a terminal symbol of the grammar and has a B<value>.
 A lexical analyzer is often called a B<lexer> or a B<scanner>,
 and B<lexical analysis> is often called B<lexing> or B<scanning>.
 
-The series of symbols represented by the series of tokens
-becomes the B<symbol string input>
+The sequence of symbols represented by the sequence of tokens
+becomes the B<input>
 seen by the recognizer.
-The B<symbol string input> is more often called the B<input sentence>.
+The input must be a sentence --
+that is, it must be a sequence of terminals.
 
 By default, Marpa uses the token stream model of input.
 Marpa also allows alternative input models.
@@ -136,11 +146,6 @@ Left hand side and right hand side are often abbreviated as B<RHS> and B<LHS>.
 If the RHS of a production has no symbols,
 the production is called an B<empty production>
 or an B<empty rule>.
-
-Any symbol which is allowed to occur
-in the symbol string input is called a B<terminal> symbol.
-If the symbols in a symbol string are all terminals,
-that symbol string is also called a B<sentence>.
 
 =head2 Derivations
 
