@@ -291,30 +291,45 @@ L<https://en.wikipedia.org/wiki/Earley_parser>.
 
 For the workings of the Marpa algorithm
 there are L<two arxiv.org
-papers|Marpa::R2/"Marpa papers">.
+papers|Marpa::R2::Advanced::Bibliography/"Marpa papers">.
 
 =head1 Earley item correctness
 
 For the definition of Earley item correctness,
-let C<< alpha =>* beta >> mean that C<alpha>
-derives C<beta> in grammar C<G>
-in zero or more steps.
+we show symbols in angle brackets, for example C<< <A> >>,
+and sentential forms in double angle brackets, for example C<< <<alpha>> >>.
 
-Consider a grammar C<G> and an input C<W>.
+Without loss of generality, we call
+our grammar C<G> and we call our input C<W>.
 The input is a sequence of tokens.
 C<W[i]> is the C<i>'th terminal of C<W>,
 so that the first terminal of C<W> is
 C<W[0]>.
+We write C<W[i...j]> for the segment of C<W> whose
+first term is C<W[i]> and whose last term is C<W[j]>.
+As a special case, C<W[a...b]> is the empty string
+if C<b> is less than C<a>.
 
-Let the grammar C<G> be such that we have the following:
+Let C<< <<alpha>> =>* <<beta>> >> mean that,
+using grammar C<G>,
+the sentential form C<< <<alpha>> >>
+derives C<< <<beta>> >>
+in zero or more steps.
+We recall from L<the vocabulary
+document|Marpa::R2::Vocabulary>
+that a sentential form is a sequence of zero or
+more symbols from the grammar.
+In a derivation, a single symbol represents the sentential form
+of length 1 consisting only of that symbol.
+
+Also without loss of generality,
+we let the grammar C<G> be such that we have the following:
 
 =over 4
 
 =item *
 
 C<Syms> is the set of symbols in C<G>.
-A B<sentential form> is a sequence of zero or
-more symbols from C<Syms>.
 
 =item *
 
@@ -334,30 +349,33 @@ elements of C<Terms>.
 
 C<G> contains the rule
 
-   C<< <A> ::= <beta> <gamma> >>.
+   <A> ::= <<beta>> <<gamma>>
 
-where C<beta> and C<beta> are sentential forms.
+where C<< <<beta>> >> and C<< <<gamma>> >> are sentential forms.
 
 =back
 
-Let C<alpha> and C<delta> be sentential forms.
 We say the Earley item
 
-  C<< [ [ <A> ::= <beta> . <gamma> ], origin, current ]  >>.
+    [ [ <A> ::= <<beta>> . <<gamma>> ], origin, current ]
 
-is B<correct> if and only if
+is B<correct> if and only if,
+where C<< <<alpha>> >> and C<< <<delta>> >> are sentential forms,
 we have all of the following:
 
-   1. C<< <Start> => <alpha> <A> <delta> >>
+   1. <Start> => <<alpha>> <A> <<delta>>
 
-   2. C<< <alpha> => W[0,(origin-1)] >>
+   2. <<alpha>> => W[0...(origin-1)]
 
-   3. C<< <beta> => W[origin,(current-1)] >>
+   3. <<beta>> => W[origin...(current-1)]
 
 A proof that the Earley algorithm adds all correct Earley items,
-and only correct Earley items to the Earley table.
-can be found in Jay Earley's original paper,
-and in Aho and Ullmann's 1972 textbook.
+and only correct Earley items,
+to the Earley table
+can be found in L<Jay Earley's original
+paper|Marpa::R2::Advanced::Bibliography/"Earley 1970">,
+and in L<Aho and Ullmann's 1972
+textbook|Marpa::R2::Advanced::Bibliography/"Aho and Ullman 1972">.
 
 =head1 Copyright and License
 
