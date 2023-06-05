@@ -83,7 +83,7 @@ progress of a parse through a rule.
 Within a rule, position relative to the symbols of the rule
 is traditionally indicated with a dot.
 In fact, the symbol-relative
-rule position is very often called the B<dot location>.
+rule position is usually called the B<dot location>.
 Taken as
 a pair, a rule and a dot location are called a B<dotted rule>.
 The symbol before the dot is called
@@ -103,7 +103,7 @@ ignore: 1
 
 =for Marpa::R2::Display
 
-In this rule, B<B> is the B<predot symbol>.
+In this rule, C<B> is the B<predot symbol>.
 This rule indicates that we have recognized
 an C<A>, followed by a C<B>,
 but that we have yet to see a C<C>.
@@ -122,7 +122,7 @@ ignore: 1
 
 =for Marpa::R2::Display
 
-In this completion example, the symbol B<C>
+In this completion example, the symbol C<C>
 is the predot symbol.
 
 In every grammar,
@@ -223,7 +223,7 @@ Intuitively, the tokens and/or Earley items are
 Every Earley item has one or more B<confluences> which
 record the reason for 
 that Earley item's presence in the Earley table.
-Each confluence has two <inflows>,
+Each confluence has two B<inflows>,
 but both of the inflows may be B<ill-defined>.
 
 The first inflow is the B<mainstem>.
@@ -253,9 +253,9 @@ ill-defined.
 An Earley item whose predot symbol is a terminal is
 a scanned Earley item.
 A scanned Earley item may have multiple confluences.
-The mainstem of a predicted Earley item is always
+The mainstem of a scanned Earley item is always
 another Earley item.
-The tributary of a predicted Earley item is always
+The tributary of a scanned Earley item is always
 a token.
 
 =item *
@@ -263,22 +263,17 @@ a token.
 An Earley item whose predot symbol is a non-terminal is
 a reduction.
 A reduction may have many confluences.
-The mainstem of a predicted Earley item is always
+The mainstem of a reduction is always
 another Earley item.
-The tributary of a predicted Earley item is always
+The tributary of a reduction is always
 a completed Earley item.
 
 =back
 
 =head1 Resources on the Marpa algorithm
 
-This document establishes vocabulary and
-explains some aspects of the Marpa algorithm
-which are relevant to discussions in these
-C<Marpa::R2> documents.
-It is not intended as an full explanation
+This document is not intended as an full explanation
 of the workings of the Marpa algorithm.
-
 Those who want to learn more about the Marpa
 algorithm,
 and who are not already familiar with Earley's
@@ -288,7 +283,6 @@ it.
 One good start is the
 Wikipedia article
 L<https://en.wikipedia.org/wiki/Earley_parser>.
-
 For the workings of the Marpa algorithm
 there are L<two arxiv.org
 papers|Marpa::R2::Advanced::Bibliography/"Marpa papers">.
@@ -313,7 +307,7 @@ if C<b> is less than C<a>.
 Let C<< <<alpha>> =>* <<beta>> >> mean that,
 using grammar C<G>,
 the sentential form C<< <<alpha>> >>
-derives C<< <<beta>> >>
+derives the sentential form C<< <<beta>> >>
 in zero or more steps.
 We recall from L<the vocabulary
 document|Marpa::R2::Vocabulary>
