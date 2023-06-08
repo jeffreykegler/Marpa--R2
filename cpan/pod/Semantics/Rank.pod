@@ -239,31 +239,39 @@ major-to-minor is left-to-right.
 When ranking, the logic traverses each node
 of a parse forest, which we call a "bocage".
 Our parse forests closely
-resemble Elizabeth Scott's SPPF's.
+resemble
+Elizabeth Scott's SPPF's.
+See L<Marpa::R2::Advanced::Bibliography/"Scott 2008">.
 
-In this context, the nodes are also called "choicepoints".
-From the point of view of the individual parse trees,
-the traversal will be top-down
-and left-to-right.
+For our purposes, we can views the bocage nodes as Earley items
+with link to their confluences.
+A confluence is a reason for the Earley item to be in the parse
+forest, and a parse tree is created by selection a single
+confluence (or reason to exist) for each Earley item.
+For more about Earley items and confluences,
+see L<our document on the Marpa
+algorithm|Marpa::R2::Algorithm>.
 
-Each choicepoint has one or more "choices".
-Often a choicepoint has only a single choice,
-in which case the choicepoint is called "trivial".
+Every Earley item has at least one reason to be
+in the parse forest, or it would not be there.
+Therefore every Earley item has at least one confluence.
+In an ambiguous parse, one or more Earley items will
+have more than one confluence.
+
+Predictions and the start Earley item are redundant information
+from the point of of the bocage, and therefore
+bocage nodes
+exist only for scanned Earley items and reductions.
+Every Earley item in the bocage is called a "choicepoint".
+Every confluence linked to an Earley item is called a "choice".
+If a choicepoint has only one confluence,
+and therefore allows only one choice,
+we call it a "trivial choicepoint".
+
 For two rule instances to be choices of the same
 choicepoint,
 they must end at the same location,
 and their rules must have the same LHS.
-
-=head1 Choicepoints
-
-Informally
-a B<choicepoint> is a place where the parser
-can decide among one or more B<parse choices>.
-A choicepoint can be thought of either a set
-of parse choices,
-or as the tuple of the properties which all
-the parse choices for the choicepoint
-must have in common.
 
 For a choicepoint to work, all the choices must
 have enough in common that each of them
