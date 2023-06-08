@@ -119,31 +119,6 @@ Rule ranking plays a role in parse ordering,
 which is described in L<a separate
 document|Marpa::R2::Semantics::Order>.
 
-=head1 Choicepoints
-
-When ranking, the logic traverses each node
-of the parse bocage.
-In this context, the nodes are also called "choicepoints".
-From the point of view of the individual parse trees,
-the traversal will be top-down
-and left-to-right.
-
-Each choicepoint has one or more "choices".
-Often a choicepoint has only a single choice,
-in which case the choicepoint is called "trivial".
-For two rule instances to be choices of the same
-choicepoint,
-they must end at the same location,
-and their rules must have the same LHS.
-
-The terms "choicepoint" and "choice"
-are defined carefully
-in L<a separate
-document|Marpa::R2::Semantics::Rank>.
-That document also gives several examples
-of ranking,
-which are explained in detail.
-
 =head1 Ranking methods
 
 SLIF recognizer objects have a L<C<ranking_method> named
@@ -258,6 +233,26 @@ places its B<null> symbols to the start of the rule instance,
 the higher it ranks.
 In ranking nulling variants with more than one proper nullable,
 major-to-minor is left-to-right.
+
+=head1 Choicepoints
+
+When ranking, the logic traverses each node
+of a parse forest, which we call a "bocage".
+Our parse forests closely
+resemble Elizabeth Scott's SPPF's.
+
+In this context, the nodes are also called "choicepoints".
+From the point of view of the individual parse trees,
+the traversal will be top-down
+and left-to-right.
+
+Each choicepoint has one or more "choices".
+Often a choicepoint has only a single choice,
+in which case the choicepoint is called "trivial".
+For two rule instances to be choices of the same
+choicepoint,
+they must end at the same location,
+and their rules must have the same LHS.
 
 =head1 Choicepoints
 

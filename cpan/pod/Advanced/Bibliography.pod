@@ -205,6 +205,26 @@ Another C<arxiv.org> paper deals in depth with Marpa's
 handing of nullable symbols.
 (L<https://arxiv.org/abs/2303.04093>).
 
+=head2  Scott 2008
+
+When evaluating parses, Marpa stores parse forests
+in a data structure which we call a "bocage".
+A bocage is related to a parse forest,
+but is more compact and
+more easily traversable.
+While "bocage" is our term, and we discovered this structure independently,
+we were preceded in the discovery by Elizabeth Scott.
+And, unlike us, Prof. Scott
+did the all-important work of documenting it and providing the appropriate mathematical
+apparatus.
+
+Scott's SPPF structure is our bocage in all essential respects, so
+much so that her excellent writeup serves perfectly as its documentation:
+Scott, Elizabeth. "SPPF-style parsing from Earley recognisers." Electronic Notes in
+Theoretical Computer Science 203.2 (2008): 53-67.
+Online at
+L<http://dinhe.net/~aredridel/.notmine/PDFs/Parsing/SCOTT,%20Elizabeth%20-%20SPPF-Style%20Parsing%20From%20Earley%20Recognizers.pdf>.
+
 =head2 Wikipedia
 
 Wikipedia's article on Backus-Naur form is
