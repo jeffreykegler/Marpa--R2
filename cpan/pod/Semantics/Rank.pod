@@ -119,47 +119,6 @@ Rule ranking plays a role in parse ordering,
 which is described in L<a separate
 document|Marpa::R2::Semantics::Order>.
 
-=head1 Lexeme locations and fenceposts
-
-The lexeme locations are an ordered set
-of sets of lexemes.
-Numbering of lexeme locations is 0-based.
-
-It is also useful to use an idea of locations
-B<between> lexeme locations --
-This is the classic "fencepost" issue -- sometimes
-you want to count sections of fence,
-and in other cases it is more convenient to count
-fenceposts.
-
-Let the lexeme locations be from 0 to C<N>.
-If C<I> is greater than 1 and less than C<N>,
-then lexeme fencepost C<I> is before lexeme location C<I>
-and after lexeme location C<I-1>.
-lexeme fencepost C<0> is before lexeme location 0.
-lexeme fencepost C<N> is after lexeme location C<N>
-
-The above implies that
-
-=over 4
-
-=item *
-
-if there are C<N> lexeme locations,
-there are C<N+1> lexeme fenceposts; and
-
-=item *
-
-that lexeme location C<I> is always between
-lexeme fencepost C<I> and
-lexeme fencepost C<I+1>.
-
-=back
-
-Lexeme locations and fenceposts are closely related
-to G1
-L<locations|"Marpa::R2::Scanless::R/G1 locations">.
-
 =head1 Choicepoints
 
 When ranking, the logic traverses each node
@@ -568,6 +527,48 @@ complexity.
 For these apps,
 L<Marpa's ASF's|Marpa::R2::ASF>
 allow full generality in ranking.
+
+=head1 Fenceposts
+
+We recall that lexeme locations are items in a sequence
+of sets of lexemes.
+Numbering of lexeme locations is 0-based.
+
+In what follows,
+it will also be useful to use an idea of locations
+B<between> lexeme locations --
+This is the classic "fencepost" issue -- sometimes
+you want to count sections of fence,
+and in other cases it is more convenient to count
+fenceposts.
+
+Let the lexeme locations be from 0 to C<N>.
+If C<I> is greater than 1 and less than C<N>,
+then lexeme fencepost C<I> is before lexeme location C<I>
+and after lexeme location C<I-1>.
+lexeme fencepost C<0> is before lexeme location 0.
+lexeme fencepost C<N> is after lexeme location C<N>
+
+The above implies that
+
+=over 4
+
+=item *
+
+if there are C<N> lexeme locations,
+there are C<N+1> lexeme fenceposts; and
+
+=item *
+
+that lexeme location C<I> is always between
+lexeme fencepost C<I> and
+lexeme fencepost C<I+1>.
+
+=back
+
+Lexeme locations and fenceposts are closely related
+to G1
+L<locations|"Marpa::R2::Scanless::R/G1 locations">.
 
 =head1 Examples
 
@@ -1225,8 +1226,8 @@ We claimed that C<seq3> must be a factoring of C<W>,
 and we can see that our claim is correct.
 
 B<(4)>:
-Recall the L<discussion of lexeme
-fenceposts|Marpa::R2::Recognizer/"Lexeme locations and fenceposts">.
+Recall the L<discussion above of lexeme
+fenceposts|"fenceposts">.
 We will say that a lexeme fencepost C<fp>
 is a "factoring barrier"
 if it is not properly contained in any item.
