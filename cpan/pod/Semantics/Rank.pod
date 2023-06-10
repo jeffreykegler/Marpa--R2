@@ -243,30 +243,46 @@ resemble
 Elizabeth Scott's SPPF's.
 See L<Marpa::R2::Advanced::Bibliography/"Scott 2008">.
 
+Ranking is done at B<choicepoints>.
+These are the or-nodes of the bocage.
+They closely resemble the or-nodes of traditional parse forests.
+
+An or-node is similar to
+an Earley item with confluences:
+it has a dotted rule, an origin
+a current location, and
+a set of confluences.
+For more about Earley items and confluences,
+see L<our document on the Marpa
+algorithm|Marpa::R2::Algorithm>.
+
+A bocage or-node differs from an Earley item in
+that the tributaries of all its confluences must all start at the same parse location,
+called the B<middle location> of the or-node.
+The "middle location" is so-called because it is
+always between the tribuary and the mainstem,
+as well as between the origin and current location of the or-node.
+
+Predictions and the start Earley item are redundant information
+from the point of of the bocage,
+and no or-nodes are created for them.
+Therefore choicepoints exist only for scanned Earley items and reductions.
+Every confluence linked to an Earley item is called a "choice".
+If a choicepoint has only one confluence,
+and therefore only one choice,
+we call it a B<trivial choicepoint>.
+
 For our purposes, we can views the bocage nodes as Earley items
 with link to their confluences.
 A confluence is a reason for the Earley item to be in the parse
 forest, and a parse tree is created by selection a single
 confluence (or reason to exist) for each Earley item.
-For more about Earley items and confluences,
-see L<our document on the Marpa
-algorithm|Marpa::R2::Algorithm>.
 
 Every Earley item has at least one reason to be
 in the parse forest, or it would not be there.
 Therefore every Earley item has at least one confluence.
 In an ambiguous parse, one or more Earley items will
 have more than one confluence.
-
-Predictions and the start Earley item are redundant information
-from the point of of the bocage, and therefore
-bocage nodes
-exist only for scanned Earley items and reductions.
-Every Earley item in the bocage is called a "choicepoint".
-Every confluence linked to an Earley item is called a "choice".
-If a choicepoint has only one confluence,
-and therefore allows only one choice,
-we call it a "trivial choicepoint".
 
 For two rule instances to be choices of the same
 choicepoint,
