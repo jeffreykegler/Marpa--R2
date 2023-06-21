@@ -50,8 +50,8 @@ my $source = <<"END_OF_SOURCE";
     S ::= L R
     L ::= A
     L ::= A A
-    R ::= R1
-    R ::= R2
+    R ::= R1 action => main::doR1
+    R ::= R2 action => main::doR2
     R1 ::= A rank => $rank1
     R1 ::= A A rank => $rank1
     R2 ::= A rank => $rank2
@@ -103,5 +103,8 @@ sub main::dwim {
     }
     return [@result];
 }
+
+sub main::doR1 { return 'R1'; }
+sub main::doR2 { return 'R2'; }
 
 # vim: expandtab shiftwidth=4:
