@@ -50,12 +50,12 @@ my $source = <<"END_OF_SOURCE";
     S ::= L R
     L ::= A
     L ::= A A
-    R ::= R1 rank => $rank1
-    R ::= R2 rank => $rank2
-    R1 ::= A
-    R1 ::= A A
-    R2 ::= A
-    R2 ::= A A
+    R ::= R1
+    R ::= R2
+    R1 ::= A rank => $rank1
+    R1 ::= A A rank => $rank1
+    R2 ::= A rank => $rank2
+    R2 ::= A A rank => $rank2
     A  ::= 'a'
 
 END_OF_SOURCE
@@ -75,6 +75,7 @@ END_OF_SOURCE
         last VALUE if not defined $value_ref;
         local $Data::Dumper::Deepcopy = 1;
         local $Data::Dumper::Terse    = 1;
+        say STDERR sprintf( 'Ranking synopsis test #%d %d: "%s"', $parse_no, $rank1, $input );
         say STDERR Data::Dumper::Dumper($value_ref);
         # Test::More::is( $value_ref, $output,
             # sprintf( 'Ranking synopsis test #%d: "%s"', $parse_no, $input ) );
