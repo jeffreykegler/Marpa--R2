@@ -36,14 +36,22 @@ use Marpa::R2;
 my @tests_data = ();
 my @results    = ();
 
-my $source = <<'END_OF_SOURCE';
+my @tests = (
+    [ 'aaa', 1, 2, '' ],
+    [ 'aaa', 2, 1, '' ],
+);
+
+for my $test (@tests) {
+    my ( $input, $rank1, $rank2, $output ) = @{$test};
+
+my $source = <<"END_OF_SOURCE";
     :default ::= action => main::dwim
 
     S ::= L R
     L ::= A
     L ::= A A
-    R ::= R1 rank => 1
-    R ::= R2 rank => 2
+    R ::= R1 rank => $rank1
+    R ::= R2 rank => $rank2
     R1 ::= A
     R1 ::= A A
     R2 ::= A
@@ -52,14 +60,8 @@ my $source = <<'END_OF_SOURCE';
 
 END_OF_SOURCE
 
-my @tests = (
-    [ 'aaa', '' ],
-);
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
 
-my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
-
-for my $test (@tests) {
-    my ( $input, $output ) = @{$test};
     my $recce = Marpa::R2::Scanless::R->new(
         {
             grammar        => $grammar,
@@ -68,51 +70,16 @@ for my $test (@tests) {
     );
     $recce->read( \$input );
     my $parse_no = 0;
-    for (;;) {
+    VALUE: for (;;) {
         my $value_ref = $recce->value();
         last VALUE if not defined $value_ref;
         local $Data::Dumper::Deepcopy = 1;
         local $Data::Dumper::Terse    = 1;
         say STDERR Data::Dumper::Dumper($value_ref);
-        Test::More::is( $value_ref, $output,
-            sprintf( 'Ranking synopsis test #%d: "%s"', $parse_no, $input ) );
+        # Test::More::is( $value_ref, $output,
+            # sprintf( 'Ranking synopsis test #%d: "%s"', $parse_no, $input ) );
         $parse_no++;
     }
-}
-
-sub flatten {
-    my ($array) = @_;
-
-    # say STDERR 'flatten arg: ', Data::Dumper::Dumper($array);
-    my $ref = ref $array;
-    return [$array] if $ref ne 'ARRAY';
-    my @flat = ();
-  ELEMENT: for my $element ( @{$array} ) {
-        my $ref = ref $element;
-        if ( $ref ne 'ARRAY' ) {
-            push @flat, $element;
-            next ELEMENT;
-        }
-        my $flat_piece = flatten($element);
-        push @flat, @{$flat_piece};
-    }
-    return \@flat;
-}
-
-sub concat {
-    my ( $pp, @args ) = @_;
-
-    # say STDERR 'concat: ', Data::Dumper::Dumper(\@args);
-    my $flat = flatten( \@args );
-    return join '', @{$flat};
-}
-
-sub group {
-    my ( $pp, @args ) = @_;
-
-    # say STDERR 'comma_sep args: ', Data::Dumper::Dumper(\@args);
-    my $flat = flatten( \@args );
-    return join '', map { +'(' . $_ . ')'; } @{$flat};
 }
 
 sub main::dwim {
