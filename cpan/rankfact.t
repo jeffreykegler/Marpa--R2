@@ -22,7 +22,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 2;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use POSIX qw(setlocale LC_ALL);
@@ -33,12 +33,9 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-my @tests_data = ();
-my @results    = ();
-
 my @tests = (
-    [ 'aaa', 1, 2, '' ],
-    [ 'aaa', 2, 1, '' ],
+    [ 'aaa', 1, 2, 'R2 R2 R1 R1' ],
+    [ 'aaa', 2, 1, 'R1 R1 R2 R2' ],
 );
 
 for my $test (@tests) {
@@ -47,7 +44,7 @@ for my $test (@tests) {
 my $source = <<"END_OF_SOURCE";
     :default ::= action => main::dwim
 
-    S ::= L R
+    S ::= (L) R
     L ::= A
     L ::= A A
     R ::= R1 action => main::doR1 rank => $rank1
@@ -69,18 +66,19 @@ END_OF_SOURCE
         }
     );
     $recce->read( \$input );
-    my $parse_no = 0;
+    my @results = ();
     VALUE: for (;;) {
         my $value_ref = $recce->value();
         last VALUE if not defined $value_ref;
-        local $Data::Dumper::Deepcopy = 1;
-        local $Data::Dumper::Terse    = 1;
-        say STDERR sprintf( 'Ranking synopsis test #%d %d: "%s"', $parse_no, $rank1, $input );
-        say STDERR Data::Dumper::Dumper($value_ref);
-        # Test::More::is( $value_ref, $output,
-            # sprintf( 'Ranking synopsis test #%d: "%s"', $parse_no, $input ) );
-        $parse_no++;
+        my $value = pop @{$$value_ref};
+        push @results, $value;
     }
+    my $got = join " ", @results;
+    Test::More::is( $got, $output,
+        sprintf( q{Ranking synopsis test R1=%d R2=%d: "%s"-> "%s"}, $rank1, $rank2, $input, $got ) );
+    # local $Data::Dumper::Deepcopy = 1;
+    # local $Data::Dumper::Terse    = 1;
+    # say STDERR Data::Dumper::Dumper(\@results);
 }
 
 sub main::dwim {
