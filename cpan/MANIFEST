@@ -277,6 +277,7 @@ t/progress1.t
 t/progress2.t
 t/rabend.t
 t/randal.t
+t/rankfact.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
