@@ -37,15 +37,15 @@ my $input = 'aaaa';
 my $source = <<"END_OF_SOURCE";
     :default ::= action => main::dwim
 
-    S ::= A A
+    S ::= A A action => main::flatten
     A ::= A1
     A ::= A2
-    A1 ::= B B action => main::dwim2
-    A2 ::= B B action => main::dwim2
+    A1 ::= B B action => main::dwimB
+    A2 ::= B B action => main::dwimB
     B ::= B1
     B ::= B2
-    B1  ::= ('a') action => main::dwim2
-    B2  ::= ('a') action => main::dwim2
+    B1  ::= ('a') action => main::dwimB
+    B2  ::= ('a') action => main::dwimB
 
 END_OF_SOURCE
 
@@ -62,9 +62,10 @@ END_OF_SOURCE
     VALUE: for (;;) {
         my $value_ref = $recce->value();
         last VALUE if not defined $value_ref;
-        local $Data::Dumper::Deepcopy = 1;
-        local $Data::Dumper::Terse    = 1;
-        say STDERR Data::Dumper::Dumper($value_ref);
+        say $$value_ref;
+        # local $Data::Dumper::Deepcopy = 1;
+        # local $Data::Dumper::Terse    = 1;
+        # say STDERR Data::Dumper::Dumper($value_ref);
     }
 
 sub main::dwim {
@@ -88,7 +89,7 @@ sub main::dwim {
     return [@result];
 }
 
-sub main::dwim2 {
+sub main::dwimB {
     my @result = ();
     shift;
     ARG: for my $v ( @_ ) {
@@ -112,8 +113,28 @@ sub main::dwim2 {
     return [$lhs, @result];
 }
 
+sub flatten {
+    my ($parseValue, @values) = @_;
+    my $arrRef = flattenArrayRef(\@values);
+    return join " ", @$arrRef;
+}
 
-sub main::doR1 { return 'R1'; }
-sub main::doR2 { return 'R2'; }
+sub flattenArrayRef {
+    my ($array) = @_;
+    return [] if not defined $array;
+    my $ref = ref $array;
+    return [$array] if $ref ne 'ARRAY';
+    my @flat = ();
+    ELEMENT: for my $element (@{$array}) {
+       my $ref = ref $element;
+       if ($ref ne 'ARRAY') {
+           push @flat, $element;
+           next ELEMENT;
+       }
+       my $flat_piece = flattenArrayRef($element);
+       push @flat, @{$flat_piece};
+    }
+    return \@flat;
+}
 
 # vim: expandtab shiftwidth=4:
