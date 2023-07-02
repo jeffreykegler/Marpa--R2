@@ -38,12 +38,12 @@ my $source = <<"END_OF_SOURCE";
     :default ::= action => main::dwim
 
     S ::= A A action => main::flatten
-    A ::= A1
-    A ::= A2
+    A ::= A1 rank => 1
+    A ::= A2 rank => 2
     A1 ::= B B action => main::dwimB
     A2 ::= B B action => main::dwimB
-    B ::= B1
-    B ::= B2
+    B ::= B1 rank => 1
+    B ::= B2 rank => 2
     B1  ::= ('a') action => main::dwimB
     B2  ::= ('a') action => main::dwimB
 
