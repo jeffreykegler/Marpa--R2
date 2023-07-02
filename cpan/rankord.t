@@ -38,12 +38,12 @@ my $source = <<"END_OF_SOURCE";
     :default ::= action => main::dwim
 
     S ::= A A action => main::flatten
-    A ::= A1 rank => 1
-    A ::= A2 rank => 2
+    A ::= A1 rank => 2
+    A ::= A2 rank => 1
     A1 ::= B B action => main::dwimB
     A2 ::= B B action => main::dwimB
-    B ::= B1 rank => 1
-    B ::= B2 rank => 2
+    B ::= B1 rank => 2
+    B ::= B2 rank => 1
     B1  ::= ('a') action => main::dwimB
     B2  ::= ('a') action => main::dwimB
 
@@ -111,13 +111,13 @@ sub main::dwimB {
     my $rule_id = $Marpa::R2::Context::rule;
     my $grammar = $Marpa::R2::Context::grammar;
     my ($lhs)   = $grammar->rule($rule_id);
-    return [ $lhs, @result ];
+    return [ @result, $lhs ];
 }
 
 sub flatten {
     my ( $parseValue, @values ) = @_;
     my $arrRef = flattenArrayRef( \@values );
-    return join " ", @$arrRef;
+    return join " ", reverse @$arrRef;
 }
 
 sub flattenArrayRef {
