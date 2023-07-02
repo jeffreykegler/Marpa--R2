@@ -49,40 +49,41 @@ my $source = <<"END_OF_SOURCE";
 
 END_OF_SOURCE
 
-    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
 
-    my $recce = Marpa::R2::Scanless::R->new(
-        {
-            grammar        => $grammar,
-            ranking_method => 'rule'
-        }
-    );
-    $recce->read( \$input );
-    my @results = ();
-    VALUE: for (;;) {
-        my $value_ref = $recce->value();
-        last VALUE if not defined $value_ref;
-        say $$value_ref;
-        # local $Data::Dumper::Deepcopy = 1;
-        # local $Data::Dumper::Terse    = 1;
-        # say STDERR Data::Dumper::Dumper($value_ref);
+my $recce = Marpa::R2::Scanless::R->new(
+    {
+        grammar        => $grammar,
+        ranking_method => 'rule'
     }
+);
+$recce->read( \$input );
+my @results = ();
+VALUE: for ( ; ; ) {
+    my $value_ref = $recce->value();
+    last VALUE if not defined $value_ref;
+    say $$value_ref;
+
+    # local $Data::Dumper::Deepcopy = 1;
+    # local $Data::Dumper::Terse    = 1;
+    # say STDERR Data::Dumper::Dumper($value_ref);
+}
 
 sub main::dwim {
     my @result = ();
     shift;
-    ARG: for my $v ( @_ ) {
+  ARG: for my $v (@_) {
         next ARG if not $v;
         my $type = Scalar::Util::reftype $v;
-        if (not $type or $type ne 'ARRAY') {
-           push @result, $v;
-           next ARG;
+        if ( not $type or $type ne 'ARRAY' ) {
+            push @result, $v;
+            next ARG;
         }
         my $size = scalar @{$v};
         next ARG if $size == 0;
-        if ($size == 1) {
-           push @result, ${$v}[0];
-           next ARG;
+        if ( $size == 1 ) {
+            push @result, ${$v}[0];
+            next ARG;
         }
         push @result, $v;
     }
@@ -92,30 +93,30 @@ sub main::dwim {
 sub main::dwimB {
     my @result = ();
     shift;
-    ARG: for my $v ( @_ ) {
+  ARG: for my $v (@_) {
         next ARG if not $v;
         my $type = Scalar::Util::reftype $v;
-        if (not $type or $type ne 'ARRAY') {
-           push @result, $v;
-           next ARG;
+        if ( not $type or $type ne 'ARRAY' ) {
+            push @result, $v;
+            next ARG;
         }
         my $size = scalar @{$v};
         next ARG if $size == 0;
-        if ($size == 1) {
-           push @result, ${$v}[0];
-           next ARG;
+        if ( $size == 1 ) {
+            push @result, ${$v}[0];
+            next ARG;
         }
         push @result, $v;
     }
     my $rule_id = $Marpa::R2::Context::rule;
     my $grammar = $Marpa::R2::Context::grammar;
-    my ( $lhs ) = $grammar->rule($rule_id);
-    return [$lhs, @result];
+    my ($lhs)   = $grammar->rule($rule_id);
+    return [ $lhs, @result ];
 }
 
 sub flatten {
-    my ($parseValue, @values) = @_;
-    my $arrRef = flattenArrayRef(\@values);
+    my ( $parseValue, @values ) = @_;
+    my $arrRef = flattenArrayRef( \@values );
     return join " ", @$arrRef;
 }
 
@@ -125,14 +126,14 @@ sub flattenArrayRef {
     my $ref = ref $array;
     return [$array] if $ref ne 'ARRAY';
     my @flat = ();
-    ELEMENT: for my $element (@{$array}) {
-       my $ref = ref $element;
-       if ($ref ne 'ARRAY') {
-           push @flat, $element;
-           next ELEMENT;
-       }
-       my $flat_piece = flattenArrayRef($element);
-       push @flat, @{$flat_piece};
+  ELEMENT: for my $element ( @{$array} ) {
+        my $ref = ref $element;
+        if ( $ref ne 'ARRAY' ) {
+            push @flat, $element;
+            next ELEMENT;
+        }
+        my $flat_piece = flattenArrayRef($element);
+        push @flat, @{$flat_piece};
     }
     return \@flat;
 }
