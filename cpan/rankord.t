@@ -58,11 +58,11 @@ my $recce = Marpa::R2::Scanless::R->new(
     }
 );
 $recce->read( \$input );
-my @results = ();
+my @rawGot = ();
 VALUE: for ( ; ; ) {
     my $value_ref = $recce->value();
     last VALUE if not defined $value_ref;
-    push @results, $$value_ref;
+    push @rawGot, $$value_ref;
     # local $Data::Dumper::Deepcopy = 1;
     # local $Data::Dumper::Terse    = 1;
     # say STDERR Data::Dumper::Dumper($value_ref);
@@ -135,7 +135,12 @@ B1 B2 A2 B2 B2 A2
 B2 B2 A2 B2 B2 A2
 EOS
 
-my $got = join "\n", @results, '';
+my @got = ();
+for my $gotArr (@rawGot) {
+    my $gotLine = join " ", @{$gotArr};
+    push @got, $gotLine;
+}
+my $got = join "\n", @got, '';
 Test::More::is( $got, $output, 'Ranking order');
 
 sub main::dwim {
@@ -186,7 +191,7 @@ sub main::dwimB {
 sub flatten {
     my ( $parseValue, @values ) = @_;
     my $arrRef = flattenArrayRef( \@values );
-    return join " ", @$arrRef;
+    return $arrRef;
 }
 
 sub flattenArrayRef {
