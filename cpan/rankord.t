@@ -21,7 +21,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 1;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use POSIX qw(setlocale LC_ALL);
@@ -62,12 +62,81 @@ my @results = ();
 VALUE: for ( ; ; ) {
     my $value_ref = $recce->value();
     last VALUE if not defined $value_ref;
-    say $$value_ref;
-
+    push @results, $$value_ref;
     # local $Data::Dumper::Deepcopy = 1;
     # local $Data::Dumper::Terse    = 1;
     # say STDERR Data::Dumper::Dumper($value_ref);
 }
+
+my $output = <<'EOS';
+B1 B1 A1 B1 B1 A1
+B2 B1 A1 B1 B1 A1
+B1 B2 A1 B1 B1 A1
+B2 B2 A1 B1 B1 A1
+B1 B1 A2 B1 B1 A1
+B2 B1 A2 B1 B1 A1
+B1 B2 A2 B1 B1 A1
+B2 B2 A2 B1 B1 A1
+B1 B1 A1 B2 B1 A1
+B2 B1 A1 B2 B1 A1
+B1 B2 A1 B2 B1 A1
+B2 B2 A1 B2 B1 A1
+B1 B1 A2 B2 B1 A1
+B2 B1 A2 B2 B1 A1
+B1 B2 A2 B2 B1 A1
+B2 B2 A2 B2 B1 A1
+B1 B1 A1 B1 B2 A1
+B2 B1 A1 B1 B2 A1
+B1 B2 A1 B1 B2 A1
+B2 B2 A1 B1 B2 A1
+B1 B1 A2 B1 B2 A1
+B2 B1 A2 B1 B2 A1
+B1 B2 A2 B1 B2 A1
+B2 B2 A2 B1 B2 A1
+B1 B1 A1 B2 B2 A1
+B2 B1 A1 B2 B2 A1
+B1 B2 A1 B2 B2 A1
+B2 B2 A1 B2 B2 A1
+B1 B1 A2 B2 B2 A1
+B2 B1 A2 B2 B2 A1
+B1 B2 A2 B2 B2 A1
+B2 B2 A2 B2 B2 A1
+B1 B1 A1 B1 B1 A2
+B2 B1 A1 B1 B1 A2
+B1 B2 A1 B1 B1 A2
+B2 B2 A1 B1 B1 A2
+B1 B1 A2 B1 B1 A2
+B2 B1 A2 B1 B1 A2
+B1 B2 A2 B1 B1 A2
+B2 B2 A2 B1 B1 A2
+B1 B1 A1 B2 B1 A2
+B2 B1 A1 B2 B1 A2
+B1 B2 A1 B2 B1 A2
+B2 B2 A1 B2 B1 A2
+B1 B1 A2 B2 B1 A2
+B2 B1 A2 B2 B1 A2
+B1 B2 A2 B2 B1 A2
+B2 B2 A2 B2 B1 A2
+B1 B1 A1 B1 B2 A2
+B2 B1 A1 B1 B2 A2
+B1 B2 A1 B1 B2 A2
+B2 B2 A1 B1 B2 A2
+B1 B1 A2 B1 B2 A2
+B2 B1 A2 B1 B2 A2
+B1 B2 A2 B1 B2 A2
+B2 B2 A2 B1 B2 A2
+B1 B1 A1 B2 B2 A2
+B2 B1 A1 B2 B2 A2
+B1 B2 A1 B2 B2 A2
+B2 B2 A1 B2 B2 A2
+B1 B1 A2 B2 B2 A2
+B2 B1 A2 B2 B2 A2
+B1 B2 A2 B2 B2 A2
+B2 B2 A2 B2 B2 A2
+EOS
+
+my $got = join "\n", @results, '';
+Test::More::is( $got, $output, 'Ranking order');
 
 sub main::dwim {
     my @result = ();
@@ -117,7 +186,7 @@ sub main::dwimB {
 sub flatten {
     my ( $parseValue, @values ) = @_;
     my $arrRef = flattenArrayRef( \@values );
-    return join " ", reverse @$arrRef;
+    return join " ", @$arrRef;
 }
 
 sub flattenArrayRef {
