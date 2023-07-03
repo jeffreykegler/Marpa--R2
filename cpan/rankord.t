@@ -21,7 +21,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use POSIX qw(setlocale LC_ALL);
@@ -136,12 +136,17 @@ B2 B2 A2 B2 B2 A2
 EOS
 
 my @got = ();
+my @revGot = ();
 for my $gotArr (@rawGot) {
     my $gotLine = join " ", @{$gotArr};
+    my $revGotLine = join " ", reverse @{$gotArr};
     push @got, $gotLine;
+    push @revGot, $revGotLine;
 }
 my $got = join "\n", @got, '';
-Test::More::is( $got, $output, 'Ranking order');
+my @sortedGot = sort { $a cmp $b } @revGot;
+Test::More::is( $got, $output, 'Ranking order vs expected');
+Test::More::is_deeply( \@revGot, \@sortedGot, 'Ranking order vs sort');
 
 sub main::dwim {
     my @result = ();
