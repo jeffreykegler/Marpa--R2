@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Test order of ranking
+# Test order of ranking -- should be depth-first left-to-right
 
 use 5.010001;
 
