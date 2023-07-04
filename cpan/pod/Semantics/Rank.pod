@@ -340,9 +340,7 @@ by symbolic rank;
 =item *
 
 if null-ranking has been selected,
-by the appropriate null-ranking;
-
-=item *
+by the appropriate null-ranking.
 
 =back
 
@@ -350,6 +348,8 @@ The order of two choices is arbitary if they
 have same symbolic rank and
 
 =over 4
+
+=item *
 
 null ranking has not been selected or
 
