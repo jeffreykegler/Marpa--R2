@@ -323,31 +323,80 @@ For more about symbolic choices (also called B<symches>)
 and factorings, see
 L<Marpa::R2::Glade/"Ambiguity: factoring versus symches">.
 
-=head1 Parse choices
+=head1 Iterating the parses
 
-As mentioned, a choicepoint can be seen as a set
-of one or more B<parse choices>.
-From the point of view of the individual parse trees,
-the traversal is top-down
-and left-to-right.
+Summarizing,
+iteration of the parse forest is depth-first, left-to-right.
+In what follows, we outline the iteration in more detail.
 
-=head1 Rank is by tributary
+Choices are ordered from major to minor
 
-The rank of a parse choice is that of its tributary.
-The rank of a tributary is the rank of its rule.
-Therefore, the rank of a parse choice is the rank
-of the rule of its tributary.
-That last sentence
-is the most important sentence of this document,
-so we will repeat it:
+=over 4
 
-=for Marpa::R2::Display
-ignore: 1
+=item *
 
-    The rank of a parse choice is
-    the rank of the rule of its tributary.
+by symbolic rank;
 
-=for Marpa::R2::Display::End
+=item *
+
+if null-ranking has been selected,
+by the appropriate null-ranking;
+
+=item *
+
+=back
+
+The order of two choices is arbitary if they
+have same symbolic rank and
+
+=over 4
+
+null ranking has not been selected or
+
+=item *
+
+their null ranking is the same.
+
+=back
+
+Every node of a parse tree corresponds to a choice
+from a choicepoint of the parse forest.
+The B<initial parse tree> is the parse tree all of
+whose choices are the first choices.
+An B<initialized parse subtree> is a subtree of parse tree,
+all of whose choices are the first choices.
+
+The first parse tree in the iterator of a parse forest
+is the initial parse tree.
+
+For the second and later parse trees, the next parse tree
+is found by traversing the current parse tree from the
+bottom up, left to right.
+Every node of the parse tree will correspond to a choicepoint
+of the parse forest, and a choice within that choicepoint.
+If the current choice of its choicepoint is the last choice
+of that choicepoint,
+we say that that node of the parse tree is B<exhausted>.
+If a parse tree node is not B<exhausted>,
+we say that is B<active>.
+
+As the traversal of the parse tree encounters
+exhausted nodes, it prunes them from the tree.
+The traversal ends when it encounters an active parse
+tree node.
+We call that active parse tree the B<iteration parse tree node>.
+
+Once the iteration parse tree node has been found,
+it is replaced with a new tree node
+which corresponds to the next choice of the choicepoint
+of the iteration parse tree node.
+All pruned subtrees are then replaced with their initialized versions.
+
+When the entire parse tree is traversed without finding
+an active parse tree node,
+there are no more parse trees.
+In that case,
+the parse forest is said to be B<exhausted>.
 
 =head1 Motivation
 
