@@ -451,48 +451,6 @@ For these apps,
 L<Marpa's ASF's|Marpa::R2::ASF>
 allow full generality in ranking.
 
-=head1 Fenceposts
-
-We recall that lexeme locations are items in a sequence
-of sets of lexemes.
-Numbering of lexeme locations is 0-based.
-
-In what follows,
-it will also be useful to use an idea of locations
-B<between> lexeme locations --
-This is the classic "fencepost" issue -- sometimes
-you want to count sections of fence,
-and in other cases it is more convenient to count
-fenceposts.
-
-Let the lexeme locations be from 0 to C<N>.
-If C<I> is greater than 1 and less than C<N>,
-then lexeme fencepost C<I> is before lexeme location C<I>
-and after lexeme location C<I-1>.
-lexeme fencepost C<0> is before lexeme location 0.
-lexeme fencepost C<N> is after lexeme location C<N>
-
-The above implies that
-
-=over 4
-
-=item *
-
-if there are C<N> lexeme locations,
-there are C<N+1> lexeme fenceposts; and
-
-=item *
-
-that lexeme location C<I> is always between
-lexeme fencepost C<I> and
-lexeme fencepost C<I+1>.
-
-=back
-
-Lexeme locations and fenceposts are closely related
-to G1
-L<locations|"Marpa::R2::Scanless::R/G1 locations">.
-
 =head1 Examples
 
 Our examples in this document will look at
@@ -823,13 +781,20 @@ These "pure BNF" reimplementations rely on an observation
 used in L<the detailed proof of the ranked BNF
 example|/"Proof of correctness">:
 The parse string becomes easier to analyze
-when you see it as a sequence of "var-bounded"
-substrings,
-where "var-bounded" means the substring is
-delimited by the start of the string,
-the end of the string,
-or the fencepost between
-two C<< <VAR> >> lexemes.
+when we think in terms of fenceposts,
+rather than in term of the location of the lexemes.
+Fencepost are either initial, final or medial.
+The B<initial fencepost> is the position before the first lexeme.
+The B<final fencepost> is the position after the last lexeme.
+A B<medial fencepost> is the position between two lexemes.
+We can call a fencepost a B<VAR-bound>
+if it is a either an initial fencepost,
+a final fencepost,
+or a medial fencepost
+that occurs between two C<< <VAR> >> lexemes.
+We can then visualize the input string
+as a sequence of "VAR-bounded"
+substrings.
 
 =head3 Longest highest as pure BNF
 
@@ -981,6 +946,48 @@ can be L<reimplemented as pure unranked
 BNF|/"Reimplementation as pure BNF">.
 Where it is possible to convert your ranked grammar to a pure BNF grammar,
 that will usually be the best and safest choice.
+
+=head1 Fenceposts
+
+We recall that lexeme locations are items in a sequence
+of sets of lexemes.
+Numbering of lexeme locations is 0-based.
+
+In what follows,
+it will also be useful to use an idea of locations
+B<between> lexeme locations --
+This is the classic "fencepost" issue -- sometimes
+you want to count sections of fence,
+and in other cases it is more convenient to count
+fenceposts.
+
+Let the lexeme locations be from 0 to C<N>.
+If C<I> is greater than 1 and less than C<N>,
+then lexeme fencepost C<I> is before lexeme location C<I>
+and after lexeme location C<I-1>.
+lexeme fencepost C<0> is before lexeme location 0.
+lexeme fencepost C<N> is after lexeme location C<N>
+
+The above implies that
+
+=over 4
+
+=item *
+
+if there are C<N> lexeme locations,
+there are C<N+1> lexeme fenceposts; and
+
+=item *
+
+that lexeme location C<I> is always between
+lexeme fencepost C<I> and
+lexeme fencepost C<I+1>.
+
+=back
+
+Lexeme locations and fenceposts are closely related
+to G1
+L<locations|"Marpa::R2::Scanless::R/G1 locations">.
 
 =head1 Details
 
