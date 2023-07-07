@@ -409,46 +409,15 @@ the parse forest iterator is said to be B<exhausted>.
 
 =head1 Motivation
 
-By the definition of the previous section,
-the rule of the choicepoint itself plays no
-direct role in ranking.
-Instead,
-the ranking is based on the rules of one
-of the choicepoint's
-child nodes.
-At first,
-this may seem unnecessarily roundabout,
-and even counter-intuitive,
-but on reflection,
-it will make sense.
-
-Ranking cannot be based
-directly on the rank of the choicepoint's rule
-because every parse choice for that choicepoint shares
-the choicepoint's rule.
-We have not examined the internal structure of
-mainstems, but ranking is not based on them
-for the same reason:
-the rule of a mainstem is always
-the same as the rule of its result choicepoint,
-and therefore the rule of its mainstem
-is the same for every parse choice of a choicepoint.
-
-On the other hand,
-the tributaries of parse choices can and often do
-differ in their rules.
-Therefore ranking is based on the rules of
-the tributaries of a choicepoint.
-
-Note that ranking is only by B<direct> tributaries.
+We note that ranking is only by B<direct> tributaries.
 It might reasonably be asked,
 why not, at least in the case of a tie,
-look at tributaries of tributaries.
+look at tributaries of tributaries?
 Or why not resolve ties by looking at tributaries of
 mainstems?
 
 Marpa's built-in rule ranking
-was chosen to be the most powerful system
+was chosen as the most powerful system
 that could be implemented with effectively
 zero cost.
 Ranking by direct tributaries uses only information
@@ -456,7 +425,7 @@ that is quickly and directly available,
 so that its runtime cost is probably
 not measurable.
 
-Complexity was also an issue.
+The complexity of the specification was also an issue.
 If indirect tributaries are taken into account,
 we would need to specify which tributaries,
 and under what circumstances they are used.
@@ -467,10 +436,12 @@ Only in case of ties, or using a more complex metric?
 To arbitrary depth, or using a traversal that is
 cut off at some point?
 
-Ranking by direct tributaries only means the answer
-to all of these questions is as simple as it can be.
+If we do ranking by direct tributaries only,
+that make the answers
+to the above questions as simple as it can be.
 Once we get into analyzing the synopsis grammar in detail,
-the importance of simplicity will become clear.
+the importance having a specification that is
+(relatively) simple will become clear.
 
 To be sure,
 there are apps
