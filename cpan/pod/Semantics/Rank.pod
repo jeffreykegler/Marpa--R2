@@ -325,17 +325,14 @@ L<Marpa::R2::Glade/"Ambiguity: factoring versus symches">.
 
 =head1 Iterating the parses
 
-Summarizing,
-iteration of the parse forest is depth-first, left-to-right.
-In what follows, we outline the iteration in more detail.
-
+Iteration of the parse forest is depth-first, left-to-right.
 Choices are ordered from major to minor
 
 =over 4
 
 =item *
 
-by symbolic rank;
+by symbolic rank; and
 
 =item *
 
@@ -359,12 +356,20 @@ their null ranking is the same.
 
 =back
 
+The preceding part of this section contains all most users will need to know
+about the iteration algorithm.
+The rest of this section describes the iteration algorithm in
+detail.
+
 Every node of a parse tree corresponds to a choice
 from a choicepoint of the parse forest.
-The B<initial parse tree> is the parse tree all of
-whose choices are the first choices.
-An B<initialized parse subtree> is a subtree of parse tree,
-all of whose choices are the first choices.
+An B<initial parse subtree> is the subtree formed from
+an choicepoint-rooted subforest by taking all the first choices of its choicepoints.
+
+The B<initial parse tree> is the initial parse subtree formed
+from the subforest whose root in the root of the forest.
+In other words, the initial parse tree is the tree formed
+by taking the first choices of the entire forest.
 
 The first parse tree in the iterator of a parse forest
 is the initial parse tree.
@@ -390,13 +395,17 @@ Once the iteration parse tree node has been found,
 it is replaced with a new tree node
 which corresponds to the next choice of the choicepoint
 of the iteration parse tree node.
-All pruned subtrees are then replaced with their initialized versions.
+
+The remaining tree will have missing subtrees due to the replacement
+of the iteration parse tree node,
+and to the pruning of exhausted nodes.
+These subtrees are replaced with initial parse subtrees.
 
 When the entire parse tree is traversed without finding
 an active parse tree node,
 there are no more parse trees.
 In that case,
-the parse forest is said to be B<exhausted>.
+the parse forest iterator is said to be B<exhausted>.
 
 =head1 Motivation
 
