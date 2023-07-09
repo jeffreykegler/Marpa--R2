@@ -309,11 +309,18 @@ so that every scanned choicepoint must be trivial.
 It follows that every non-trivial choicepoint
 will be a reduction.
 
+=head1 Ambiguous choicepoints
+
 If there is only one choice at a choicepoint,
 we say that the choicepoint is a B<singleton choicepoint>.
 Every singleton choicepoint is trivial,
 but some trivial choicepoints are not singletons.
-Choices at choicepoints may differ not just symbolically,
+
+A choicepoint is B<ambiguous> if and only if
+it is not a singleton.
+All non-trival choicepoints are ambiguous,
+but some trivial choicepoints are also ambiguous.
+This is because choices at choicepoints may differ not just symbolically,
 but in the way in which the symbols divide up the input
 string -- the way in which they "factor" the input.
 Choices which have the same symbols,
@@ -322,6 +329,23 @@ will have the same rank.
 For more about symbolic choices (also called B<symches>)
 and factorings, see
 L<Marpa::R2::Glade/"Ambiguity: factoring versus symches">.
+
+As we have noted,
+a scanned choicepoint is never non-trivial,
+but a scanned choicepoint may be ambigous if variable length tokens are in use.
+Usually variable length tokens are not in use,
+and all scanned choicepoint are both trivial and singletons.
+
+A reduction choicepoint may be both non-trivial and ambiguous.
+If a reduction choicepoint is non-trivial,
+it must differ symbolically from the other choices of that choicepoint.
+The mainstem and predot symbol of all the choices in a choicepoint are always
+identical, so that if the choices in a reduction choicepoint differ symbolically,
+the tributaries of the reduction choices must have different rules.
+The predot symbol of a reduction choice is always the LHS of the rule
+of its tributary,
+so that if two reduction choices differ symbolically,
+they must be for two distinct rules which share the same LHS.
 
 =head1 Iterating the parses
 
