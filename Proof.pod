@@ -1,0 +1,1622 @@
+# Copyright 2022 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Semantics::Rank::Proof - Proof for ranking docs
+
+=head1 ABOUT ME
+
+This document is keep as source material
+to be mined for the proof of assertions
+in the documentation of the ranking methods.
+
+=head1 Synopsis
+
+=for Marpa::R2::Display
+name: Rank document synopsis
+normalize-whitespace: 1
+
+    my $source = <<'END_OF_SOURCE';
+      :discard ~ ws; ws ~ [\s]+
+      :default ::= action => ::array
+
+      Top ::= List action => main::group
+      List ::= Item3 rank => 3
+      List ::= Item2 rank => 2
+      List ::= Item1 rank => 1
+      List ::= List Item3 rank => 3
+      List ::= List Item2 rank => 2
+      List ::= List Item1 rank => 1
+      Item3 ::= VAR '=' VAR action => main::concat
+      Item2 ::= VAR '='     action => main::concat
+      Item1 ::= VAR         action => main::concat
+      VAR ~ [\w]+
+
+    END_OF_SOURCE
+
+    my @tests = (
+        [ 'a',                 '(a)', ],
+        [ 'a = b',             '(a=b)', ],
+        [ 'a = b = c',         '(a=)(b=c)', ],
+        [ 'a = b = c = d',     '(a=)(b=)(c=d)', ],
+        [ 'a = b c = d',       '(a=b)(c=d)' ],
+        [ 'a = b c = d e =',   '(a=b)(c=d)(e=)' ],
+        [ 'a = b c = d e',     '(a=b)(c=d)(e)' ],
+        [ 'a = b c = d e = f', '(a=b)(c=d)(e=f)' ],
+    );
+
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$source } );
+    for my $test (@tests) {
+        my ( $input, $output ) = @{$test};
+        my $recce = Marpa::R2::Scanless::R->new(
+            {
+                grammar        => $grammar,
+                ranking_method => 'high_rule_only'
+            }
+        );
+        $recce->read( \$input );
+        my $value_ref = $recce->value();
+        if ( not defined $value_ref ) {
+            die 'No parse';
+        }
+        push @results, ${$value_ref};
+    }
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: rank example semantics
+normalize-whitespace: 1
+
+    sub flatten {
+        my ($array) = @_;
+
+        # say STDERR 'flatten arg: ', Data::Dumper::Dumper($array);
+        my $ref = ref $array;
+        return [$array] if $ref ne 'ARRAY';
+        my @flat = ();
+      ELEMENT: for my $element ( @{$array} ) {
+            my $ref = ref $element;
+            if ( $ref ne 'ARRAY' ) {
+                push @flat, $element;
+                next ELEMENT;
+            }
+            my $flat_piece = flatten($element);
+            push @flat, @{$flat_piece};
+        }
+        return \@flat;
+    }
+
+    sub concat {
+        my ( $pp, @args ) = @_;
+
+        # say STDERR 'concat: ', Data::Dumper::Dumper(\@args);
+        my $flat = flatten( \@args );
+        return join '', @{$flat};
+    }
+
+    sub group {
+        my ( $pp, @args ) = @_;
+
+        # say STDERR 'comma_sep args: ', Data::Dumper::Dumper(\@args);
+        my $flat = flatten( \@args );
+        return join '', map { +'(' . $_ . ')'; } @{$flat};
+    }
+
+=for Marpa::R2::Display::End
+
+=head1 Description
+
+This document describes rule ranking.
+Rule ranking plays a role in parse ordering,
+which is described in L<a separate
+document|Marpa::R2::Semantics::Order>.
+
+=head1 Ranking methods
+
+SLIF recognizer objects have a L<C<ranking_method> named
+argument|Marpa::R2::Scanless::R/"ranking_method">,
+whose value can be the name of a ranking method,
+or "C<none>", indicating that the default ranking method is to
+be used.
+
+=head2 The C<rule> ranking method
+
+The rule method ranks alternative parses according to their rule alternatives.
+Every rule alternative has a B<numeric rank>.
+A rule's rank can be specified using the
+the C<rank> adverb
+argument for that RHS alternative.
+Rule ranks must be integers.
+They may be negative.
+If no numeric rank is specified, the numeric rank is 0.
+
+=head2 The C<high_rule_only> ranking method
+
+The C<high_rule_only> ranking method is similar to the
+C<rule> ranking method, except that, at every choicepoint,
+it discards all of the choices which
+have a rank lower than that of the highest ranked choice.
+
+The C<high_rule_only> ranking method
+can reduce the ambiguity of a parse,
+but it does not necessarily do so.
+This is because, at each choicepoint among the parse trees,
+it is possible that several of the choices,
+or all of them, will have the same rank
+as the highest ranked choice.
+
+=head1 Rule ranking
+
+At each choicepoint,
+the choices
+are ranked as follows:
+
+=over
+
+=item * B<Different numeric ranks>:
+
+If the two parse choices have different numeric ranks,
+they must also have different rule alternatives.
+The parse choice whose rule alternative has the higher numeric rank
+will rank high.
+
+=item * B<Same rule alternative>:
+
+If the two parse choices have the same rule alternative,
+they rank as described
+under L<"Null variant ranking">.
+
+=item * B<Same numeric rank, different rule alternatives>:
+
+Two different rule alternatives can have the same numeric rank.
+If the two parse choices are for
+rule alternatives that are different,
+but that have the same numeric rank,
+the relative order of the two parse choices is
+arbitrary.
+
+=back
+
+Rule alternatives may be part of a single rule in the DSL --
+for example, a
+L<prioritized rule|Marpa::R2::Scanless::DSL/"Prioritized rule">.
+Lexical order within a DSL rule
+makes no difference when ranking rule alternatives.
+For example, it makes no difference if two rule alternatives
+come from the same prioritized rule;
+or from two different prioritized rules.
+
+=head1 Null variant ranking
+
+Some rules have a RHS which contains
+B<proper nullables>:
+symbols
+which may be nulled, but which are not nulling
+symbols.
+(Nulling symbols are symbols which are B<always> nulled.)
+
+When a rule alternative contains proper nullables,
+each instance
+of that rule creates a B<nulling variant>.
+A B<nulling variant> is
+a specific pattern of
+null and non-null symbols in a rule instance's RHS.
+In many cases, this creates an ambiguity -- different
+nulling variants can match the same substring in the input.
+In ambiguous parsings of this kind,
+some applications may want to rank nulling variants that start
+with non-null symbols higher.
+Other applications may want to do the opposite --
+to rank nulling variants that start
+with null symbols higher.
+
+The
+L<C<null-ranking> adverb
+for RHS alternatives|Marpa::R2::Scanless::DSL/"null-ranking">
+specifies which nulling variants are ranked high or low.
+If the C<null-ranking> is "C<low>",
+then the closer a nulling variant
+places its B<visible> (non-null) symbols to the start of the rule instance,
+the higher it ranks.
+A null ranking of C<low> is the default.
+If the C<null-ranking> is "C<high>",
+then the closer a nulling variant
+places its B<null> symbols to the start of the rule instance,
+the higher it ranks.
+In ranking nulling variants with more than one proper nullable,
+major-to-minor is left-to-right.
+
+=head1 Choicepoints
+
+When ranking, the logic traverses each node
+of a parse forest, which we call a "bocage".
+Our parse forests closely
+resemble
+Elizabeth Scott's SPPF's.
+See L<Marpa::R2::Advanced::Bibliography/"Scott 2008">.
+
+Ranking is done at B<choicepoints>.
+These are the or-nodes of the bocage.
+They closely resemble the or-nodes of traditional parse forests.
+
+An or-node is similar to
+an Earley item with confluences:
+it has a dotted rule, an origin,
+a current location, and
+a set of confluences.
+For more about Earley items and confluences,
+see L<our document on the Marpa
+algorithm|Marpa::R2::Algorithm>.
+
+Predictions and the start Earley item are redundant information
+from the point of of the bocage,
+and no or-nodes are created for them.
+Therefore choicepoints exist only for scanned Earley items and reductions.
+
+Every confluence linked to an Earley item is called a "choice".
+Since choicepoints are always either scanned Earley items or
+reductions,
+they always have a well-defined mainstem
+and a well-defined tributary.
+
+A confluence is a reason for the choicepoint to be in the parse
+forest.
+Every choicepoint has at least one reason to be
+in the parse forest, or it would not be there.
+Therefore every Earley item has at least one confluence.
+In an ambiguous parse, one or more Earley items will
+have more than one confluence.
+A parse tree is created by selecting a single
+confluence (or reason to exist) for each or-node.
+
+Since every choicepoint has exactly one dotted rule,
+exactly one current location,
+and exactly one origin,
+a choicepoint has exactly one mainstem.
+All the choices for that choicepoint share that mainstem.
+Because every choicepoint
+has a single mainstem
+and is either a scanned Earley item or a reduction,
+every choicepoint has exactly one predot symbol.
+
+Ranks are assigned based on the symbolic differences of choices.
+As we have just seen, every choice has the same mainstem,
+so ranks must be assigned to choices based on
+symbolic differences in their tributaries.
+
+A tributary of a scanned choicepoint has only one symbol --
+the token symbol.
+The token symbol must also be the predot symbol of the choicepoint.
+We have seen that there is exactly one predot symbol for every choicepoint,
+so the token symbols of the choices of a scanned choicepoint must
+all be the same.
+This implies that the choices of a scanned choicepoint will all have
+the same rank,
+
+If all the choices at a choicepoint have the same rank,
+we say that the choicepoint is B<trivial>.
+We have just seen that the choices of a scanned choicepoint will all have
+the same rank,
+so that every scanned choicepoint must be trivial.
+It follows that every non-trivial choicepoint
+will be a reduction.
+
+=head1 Ambiguous choicepoints
+
+If there is only one choice at a choicepoint,
+we say that the choicepoint is a B<singleton choicepoint>.
+Every singleton choicepoint is trivial,
+but some trivial choicepoints are not singletons.
+
+A choicepoint is B<ambiguous> if and only if
+it is not a singleton.
+All non-trival choicepoints are ambiguous,
+but some trivial choicepoints are also ambiguous.
+This is because choices at choicepoints may differ not just symbolically,
+but in the way in which the symbols divide up the input
+string -- the way in which they "factor" the input.
+Choices which have the same symbols,
+but which are factored differently,
+will have the same rank.
+For more about symbolic choices (also called B<symches>)
+and factorings, see
+L<Marpa::R2::Glade/"Ambiguity: factoring versus symches">.
+
+As we have noted,
+a scanned choicepoint is never non-trivial,
+but a scanned choicepoint may be ambigous if variable length tokens are in use.
+Usually variable length tokens are not in use,
+and all scanned choicepoint are both trivial and singletons.
+
+A reduction choicepoint may be both non-trivial and ambiguous.
+If a reduction choicepoint is non-trivial,
+it must differ symbolically from the other choices of that choicepoint.
+The mainstem and predot symbol of all the choices in a choicepoint are always
+identical, so that if the choices in a reduction choicepoint differ symbolically,
+the tributaries of the reduction choices must have different rules.
+The predot symbol of a reduction choice is always the LHS of the rule
+of its tributary,
+so that if two reduction choices differ symbolically,
+they must be for two distinct rules which share the same LHS.
+
+=head1 Iterating the parses
+
+Iteration of the parse forest is depth-first, left-to-right.
+Choices are ordered from major to minor
+
+=over 4
+
+=item *
+
+by symbolic rank; and
+
+=item *
+
+if null-ranking has been selected,
+by the appropriate null-ranking.
+
+=back
+
+The order of two choices is arbitary if they
+have same symbolic rank and
+
+=over 4
+
+=item *
+
+null ranking has not been selected or
+
+=item *
+
+their null ranking is the same.
+
+=back
+
+The preceding part of this section contains all most users will need to know
+about the iteration algorithm.
+The rest of this section describes the iteration algorithm in
+detail.
+
+Every node of a parse tree corresponds to a choice
+from a choicepoint of the parse forest.
+An B<initial parse subtree> is the subtree formed from
+an choicepoint-rooted subforest by taking all the first choices of its choicepoints.
+
+The B<initial parse tree> is the initial parse subtree formed
+from the subforest whose root in the root of the forest.
+In other words, the initial parse tree is the tree formed
+by taking the first choices of the entire forest.
+
+The first parse tree in the iterator of a parse forest
+is the initial parse tree.
+
+For the second and later parse trees, the next parse tree
+is found by traversing the current parse tree from the
+bottom up, left to right.
+Every node of the parse tree will correspond to a choicepoint
+of the parse forest, and a choice within that choicepoint.
+If the current choice of its choicepoint is the last choice
+of that choicepoint,
+we say that that node of the parse tree is B<exhausted>.
+If a parse tree node is not B<exhausted>,
+we say that is B<active>.
+
+As the traversal of the parse tree encounters
+exhausted nodes, it prunes them from the tree.
+The traversal ends when it encounters an active parse
+tree node.
+We call that active parse tree the B<iteration parse tree node>.
+
+Once the iteration parse tree node has been found,
+it is replaced with a new tree node
+which corresponds to the next choice of the choicepoint
+of the iteration parse tree node.
+
+The remaining tree will have missing subtrees due to the replacement
+of the iteration parse tree node,
+and to the pruning of exhausted nodes.
+These subtrees are replaced with initial parse subtrees.
+
+When the entire parse tree is traversed without finding
+an active parse tree node,
+there are no more parse trees.
+In that case,
+the parse forest iterator is said to be B<exhausted>.
+
+=head1 Motivation
+
+We note that ranking is only by B<direct> tributaries.
+It might reasonably be asked,
+why not, at least in the case of a tie,
+look at tributaries of tributaries?
+Or why not resolve ties by looking at tributaries of
+mainstems?
+
+Marpa's built-in rule ranking
+was chosen as the most powerful system
+that could be implemented with effectively
+zero cost.
+Ranking by direct tributaries uses only information
+that is quickly and directly available,
+so that its runtime cost is probably
+not measurable.
+
+The complexity of the specification was also an issue.
+If indirect tributaries are taken into account,
+we would need to specify which tributaries,
+and under what circumstances they are used.
+Only tributaries of tributaries?
+Or tributaries of mainstems?
+Depth-first, or breadth-first?
+Only in case of ties, or using a more complex metric?
+To arbitrary depth, or using a traversal that is
+cut off at some point?
+
+If we do ranking by direct tributaries only,
+that make the answers
+to the above questions as simple as it can be.
+Once we get into analyzing the synopsis grammar in detail,
+the importance having a specification that is
+(relatively) simple will become clear.
+
+To be sure,
+there are apps
+whose requirements justify extra overhand and extra
+complexity.
+For these apps,
+L<Marpa's ASF's|Marpa::R2::ASF>
+allow full generality in ranking.
+
+=head1 Examples
+
+Our examples in this document will look at
+the ranked grammar in the synopsis,
+and at minor variations of it.
+
+=head2 Longest highest, version 1
+
+We will first consider the example as it
+is given in the
+synopsis:
+
+=for Marpa::R2::Display
+name: Rank document synopsis
+normalize-whitespace: 1
+partial: 1
+
+  :discard ~ ws; ws ~ [\s]+
+  :default ::= action => ::array
+
+  Top ::= List action => main::group
+  List ::= Item3 rank => 3
+  List ::= Item2 rank => 2
+  List ::= Item1 rank => 1
+  List ::= List Item3 rank => 3
+  List ::= List Item2 rank => 2
+  List ::= List Item1 rank => 1
+  Item3 ::= VAR '=' VAR action => main::concat
+  Item2 ::= VAR '='     action => main::concat
+  Item1 ::= VAR         action => main::concat
+  VAR ~ [\w]+
+
+=for Marpa::R2::Display::End
+
+=head3 Longest highest ranking
+
+The DSL in the synopsis ranks its items
+"longest highest".
+Here "items" are represented by the symbols,
+C<< <Item3> >>,
+C<< <Item2> >> and
+C<< <Item1> >>.
+The "longest" choice is considered to be the one
+with the most lexemes.
+Working this idea out for this grammar,
+we see that the items
+should rank,
+from highest to lowest:
+C<< <Item3> >>,
+C<< <Item2> >> and
+C<< <Item1> >>.
+
+=head3 The non-trivial choicepoints
+
+Several examples and their results are shown
+in the synopsis.
+If you study the grammar, you will see that
+the non-trivial choicepoints
+will be for the dotted rules:
+
+=for Marpa::R2::Display
+ignore: 1
+
+    Top ::= List .
+    List ::= List . Item3
+    List ::= List . Item2
+    List ::= List . Item1
+
+=for Marpa::R2::Display::End
+
+The above are all of the potential
+dotted rules for B<confluence> choicepoints.
+
+=head3 The tributary choicepoints
+
+In all of these dotted rules,
+the predot symbol is C<< <List> >>.
+Recall that tributary choicepoints are always completions.
+Since the predot symbol
+of all the non-trivial choicepoints
+is C<< <List> >>,
+the dotted rule of a tributary
+of the non-trivial choicepoints
+may be any of
+
+=for Marpa::R2::Display
+ignore: 1
+
+    List ::= Item1 .
+    List ::= Item2 .
+    List ::= Item3 .
+    List ::= List Item1 .
+    List ::= List Item2 .
+    List ::= List Item3 .
+
+=for Marpa::R2::Display::End
+
+In fact, if we study the grammar more closely,
+we will see that the only possible ambiguity is
+in the sequence of items,
+and that ambiguities always
+take the form "C<(v=)(v)>" versus
+"C<(v=v)>".
+Therefore the only tributaries of non-trivial parse choices are
+
+=for Marpa::R2::Display
+ignore: 1
+
+    List ::= Item3 .
+    List ::= Item1 .
+    List ::= List Item3 .
+    List ::= List Item1 .
+
+=for Marpa::R2::Display::End
+
+=head3 The first non-trivial choicepoints
+
+Further study of the grammar shows that the first non-trivial
+choice must be between
+two parse choices with
+these tributary choicepoints:
+
+=for Marpa::R2::Display
+ignore: 1
+
+    List ::= Item3 .
+    List ::= Item1 .
+
+=for Marpa::R2::Display::End
+
+The rule
+C<List ::= Item3>
+has rank 3,
+and it obviously outranks
+the rule
+C<List ::= Item1>,
+which has rank 1.
+Our example uses C<high_rank_only>
+ranking,
+and our example therefore will
+leave only this choice:
+
+=for Marpa::R2::Display
+ignore: 1
+
+    List ::= Item3 .
+
+=for Marpa::R2::Display::End
+
+With only one choice left, the resulting choicepoint
+becomes trivial,
+and, as defined above, that remaining choice is "longest",
+and therefore the correct one for the "longest highest"
+ranking.
+
+=head3 The second and subsequent non-trivial choicepoints
+
+We've looked at only the first non-trivial choice
+for our example code.
+Again examining the grammar, we see that
+the second and subsequent non-trivial choices will
+all be between
+parse choices whose tributaries have these two dotted
+rules:
+
+=for Marpa::R2::Display
+ignore: 1
+
+    List ::= List Item3 .
+    List ::= List Item1 .
+
+=for Marpa::R2::Display::End
+
+The rule
+C<List ::= List Item3>
+has rank 3,
+and it obviously outranks
+the rule
+C<List ::= List Item1>,
+which has rank 1.
+Our example uses C<high_rank_only>
+ranking,
+and our example therefore will
+leave only this choice:
+
+=for Marpa::R2::Display
+ignore: 1
+
+    List ::= List Item3 .
+
+=for Marpa::R2::Display::End
+
+=head3 Conclusion
+
+We have now shown that our example will reduce
+all choicepoints to a single choice,
+one which is consistent with
+"longest highest" ranking.
+Since all choicepoints are reduced to a single
+choice,
+the ranked grammar in unambiguous.
+
+This analysis made a lot of unstated assumptions.
+Below, there is
+a L</"Proof of correctness">.
+It deals with this same example,
+but proceeds much more carefully.
+
+=head2 Shortest highest, version 1
+
+Here we see the grammar of the synopsis,
+reworked for a "shortest highest"
+ranking.
+"Shortest highest" is the reverse of
+"longest highest".
+
+=for Marpa::R2::Display
+name: Ranking, shortest highest, version 1
+
+  :discard ~ ws; ws ~ [\s]+
+  :default ::= action => ::array
+
+  Top ::= List action => main::group
+  List ::= Item3 rank => 1
+  List ::= Item2 rank => 2
+  List ::= Item1 rank => 3
+  List ::= List Item3 rank => 1
+  List ::= List Item2 rank => 2
+  List ::= List Item1 rank => 3
+  Item3 ::= VAR '=' VAR action => main::concat
+  Item2 ::= VAR '='     action => main::concat
+  Item1 ::= VAR         action => main::concat
+  VAR ~ [\w]+
+
+=for Marpa::R2::Display::End
+
+Here are what the results will look like for
+"shortest highest".
+
+=for Marpa::R2::Display
+name: Ranking results, shortest highest, version 1
+
+    my @tests = (
+        [ 'a',                 '(a)', ],
+        [ 'a = b',             '(a=)(b)', ],
+        [ 'a = b = c',         '(a=)(b=)(c)', ],
+        [ 'a = b = c = d',     '(a=)(b=)(c=)(d)', ],
+        [ 'a = b c = d',       '(a=)(b)(c=)(d)' ],
+        [ 'a = b c = d e =',   '(a=)(b)(c=)(d)(e=)' ],
+        [ 'a = b c = d e',     '(a=)(b)(c=)(d)(e)' ],
+        [ 'a = b c = d e = f', '(a=)(b)(c=)(d)(e=)(f)' ],
+    );
+
+=for Marpa::R2::Display::End
+
+The reader who wants an example of a ranking scheme
+to work out for themselves may find this one suitable.
+The reasoning will very similar to that for the
+L<"longest highest"
+example,|"Longest highest, version 1">
+just above.
+
+=head2 Longest highest, version 2
+
+The previous examples have shown the rule involved
+in parse ranking in "spelled out" form.
+In fact, a more compact form of the grammar can be used,
+as shown below for
+"longest highest" ranking.
+
+=for Marpa::R2::Display
+name: Ranking, longest highest, version 2
+
+  :discard ~ ws; ws ~ [\s]+
+  :default ::= action => ::array
+
+  Top ::= List action => main::group
+  List ::= Item rank => 1
+  List ::= List Item rank => 0
+  Item ::= VAR '=' VAR rank => 3 action => main::concat
+  Item ::= VAR '='     rank => 2 action => main::concat
+  Item ::= VAR         rank => 1 action => main::concat
+  VAR ~ [\w]+
+
+=for Marpa::R2::Display::End
+
+=head2 Shortest highest, version 2
+
+This is the grammar for "shortest highest",
+in compact form:
+
+=for Marpa::R2::Display
+name: Ranking, shortest highest, version 2
+
+  :discard ~ ws; ws ~ [\s]+
+  :default ::= action => ::array
+
+  Top ::= List action => main::group
+  List ::= Item rank => 0
+  List ::= List Item rank => 1
+  Item ::= VAR '=' VAR rank => 1 action => main::concat
+  Item ::= VAR '='     rank => 2 action => main::concat
+  Item ::= VAR         rank => 3 action => main::concat
+  VAR ~ [\w]+
+
+=for Marpa::R2::Display::End
+
+Again, the reader looking for simple examples to work
+out for themselves may want to rework
+the argument given
+L<above for the "spelled out"
+examples|Longest highest ranking>
+for the compact examples.
+
+=head1 Alternatives to Ranking
+
+=head2 Reimplementation as pure BNF
+
+It is generally better, when possible,
+to write a language as BNF, instead of using ranking.
+The advantage of using BNF is that you can more readily determine
+exactly what language it is that you are parsing:
+Ranked grammars make look easier to analyze at first glance,
+but the more you look at them the more tricky you
+realize they are.
+
+These "pure BNF" reimplementations rely on an observation
+used in L<the detailed proof of the ranked BNF
+example|/"Proof of correctness">:
+The parse string becomes easier to analyze
+when we think in terms of fenceposts,
+rather than in term of the location of the lexemes.
+Fencepost are either initial, final or medial.
+The B<initial fencepost> is the position before the first lexeme.
+The B<final fencepost> is the position after the last lexeme.
+A B<medial fencepost> is the position between two lexemes.
+We can call a fencepost a B<VAR-bound>
+if it is a either an initial fencepost,
+a final fencepost,
+or a medial fencepost
+that occurs between two C<< <VAR> >> lexemes.
+We can then visualize the input string
+as a sequence of "VAR-bounded"
+substrings.
+
+=head3 Longest highest as pure BNF
+
+Here is the "longest highest" example,
+reimplemented as BNF:
+
+=for Marpa::R2::Display
+name: Ranking via BNF, longest highest, version 3
+normalize-whitespace: 1
+
+  :discard ~ ws; ws ~ [\s]+
+  :default ::= action => ::array
+
+  Top            ::= Max_Boundeds action => main::group
+  Top            ::= Max_Boundeds Unbounded action => main::group
+  Top            ::= Unbounded action => main::group
+  Max_Boundeds   ::= Max_Bounded+
+  Max_Bounded    ::= Eq_Finals Var_Final3
+  Max_Bounded    ::= Var_Final
+  Unbounded      ::= Eq_Finals
+  Eq_Finals      ::= Eq_Final+
+  Var_Final      ::= Var_Final3 | Var_Final1
+  Var_Final3     ::= VAR '=' VAR action => main::concat
+  Eq_Final       ::= VAR '='     action => main::concat
+  Var_Final1     ::= VAR         action => main::concat
+  VAR ~ [\w]+
+
+=for Marpa::R2::Display::End
+
+=head3 Shortest highest as pure BNF
+
+We can also reimplement the "shortest highest"
+example as BNF.
+One of the advantages of a BNF (re)implementation,
+is that it often clarifies the grammar.
+For example
+in this case, we note that
+the DSL rule
+
+=for Marpa::R2::Display
+name: Ranking via BNF, longest highest, version 3
+normalize-whitespace: 1
+partial: 1
+
+  Var_Final3     ::= VAR '=' VAR action => main::concat
+
+=for Marpa::R2::Display::End
+
+is, in fact, never used.
+We therefore omit it:
+
+=for Marpa::R2::Display
+name: Ranking via BNF, shortest highest, version 3
+normalize-whitespace: 1
+
+  :discard ~ ws; ws ~ [\s]+
+  :default ::= action => ::array
+
+  Top            ::= Max_Boundeds action => main::group
+  Top            ::= Max_Boundeds Unbounded action => main::group
+  Top            ::= Unbounded action => main::group
+  Max_Boundeds   ::= Max_Bounded+
+  Max_Bounded    ::= Eq_Finals Var_Final
+  Max_Bounded    ::= Var_Final
+  Unbounded      ::= Eq_Finals
+  Eq_Finals      ::= Eq_Final+
+  Eq_Final       ::= VAR '='     action => main::concat
+  Var_Final      ::= VAR         action => main::concat
+  VAR ~ [\w]+
+
+=for Marpa::R2::Display::End
+
+=head1 Comparison with PEG
+
+For those familiar with PEG,
+Marpa's ranking may seem familiar.
+In fact, Marpa's ranking can be seen as a "better PEG".
+
+A PEG specification looks like a BNF grammar.
+It is a common misconception that a PEG specification implements
+the same language that it would if interpreted as pure, unranked
+BNF.
+This is the case only when the grammar is LL(1) --
+in other words, rarely in practical use.
+
+Typically, a PEG implementer thinks their problem out in BNF,
+perhaps ordering the PEG rules to resolve a few of the choices,
+and then twiddles the PEG specification until the test suite passes.
+This results in a parser whose behavior is to a large extent unknown.
+
+Marpa with ranking allows a safer form of PEG-style parsing.
+Both Marpa's DSL and PEG allow the implementer to specify
+any context-free grammar,
+but Marpa parses all context-free grammars correctly,
+while PEG only correctly parses a small subset of the context-free grammars
+and fakes the rest.
+
+In Marpa,
+the implementer of a ranked grammar can work systematically.
+He can first write a "superset grammar",
+and then "sculpt" it using ranks until he has exactly
+the language he wants.
+At all points, the superset grammar
+will act as a "safety net".
+That is,
+ranking or no ranking,
+Marpa returns no parse trees that are not specified by
+the BNF grammar.
+
+This "sculpted superset" is more likely to result in a
+satisfactory solution than the PEG approach.
+The PEG specification, re-interpreted as pure BNF,
+will usually only parse
+a subset of what the implementer needs,
+and the implementer must use ranks to "stretch" the
+grammar to describe what he has in mind.
+
+Ranking is not as predictable as specifying BNF.
+The "safety net" provided by Marpa's "sculpted superset"
+guards against over-liberal parsing.
+This is important:
+over-liberal parsing can be a security loophole,
+and bugs caused by over-liberal parsing have been
+the topic of security advisories.
+
+Determining the exact language parsed
+by a ranked grammar
+in PEG is extremely hard --
+a small specialist literature has looked at this subject.
+Most implementers don't bother trying --
+when the test suite passes, they consider the PEG
+implementation complete.
+
+Ranking's effect is more straightforward in Marpa.
+Above, we showed very informally that the example
+in our synopsis does what it claims to do --
+that the parses returned
+are actually, and only, those desired.
+L<A more formal
+proof|"Proof of correctness">
+is given below.
+
+Since Marpa parses all context-free grammars,
+and Marpa parses most unambiguous grammars in linear time,
+Marpa often parses your language efficiently when it is implemented as pure BNF,
+without rule ranking.
+As one example, the ranked grammar in the synopsis
+can be L<reimplemented as pure unranked
+BNF|/"Reimplementation as pure BNF">.
+Where it is possible to convert your ranked grammar to a pure BNF grammar,
+that will usually be the best and safest choice.
+
+=head1 Fenceposts
+
+We recall that lexeme locations are items in a sequence
+of sets of lexemes.
+Numbering of lexeme locations is 0-based.
+
+In what follows,
+it will also be useful to use an idea of locations
+B<between> lexeme locations --
+This is the classic "fencepost" issue -- sometimes
+you want to count sections of fence,
+and in other cases it is more convenient to count
+fenceposts.
+
+Let the lexeme locations be from 0 to C<N>.
+If C<I> is greater than 1 and less than C<N>,
+then lexeme fencepost C<I> is before lexeme location C<I>
+and after lexeme location C<I-1>.
+lexeme fencepost C<0> is before lexeme location 0.
+lexeme fencepost C<N> is after lexeme location C<N>
+
+The above implies that
+
+=over 4
+
+=item *
+
+if there are C<N> lexeme locations,
+there are C<N+1> lexeme fenceposts; and
+
+=item *
+
+that lexeme location C<I> is always between
+lexeme fencepost C<I> and
+lexeme fencepost C<I+1>.
+
+=back
+
+Lexeme locations and fenceposts are closely related
+to G1
+L<locations|"Marpa::R2::Scanless::R/G1 locations">.
+
+=head1 Details
+
+The mathematical material in this section
+is not essential to understanding
+the rest of this document.
+While some people will find it helpful,
+but others find them distracting or annoying,
+which is why
+it is segregated here.
+
+=head2 Proof of correctness
+
+Let C<G> be the grammar in the
+Marpa DSL
+synopsis,
+Let C<W> be a string,
+and let C<ps-pure> be the set of parses
+allowed by C<G>,
+treated as if it was pure unranked BNF.
+Let C<ps-ranked> be the
+set of parses
+allowed by the C<G>
+after ranking is taken
+into account.
+
+We will say string C<W> is valid
+if and only if C<ps-pure> is non-empty.
+We will say that a parse set is
+"unambiguous" if and only if
+it contains at most one parse.
+
+In the
+L<less formal discussion
+above|"Longest highest, version 1">,
+we took an intuitive approach to
+the idea of "longest highest",
+one which made the unstated assumption
+that optimizing for "longest highest"
+locally would also optimize globally.
+Here we make our idea of "longest highest"
+explicit and justify it.
+
+What "longest highest" means locally is reasonably obvious --
+if C<item3> has more lexemes than C<item1>,
+then C<item3> is "longer" than C<item1>.
+It is less clear what it means globally.
+Items might overlap,
+so that optimizing locally might make
+the parse as a whole suboptimal.
+
+We will define a "longest highest" parse of C<W> as
+one of the parses of C<W> with the fewest "items".
+This is based on the observations
+that C<W> is fixed in length;
+and that,
+if items are longer,
+fewer of them will fit into C<W>.
+
+More formally,
+let C<p> be a parse,
+and let C<ps> be a parse set.
+Let C<Items(p)> be
+the number of items in C<p>.
+Let C<Items(ps)>,
+be the minimum number of items of any parse in C<ps>.
+Then, if C<lh> is a parse in C<ps> and if,
+for every parse C<p> in parse set C<ps>,
+C<< Items(lh) <= Items(p) >>,
+we say that C<lh> is a "longest highest" parse.
+
+To conveniently represent token strings
+we will represent them as literal strings
+where
+"C<v>" stands for a C<< <VAR> >> lexemes
+and equal signs represent themselves.
+For example, we might represent the token
+string
+
+=for Marpa::R2::Display
+ignore: 1
+
+    <VAR> = <VAR>
+
+=for Marpa::R2::Display::End
+
+as the string
+
+=for Marpa::R2::Display
+ignore: 1
+
+    v=v
+
+=for Marpa::R2::Display::End
+
+
+B<Theorem>:
+If C<W> is a valid string,
+C<ps-ranked> contains exactly one
+parse,
+and that parse is
+the "longest highest" parse.
+
+B<Proof>:
+Recall that a Marpa C<high_rank_only> parse
+first parses according to the pure unranked BNF,
+and then prunes the parse using ranking.
+
+B<Part 1>:
+We will first examine C<ps-pure>,
+the parse set which results from the pure
+BNF phase.
+
+B<(1) "Item">:
+An "item" will means an instance of
+one of the symbols
+C<Item1>,
+C<Item2> or
+C<Item3>.
+When we want to show a token string's division into
+items, we will enclose them in parentheses.
+For example "C<(v=)(v=)(v)>" will indicate that
+the token string is divided into 3 items; and
+"C<(v=)(v=v)>" will represent the same token string
+divided into 2 items.
+
+B<(2) "Factoring">:
+Analyzing the grammar C<G>,
+we see that it is a sequence of items,
+and that C<G> is ambiguous for a string C<W>
+if and only if that string divides into items
+in more than one way.
+We will call a division of C<W> into items
+a "factoring".
+
+B<(3) "Independence">:
+Let C<seq1> and C<seq2> be two factorings
+of C<W> into items.
+Let C<first> and C<last> be two lexeme locations
+such that C<< first <= last >>.
+
+Let C<sub1> be a subsequence of one or more
+items of C<seq1>
+that starts at C<first> and ends at C<last>.
+Similarly,
+let C<sub2> be a subsequence of one or more
+items of C<seq2>
+that starts at C<first> and ends at C<last>.
+Let C<seq3> be
+the result of replacing
+C<sub1> in C<seq1> with
+C<sub2>.
+Then,
+because C<G> is a context free grammar,
+C<seq3> is also a factoring of C<W>.
+
+As an example,
+Let C<W> be C<v=vv=v>,
+let C<seq1> be C<(v=v)(v=v)> and
+let C<seq2> be C<(v=)(v)(v=)(v)>.
+Let C<first> be 4 and C<last> be 6,
+so that C<sub1> is C<(v=v)>
+and C<sub2> is C<(v=)(v)>.
+Then C<seq3> is C<(v=v)(v=)(v)>.
+We claimed that C<seq3> must be a factoring of C<W>,
+and we can see that our claim is correct.
+
+B<(4)>:
+Recall the L<discussion above of lexeme
+fenceposts|"fenceposts">.
+We will say that a lexeme fencepost C<fp>
+is a "factoring barrier"
+if it is not properly contained in any item.
+More formally,
+let C<First(it1)> be first lexeme location of
+an item C<it1>,
+and let C<Last(it1)> be last lexeme location of
+C<it1>.
+Let C<i>
+be a lexeme fencepost C<i> such that,
+for every item C<it>,
+either C<< i <= First(it)  >> or
+C<< i > Last(it)  >>.
+Then lexeme fencepost C<i> is a factoring barrier.
+
+B<(5)>:
+Where C<|W|> is the length of C<W>,
+we can see from (4)
+that fencepost C<|W|>
+is a factoring barrier.
+
+B<(6)>:
+Also from (4) we see that
+lexeme fencepost 0 is a factoring barrier.
+
+B<(7)>:
+Let a "subfactoring" be a sequence of
+items bounded by factoring barriers.
+
+B<(8)>:
+Let a "minimal subfactoring" be a subfactoring
+which does not properly contain any
+factoring barriers.
+From (5) and (6) we can see that C<W>
+can be divided into
+one or more minimal subfactorings.
+
+B<(9)>:
+We can see from C<G>
+that two C<VAR>s never occur
+together in the same item.
+This means that wherever we do find two
+C<VAR>s in a row,
+the lexeme fencepost between them is
+a factoring barrier.
+
+B<(10)>:
+No item begins with an equal sign ("C<=>").
+Every item begins with a C<< <VAR> >>
+token.
+
+B<(11)>:
+Every minimal subfactoring starts with
+a C<< <VAR> >> token.
+This is because every subfactoring starts
+with an item, and from (10).
+
+B<(12)>:
+Every minimal subfactoring start with
+a C<< <VAR> >> token and
+alternates
+equal signs and C<< <VAR> >> lexemes:
+that is, it has the pattern
+"C<v=v=v= ...>".
+This follows from (9) and (11).
+
+B<(13)>:
+We will call a minimal subfactoring
+"var-bounded" or simply "bounded"
+if it starts and ends with a
+C<< <VAR> >> token.
+By (12), this means that it
+has the pattern
+"C<v=v=v= ... v>".
+
+B<(14)>:
+We will call a minimal subfactoring
+"var-unbounded" or simply "unbounded"
+if it is not var-bounded.
+By (12), this means that it
+has the pattern
+"C<v=v= ... v=>".
+
+B<(15)>:
+If a C<< <Item1> >> or
+C<< <Item3> >> occurs in
+a minimal subfactoring,
+it is the last item in that subfactoring.
+
+To show (15), assume for a reductio ad absurdam
+there is a minimal subfactoring with a non-final
+C<< <Item1> >> or
+C<< <Item3> >>.
+Call that subfactoring C<f>,
+and call that item, C<it1>.
+
+B<(15a)>:
+Both
+C<< <Item1> >> and
+C<< <Item3> >>
+end with a
+C<< <VAR> >> token,
+so that C<it1> ends in a
+C<< <VAR> >> token.
+
+B<(15b)>:
+Since C<it1>, by assumption for the reductio,
+is non-final, there is a next item.
+Call the next item C<it2>.
+
+B<(15c)>:
+By (10),
+all items start with
+C<< <VAR> >> lexemes,
+so that C<it2> starts with a
+C<< <VAR> >> token.
+
+B<(15d)>:
+From (15a) and (15c),
+we know that
+C<it1> ends with a
+C<< <VAR> >> token
+and
+C<it2> starts with a
+C<< <VAR> >> token,
+so that there are two
+C<< <VAR> >> lexemes
+at the fencepost between C<it1>
+and C<it2>.
+
+B<(15e)>:
+From (9) and (15d),
+there is a factoring barrier
+at the fencepost between C<it1>
+and C<it2>.
+
+B<(15f)>:
+All items, including C<it1>
+and C<it2>
+and of non-zero length
+so that, from (15e),
+we know that the fencepost between C<it1>
+and C<it2>
+is properly
+inside subfactoring C<f>.
+
+
+B<(15g)>:
+From (15f)
+we see that there is a factoring barrier
+properly inside C<f>.
+But C<f> is assumed for the reductio
+to be minimal and therefore cannot
+properly contain a factoring barrier.
+
+B<(15h)>:
+(15g) shows the reductio,
+and allows us to conclude that,
+if C<f> contains an
+C<< <Item1> >> or
+an C<< <Item3> >>,
+that item must be the final item.
+This is what we needed to show for (15).
+
+B<(16)>:
+By (3), every minimal subfactoring is independent --
+in other words, no ambiguity crosses factoring barriers.
+So we narrow our consideration of ambiguities to two cases:
+ambiguities in unbounded minimal subfactorings, and
+ambiguities in bounded minimal subfactorings.
+
+B<(17)>:
+Every unbounded minimal subfactoring is unambiguous.
+To show (17), let C<u> be an
+unbounded minimal subfactoring.
+It follows from the definition of unbounded minimal subfactoring
+(14), that C<u>
+ends in an equal sign.
+Both C<< <Item1> >> and
+C<< <Item3> >> end in C<< <VAR> >> lexemes,
+so that no
+C<< <Item1> >> or
+C<< <Item3> >> can be the last item
+in C<u>.
+Therefore, by (15),
+there is no
+C<< <Item1> >> or
+C<< <Item3> >> item
+in C<u>.
+This means that every item
+in C<u>
+is an
+C<< <Item2> >> item.
+This in turn means that C<u>
+is unambiguous,
+which shows (17).
+
+B<(18)>:
+Every bounded minimal subfactoring parses either
+as a sequence of C<Item2>'s followed by
+an C<Item1>;
+or as
+as a sequence of C<Item2>'s followed by
+an C<Item3>.
+This follows from (1), (13) and (15).
+
+B<(19)>:
+From (16), (17) and (18) it follows that
+every ambiguity between subfactorings is between
+bounded subfactorings
+whose divisions into items take the two forms
+
+=for Marpa::R2::Display
+ignore: 1
+
+"C<(v=) ... (v=) (v)>"
+
+=for Marpa::R2::Display::End
+
+and
+
+=for Marpa::R2::Display
+ignore: 1
+
+"C<(v=) ... (v=v)>"
+
+B<Part 2>:
+We have now shown how pure BNF parsing works for the
+grammar in the synopsis.
+We next show the consequences of ranking.
+
+B<(20)>:
+A completed instance of C<List ::= Item1>
+can only be found at lexeme location 1.
+We know this from C<G> and (EARLEY).
+
+B<(21)>:
+A completed instance of C<List ::= List Item1>
+can only be found at lexeme location 2 or after.
+We know this from C<G> and (EARLEY).
+
+B<(22)>
+At most one dotted rule with C<Item1> as its last item
+appears in a tributary at any choicepoint.
+We know this because all choices of a choicepoint
+must be completions with the same current location,
+and from (20) and (21).
+
+B<(23)>:
+A completed instance of C<List ::= Item3>
+can only be found at lexeme location 3.
+We know this from C<G> and (EARLEY).
+
+B<(24)>:
+A completed instance of C<List ::= List Item3>
+can only be found at lexeme location 4 or after.
+We know this from C<G> and (EARLEY).
+
+B<(25)>
+At most one dotted rule with C<Item3> as its last item
+appears in a tributary at any choicepoint.
+We know this because all choices of a choicepoint
+must be completions with the same current location,
+and from (23) and (24).
+
+B<(26)>:
+Consider the ambiguity shown in
+(19) and let C<current> be the lexeme fencepost at its end.
+An item also ends at C<current> so from C<G> and (EARLEY),
+we know that there is at least one dotted rule instance
+whose predot symbol is C<List> and whose current
+location is C<current>.
+The choicepoint can
+have one of these dotted rules:
+
+=for Marpa::R2::Display
+ignore: 1
+
+     Top ::= List .
+     List ::= List . Item3
+     List ::= List . Item2
+     List ::= List . Item1
+
+=for Marpa::R2::Display::End
+
+with location 0 as its origin and
+C<current> as its current location.
+There may be more than one choicepoint fulfilling these
+criteria.
+
+Of the choicepoints fulfilling the criteria,
+we arbitrarily pick one.
+We call this choicepoint C<confl>.
+We will see as we proceed that,
+while the choicepoints may have different dotted rules,
+our choice of one of them for C<confl> makes no difference in
+the ranking logic.
+The only properties of the C<confl>
+that we will use are
+dot position,
+predot symbol,
+and current location.
+These properties are the same
+regardless of which choicepoint
+we picked for C<confl>.
+
+B<(27)>:
+Recall that the "middle location" of a choice
+is always the origin of its tributary.
+From (26) we see that,
+for every possible rule in C<confl>,
+the predot symbol is the first symbol of the
+dotted rule.
+This means that the origin of the tributaries of
+C<confl>
+must be the same as the origin of C<confl>.
+From (26) we also know that
+the origin of C<confl> is always location 0.
+Therefore the origin of every one of the tributaries of C<confl>
+must be location 0.
+Therefore every one of the tributaries of C<confl>
+has the same middle location.
+
+B<(28)>:
+From (26) and (27) we know that, if C<trib> is a tributary
+of C<confl>,
+it has an origin at location 0;
+its current location is C<current>;
+and its LHS is C<List>.
+C<trib> may be any one of
+
+=for Marpa::R2::Display
+ignore: 1
+
+     List ::= Item3 .
+     List ::= Item2 .
+     List ::= Item1 .
+     List ::= List Item3 .
+     List ::= List Item2 .
+     List ::= List Item1 .
+
+=for Marpa::R2::Display::End
+
+B<(29)>:
+From (19) and (EARLEY) we know that dotted rules
+ending in C<Item2> are not valid choices at location C<current>.
+
+B<(30)>:
+From (19), (22), (28) and (EARLEY) we know
+that exactly one of the following two dotted rules
+is the tributary of a parse choice for C<confl>:
+
+=for Marpa::R2::Display
+ignore: 1
+
+     List ::= Item1 .
+     List ::= List Item1 .
+
+=for Marpa::R2::Display::End
+
+B<(31)>:
+From (19), (25), (28) and (EARLEY) we know
+that exactly one of the following two dotted rules
+is the tributary of a parse choice for C<confl>:
+
+=for Marpa::R2::Display
+ignore: 1
+
+     List ::= Item3 .
+     List ::= List Item3 .
+
+=for Marpa::R2::Display::End
+
+B<(32)>:
+From (28), (29), (30) and (31) we know that we will
+have exactly two choices for C<confl>;
+that the final symbol of the tributary in one will be
+C<Item1>; and
+that the final symbol of the tributary in the other will be
+C<Item3>.
+From the grammar in the synopsis,
+we know that the tributary ending in C<Item1>
+will have rank 1;
+and that the tributary ending in C<Item3>
+will have rank 3.
+From this we see, since the ranking method is
+C<high_rank_only>, that the choice whose final symbol
+is C<Item3> will be the only one kept in C<P-ranked>.
+We further see from (19) that this choice will have
+fewer items than the alternative.
+
+B<(33)>:
+From (19) we know that there is at
+most one ambiguity per minimal subfactoring.
+From (16) we know that ambiguity resolutions
+of a minimal subfactoring are independent
+of the ambiguity resolutions
+in other minimal subfactorings.
+From (32) we know that every subfactoring
+in C<P-ranked> has exactly one factoring,
+and that that factoring
+is the one with the fewest items.
+Therefore, C<P-ranked> will contain exactly one parse,
+and that that parse will be "longest highest".
+
+B<QED>.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2022 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# vim: expandtab shiftwidth=4:
