@@ -479,7 +479,7 @@ allow full generality in ranking.
 
 Our examples in this document will look at
 the ranked grammar in the synopsis,
-and at minor variations of it.
+and at variations of it.
 
 =head2 Longest highest, version 1
 
@@ -527,162 +527,6 @@ C<< <Item3> >>,
 C<< <Item2> >> and
 C<< <Item1> >>.
 
-=head3 The non-trivial choicepoints
-
-Several examples and their results are shown
-in the synopsis.
-If you study the grammar, you will see that
-the non-trivial choicepoints
-will be for the dotted rules:
-
-=for Marpa::R2::Display
-ignore: 1
-
-    Top ::= List .
-    List ::= List . Item3
-    List ::= List . Item2
-    List ::= List . Item1
-
-=for Marpa::R2::Display::End
-
-The above are all of the potential
-dotted rules for B<confluence> choicepoints.
-
-=head3 The tributary choicepoints
-
-In all of these dotted rules,
-the predot symbol is C<< <List> >>.
-Recall that tributary choicepoints are always completions.
-Since the predot symbol
-of all the non-trivial choicepoints
-is C<< <List> >>,
-the dotted rule of a tributary
-of the non-trivial choicepoints
-may be any of
-
-=for Marpa::R2::Display
-ignore: 1
-
-    List ::= Item1 .
-    List ::= Item2 .
-    List ::= Item3 .
-    List ::= List Item1 .
-    List ::= List Item2 .
-    List ::= List Item3 .
-
-=for Marpa::R2::Display::End
-
-In fact, if we study the grammar more closely,
-we will see that the only possible ambiguity is
-in the sequence of items,
-and that ambiguities always
-take the form "C<(v=)(v)>" versus
-"C<(v=v)>".
-Therefore the only tributaries of non-trivial parse choices are
-
-=for Marpa::R2::Display
-ignore: 1
-
-    List ::= Item3 .
-    List ::= Item1 .
-    List ::= List Item3 .
-    List ::= List Item1 .
-
-=for Marpa::R2::Display::End
-
-=head3 The first non-trivial choicepoints
-
-Further study of the grammar shows that the first non-trivial
-choice must be between
-two parse choices with
-these tributary choicepoints:
-
-=for Marpa::R2::Display
-ignore: 1
-
-    List ::= Item3 .
-    List ::= Item1 .
-
-=for Marpa::R2::Display::End
-
-The rule
-C<List ::= Item3>
-has rank 3,
-and it obviously outranks
-the rule
-C<List ::= Item1>,
-which has rank 1.
-Our example uses C<high_rank_only>
-ranking,
-and our example therefore will
-leave only this choice:
-
-=for Marpa::R2::Display
-ignore: 1
-
-    List ::= Item3 .
-
-=for Marpa::R2::Display::End
-
-With only one choice left, the resulting choicepoint
-becomes trivial,
-and, as defined above, that remaining choice is "longest",
-and therefore the correct one for the "longest highest"
-ranking.
-
-=head3 The second and subsequent non-trivial choicepoints
-
-We've looked at only the first non-trivial choice
-for our example code.
-Again examining the grammar, we see that
-the second and subsequent non-trivial choices will
-all be between
-parse choices whose tributaries have these two dotted
-rules:
-
-=for Marpa::R2::Display
-ignore: 1
-
-    List ::= List Item3 .
-    List ::= List Item1 .
-
-=for Marpa::R2::Display::End
-
-The rule
-C<List ::= List Item3>
-has rank 3,
-and it obviously outranks
-the rule
-C<List ::= List Item1>,
-which has rank 1.
-Our example uses C<high_rank_only>
-ranking,
-and our example therefore will
-leave only this choice:
-
-=for Marpa::R2::Display
-ignore: 1
-
-    List ::= List Item3 .
-
-=for Marpa::R2::Display::End
-
-=head3 Conclusion
-
-We have now shown that our example will reduce
-all choicepoints to a single choice,
-one which is consistent with
-"longest highest" ranking.
-Since all choicepoints are reduced to a single
-choice,
-the ranked grammar in unambiguous.
-
-This analysis made a lot of unstated assumptions.
-Below, there is
-a L</"Proof of correctness">.
-It deals with this same example,
-but proceeds much more carefully.
-
 =head2 Shortest highest, version 1
 
 Here we see the grammar of the synopsis,
@@ -729,13 +573,6 @@ name: Ranking results, shortest highest, version 1
     );
 
 =for Marpa::R2::Display::End
-
-The reader who wants an example of a ranking scheme
-to work out for themselves may find this one suitable.
-The reasoning will very similar to that for the
-L<"longest highest"
-example,|"Longest highest, version 1">
-just above.
 
 =head2 Longest highest, version 2
 
