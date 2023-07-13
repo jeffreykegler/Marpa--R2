@@ -121,7 +121,6 @@ in that it ranks rule alternatives at choice points.
 It has the advantage over PEG of being more powerful,
 because it can rank the parses of any grammar that C<Marpa::R2>
 can parse.
-
 It is also safer in the sense that in C<Marpa::R2>
 the BNF guides the grammar in the tradiional way.
 The PEG parse description,

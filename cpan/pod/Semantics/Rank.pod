@@ -483,9 +483,21 @@ and at variations of it.
 
 =head2 Longest highest, version 1
 
-We will first consider the example as it
-is given in the
-synopsis:
+The DSL in the synopsis ranks its items
+"longest highest".
+Here "items" are represented by the symbols,
+C<< <Item3> >>,
+C<< <Item2> >> and
+C<< <Item1> >>.
+The "longest" choice is considered to be the one
+with the most lexemes.
+Working this idea out for this grammar,
+we see that the items
+should rank,
+from highest to lowest:
+C<< <Item3> >>,
+C<< <Item2> >> and
+C<< <Item1> >>.
 
 =for Marpa::R2::Display
 name: Rank document synopsis
@@ -508,24 +520,6 @@ partial: 1
   VAR ~ [\w]+
 
 =for Marpa::R2::Display::End
-
-=head3 Longest highest ranking
-
-The DSL in the synopsis ranks its items
-"longest highest".
-Here "items" are represented by the symbols,
-C<< <Item3> >>,
-C<< <Item2> >> and
-C<< <Item1> >>.
-The "longest" choice is considered to be the one
-with the most lexemes.
-Working this idea out for this grammar,
-we see that the items
-should rank,
-from highest to lowest:
-C<< <Item3> >>,
-C<< <Item2> >> and
-C<< <Item1> >>.
 
 =head2 Shortest highest, version 1
 
@@ -619,13 +613,6 @@ name: Ranking, shortest highest, version 2
 
 =for Marpa::R2::Display::End
 
-Again, the reader looking for simple examples to work
-out for themselves may want to rework
-the argument given
-L<above for the "spelled out"
-examples|Longest highest ranking>
-for the compact examples.
-
 =head1 Alternatives to Ranking
 
 =head2 Reimplementation as pure BNF
@@ -638,9 +625,7 @@ Ranked grammars make look easier to analyze at first glance,
 but the more you look at them the more tricky you
 realize they are.
 
-These "pure BNF" reimplementations rely on an observation
-used in L<the detailed proof of the ranked BNF
-example|/"Proof of correctness">:
+These "pure BNF" reimplementations rely on an observation:
 The parse string becomes easier to analyze
 when we think in terms of fenceposts,
 rather than in term of the location of the lexemes.
