@@ -613,19 +613,17 @@ name: Ranking, shortest highest, version 2
 
 =for Marpa::R2::Display::End
 
-=head1 Alternatives to Ranking
+=head1 Reimplementing ranking as pure BNF
 
-=head2 Reimplementation as pure BNF
-
-It is generally better, when possible,
-to write a language as BNF, instead of using ranking.
-The advantage of using BNF is that you can more readily determine
+It is generally better
+to write a grammar as "pure BNF", instead of using ranking.
+The advantage of using pure BNF is that you can more readily determine
 exactly what language it is that you are parsing:
 Ranked grammars make look easier to analyze at first glance,
 but the more you look at them the more tricky you
 realize they are.
 
-These "pure BNF" reimplementations rely on an observation:
+The pure BNF reimplementations below rely on an observation:
 The parse string becomes easier to analyze
 when we think in terms of fenceposts,
 rather than in term of the location of the lexemes.

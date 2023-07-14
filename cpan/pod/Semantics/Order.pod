@@ -109,11 +109,10 @@ The default value of
 L<C<Marpa::R2>'s C<ranking_method> named
 argument|Marpa::R2::Scanless::R/"ranking_method">
 is "C<none>".
-As the name of the value suggests,
-if the "C<none>" value of
+If the "C<none>" value of
 C<Marpa::R2>'s C<ranking_method> named
 argument is specified,
-a default parse order is selected.
+the default parse order is selected.
 
 Use of non-default values
 of the C<ranking_method> named argument is somewhat like PEG,
