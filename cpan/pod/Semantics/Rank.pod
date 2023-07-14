@@ -129,7 +129,7 @@ be used.
 
 =head2 The C<rule> ranking method
 
-The rule method ranks alternative parses according to their rule alternatives.
+The C<rule> ranking method ranks alternative parses according to their rule alternatives.
 Every rule alternative has a B<numeric rank>.
 A rule's rank can be specified using the
 the C<rank> adverb
@@ -299,7 +299,19 @@ We have seen that there is exactly one predot symbol for every choicepoint,
 so the token symbols of the choices of a scanned choicepoint must
 all be the same.
 This implies that the choices of a scanned choicepoint will all have
-the same rank,
+the same rank.
+
+If a choicepoint is a reduction,
+the tributaries of its choices
+will be completions,
+and each tributary have a rule associated with it.
+The LHS of the rule for each choice in a choicepoint
+will be the predot symbol of the choicepoint.
+This means that the rules of the tributaries of choices in a choicepoint
+must share the same LHS.
+Rules of the tributaries of choices in a choicepoint
+can have different RHS's, however,
+and therefore can differ in symbolic rank.
 
 If all the choices at a choicepoint have the same rank,
 we say that the choicepoint is B<trivial>.
