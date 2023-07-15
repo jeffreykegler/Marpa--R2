@@ -127,8 +127,8 @@ the parse forest nodes are called B<choicepoints>.
 Every choicepoint has one or more B<choices>.
 
 Choices are ordered by their B<choice key>.
-The choice key consists of the subkeys:
-the B<symbolic subkey> and the <null-variant subkey>.
+The choice key consists of two subkeys:
+the B<symbolic subkey> and the B<null-variant subkey>.
 The symbolic subkey is the major subkey,
 and the null-variant subkey is the minor subkey,
 so that the order is by null-variant within symbolic rank.
@@ -160,7 +160,6 @@ The C<high_rule_only> ranking method is similar to the
 C<rule> ranking method, except that, at every choicepoint,
 it discards all of the choices which
 have a rank lower than that of the highest ranked choice.
-
 The C<high_rule_only> ranking method
 can reduce the ambiguity of a parse,
 but it does not necessarily do so.
