@@ -119,6 +119,28 @@ Rule ranking plays a role in parse ordering,
 which is described in L<a separate
 document|Marpa::R2::Semantics::Order>.
 
+=head1 Overview
+
+Rule ranking takes place at the nodes of the parse forest.
+In the context of rule ranking,
+the parse forest nodes are called B<choicepoints>.
+Every choicepoint has one or more B<choices>.
+
+Choices are ordered by their B<choice key>.
+The choice key consists of the subkeys:
+the B<symbolic subkey> and the <null-variant subkey>.
+The symbolic subkey is the major subkey,
+and the null-variant subkey is the minor subkey,
+so that the order is by null-variant within symbolic rank.
+The symbolic subkey is so called because it is based
+on the symbols of the choice.
+The null-variant subkey is based on the location of the
+choice's nulled symbol instances.
+
+Choices with the same choice key are ranked arbitrarily.
+Choicepoints, choices and subkeys are described in much
+more detail below.
+
 =head1 Ranking methods
 
 SLIF recognizer objects have a L<C<ranking_method> named
@@ -129,14 +151,8 @@ be used.
 
 =head2 The C<rule> ranking method
 
-The C<rule> ranking method ranks alternative parses according to their rule alternatives.
-Every rule alternative has a B<numeric rank>.
-A rule's rank can be specified using the
-the C<rank> adverb
-argument for that RHS alternative.
-Rule ranks must be integers.
-They may be negative.
-If no numeric rank is specified, the numeric rank is 0.
+The C<rule> ranking method ranks choices according to their choice keys.
+All choices are included in the ordering.
 
 =head2 The C<high_rule_only> ranking method
 
@@ -149,41 +165,20 @@ The C<high_rule_only> ranking method
 can reduce the ambiguity of a parse,
 but it does not necessarily do so.
 This is because, at each choicepoint among the parse trees,
-it is possible that several of the choices,
-or all of them, will have the same rank
-as the highest ranked choice.
+it is possible that all of the the choices
+will have the same choice key.
+
+=head1 The symbolic subkey
+
+Every rule alternative has a numeric B<symbolic rank>.
+A rule's rank can be specified using the
+the C<rank> adverb
+argument for that RHS alternative.
+Rule ranks must be integers.
+They may be negative.
+If no numeric rank is specified, the numeric rank is 0.
 
 =head1 Rule ranking
-
-At each choicepoint,
-the choices
-are ranked as follows:
-
-=over
-
-=item * B<Different numeric ranks>:
-
-If the two parse choices have different numeric ranks,
-they must also have different rule alternatives.
-The parse choice whose rule alternative has the higher numeric rank
-will rank high.
-
-=item * B<Same rule alternative>:
-
-If the two parse choices have the same rule alternative,
-they rank as described
-under L<"Null variant ranking">.
-
-=item * B<Same numeric rank, different rule alternatives>:
-
-Two different rule alternatives can have the same numeric rank.
-If the two parse choices are for
-rule alternatives that are different,
-but that have the same numeric rank,
-the relative order of the two parse choices is
-arbitrary.
-
-=back
 
 Rule alternatives may be part of a single rule in the DSL --
 for example, a
