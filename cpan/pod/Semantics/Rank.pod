@@ -386,57 +386,6 @@ their null ranking is the same.
 
 =back
 
-The preceding part of this section contains all most users will need to know
-about the iteration algorithm.
-The rest of this section describes the iteration algorithm in
-detail.
-
-Every node of a parse tree corresponds to a choice
-from a choicepoint of the parse forest.
-An B<initial parse subtree> is the subtree formed from
-an choicepoint-rooted subforest by taking all the first choices of its choicepoints.
-
-The B<initial parse tree> is the initial parse subtree formed
-from the subforest whose root in the root of the forest.
-In other words, the initial parse tree is the tree formed
-by taking the first choices of the entire forest.
-
-The first parse tree in the iterator of a parse forest
-is the initial parse tree.
-
-For the second and later parse trees, the next parse tree
-is found by traversing the current parse tree from the
-bottom up, left to right.
-Every node of the parse tree will correspond to a choicepoint
-of the parse forest, and a choice within that choicepoint.
-If the current choice of its choicepoint is the last choice
-of that choicepoint,
-we say that that node of the parse tree is B<exhausted>.
-If a parse tree node is not B<exhausted>,
-we say that is B<active>.
-
-As the traversal of the parse tree encounters
-exhausted nodes, it prunes them from the tree.
-The traversal ends when it encounters an active parse
-tree node.
-We call that active parse tree the B<iteration parse tree node>.
-
-Once the iteration parse tree node has been found,
-it is replaced with a new tree node
-which corresponds to the next choice of the choicepoint
-of the iteration parse tree node.
-
-The remaining tree will have missing subtrees due to the replacement
-of the iteration parse tree node,
-and to the pruning of exhausted nodes.
-These subtrees are replaced with initial parse subtrees.
-
-When the entire parse tree is traversed without finding
-an active parse tree node,
-there are no more parse trees.
-In that case,
-the parse forest iterator is said to be B<exhausted>.
-
 =head1 Motivation
 
 We note that ranking is only by B<direct> tributaries.
@@ -716,6 +665,221 @@ normalize-whitespace: 1
   VAR ~ [\w]+
 
 =for Marpa::R2::Display::End
+
+=head1 Details
+
+This section contains explanations which are not essential
+for programming,
+but which justify the assertions in this document.
+
+=head2 Choicepoints
+
+When ranking, the logic traverses each node
+of a parse forest, which we call a "bocage".
+Our parse forests closely
+resemble
+Elizabeth Scott's SPPF's.
+See L<Marpa::R2::Advanced::Bibliography/"Scott 2008">.
+
+Ranking is done at B<choicepoints>.
+These are the or-nodes of the bocage.
+They closely resemble the or-nodes of traditional parse forests.
+
+An or-node is similar to
+an Earley item with confluences:
+it has a dotted rule, an origin,
+a current location, and
+a set of confluences.
+For more about Earley items and confluences,
+see L<our document on the Marpa
+algorithm|Marpa::R2::Algorithm>.
+
+Predictions and the start Earley item are redundant information
+from the point of of the bocage,
+and no or-nodes are created for them.
+Therefore choicepoints exist only for scanned Earley items and reductions.
+
+Every confluence linked to an Earley item is called a "choice".
+Since choicepoints are always either scanned Earley items or
+reductions,
+they always have a well-defined mainstem
+and a well-defined tributary.
+
+A confluence is a reason for the choicepoint to be in the parse
+forest.
+Every choicepoint has at least one reason to be
+in the parse forest, or it would not be there.
+Therefore every Earley item has at least one confluence.
+In an ambiguous parse, one or more Earley items will
+have more than one confluence.
+A parse tree is created by selecting a single
+confluence (or reason to exist) for each or-node.
+
+Since every choicepoint has exactly one dotted rule,
+exactly one current location,
+and exactly one origin,
+a choicepoint has exactly one mainstem.
+All the choices for that choicepoint share that mainstem.
+Because every choicepoint
+has a single mainstem
+and is either a scanned Earley item or a reduction,
+every choicepoint has exactly one predot symbol.
+
+Ranks are assigned based on the symbolic differences of choices.
+As we have just seen, every choice has the same mainstem,
+so ranks must be assigned to choices based on
+symbolic differences in their tributaries.
+
+A tributary of a scanned choicepoint has only one symbol --
+the token symbol.
+The token symbol must also be the predot symbol of the choicepoint.
+We have seen that there is exactly one predot symbol for every choicepoint,
+so the token symbols of the choices of a scanned choicepoint must
+all be the same.
+This implies that the choices of a scanned choicepoint will all have
+the same rank.
+
+If a choicepoint is a reduction,
+the tributaries of its choices
+will be completions,
+and each tributary have a rule associated with it.
+The LHS of the rule for each choice in a choicepoint
+will be the predot symbol of the choicepoint.
+This means that the rules of the tributaries of choices in a choicepoint
+must share the same LHS.
+Rules of the tributaries of choices in a choicepoint
+can have different RHS's, however,
+and therefore can differ in symbolic rank.
+
+If all the choices at a choicepoint have the same rank,
+we say that the choicepoint is B<trivial>.
+We have just seen that the choices of a scanned choicepoint will all have
+the same rank,
+so that every scanned choicepoint must be trivial.
+It follows that every non-trivial choicepoint
+will be a reduction.
+
+=head2 Ambiguous choicepoints
+
+If there is only one choice at a choicepoint,
+we say that the choicepoint is a B<singleton choicepoint>.
+Every singleton choicepoint is trivial,
+but some trivial choicepoints are not singletons.
+
+A choicepoint is B<ambiguous> if and only if
+it is not a singleton.
+All non-trival choicepoints are ambiguous,
+but some trivial choicepoints are also ambiguous.
+This is because choices at choicepoints may differ not just symbolically,
+but in the way in which the symbols divide up the input
+string -- the way in which they "factor" the input.
+Choices which have the same symbols,
+but which are factored differently,
+will have the same rank.
+For more about symbolic choices (also called B<symches>)
+and factorings, see
+L<Marpa::R2::Glade/"Ambiguity: factoring versus symches">.
+
+As we have noted,
+a scanned choicepoint is never non-trivial,
+but a scanned choicepoint may be ambigous if variable length tokens are in use.
+Usually variable length tokens are not in use,
+and all scanned choicepoint are both trivial and singletons.
+
+A reduction choicepoint may be both non-trivial and ambiguous.
+If a reduction choicepoint is non-trivial,
+it must differ symbolically from the other choices of that choicepoint.
+The mainstem and predot symbol of all the choices in a choicepoint are always
+identical, so that if the choices in a reduction choicepoint differ symbolically,
+the tributaries of the reduction choices must have different rules.
+The predot symbol of a reduction choice is always the LHS of the rule
+of its tributary,
+so that if two reduction choices differ symbolically,
+they must be for two distinct rules which share the same LHS.
+
+=head2 Iterating the parses
+
+Iteration of the parse forest is depth-first, left-to-right.
+Choices are ordered from major to minor
+
+=over 4
+
+=item *
+
+by symbolic rank; and
+
+=item *
+
+if null-ranking has been selected,
+by the appropriate null-ranking.
+
+=back
+
+The order of two choices is arbitary if they
+have same symbolic rank and
+
+=over 4
+
+=item *
+
+null ranking has not been selected or
+
+=item *
+
+their null ranking is the same.
+
+=back
+
+The preceding part of this section contains all most users will need to know
+about the iteration algorithm.
+The rest of this section describes the iteration algorithm in
+detail.
+
+Every node of a parse tree corresponds to a choice
+from a choicepoint of the parse forest.
+An B<initial parse subtree> is the subtree formed from
+an choicepoint-rooted subforest by taking all the first choices of its choicepoints.
+
+The B<initial parse tree> is the initial parse subtree formed
+from the subforest whose root in the root of the forest.
+In other words, the initial parse tree is the tree formed
+by taking the first choices of the entire forest.
+
+The first parse tree in the iterator of a parse forest
+is the initial parse tree.
+
+For the second and later parse trees, the next parse tree
+is found by traversing the current parse tree from the
+bottom up, left to right.
+Every node of the parse tree will correspond to a choicepoint
+of the parse forest, and a choice within that choicepoint.
+If the current choice of its choicepoint is the last choice
+of that choicepoint,
+we say that that node of the parse tree is B<exhausted>.
+If a parse tree node is not B<exhausted>,
+we say that is B<active>.
+
+As the traversal of the parse tree encounters
+exhausted nodes, it prunes them from the tree.
+The traversal ends when it encounters an active parse
+tree node.
+We call that active parse tree the B<iteration parse tree node>.
+
+Once the iteration parse tree node has been found,
+it is replaced with a new tree node
+which corresponds to the next choice of the choicepoint
+of the iteration parse tree node.
+
+The remaining tree will have missing subtrees due to the replacement
+of the iteration parse tree node,
+and to the pruning of exhausted nodes.
+These subtrees are replaced with initial parse subtrees.
+
+When the entire parse tree is traversed without finding
+an active parse tree node,
+there are no more parse trees.
+In that case,
+the parse forest iterator is said to be B<exhausted>.
 
 =head1 Copyright and License
 
