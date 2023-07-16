@@ -230,30 +230,19 @@ major-to-minor is left-to-right.
 
 =head1 Choicepoints
 
-When ranking, the logic traverses each node
-of a parse forest, which we call a "bocage".
-Our parse forests closely
-resemble
-Elizabeth Scott's SPPF's.
-See L<Marpa::R2::Advanced::Bibliography/"Scott 2008">.
-
 Ranking is done at B<choicepoints>.
-These are the or-nodes of the bocage.
-They closely resemble the or-nodes of traditional parse forests.
+These are the or-nodes of our parse forest,
+which we also call a "bocage".
 
 An or-node is similar to
 an Earley item with confluences:
 it has a dotted rule, an origin,
-a current location, and
-a set of confluences.
+and a current location.
+An Earley item has confluences,
+and the choices of an or-node also have confluences.
 For more about Earley items and confluences,
 see L<our document on the Marpa
 algorithm|Marpa::R2::Algorithm>.
-
-Predictions and the start Earley item are redundant information
-from the point of of the bocage,
-and no or-nodes are created for them.
-Therefore choicepoints exist only for scanned Earley items and reductions.
 
 Every confluence linked to an Earley item is called a "choice".
 Since choicepoints are always either scanned Earley items or
