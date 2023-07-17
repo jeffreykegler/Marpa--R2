@@ -230,19 +230,40 @@ major-to-minor is left-to-right.
 
 =head1 Choicepoints
 
-Ranking is done at B<choicepoints>.
-These are the or-nodes of our parse forest,
-which we also call a "bocage".
+Ranking is done at the or-nodes of our parse forest,
+We also call our parse forest a B<bocage>.
+In the context of ranking, we usually refer to the
+or-nodes as B<choicepoints>.
 
 An or-node is similar to
-an Earley item with confluences:
+an Earley item:
 it has a dotted rule, an origin,
-and a current location.
-An Earley item has confluences,
-and the choices of an or-node also have confluences.
-For more about Earley items and confluences,
-see L<our document on the Marpa
+and a current location
+and a set of confluences.
+The confluences, in turn, each can have
+a mainstem and a tributary.
+To refresh out knowledge about Earley items and confluences,
+we can refer to L<our document on the Marpa
 algorithm|Marpa::R2::Algorithm>.
+
+In the context of ranking and choicepoints,
+confluences are more called B<choices>.
+If there is only one choice at a choicepoint,
+we say that the choicepoint is a B<singleton choicepoint>.
+If a choicepoint is not a singleton,
+we say that it is an B<ambiguous choicepoint>.
+
+If all the choices of a choicepoint have the same
+choice keys,
+we say that that the choicepoint is B<trivial>.
+A choicepoint is B<non-trivial> if and only if it is not
+trivial.
+
+Every singleton choicepoint is trivial,
+but some trivial choicepoints are not singletons.
+This is because two or more choices of a choicepoint can share
+the same the choice key.
+
 
 Every confluence linked to an Earley item is called a "choice".
 Since choicepoints are always either scanned Earley items or
@@ -305,11 +326,6 @@ It follows that every non-trivial choicepoint
 will be a reduction.
 
 =head1 Ambiguous choicepoints
-
-If there is only one choice at a choicepoint,
-we say that the choicepoint is a B<singleton choicepoint>.
-Every singleton choicepoint is trivial,
-but some trivial choicepoints are not singletons.
 
 A choicepoint is B<ambiguous> if and only if
 it is not a singleton.
