@@ -136,8 +136,6 @@ The symbolic subkey is so called because it is based
 on the symbols of the choice.
 The null-variant subkey is based on the location of the
 choice's nulled symbol instances.
-
-Choices with the same choice key are ranked arbitrarily.
 Choicepoints, choices and subkeys are described in much
 more detail below.
 
@@ -263,6 +261,7 @@ we say that the choicepoint is a B<singleton choicepoint>.
 If a choicepoint is not a singleton,
 we say that it is an B<ambiguous choicepoint>.
 
+Choices with the same choice key are ranked arbitrarily.
 If all the choices of a choicepoint have the same
 choice keys,
 we say that that the choicepoint is B<trivial>.
@@ -274,54 +273,17 @@ but some trivial choicepoints are not singletons.
 This is because two or more choices of a choicepoint can share
 the same choice key.
 
-[ TO HERE ]
+Within a choicepoint,
+the mainstems and the LHS of the rules in tributaries
+must always be the same.
+(For the explanation of why this is the case,
+see L</"Explanations">.)
+Therefore, when the symbolic subkeys of two
+choices within the same choicepoint differ,
+they will differ only in the RHS of the rules
+of their tributaries.
 
 Iteration of the parse forest is depth-first, left-to-right.
-Choices are ordered from major to minor
-
-=head1 Motivation
-
-We note that ranking is only by B<direct> tributaries.
-It might reasonably be asked,
-why not, at least in the case of a tie,
-look at tributaries of tributaries?
-Or why not resolve ties by looking at tributaries of
-mainstems?
-
-Marpa's built-in rule ranking
-was chosen as the most powerful system
-that could be implemented with effectively
-zero cost.
-Ranking by direct tributaries uses only information
-that is quickly and directly available,
-so that its runtime cost is probably
-not measurable.
-
-The complexity of the specification was also an issue.
-If indirect tributaries are taken into account,
-we would need to specify which tributaries,
-and under what circumstances they are used.
-Only tributaries of tributaries?
-Or tributaries of mainstems?
-Depth-first, or breadth-first?
-Only in case of ties, or using a more complex metric?
-To arbitrary depth, or using a traversal that is
-cut off at some point?
-
-If we do ranking by direct tributaries only,
-that make the answers
-to the above questions as simple as it can be.
-Once we get into analyzing the synopsis grammar in detail,
-the importance having a specification that is
-(relatively) simple will become clear.
-
-To be sure,
-there are apps
-whose requirements justify extra overhand and extra
-complexity.
-For these apps,
-L<Marpa's ASF's|Marpa::R2::ASF>
-allow full generality in ranking.
 
 =head1 Examples
 
@@ -559,7 +521,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 Details
+=head1 Explanations
 
 This section contains explanations which are not essential
 for programming,
@@ -773,6 +735,50 @@ an active parse tree node,
 there are no more parse trees.
 In that case,
 the parse forest iterator is said to be B<exhausted>.
+
+=head1 Motivation
+
+We note that ranking is only by B<direct> tributaries.
+It might reasonably be asked,
+why not, at least in the case of a tie,
+look at tributaries of tributaries?
+Or why not resolve ties by looking at tributaries of
+mainstems?
+
+Marpa's built-in rule ranking
+was chosen as the most powerful system
+that could be implemented with effectively
+zero cost.
+Ranking by direct tributaries uses only information
+that is quickly and directly available,
+so that its runtime cost is probably
+not measurable.
+
+The complexity of the specification was also an issue.
+If indirect tributaries are taken into account,
+we would need to specify which tributaries,
+and under what circumstances they are used.
+Only tributaries of tributaries?
+Or tributaries of mainstems?
+Depth-first, or breadth-first?
+Only in case of ties, or using a more complex metric?
+To arbitrary depth, or using a traversal that is
+cut off at some point?
+
+If we do ranking by direct tributaries only,
+that make the answers
+to the above questions as simple as it can be.
+Once we get into analyzing the synopsis grammar in detail,
+the importance having a specification that is
+(relatively) simple will become clear.
+
+To be sure,
+there are apps
+whose requirements justify extra overhand and extra
+complexity.
+For these apps,
+L<Marpa's ASF's|Marpa::R2::ASF>
+allow full generality in ranking.
 
 =head1 Copyright and License
 
