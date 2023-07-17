@@ -246,6 +246,16 @@ To refresh out knowledge about Earley items and confluences,
 we can refer to L<our document on the Marpa
 algorithm|Marpa::R2::Algorithm>.
 
+A confluence is a reason for the choicepoint to be in the parse
+forest.
+Every choicepoint has at least one reason to be
+in the parse forest, or it would not be there.
+Therefore every Earley item has at least one confluence.
+In an ambiguous parse, one or more Earley items will
+have more than one confluence.
+A parse tree is created by selecting a single
+confluence (or reason to exist) for each or-node.
+
 In the context of ranking and choicepoints,
 confluences are more called B<choices>.
 If there is only one choice at a choicepoint,
@@ -262,68 +272,9 @@ trivial.
 Every singleton choicepoint is trivial,
 but some trivial choicepoints are not singletons.
 This is because two or more choices of a choicepoint can share
-the same the choice key.
+the same choice key.
 
-
-Every confluence linked to an Earley item is called a "choice".
-Since choicepoints are always either scanned Earley items or
-reductions,
-they always have a well-defined mainstem
-and a well-defined tributary.
-
-A confluence is a reason for the choicepoint to be in the parse
-forest.
-Every choicepoint has at least one reason to be
-in the parse forest, or it would not be there.
-Therefore every Earley item has at least one confluence.
-In an ambiguous parse, one or more Earley items will
-have more than one confluence.
-A parse tree is created by selecting a single
-confluence (or reason to exist) for each or-node.
-
-Since every choicepoint has exactly one dotted rule,
-exactly one current location,
-and exactly one origin,
-a choicepoint has exactly one mainstem.
-All the choices for that choicepoint share that mainstem.
-Because every choicepoint
-has a single mainstem
-and is either a scanned Earley item or a reduction,
-every choicepoint has exactly one predot symbol.
-
-Ranks are assigned based on the symbolic differences of choices.
-As we have just seen, every choice has the same mainstem,
-so ranks must be assigned to choices based on
-symbolic differences in their tributaries.
-
-A tributary of a scanned choicepoint has only one symbol --
-the token symbol.
-The token symbol must also be the predot symbol of the choicepoint.
-We have seen that there is exactly one predot symbol for every choicepoint,
-so the token symbols of the choices of a scanned choicepoint must
-all be the same.
-This implies that the choices of a scanned choicepoint will all have
-the same rank.
-
-If a choicepoint is a reduction,
-the tributaries of its choices
-will be completions,
-and each tributary have a rule associated with it.
-The LHS of the rule for each choice in a choicepoint
-will be the predot symbol of the choicepoint.
-This means that the rules of the tributaries of choices in a choicepoint
-must share the same LHS.
-Rules of the tributaries of choices in a choicepoint
-can have different RHS's, however,
-and therefore can differ in symbolic rank.
-
-If all the choices at a choicepoint have the same rank,
-we say that the choicepoint is B<trivial>.
-We have just seen that the choices of a scanned choicepoint will all have
-the same rank,
-so that every scanned choicepoint must be trivial.
-It follows that every non-trivial choicepoint
-will be a reduction.
+[ TO HERE ]
 
 =head1 Ambiguous choicepoints
 
