@@ -338,6 +338,54 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+To see how ranking works in this grammar,
+we note that every non-trivial choicepoint
+has a predot symbol that is the LHS of more
+than one rule.
+Therefore, in the above grammar,
+a choicepoint must
+have one of these dotted rules:
+
+=for Marpa::R2::Display
+ignore: 1
+
+     Top ::= List .
+     List ::= List . Item3
+     List ::= List . Item2
+     List ::= List . Item1
+
+=for Marpa::R2::Display::End
+
+The tributary of these choicepoints
+may be any one of
+
+=for Marpa::R2::Display
+ignore: 1
+
+     List ::= Item3 .
+     List ::= Item2 .
+     List ::= Item1 .
+     List ::= List Item3 .
+     List ::= List Item2 .
+     List ::= List Item1 .
+
+=for Marpa::R2::Display::End
+
+A little effort shows that C<< <Item2> >> never
+participates in an ambiguity,
+so that these are the possible tributaries
+in non-trivial choicepoints:
+
+=for Marpa::R2::Display
+ignore: 1
+
+     List ::= Item1 .
+     List ::= List Item1 .
+     List ::= Item3 .
+     List ::= List Item3 .
+
+=for Marpa::R2::Display::End
+
 =head2 Shortest highest, version 1
 
 Here we see the grammar of the synopsis,
