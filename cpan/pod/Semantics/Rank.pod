@@ -163,9 +163,9 @@ have a rank lower than that of the highest ranked choice.
 The C<high_rule_only> ranking method
 can reduce the ambiguity of a parse,
 but it does not necessarily do so.
-This is because, at each choicepoint among the parse trees,
-it is possible that all of the the choices
-will have the same choice key.
+This is because a choice with the highest choice key
+can have one or more siblings
+with the same choice key.
 
 =head1 The symbolic subkey
 
@@ -177,8 +177,6 @@ Rule ranks must be integers.
 They may be negative.
 If no numeric rank is specified, the numeric rank is 0.
 
-=head1 Rule ranking
-
 Rule alternatives may be part of a single rule in the DSL --
 for example, a
 L<prioritized rule|Marpa::R2::Scanless::DSL/"Prioritized rule">.
@@ -188,7 +186,7 @@ For example, it makes no difference if two rule alternatives
 come from the same prioritized rule;
 or from two different prioritized rules.
 
-=head1 Null variant ranking
+=head1 The null-variant subkey
 
 Some rules have a RHS which contains
 B<proper nullables>:
