@@ -578,11 +578,7 @@ normalize-whitespace: 1
 
 =head1 Explanations
 
-This section contains explanations which are not essential
-for programming,
-but which justify the assertions in this document.
-
-=head2 Choicepoints
+=head2 Bocages
 
 When ranking, the logic traverses each node
 of a parse forest, which we call a "bocage".
@@ -591,63 +587,53 @@ resemble
 Elizabeth Scott's SPPF's.
 See L<Marpa::R2::Advanced::Bibliography/"Scott 2008">.
 
-Ranking is done at B<choicepoints>.
-These are the or-nodes of the bocage.
-They closely resemble the or-nodes of traditional parse forests.
+=head2 Choicepoint only for confirmations
 
-An or-node is similar to
-an Earley item with confluences:
-it has a dotted rule, an origin,
-a current location, and
-a set of confluences.
-For more about Earley items and confluences,
-see L<our document on the Marpa
-algorithm|Marpa::R2::Algorithm>.
+An Earley item (and a choicepoint) is a confirmation
+if and only if its dot position is not zero.
+Confirmations are either scanned Earley items or reductions.
+Non-confirmations (predictions and the start Earley item)
+are redundant information
+from the point of of the bocage.
+No or-nodes are created for non-confirmations
+and they can never be choicepoints.
 
-Predictions and the start Earley item are redundant information
-from the point of of the bocage,
-and no or-nodes are created for them.
-Therefore choicepoints exist only for scanned Earley items and reductions.
-
-Every confluence linked to an Earley item is called a "choice".
 Since choicepoints are always either scanned Earley items or
 reductions,
-they always have a well-defined mainstem
+all the choices of every choicepoint have a well-defined mainstem
 and a well-defined tributary.
 
-A confluence is a reason for the choicepoint to be in the parse
-forest.
-Every choicepoint has at least one reason to be
-in the parse forest, or it would not be there.
-Therefore every Earley item has at least one confluence.
-In an ambiguous parse, one or more Earley items will
-have more than one confluence.
-A parse tree is created by selecting a single
-confluence (or reason to exist) for each or-node.
+=head2 Choicepoint mainstem is unique
 
 Since every choicepoint has exactly one dotted rule,
 exactly one current location,
 and exactly one origin,
-a choicepoint has exactly one mainstem.
+every choicepoint has exactly one mainstem.
 All the choices for that choicepoint share that mainstem.
 Because every choicepoint
 has a single mainstem
 and is either a scanned Earley item or a reduction,
 every choicepoint has exactly one predot symbol.
 
-Ranks are assigned based on the symbolic differences of choices.
-As we have just seen, every choice has the same mainstem,
-so ranks must be assigned to choices based on
-symbolic differences in their tributaries.
+=head2 Scanned choicepoints are always trivial
 
-A tributary of a scanned choicepoint has only one symbol --
-the token symbol.
-The token symbol must also be the predot symbol of the choicepoint.
-We have seen that there is exactly one predot symbol for every choicepoint,
-so the token symbols of the choices of a scanned choicepoint must
-all be the same.
-This implies that the choices of a scanned choicepoint will all have
-the same rank.
+The tributary of a scanned choicepoint is a token,
+which has a value and a token symbol.
+The token value plays no role in ranking.
+The token symbol is always the same as the predot symbol.
+
+The token symbol can be assigned a rank,
+but this is pointless since there is only one predot symbol
+in a choicepoint,
+all token symbols will be equal to the predot symbol,
+and therefore all token symbols of sibling choices will be the same.
+
+Since there is not rule for the tributary of a scanned choicepoint,
+it also has no null-variants.
+Therefore all choices of scanned choicepoints rank the same,
+and all scanned choicepoints are trivial.
+
+=head2 TO HERE
 
 If a choicepoint is a reduction,
 the tributaries of its choices
