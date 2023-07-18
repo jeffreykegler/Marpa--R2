@@ -125,6 +125,8 @@ Rule ranking takes place at the nodes of the parse forest.
 In the context of rule ranking,
 the parse forest nodes are called B<choicepoints>.
 Every choicepoint has one or more B<choices>.
+Choices that are from the same choicepoint
+are called B<siblings>.
 
 Choices are ordered by their B<choice key>.
 The choice key consists of two subkeys:
@@ -236,11 +238,11 @@ or-nodes as B<choicepoints>.
 An or-node is similar to
 an Earley item:
 it has a dotted rule, an origin,
-and a current location
+a current location,
 and a set of confluences.
 The confluences, in turn, each can have
 a mainstem and a tributary.
-To refresh out knowledge about Earley items and confluences,
+To refresh our knowledge about Earley items and confluences,
 we can refer to L<our document on the Marpa
 algorithm|Marpa::R2::Algorithm>.
 
@@ -255,7 +257,7 @@ A parse tree is created by selecting a single
 confluence (or reason to exist) for each or-node.
 
 In the context of ranking and choicepoints,
-confluences are more called B<choices>.
+confluences are more often called B<choices>.
 If there is only one choice at a choicepoint,
 we say that the choicepoint is a B<singleton choicepoint>.
 If a choicepoint is not a singleton,
@@ -263,15 +265,14 @@ we say that it is an B<ambiguous choicepoint>.
 
 Choices with the same choice key are ranked arbitrarily.
 If all the choices of a choicepoint have the same
-choice keys,
+choice key,
 we say that that the choicepoint is B<trivial>.
 A choicepoint is B<non-trivial> if and only if it is not
 trivial.
 
 Every singleton choicepoint is trivial,
 but some trivial choicepoints are not singletons.
-This is because two or more choices of a choicepoint can share
-the same choice key.
+This is because sibling choices can share the same choice key.
 
 Within a choicepoint,
 the mainstems and the LHS of the rules in tributaries
@@ -283,7 +284,15 @@ choices within the same choicepoint differ,
 they will differ only in the RHS of the rules
 of their tributaries.
 
+The B<predot symbol> of a choicepoint is the
+predot symbol of its dotted rule.
+The LHS of the tributary rules of a choicepoint's
+choices is always the same as
+the predot symbol of that choicepoint.
+
 Iteration of the parse forest is depth-first, left-to-right.
+An detailed explanation of the parse forest interation
+is in L</"Explanations">.
 
 =head1 Examples
 
