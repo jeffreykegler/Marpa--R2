@@ -712,9 +712,10 @@ it is replaced with a new tree node
 which corresponds to the next choice of the choicepoint
 of the iteration parse tree node.
 
-The remaining tree will have missing subtrees due to the replacement
+The remaining tree will have missing subtrees,
+due to the replacement
 of the iteration parse tree node,
-and to the pruning of exhausted nodes.
+and due to the pruning of exhausted nodes.
 These subtrees are replaced with initial parse subtrees.
 
 When the entire parse tree is traversed without finding
@@ -753,14 +754,13 @@ To arbitrary depth, or using a traversal that is
 cut off at some point?
 
 If we do ranking by direct tributaries only,
-that make the answers
+that makes the answers
 to the above questions as simple as it can be.
-Once we get into analyzing the synopsis grammar in detail,
-the importance having a specification that is
-(relatively) simple will become clear.
+When we try to analyze the behavior of grammars that use rankings,
+the importance of having a specification that is
+(relatively) simple becomes clear.
 
-To be sure,
-there are apps
+There are apps
 whose requirements justify extra overhand and extra
 complexity.
 For these apps,
