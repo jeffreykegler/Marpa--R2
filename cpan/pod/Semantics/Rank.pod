@@ -248,11 +248,11 @@ A confluence is a reason for the choicepoint to be in the parse
 forest.
 Every choicepoint has at least one reason to be
 in the parse forest, or it would not be there.
-Therefore every Earley item has at least one confluence.
-In an ambiguous parse, one or more Earley items will
+Therefore every choicepoint has at least one confluence.
+In an ambiguous parse, one or more choicepoints will
 have more than one confluence.
 A parse tree is created by selecting a single
-confluence (or reason to exist) for each or-node.
+confluence (or reason to exist) at each choicepoint.
 
 In the context of ranking and choicepoints,
 confluences are more often called B<choices>.
@@ -272,13 +272,13 @@ Every singleton choicepoint is trivial,
 but some trivial choicepoints are not singletons.
 This is because sibling choices can share the same choice key.
 
-Within a choicepoint,
+Within a non-trivial choicepoint,
 the mainstems and the LHS of the rules in tributaries
 must always be the same.
 (For the explanation of why this is the case,
 see L</"Explanations">.)
 Therefore, when the symbolic subkeys of two
-choices within the same choicepoint differ,
+choices within the same non-trivial choicepoint differ,
 they will differ only in the RHS of the rules
 of their tributaries.
 
@@ -339,8 +339,8 @@ partial: 1
 =for Marpa::R2::Display::End
 
 To see how ranking works in this grammar,
-we note that every non-trivial choicepoint
-has a predot symbol that is the LHS of more
+we note that, for a choicepoint to be non-trivial,
+it must have a predot symbol that is the LHS of more
 than one rule.
 Therefore, in the above grammar,
 a choicepoint must
@@ -492,7 +492,7 @@ The pure BNF reimplementations below rely on an observation:
 The parse string becomes easier to analyze
 when we think in terms of fenceposts,
 rather than in term of the location of the lexemes.
-Fencepost are either initial, final or medial.
+Fenceposts are either initial, final or medial.
 The B<initial fencepost> is the position before the first lexeme.
 The B<final fencepost> is the position after the last lexeme.
 A B<medial fencepost> is the position between two lexemes.
@@ -587,7 +587,7 @@ resemble
 Elizabeth Scott's SPPF's.
 See L<Marpa::R2::Advanced::Bibliography/"Scott 2008">.
 
-=head2 Choicepoint only for confirmations
+=head2 Only confirmations are choicepoints
 
 An Earley item (and a choicepoint) is a confirmation
 if and only if its dot position is not zero.
@@ -611,8 +611,7 @@ and exactly one origin,
 every choicepoint has exactly one mainstem.
 All the choices for that choicepoint share that mainstem.
 Because every choicepoint
-has a single mainstem
-and is either a scanned Earley item or a reduction,
+has exactly one mainstem,
 every choicepoint has exactly one predot symbol.
 
 =head2 Scanned choicepoints are always trivial
@@ -623,13 +622,19 @@ The token value plays no role in ranking.
 The token symbol is always the same as the predot symbol.
 
 The token symbol can be assigned a rank,
-but this is pointless since there is only one predot symbol
+but this is pointless:
+Since there is only one predot symbol
 in a choicepoint,
 all token symbols will be equal to the predot symbol,
 and therefore all token symbols of sibling choices will be the same.
 
-Since there is not rule for the tributary of a scanned choicepoint,
-it also has no null-variants.
+Because every symbol in a choice of a scanned choicepoint
+is the same, the symbolic subkeys of all the sibling choices
+of a scanned choicepoint must be identical to each other.
+Since there is no BNF rule for the tributary of a scanned choicepoint,
+the choices of a scanned choicepoint also have no null-variants.
+This means that the choice keys of the sibling choices in
+a scanned choicepoint are always identical to each other.
 Therefore all choices of scanned choicepoints rank the same,
 and all scanned choicepoints are trivial.
 
@@ -644,14 +649,15 @@ Since every scanned choicepoint must be trivial,
 every non-trivial choicepoint will be a reduction.
 If a choicepoint is a reduction,
 all of its tributaries will be other choicepoints,
-and each tributary have a dotted rule associated with it.
+and each tributary will have a dotted rule associated with it.
 The dotted rules of these tributaries
 will always be completions.
 The LHS of the rule of these tributaries
 will always be the predot symbol of the choicepoint.
-This means that the rules of the tributaries of choices in a choicepoint
+This means that the rules of the tributaries of
+the sibling choices in a reduction choicepoint
 must share the same LHS.
-Rules of the tributaries of choices in a choicepoint
+Rules of the tributaries of choices in a reduction choicepoint
 can have different RHS's, however,
 and therefore can differ in symbolic rank.
 
