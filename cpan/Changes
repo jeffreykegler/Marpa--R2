@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+13.001_000 (libmarpa 11.0.2) Wed 19 Jul 2023 01:58:42 PM EDT
+
+   * Rewrite docs on rule ranking methods.
+
 12.000000 (libmarpa 11.0.2) Sun 25 Dec 2022 09:31:30 AM EST
 
    * Work on documentation, Leo diagnostics
