@@ -191,6 +191,7 @@ meta/Makefile
 meta/make_internal_pm.pl
 pod/ASF.pod
 pod/Acknowledgements.pod
+pod/Algorithm.pod
 pod/Advanced/Bibliography.pod
 pod/Advanced/Input_Models.pod
 pod/Advanced/Thin.pod
