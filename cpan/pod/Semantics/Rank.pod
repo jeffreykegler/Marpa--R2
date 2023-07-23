@@ -761,7 +761,7 @@ the importance of having a specification that is
 (relatively) simple becomes clear.
 
 There are apps
-whose requirements justify extra overhand and extra
+whose requirements justify extra overhead and extra
 complexity.
 For these apps,
 L<Marpa's ASF's|Marpa::R2::ASF>
