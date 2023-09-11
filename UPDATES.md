@@ -102,6 +102,18 @@ is incorrect.  It should read as follows:
 > its trigger location and its event location are set to the current location,
 > which will be the location where the triggering instance both begins and ends.
 
+### Changes to discussion of ordering by rule
+
+The discussion of how to order rules in a Libmarpa parse has been
+reorganized and extensively rewritten.
+A new ["Algorithm"
+page](https://metacpan.org/release/JKEGL/Marpa-R2-13.002_000/view/pod/Algorithm.pod)
+has been added;
+and major changes were made to the ["Semantics/Order"
+page](https://metacpan.org/release/JKEGL/Marpa-R2-13.002_000/view/pod/Semantics/Order.pod)
+and to the ["Semantics/Rank"
+page](https://metacpan.org/release/JKEGL/Marpa-R2-13.002_000/view/pod/Semantics/Rank.pod)
+
 ## Notices
 
 ### No support for Perl 5.10.0
