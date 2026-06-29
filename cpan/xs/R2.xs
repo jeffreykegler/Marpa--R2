@@ -526,7 +526,7 @@ typedef struct
      Equivalent to Perl pos()
      One past last actual position indicates past-end-of-string
    */
-  /* Position of problem -- unspecifed if not returning a problem */
+  /* Position of problem -- unspecified if not returning a problem */
   int problem_pos;
   int throw;
   int start_of_pause_lexeme;

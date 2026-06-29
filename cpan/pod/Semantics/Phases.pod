@@ -275,7 +275,7 @@ The Parse Tree Setup Subphase.
 
 =item *
 
-The Parse Tree Traveral Subphase.
+The Parse Tree Traversal Subphase.
 
 =back
 

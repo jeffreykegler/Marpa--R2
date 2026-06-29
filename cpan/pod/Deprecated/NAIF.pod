@@ -79,7 +79,7 @@ normalize-whitespace: 1
 
 This document contains a top-level overview of,
 and tutorial for,
-the named argument inteface (NAIF) for the Marpa parse engine.
+the named argument interface (NAIF) for the Marpa parse engine.
 If you are a new to Marpa, you want to start with
 L<the tutorial for the
 the Scanless interface (SLIF)|Marpa::R2>

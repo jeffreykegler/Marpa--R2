@@ -548,7 +548,7 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-and here is the corresonding thin Marpa call:
+and here is the corresponding thin Marpa call:
 
 =for Marpa::R2::Display
 name: Thin example

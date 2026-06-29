@@ -28,7 +28,7 @@ PLEASE DO NOT USE IT FOR NEW DEVELOPMENT.
 This document deals with Marpa's low-level NAIF interface.
 If you are new to Marpa,
 or are not sure which interface you are interested in,
-or do not know what the Named Argment InterFace (NAIF) is,
+or do not know what the Named Argument InterFace (NAIF) is,
 you probably want to look instead at
 L<the document on semantics for the SLIF
 interface|Marpa::R2::Semantics>.
@@ -106,7 +106,7 @@ the call of the recognizer's C<value> method
 for that parse tree.
 It is followed by
 
-=item * a Tree Traveral Phase.
+=item * a Tree Traversal Phase.
 
 =back
 
