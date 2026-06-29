@@ -259,15 +259,12 @@ sub process_xs {
         push @new_ccflags, qw( -Wall -W
             -Wpointer-arith -Wstrict-prototypes -Wwrite-strings
             -Wmissing-declarations );
-        # -ansi undefs 'inline' on Android, which breaks
-        # the build since it's used by bionic's headers.
-        push @new_ccflags, '-ansi' if $^O ne 'android';
-        push @new_ccflags, '-Wdeclaration-after-statement' if gcc_is_at_least('3.4.6');
+        push @new_ccflags, '-std=c99';
     } ## end if ( $self->config('cc') eq 'gcc' )
     if ( defined $self->args('XS-debug') ) {
         say 'XS-debug flag is on';
         if ( $self->config('ccname') eq 'gcc' ) {
-            push @new_ccflags, qw( -Wall -ansi -pedantic -Wundef -Wendif-labels );
+            push @new_ccflags, qw( -Wall -std=c99 -pedantic -Wundef -Wendif-labels );
         } ## end if ( $self->config('cc') eq 'gcc' )
         elsif ( $self->config('ccname') eq 'cl' ){
             ## gcc's -Wundef is msvc's C4668 that is on with -Wall
