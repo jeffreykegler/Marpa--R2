@@ -365,18 +365,38 @@ if ( not $isDist ) {
 
       # Input and output files for tests
       'blog/dyck_hollerith/post1/dh_numbers.html' => \&ignored,
-      'blog/html_cfg_dsl/plot'                    => \&ignored,
-      'blog/html_config/css.html'                 => \&ignored,
-      'blog/iterative/test.in'                    => \&ignored,
-      'blog/iterative/test.out'                   => \&ignored,
-      'blog/json/test.json'                       => \&ignored,
-      'blog/search/test.in'                       => \&ignored,
-      'blog/search/test.out'                      => \&ignored,
-      'blog/sl/p1000.in'                          => \&ignored,
-      'blog/sl/re1000.out'                        => \&ignored,
-      'blog/slperl/test.in'                       => \&ignored,
-      'blog/slperl/test.out'                      => \&ignored,
-      'blog/whitespace/prefix.out'                => \&ignored,
+      'blog/html_cfg_dsl/plot'                  => \&ignored,
+      'blog/html_config/css.html'               => \&ignored,
+      'blog/iterative/test.in'                  => \&ignored,
+      'blog/iterative/test.out'                 => \&ignored,
+      'blog/json/test.json'                     => \&ignored,
+      'blog/search/test.in'                     => \&ignored,
+      'blog/search/test.out'                    => \&ignored,
+      'blog/sl/p1000.in'                        => \&ignored,
+      'blog/sl/re1000.out'                      => \&ignored,
+      'blog/slperl/test.in'                     => \&ignored,
+      'blog/slperl/test.out'                    => \&ignored,
+      'blog/whitespace/prefix.out'              => \&ignored,
+
+      # Libmarpa test files
+      'cpan/engine/read_only/tests/TESTS'                  => \&ignored,
+      'cpan/engine/read_only/tests/libtap.sh'              => \&ignored,
+      'cpan/engine/read_only/tests/runtests.c'             => \&ignored,
+      'cpan/engine/read_only/tests/simple/depr_unvalued.c' => \&ignored,
+      'cpan/engine/read_only/tests/simple/issue92a.c'      => \&ignored,
+      'cpan/engine/read_only/tests/simple/issue92b.c'      => \&ignored,
+      'cpan/engine/read_only/tests/simple/issue92c.c'      => \&ignored,
+      'cpan/engine/read_only/tests/simple/marpa_m_test.c'  => \&ignored,
+      'cpan/engine/read_only/tests/simple/marpa_m_test.h'  => \&ignored,
+      'cpan/engine/read_only/tests/simple/nits.c'          => \&ignored,
+      'cpan/engine/read_only/tests/simple/rule1.c'         => \&ignored,
+      'cpan/engine/read_only/tests/simple/trivial.c'       => \&ignored,
+      'cpan/engine/read_only/tests/simple/trivial1.c'      => \&ignored,
+      'cpan/engine/read_only/tests/tap/basic.c'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/basic.h'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/float.c'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/float.h'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/macros.h'           => \&ignored,
 
       # Very short files
       'blog/op3/try.sh'     => \&trivial,
@@ -407,7 +427,29 @@ if ($isDist) {
       "$dist/lib/Marpa/R2/Version.pm"          => \&trivial,
       "$dist/lib/Marpa/R2/Installed.pm"        => \&trivial,
       "$dist/lib/Marpa/R2.c"    => gen_license_problems_at_top($r2_c_license),
-      "$dist/xs/marpa_slifop.h" => gen_license_problems_at_top($r2_c_license);
+      "$dist/xs/marpa_slifop.h" => gen_license_problems_at_top($r2_c_license),
+
+      # Libmarpa test files
+      'cpan/engine/read_only/tests/TESTS'                  => \&ignored,
+      'cpan/engine/read_only/tests/libtap.sh'              => \&ignored,
+      'cpan/engine/read_only/tests/runtests.c'             => \&ignored,
+      'cpan/engine/read_only/tests/simple/depr_unvalued.c' => \&ignored,
+      'cpan/engine/read_only/tests/simple/issue92a.c'      => \&ignored,
+      'cpan/engine/read_only/tests/simple/issue92b.c'      => \&ignored,
+      'cpan/engine/read_only/tests/simple/issue92c.c'      => \&ignored,
+      'cpan/engine/read_only/tests/simple/marpa_m_test.c'  => \&ignored,
+      'cpan/engine/read_only/tests/simple/marpa_m_test.h'  => \&ignored,
+      'cpan/engine/read_only/tests/simple/nits.c'          => \&ignored,
+      'cpan/engine/read_only/tests/simple/rule1.c'         => \&ignored,
+      'cpan/engine/read_only/tests/simple/trivial.c'       => \&ignored,
+      'cpan/engine/read_only/tests/simple/trivial1.c'      => \&ignored,
+      'cpan/engine/read_only/tests/tap/basic.c'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/basic.h'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/float.c'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/float.h'            => \&ignored,
+      'cpan/engine/read_only/tests/tap/macros.h'           => \&ignored,
+      ;
+
 }
 
 my @libmarpaDist = ("$dist/engine/read_only");
